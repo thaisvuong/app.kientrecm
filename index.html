@@ -24,6 +24,13 @@
   @keyframes mv { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
   #ld.out { opacity: 0; pointer-events: none; }
   @media (prefers-color-scheme: dark) { html, body { background: #0E1424; } #ld { color: #C9D4F2; } #ld i { background: #1E2A48; } }
+  #pushSheet { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10; max-width: 460px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 18px 50px rgba(15,23,42,.28); padding: 14px; font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0F172A; animation: up .25s ease; }
+  #pushSheet .ps-b { display: flex; gap: 12px; align-items: center; } #pushSheet img { width: 44px; height: 44px; border-radius: 12px; }
+  #pushSheet b { display: block; font-size: 15px; } #pushSheet span { display: block; font-size: 12.5px; color: #475569; margin-top: 2px; }
+  #pushSheet .ps-a { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  #pushSheet button { height: 42px; border-radius: 12px; border: 1px solid #E2E8F0; background: #fff; font: 600 14px -apple-system, BlinkMacSystemFont, sans-serif; color: #334155; }
+  #pushSheet #psOk { background: #1D4ED8; border-color: #1D4ED8; color: #fff; }
+  @keyframes up { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
 </style>
 </head>
 <body>
@@ -40,9 +47,38 @@
   // Giữ hộ mã đăng nhập: trình duyệt có thể xoá bộ nhớ của app nằm trong khung (nhất là iPhone),
   // nên app gửi mã sang đây để lưu ở bộ nhớ của trang này. Chỉ nhận / trả cho khung app của Google.
   var KEY = 'kgsToken', OK = /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/;
+  // thông báo đẩy: service worker + quyền thông báo của máy nằm ở trang vỏ; app hỏi / bật / tắt qua postMessage
+  var REG = ('serviceWorker' in navigator) ? navigator.serviceWorker.register('sw.js').catch(function () { return null; }) : Promise.resolve(null);
+  var reply = function (e, m) { if (e.source) e.source.postMessage(m, e.origin); };
+  var b64 = function (s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var r = atob(s), a = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) a[i] = r.charCodeAt(i); return a; };
+  var pushStatus = function () {
+    var sup = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    var st = { kgs: 'push-status', supported: sup, standalone: matchMedia('(display-mode: standalone)').matches || navigator.standalone === true, perm: 'Notification' in window ? Notification.permission : 'unsupported', subscribed: false, ua: navigator.userAgent.slice(0, 120) };
+    if (!sup) return Promise.resolve(st);
+    return REG.then(function (reg) { return reg ? reg.pushManager.getSubscription() : null; }).then(function (s) { st.subscribed = !!s; return st; }).catch(function () { return st; });
+  };
+  var sheet = function (e, key) {
+    var old = document.getElementById('pushSheet'); if (old) old.remove();
+    var el = document.createElement('div'); el.id = 'pushSheet';
+    el.innerHTML = '<div class="ps-b"><img src="icons/icon-192.png" alt=""><div><b>Bật thông báo Kiến Trẻ CM?</b><span>Nhận ngay khi yêu cầu được duyệt, được giao lớp, buổi học có nội dung…</span></div></div><div class="ps-a"><button id="psNo">Để sau</button><button id="psOk">Bật thông báo</button></div>';
+    document.body.appendChild(el);
+    el.querySelector('#psNo').onclick = function () { el.remove(); reply(e, { kgs: 'push-err', msg: 'Bạn đã chọn để sau' }); };
+    el.querySelector('#psOk').onclick = function () {
+      Notification.requestPermission().then(function (perm) {
+        if (perm !== 'granted') throw new Error(perm === 'denied' ? 'Thông báo đang bị chặn trong cài đặt của máy' : 'Bạn chưa cho phép thông báo');
+        return REG.then(function (reg) { if (!reg) throw new Error('Không khởi động được bộ nhận thông báo'); return navigator.serviceWorker.ready; });
+      }).then(function (reg) { return reg.pushManager.getSubscription().then(function (s) { return s || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(key) }); }); })
+        .then(function (sub) { el.remove(); reply(e, { kgs: 'push-sub', sub: JSON.parse(JSON.stringify(sub)) }); })
+        .catch(function (x) { el.remove(); reply(e, { kgs: 'push-err', msg: String(x && x.message || x) }); });
+    };
+  };
+  if (navigator.clearAppBadge) document.addEventListener('visibilitychange', function () { if (!document.hidden) try { navigator.clearAppBadge(); } catch (x) {} });
   window.addEventListener('message', function (e) {
     if (!OK.test(e.origin) || !e.data || typeof e.data !== 'object') return;
     var d = e.data;
+    if (d.kgs === 'push-status' && d.supported === undefined) return void pushStatus().then(function (st) { reply(e, st); });
+    if (d.kgs === 'push-enable' && typeof d.key === 'string') return void sheet(e, d.key);
+    if (d.kgs === 'push-disable') return void REG.then(function (reg) { return reg && reg.pushManager.getSubscription(); }).then(function (s) { var ep = s && s.endpoint; return (s ? s.unsubscribe() : true).then(function () { reply(e, { kgs: 'push-off', endpoint: ep || '' }); }); }).catch(function () { reply(e, { kgs: 'push-off', endpoint: '' }); });
     if (d.kgs === 'get') { var t = ''; try { t = localStorage.getItem(KEY) || ''; } catch (x) {} if (e.source) e.source.postMessage({ kgs: 'token', token: t }, e.origin); }
     else if (d.kgs === 'set') { try { if (d.token && /^[\w-]{20,80}$/.test(d.token)) localStorage.setItem(KEY, d.token); else localStorage.removeItem(KEY); } catch (x) {} }
   });
