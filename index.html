@@ -37,6 +37,15 @@
   f.onload = function () { setTimeout(function () { ld.classList.add('out'); }, 400); };
   setTimeout(function () { ld.classList.add('out'); }, 15000);
   f.src = APP + '?' + q.toString();
+  // Giữ hộ mã đăng nhập: trình duyệt có thể xoá bộ nhớ của app nằm trong khung (nhất là iPhone),
+  // nên app gửi mã sang đây để lưu ở bộ nhớ của trang này. Chỉ nhận / trả cho khung app của Google.
+  var KEY = 'kgsToken', OK = /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/;
+  window.addEventListener('message', function (e) {
+    if (!OK.test(e.origin) || !e.data || typeof e.data !== 'object') return;
+    var d = e.data;
+    if (d.kgs === 'get') { var t = ''; try { t = localStorage.getItem(KEY) || ''; } catch (x) {} if (e.source) e.source.postMessage({ kgs: 'token', token: t }, e.origin); }
+    else if (d.kgs === 'set') { try { if (d.token && /^[\w-]{20,80}$/.test(d.token)) localStorage.setItem(KEY, d.token); else localStorage.removeItem(KEY); } catch (x) {} }
+  });
 </script>
 </body>
 </html>
