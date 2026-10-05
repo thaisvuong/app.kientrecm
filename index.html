@@ -16,7 +16,9 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
   html, body { margin: 0; height: 100%; background: #F1F5FB; overflow: hidden; }
-  #app { position: fixed; left: 0; right: 0; top: 0; bottom: env(safe-area-inset-bottom); width: 100%; height: calc(100% - env(safe-area-inset-bottom)); border: 0; display: block; background: transparent; }
+  /* khung app phủ kín tới đáy màn hình; app tự chừa vùng thanh Home (nhận số đo qua postMessage 'safe') → thanh tab nằm sát đáy như app thật */
+  #app { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: transparent; }
+  #sab { position: fixed; left: 0; bottom: 0; width: 0; height: env(safe-area-inset-bottom); pointer-events: none; visibility: hidden; }
   #ld { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font: 600 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1B2A6B; transition: opacity .3s; }
   #ld img { width: 72px; height: 72px; border-radius: 20px; box-shadow: 0 10px 30px rgba(27,42,107,.25); }
   #ld i { width: 140px; height: 4px; border-radius: 4px; background: #DCE4F5; overflow: hidden; position: relative; }
@@ -34,6 +36,7 @@
 </style>
 </head>
 <body>
+<div id="sab"></div>
 <div id="ld"><img src="icons/icon-192.png" alt=""><span>Đang mở Kiến Trẻ CM…</span><i></i></div>
 <iframe id="app" title="Kiến Trẻ CM" allow="clipboard-read; clipboard-write; fullscreen; autoplay; encrypted-media; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
 <script>
@@ -73,9 +76,15 @@
     };
   };
   if (navigator.clearAppBadge) document.addEventListener('visibilitychange', function () { if (!document.hidden) try { navigator.clearAppBadge(); } catch (x) {} });
+  // vùng an toàn dưới (thanh Home iPhone): khung trong không đọc được env(), nên đo ở đây rồi gửi vào
+  var SRC = null, sab = document.getElementById('sab');
+  var safe = function () { if (SRC) try { SRC.s.postMessage({ kgs: 'safe', b: sab.offsetHeight || 0 }, SRC.o); } catch (x) {} };
+  window.addEventListener('resize', function () { setTimeout(safe, 120); });
   window.addEventListener('message', function (e) {
     if (!OK.test(e.origin) || !e.data || typeof e.data !== 'object') return;
     var d = e.data;
+    if (e.source) SRC = { s: e.source, o: e.origin };
+    if (d.kgs === 'ready' || d.kgs === 'get') safe();
     if (d.kgs === 'push-status' && d.supported === undefined) return void pushStatus().then(function (st) { reply(e, st); });
     if (d.kgs === 'push-enable' && typeof d.key === 'string') return void sheet(e, d.key);
     if (d.kgs === 'push-disable') return void REG.then(function (reg) { return reg && reg.pushManager.getSubscription(); }).then(function (s) { var ep = s && s.endpoint; return (s ? s.unsubscribe() : true).then(function () { reply(e, { kgs: 'push-off', endpoint: ep || '' }); }); }).catch(function () { reply(e, { kgs: 'push-off', endpoint: '' }); });
