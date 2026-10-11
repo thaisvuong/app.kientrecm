@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kiến Trẻ CM</title>
 <meta name="description" content="Kiến Trẻ Chuyên môn — tài liệu & lớp gia sư">
-<meta name="theme-color" content="#1B2A6B">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Kiến Trẻ CM">
@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
-  html, body { margin: 0; height: 100%; background: #F1F5FB; overflow: hidden; }
+  html, body { margin: 0; height: 100%; background: #FFFFFF; overflow: hidden; }
   /* khung app phủ kín tới đáy màn hình; app tự chừa vùng thanh Home (nhận số đo qua postMessage 'safe') → thanh tab nằm sát đáy như app thật */
   #app { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: transparent; }
   #sab { position: fixed; left: 0; bottom: 0; width: 0; height: env(safe-area-inset-bottom); pointer-events: none; visibility: hidden; }
@@ -47,6 +47,19 @@
   f.onload = function () { setTimeout(function () { ld.classList.add('out'); }, 400); };
   setTimeout(function () { ld.classList.add('out'); }, 15000);
   f.src = APP + '?' + q.toString();
+  // Bàn phím iPhone: iOS đẩy cả trang vỏ lên để lộ ô nhập → thanh trên / tên bé trôi khỏi màn hình.
+  // Giữ trang vỏ đứng yên và thu khung app vừa đúng phần nhìn thấy phía trên bàn phím → app tự dàn lại (đầu trang vẫn hiện, ô nhập sát bàn phím).
+  if (window.visualViewport) {
+    var vv = window.visualViewport, vt = 0;
+    var vfit = function () {
+      var kb = vv.height < window.innerHeight - 80;
+      f.style.height = kb ? Math.round(vv.height) + 'px' : '';
+      f.style.top = kb ? Math.round(vv.offsetTop) + 'px' : '';
+      if (window.scrollY || document.documentElement.scrollTop) window.scrollTo(0, 0);
+    };
+    vv.addEventListener('resize', vfit);
+    vv.addEventListener('scroll', function () { clearTimeout(vt); vt = setTimeout(vfit, 30); vfit(); });
+  }
   // Giữ hộ mã đăng nhập: trình duyệt có thể xoá bộ nhớ của app nằm trong khung (nhất là iPhone),
   // nên app gửi mã sang đây để lưu ở bộ nhớ của trang này. Chỉ nhận / trả cho khung app của Google.
   var KEY = 'kgsToken', OK = /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/;
