@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
   // gốc của trang vỏ: tên miền riêng = "/", GitHub Pages dự án = "/app.kientrecm/". Đặt <base> để logo, manifest, sw.js đúng chỗ cả khi mở thẳng
-  // một đường dẫn sâu (kientre-internal.click/kien-task/ke-hoach — GitHub Pages trả 404.html, là bản sao của trang này).
+  // một đường dẫn sâu (kientre-internal.click/tasks/plan — GitHub Pages trả 404.html, là bản sao của trang này).
   window.KT_BASE = /\.github\.io$/.test(location.hostname) ? '/' + location.pathname.split('/')[1] + '/' : '/';
   document.write('<base href="' + window.KT_BASE + '">');
 </script>
@@ -49,28 +49,26 @@
   // Trang vỏ (kientre-internal.click — chạy trên GitHub Pages): biểu tượng & tên app trên màn hình chính; app thật (Apps Script) chạy trong khung bên dưới.
   var APP = 'https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec';
   /* ĐƯỜNG DẪN ĐẸP: trang trong app (route) ⇄ đường dẫn trên tên miền. Phần đầu của route đổi sang chữ dễ đọc, phần sau giữ nguyên
-     (mã việc, mã tài liệu…). VD tasks/backlog ⇄ /kien-task/ke-hoach · tasks/t/TK12ab ⇄ /kien-task/viec/TK12ab · file/<mã> ⇄ /tai-lieu/<mã> */
-  var SLUG = { tasks: 'kien-task', today: 'chuyen-mon', classes: 'lop', programs: 'chuong-trinh', library: 'thu-vien', file: 'tai-lieu', home: 'trang-chu', recent: 'gan-day',
-               links: 'link-tam', compose: 'soan-phieu', users: 'nguoi-dung', settings: 'cai-dat', info: 'thong-tin', apps: 'ung-dung', guide: 'huong-dan', activity: 'hoat-dong',
-               sources: 'nguon-du-lieu', xapps: 'quan-ly-ung-dung', x: 'ung-dung-ngoai' };
-  var SUB = { tasks: { list: 'bang-du-lieu', backlog: 'ke-hoach', mine: 'cua-toi', time: 'timeline', cal: 'lich', sum: 'bao-cao', perf: 'hieu-suat', roles: 'phan-quyen', t: 'viec', p: 'bang' } };
+     (mã việc, mã tài liệu…). VD tasks/backlog ⇄ /tasks/plan · tasks/t/TK12ab ⇄ /tasks/item/TK12ab · file/<mã> ⇄ /file/<mã> (tiếng Anh) */
+  var SLUG = { today: 'dashboard', file: 'file', links: 'temp-links', xapps: 'manage-apps', x: 'external' };      // phần đầu không có ở đây thì giữ nguyên tên route (tasks, library, programs, classes…)
+  var SUB = { tasks: { list: 'table', backlog: 'plan', mine: 'my-tasks', time: 'timeline', cal: 'calendar', sum: 'report', perf: 'performance', roles: 'permissions', t: 'item', p: 'board' } };
   var inv = function (o) { var r = {}; for (var k in o) r[o[k]] = k; return r; };
   var SLUG_R = inv(SLUG); SLUG_R.task = 'tasks';      // link cũ /task/
   var toPath = function (route) {
     var a = String(route || '').split('/').filter(Boolean); if (!a.length) return '';
     var k = a[0], sub = SUB[k]; a[0] = SLUG[k] || k; if (sub && a[1] && sub[a[1]]) a[1] = sub[a[1]];
-    if (sub && a[2] === 't') a[2] = 'viec';
+    if (sub && a[2] === 't') a[2] = 'item';
     return a.map(encodeURIComponent).join('/');
   };
   var toRoute = function (path) {
     var a = String(path || '').split('/').filter(Boolean).map(function (x) { try { return decodeURIComponent(x); } catch (e) { return x; } }); if (!a.length) return '';
     var k = SLUG_R[a[0]] || a[0], sub = SUB[k] ? inv(SUB[k]) : null; a[0] = k; if (sub && a[1] && sub[a[1]]) a[1] = sub[a[1]];
-    if (sub && a[2] === 'viec') a[2] = 't';
+    if (sub && a[2] === 'item') a[2] = 't';
     return a.join('/');
   };
   var q = new URLSearchParams(location.search); q.set('shell', '1');
   var deep = location.pathname.indexOf(window.KT_BASE) === 0 ? location.pathname.slice(window.KT_BASE.length) : '';
-  if (deep && deep !== 'index.html' && deep !== '404.html' && !q.get('page')) q.set('page', toRoute(deep));      // mở thẳng /kien-task/ke-hoach → app mở đúng trang
+  if (deep && deep !== 'index.html' && deep !== '404.html' && !q.get('page')) q.set('page', toRoute(deep));      // mở thẳng /tasks/plan → app mở đúng trang
   q.set('so', location.origin); q.set('su', location.origin + window.KT_BASE);      // app chỉ nhận trang vỏ có trong danh sách (CFG.SHELL_ORIGINS); link “mở tab mới / chép link” trỏ về đây
   var f = document.getElementById('app'), ld = document.getElementById('ld');
   f.onload = function () { setTimeout(function () { ld.classList.add('out'); }, 400); };

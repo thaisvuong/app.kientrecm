@@ -10,18 +10,18 @@ Trang vỏ mở web app trong khung toàn màn hình, giữ hộ phiên đăng n
 | `sw.js` | service worker nhận thông báo đẩy |
 | `manifest.webmanifest`, `icons/` | tên + logo khi “Thêm vào màn hình chính” |
 | `CNAME` | `kientre-internal.click` — GitHub Pages đọc tệp này để gắn tên miền |
-| `404.html` | link sai đường dẫn → về trang chính (giữ `?page=`) |
-| `task/index.html` | link cũ `/task/` → `/?page=tasks` |
+| `404.html` | bản sao `index.html` — GitHub Pages trả trang này cho mọi đường dẫn sâu |
 
-`https://kientre-internal.click/?page=tasks` mở thẳng Kiến Task; `?page=file/<mã>` mở thẳng một tài liệu.
+**Đường dẫn đẹp**: thanh địa chỉ đổi theo trang đang mở — `kientre-internal.click/tasks/plan`, `/tasks/item/<mã>`, `/file/<mã>`, `/library/<thư mục>`, `/dashboard`… (tiếng Anh)
+(bảng đổi tên ở `index.html`, biến `SLUG` / `SUB`). Mở thẳng một đường dẫn sâu: GitHub Pages trả `404.html` — bản sao của `index.html` — nên vẫn vào đúng trang.
+**Sửa `index.html` thì chép đè sang `404.html`.** Link cũ dạng `?page=tasks` vẫn chạy.
 
 ## 1. Đưa thư mục này lên GitHub Pages
 
 Dùng lại repo trang vỏ đang chạy (`thaisvuong/app.kientrecm`):
 1. ✅ (17-10-2026, commit `fb351b5`) Đã đưa trang vỏ mới lên repo — **trừ tệp `CNAME`**, vì DNS ở Mắt Bão chưa có bản ghi: gắn tên miền lúc này thì link
    github.io cũ tự chuyển sang một địa chỉ chưa mở được.
-2. Khi `dig kientre-internal.click +short` đã ra 4 địa chỉ ở bước 2: thêm tệp `CNAME` vào repo (hoặc Repo › **Settings › Pages** › **Custom domain** =
-   `kientre-internal.click` › Save).
+2. ✅ (17-10-2026) DNS đã ra 4 địa chỉ GitHub → đã thêm tệp `CNAME` vào repo (tương đương Repo › **Settings › Pages** › **Custom domain**).
 3. Đợi GitHub cấp chứng chỉ (vài phút – 1 giờ), rồi tick **Enforce HTTPS**.
 
 Khi repo có tên miền riêng, link cũ `thaisvuong.github.io/app.kientrecm/…` **tự chuyển** sang `kientre-internal.click/…`.
