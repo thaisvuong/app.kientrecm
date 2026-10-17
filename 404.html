@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T19:20:05.021Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T19:28:08.476Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -3735,7 +3735,7 @@ h1, h2, h3, h4{ color:var(--ink) }
   .sb-logo{ width:40px; height:40px; flex-shrink:0; border-radius:50%; box-shadow:inset 0 0 0 1.5px var(--border-strong); background:var(--kite) 54% 52%/auto 64% no-repeat, var(--surface-3) !important; transition:opacity var(--t-fast) }      /* con diều (không dùng chữ của logo) nằm trong vòng tròn */
   .sb-logo i{ display:none } .sb-brand:hover .sb-logo{ transform:none }
   .app .sb-ver, .app .sb-n2{ display:none !important }
-  .sb-name{ min-width:0; flex:1 1 auto } .sb-n1{ font-size:17px; line-height:20px; font-weight:800; letter-spacing:-.01em; color:var(--primary); text-transform:none; white-space:normal; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow-wrap:anywhere }      /* tên ứng dụng đang mở (Kiến Chuyên môn · Kiến Task…) */
+  .sb-name{ min-width:0; flex:1 1 auto } .sb-n1{ font-size:17px; line-height:20px; font-weight:800; letter-spacing:-.01em; color:var(--primary); text-transform:none; white-space:normal; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow-wrap:normal } .sb-nw{ white-space:nowrap }      /* tên ứng dụng đang mở (Kiến Chuyên môn · Kiến Task…) */
   .sb-tog{ color:var(--muted); opacity:1; transform:none; border-radius:50% } .sb-tog:hover{ background:var(--lightprimary); color:var(--primary) }
   /* thu gọn: nút mở rộng chỉ hiện khi rê chuột vào logo (logo mờ đi) — không còn đè lên nhau */
   .app.mini .sb-tog{ opacity:0; transform:none; margin:-18px 0 0 -18px } .app.mini .sb-brand:hover .sb-tog, .app.mini .sb-tog:focus-visible{ opacity:1 } .app.mini .sb-brand:hover .sb-logo{ opacity:0 }
@@ -5621,8 +5621,16 @@ function brandPaint() {
   const n = $('#appName'); if (!n) return;
   const m = /^apps(\/|$)/.test(S.route || '') ? null : modInfo(S.mod);
   const t = m ? m.t : 'Kiến Trẻ';
-  if (n.textContent !== t) { n.textContent = t; n.title = t; }
+  if (n.textContent === t && n.dataset.fit === String(n.clientWidth)) return;
+  /* tên nhiều chữ: chữ đầu một dòng, phần sau KHÔNG bị cắt giữa chừng (“Kiến / Chuyên môn”, không phải “Kiến Chuyên / môn”);
+     phần sau vẫn dài hơn khung → thu nhỏ chữ dần cho vừa */
+  const w = t.split(' '), tail = w.slice(1).join(' ');
+  n.innerHTML = esc(w[0]) + (tail ? ' <span class="sb-nw">' + esc(tail) + '</span>' : ''); n.title = t; n.style.fontSize = ''; n.style.lineHeight = '';
+  const sp = $('.sb-nw', n);
+  if (sp && n.clientWidth) for (let f = 16; f >= 12 && sp.offsetWidth > n.clientWidth + 1; f--) { n.style.fontSize = f + 'px'; n.style.lineHeight = (f + 3) + 'px'; }
+  n.dataset.fit = String(n.clientWidth);
 }
+window.addEventListener('resize', debounce(() => { try { brandPaint(); } catch (e) {} }, 200));
 function markNav() {
   brandPaint(); shellRoute();
   const r = TABS.cur || navOf(S.route, NAV_ITEMS);
@@ -12494,7 +12502,13 @@ function annGate(list, done) {
   const xb = m.$('[data-x]'); if (xb) xb.hidden = true;
   const ok = m.btns[0]; ok.classList.add('dim'); m.$('#anOk').onchange = e => ok.classList.toggle('dim', !e.target.checked);
 }
-const ANN_AUD = () => (S.boot.roles || []).filter(r => r.id !== 'admin');
+/** “Gửi cho”: chỉ vai trò của ứng dụng đang đăng — Kiến Task: vai trò Kiến Task (CTV, Giáo viên…); ứng dụng khác: vai trò Kiến CM có quyền của ứng dụng đó */
+const ANN_AUD = () => {
+  if (S.mod === 'task') return (S.boot.troles || []).filter(r => r.id !== 'admin').map(r => ({ tok: 'trole:' + r.id, label: r.label, color: r.color }));
+  const m = (S.boot.mods || []).find(x => x.id === S.mod), mc = m && m.caps;
+  return (S.boot.roles || []).filter(r => r.id !== 'admin' && (!mc || !r.caps || r.caps.some(c => mc.indexOf(c) >= 0))).map(r => ({ tok: 'role:' + r.id, label: r.label, color: r.color }));
+};
+const annAudLabel = a => /^trole:/.test(a) ? ((S.boot.troles || []).find(r => r.id === a.slice(6)) || { label: a.slice(6) }).label : /^role:/.test(a) ? roleOf(a.slice(5)).label : a;
 /** ảnh chọn từ máy → thu nhỏ (cạnh dài ≤ 1600px, JPEG) trên máy rồi mới gửi — nhanh, nhẹ */
 function annShrink(file) {
   return new Promise((res, rej) => {
@@ -12525,7 +12539,7 @@ function annEdit(x, after) {
           '<button type="button" class="anx-tb" data-md="- " title="Gạch đầu dòng"><i class="bi bi-list-ul"></i></button><button type="button" class="anx-tb" data-md="link" title="Chèn link"><i class="bi bi-link-45deg"></i></button></div></div></div>' +
       '<details class="anx-opt"' + (x.must || x.pin || aud.length || x.keep ? ' open' : '') + '><summary><i class="bi bi-sliders"></i>Tuỳ chọn<span class="anx-sum" id="anSum"></span><i class="bi bi-chevron-down cv"></i></summary>' +
         '<div class="fg"><label class="flabel">Gửi cho</label><div class="an-aud" id="anA"><button type="button" class="rchip' + (aud.length ? '' : ' on') + '" data-all>Mọi người</button>' +
-          ANN_AUD().map(r => '<button type="button" class="rchip' + (aud.indexOf('role:' + r.id) >= 0 ? ' on' : '') + '" data-role="' + r.id + '" style="--rc:' + r.color + '">' + esc(r.label) + '</button>').join('') + '</div></div>' +
+          ANN_AUD().map(r => '<button type="button" class="rchip' + (aud.indexOf(r.tok) >= 0 ? ' on' : '') + '" data-role="' + esc(r.tok) + '" style="--rc:' + r.color + '">' + esc(r.label) + '</button>').join('') + '</div></div>' +
         '<label class="an-sw"><span><b>Bắt buộc đọc</b><small>Chưa bấm “Tôi đã đọc” thì chưa dùng được app</small></span><span class="sw"><input type="checkbox" id="anM"' + (x.must ? ' checked' : '') + '><span></span></span></label>' +
         '<label class="an-sw"><span><b>Ghim lên đầu</b></span><span class="sw"><input type="checkbox" id="anP"' + (x.pin ? ' checked' : '') + '><span></span></span></label>' +
         '<label class="an-sw"><span><b>Tự xoá sau khi đọc</b><small>Mỗi người đã đọc quá số ngày này sẽ không thấy nữa; mọi người đọc hết thì xoá hẳn</small></span><select class="sel anx-keep" id="anK">' + ANN_KEEP.map(k => '<option value="' + k[0] + '"' + (Number(x.keep || 0) === k[0] ? ' selected' : '') + '>' + k[1] + '</option>').join('') + '</select></label>' +
@@ -12535,7 +12549,7 @@ function annEdit(x, after) {
       const t = m2.$('#anT').value.trim(), b0 = m2.$('#anB').value.trim(), ims = imgs.filter(z => z.ref).map(z => '![](' + z.ref + ')');
       const b = [b0].concat(ims).filter(Boolean).join('\n');
       if (!t && !b) { toast('Viết gì đó hoặc thêm ảnh', 'warn'); return false; }
-      const roles = m2.$$('#anA [data-role].on').map(e => 'role:' + e.dataset.role);
+      const roles = m2.$$('#anA [data-role].on').map(e => e.dataset.role);
       const rnd = [...crypto.getRandomValues(new Uint8Array(10))].map(z => 'abcdefghijklmnopqrstuvwxyz0123456789'[z % 36]).join('');
       const pl = { id: x.id || '', newId: x.id ? '' : 'N' + rnd, title: t, body: b, must: m2.$('#anM').checked, pin: m2.$('#anP').checked, audience: roles.join(', '), reread: !!(m2.$('#anR') && m2.$('#anR').checked), keep: Number(m2.$('#anK').value) || 0, off: !!x.off };
       const loc = Object.assign({}, x, { id: x.id || pl.newId, title: t, body: b, must: pl.must, pin: pl.pin, audience: pl.audience, keep: pl.keep, by: x.by || S.me.name, at: x.at || new Date().toISOString(), read: true, reads: pl.reread ? [] : x.reads || [], unread: x.unread || [] });
@@ -12619,7 +12633,7 @@ async function viewInfo(arg, v) {
       '<div class="an-h"><b>' + esc(x.by || '') + '</b><span class="muted">· ' + esc(ago(x.at)) + '</span>' + (x.pin ? '<i class="bi bi-pin-angle-fill an-pin" title="Đã ghim"></i>' : '') + '<span class="sp"></span>' +
         (man() ? '<button class="ibtn sm" data-anm="' + x.id + '" aria-label="Tuỳ chọn"><i class="bi bi-three-dots"></i></button>' : '') + '</div>' +
       (x.must || x.off || x.audience || (x.keep && man()) ? '<div class="an-tags">' + (x.must ? '<span class="an-tag must"><i class="bi bi-exclamation-circle"></i>Bắt buộc đọc</span>' : '') + (x.off ? '<span class="an-tag">Đã ẩn</span>' : '') +
-        (x.audience && man() ? '<span class="an-tag">' + esc(String(x.audience).split(/[,\s]+/).filter(Boolean).map(a => /^role:/.test(a) ? roleOf(a.slice(5)).label : a).join(', ')) + '</span>' : '') + (x.keep && man() ? '<span class="an-tag"><i class="bi bi-hourglass-split"></i> tự xoá ' + x.keep + ' ngày sau khi đọc</span>' : '') + '</div>' : '') +
+        (x.audience && man() ? '<span class="an-tag">' + esc(String(x.audience).split(/[,\s]+/).filter(Boolean).map(annAudLabel).join(', ')) + '</span>' : '') + (x.keep && man() ? '<span class="an-tag"><i class="bi bi-hourglass-split"></i> tự xoá ' + x.keep + ' ngày sau khi đọc</span>' : '') + '</div>' : '') +
       (x.title ? '<h3 class="an-t">' + esc(x.title) + '</h3>' : '') + (() => {      // chữ thu gọn được, ảnh luôn hiện bên dưới (băng cuộn ngang khi nhiều ảnh)
         const L = String(x.body || '').split(/\r?\n/), im = L.filter(l => ANN_IMG_RE.test(l.trim())), tx = L.filter(l => !ANN_IMG_RE.test(l.trim())).join('\n').trim();
         return (tx ? '<div class="an-body clamp">' + richLite(tx) + '</div><button class="an-more" hidden>Xem thêm</button>' : '<div class="an-body"></div>') + (im.length ? '<div class="an-body an-media">' + richLite(im.join('\n')) + '</div>' : ''); })() +
