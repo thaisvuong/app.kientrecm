@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T18:00:25.805Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T18:21:09.065Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4100,6 +4100,8 @@ html.tk-noadd .tk-quick, html.tk-noadd #tkNew, html.tk-noadd #tkNewS, html.tk-no
 .iv-st{ display:inline-flex; align-items:center; gap:5px; height:22px; padding:0 9px; border-radius:99px; font-size:11.5px; font-weight:700; color:var(--bc); background:color-mix(in srgb, var(--bc) 12%, transparent); white-space:nowrap }
 .iv-what{ display:flex; flex-direction:column; gap:2px; min-width:0 } .iv-what b{ font-size:13px } .iv-what small{ color:var(--muted); font-size:11.5px }
 .iv-act{ text-align:right; white-space:nowrap }
+.av.iv-lk{ background:var(--lightprimary); color:var(--primary); font-size:16px }
+.iv-url{ display:flex; gap:8px } .iv-url .inp{ flex:1; min-width:0; font-size:13px }
 .iv-scope{ display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em }
 .iv-apps{ display:flex; flex-wrap:wrap; gap:6px }
 .iv-app{ display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:99px; border:1px solid var(--border); background:var(--surface); font:inherit; font-size:12.5px; font-weight:600; color:var(--ink-2); cursor:pointer }
@@ -4837,7 +4839,8 @@ async function boot() {
   { const fm = /^file\/([\w-]{10,})/.exec(window.INIT_ROUTE || ''); if (fm && S.token && typeof fileData === 'function') { fileData(fm[1], true).catch(() => {}); try { pdfReady().catch(() => {}); } catch (e) {} } }
   // VÀO NGAY: đã đăng nhập trên máy này → dựng giao diện bằng thông tin lần trước, máy chủ xác thực ngầm ngay sau (bootVerify).
   // Máy chủ vẫn kiểm phiên & quyền ở MỌI lệnh; phiên hết hạn / bị khoá → về màn đăng nhập, quyền đổi → thanh bên đổi theo.
-  { const c = S.token && !S.as ? lsGet('bootC', null) : null;
+  let invC = ''; try { invC = sessionStorage.getItem('kgsInv') || ''; } catch (e) {}
+  { const c = S.token && !S.as && !invC ? lsGet('bootC', null) : null;      // đang mở link mời → xác thực với máy chủ trước để nhận lời mời
     if (c && c.k === bootKey() && c.b && c.b.me && c.b.me.active && !c.b.me.preview && Date.now() - (c.at || 0) < 14 * 864e5) {
       if (c.b.ann) c.b.ann = Object.assign({}, c.b.ann, { must: [] });      // thông tin bắt buộc đọc: theo bản mới của máy chủ (bootVerify), không theo bản cũ
       S.boot = c.b; applyTheme(lsGet('theme', null) || c.b.theme); applyGlass(glassPref());
@@ -4859,6 +4862,13 @@ async function boot() {
     if (S.token) shellTok(S.token);                           // đồng bộ mã đang dùng cho trang vỏ (người đã đăng nhập từ trước)
     if (S.as && !b.me.preview) pvSet('');                     // không phải admin / phiên cũ → bỏ xem thử
     if (!b.me.preview && !await confirmDetected(b.me)) return showLogin();
+    // mở LINK MỜI (không gắn email) rồi đăng nhập: nhận lời mời → tạo tài khoản / thêm Kiến Task, khởi động lại với quyền mới
+    if (invC && !b.me.preview) {
+      let r = null; try { r = await rpc('inviteAccept', { code: invC }, { quiet: true }); } catch (e) { toast(e.message, 'warn', 7000); }
+      if (!r || !r.skip || r.skip !== 'email') { try { sessionStorage.removeItem('kgsInv'); } catch (e) {} }
+      if (r && r.applied) { toast('Đã nhận lời mời — chào mừng bạn!', 'ok', 4000); if (r.scope === 'task') window.INIT_ROUTE = 'tasks'; lsDel('bootC'); return boot(); }
+      if (r && r.skip === 'active') toast('Bạn đã có tài khoản — quyền hiện tại giữ nguyên', 'info', 5000);
+    }
     if (!b.me.active) return showInactive(b.me);
     S.me = b.me;
     try { sessionStorage.removeItem('kgsInv'); } catch (e) {}
@@ -4941,11 +4951,12 @@ function showLogin() {
   const invP = invCode ? rpc('inviteInfo', { code: invCode }, { quiet: true }).then(x => (x && x.ok ? (S.inv = x) : null)).catch(() => null) : Promise.resolve(null);
   const invBox = x => {
     const b = $('#lgInv', L); if (!b || !x) return;
-    const st = { expired: 'Lời mời này đã hết hạn — nhờ người mời gửi lại.', used: 'Lời mời đã được nhận — đăng nhập bằng email được mời để vào.', revoked: 'Lời mời này đã bị thu hồi.' }[x.state];
-    b.hidden = false; b.className = 'lg-inv' + (st && x.state !== 'used' ? ' no' : '');
-    b.innerHTML = '<i class="bi ' + (st && x.state !== 'used' ? 'bi-envelope-x' : 'bi-envelope-paper-heart') + '"></i><div><b>' + esc(x.by || 'Bạn') + ' mời bạn vào ' + esc(x.app) + '</b>' +
-      '<span>' + (x.role ? 'Vai trò: <b>' + esc(x.role) + '</b> · ' : '') + (st || 'Đăng nhập bằng <b>' + esc(x.email) + '</b> là vào được ngay, không cần chờ duyệt.') + '</span></div>';
-    const e = $('#lgE', L); if (e && !e.value) e.value = x.email;
+    const st = { expired: 'Lời mời này đã hết hạn — nhờ người mời gửi lại.', used: x.open ? 'Link mời đã dùng hết lượt — nhờ người mời tạo link mới.' : 'Lời mời đã được nhận — đăng nhập bằng email được mời để vào.', revoked: 'Lời mời này đã bị thu hồi.' }[x.state];
+    const bad = st && (x.open || x.state !== 'used');
+    b.hidden = false; b.className = 'lg-inv' + (bad ? ' no' : '');
+    b.innerHTML = '<i class="bi ' + (bad ? 'bi-envelope-x' : 'bi-envelope-paper-heart') + '"></i><div><b>' + esc(x.by || 'Bạn') + ' mời bạn vào ' + esc(x.app) + '</b>' +
+      '<span>' + (x.role ? 'Vai trò: <b>' + esc(x.role) + '</b> · ' : '') + (st || (x.open ? 'Đăng nhập bằng Google hoặc email của bạn là vào được ngay, không cần chờ duyệt.' : 'Đăng nhập bằng <b>' + esc(x.email) + '</b> là vào được ngay, không cần chờ duyệt.')) + '</span></div>';
+    const e = $('#lgE', L); if (e && !e.value && x.email) e.value = x.email;
   };
   const home = () => {
     L.innerHTML = '<div class="login-card lg3"><div class="login-logo"><i class="bi bi-journal-bookmark-fill"></i></div><h1>' + esc(app) + '</h1><p>Chào mừng bạn! Đăng nhập để tiếp tục.</p>' +
@@ -4963,7 +4974,7 @@ function showLogin() {
       const inv = await Promise.race([invP, new Promise(r => setTimeout(() => r(null), 2500))]);
       await loadGsi();
       google.accounts.id.initialize(Object.assign({ client_id: B.gClient, callback: r => gLogin(r.credential), auto_select: false, cancel_on_tap_outside: false, context: 'signin', ux_mode: 'popup', itp_support: true, use_fedcm_for_prompt: true },
-        inv && inv.email ? { login_hint: inv.email } : {}));
+        inv && inv.email && !inv.open ? { login_hint: inv.email } : {}));
       const box = $('#gsiBtn', L); if (!box) return;
       box.innerHTML = '';
       google.accounts.id.renderButton(box, { type: 'standard', theme: 'outline', size: 'large', text: 'signin_with', shape: 'rectangular', logo_alignment: 'center', locale: 'vi', width: Math.max(200, Math.min(400, box.clientWidth || 340)) });
@@ -8117,7 +8128,7 @@ async function viewUsers(arg, v) {
    Mời email với vai trò định sẵn → người đó đăng nhập đúng email (Google hoặc mã) là vào được ngay, không phải đăng ký / chờ duyệt.
    Mời từ Kiến Task: người được mời chỉ vào được Kiến Task. Email đã có tài khoản: áp dụng ngay (từ Kiến Task chỉ THÊM Kiến Task). */
 const INV = {};
-const INV_ST = { pending: ['Chờ nhận', '#B45309', 'bi-hourglass-split'], used: ['Đã nhận', 'var(--ok)', 'bi-check-circle'], expired: ['Hết hạn', '#94A3B8', 'bi-clock-history'], revoked: ['Đã thu hồi', '#94A3B8', 'bi-slash-circle'] };
+const INV_ST = { pending: ['Chờ nhận', '#B45309', 'bi-hourglass-split'], full: ['Hết lượt', '#94A3B8', 'bi-people'], used: ['Đã nhận', 'var(--ok)', 'bi-check-circle'], expired: ['Hết hạn', '#94A3B8', 'bi-clock-history'], revoked: ['Đã thu hồi', '#94A3B8', 'bi-slash-circle'] };
 async function invPaint(box, scope, fresh) {
   if (!box || !box.isConnected) return;
   if (!INV[scope] || fresh) {
@@ -8140,11 +8151,13 @@ async function invPaint(box, scope, fresh) {
       Object.keys(INV_ST).filter(k => cnt[k]).map(k => '<button class="rchip' + (f === k ? ' on' : '') + '" data-ivf="' + k + '" style="--rc:' + INV_ST[k][1] + '">' + INV_ST[k][0] + ' · ' + cnt[k] + '</button>').join('') +
       '<span class="sp"></span><button class="btn pri sm" data-ivnew><i class="bi bi-send-plus"></i><span>Gửi lời mời</span></button></div>' +
     '<div class="card"><div class="tbl-wrap"><table class="tbl iv-tbl"><thead><tr><th>Người được mời</th><th>Quyền</th><th>Trạng thái</th><th class="iv-by">Người mời</th><th></th></tr></thead><tbody>' +
-    (rows.map(x => '<tr data-iv="' + esc(x.id) + '"><td><div class="row" style="flex-wrap:nowrap"><span class="av">' + esc(initials(x.name || x.email)) + '</span><div style="min-width:0"><div class="t-title">' + esc(x.name || x.email.split('@')[0]) + '</div><div class="t-sub">' + esc(x.email) + '</div></div></div></td>' +
-      '<td>' + what(x) + '</td><td>' + st(x.state) + '<div class="t-sub" style="margin-top:3px">' + esc(x.state === 'used' ? 'Nhận ' + ago(x.usedAt) : x.state === 'pending' ? 'Hạn ' + fmtD(x.expiresAt) + (x.sentAt ? ' · đã gửi mail' : ' · chưa gửi mail') : x.state === 'expired' ? 'Hết hạn ' + fmtD(x.expiresAt) : '') + '</div></td>' +
+    (rows.map(x => '<tr data-iv="' + esc(x.id) + '"><td><div class="row" style="flex-wrap:nowrap">' + (x.open ? '<span class="av iv-lk"><i class="bi bi-link-45deg"></i></span><div style="min-width:0"><div class="t-title">' + esc(x.name || 'Link mời') + '</div><div class="t-sub">Ai có link · ' + x.uses + (x.maxUses ? '/' + x.maxUses : '') + ' người đã vào</div></div>'
+        : '<span class="av">' + esc(initials(x.name || x.email)) + '</span><div style="min-width:0"><div class="t-title">' + esc(x.name || x.email.split('@')[0]) + '</div><div class="t-sub">' + esc(x.email) + '</div></div>') + '</div></td>' +
+      '<td>' + what(x) + '</td><td>' + st(x.open && x.state === 'used' ? 'full' : x.state) + '<div class="t-sub" style="margin-top:3px">' + esc(x.open ? (x.state === 'expired' ? 'Hết hạn ' + fmtD(x.expiresAt) : x.state === 'pending' || x.state === 'used' ? 'Hạn ' + fmtD(x.expiresAt) + (x.maxUses ? ' · tối đa ' + x.maxUses + ' lượt' : ' · không giới hạn lượt') : '')
+        : x.state === 'used' ? 'Nhận ' + ago(x.usedAt) : x.state === 'pending' ? 'Hạn ' + fmtD(x.expiresAt) + (x.sentAt ? ' · đã gửi mail' : ' · chưa gửi mail') : x.state === 'expired' ? 'Hết hạn ' + fmtD(x.expiresAt) : '') + '</div></td>' +
       '<td class="iv-by t-sub">' + esc(x.byName || x.by) + '<br>' + esc(ago(x.createdAt)) + '</td>' +
-      '<td class="iv-act">' + (x.state === 'pending' || x.state === 'expired'
-        ? (x.url ? '<button class="ibtn" data-iva="copy" title="Chép link lời mời (gửi qua Zalo / tin nhắn)"><i class="bi bi-link-45deg"></i></button>' : '') + '<button class="ibtn" data-iva="resend" title="Gửi lại mail' + (x.state === 'expired' ? ' (gia hạn 7 ngày)' : '') + '"><i class="bi bi-envelope-arrow-up"></i></button><button class="ibtn danger" data-iva="revoke" title="Thu hồi lời mời"><i class="bi bi-x-circle"></i></button>'
+      '<td class="iv-act">' + (x.state === 'pending' || (x.state === 'expired' && !x.open)
+        ? (x.url ? '<button class="ibtn" data-iva="copy" title="Chép link lời mời (gửi qua Zalo / tin nhắn)"><i class="bi bi-link-45deg"></i></button>' : '') + (x.open ? '' : '<button class="ibtn" data-iva="resend" title="Gửi lại mail' + (x.state === 'expired' ? ' (gia hạn 7 ngày)' : '') + '"><i class="bi bi-envelope-arrow-up"></i></button>') + '<button class="ibtn danger" data-iva="revoke" title="Thu hồi lời mời"><i class="bi bi-x-circle"></i></button>'
         : '<button class="ibtn danger" data-iva="del" title="Xoá khỏi danh sách (tài khoản không bị ảnh hưởng)"><i class="bi bi-trash"></i></button>') + '</td></tr>').join('') ||
       '<tr><td colspan="5"><div class="empty"><i class="bi bi-envelope-paper"></i><b>' + (D.list.length ? 'Không có lời mời khớp' : 'Chưa có lời mời nào') + '</b>' + (D.list.length ? '' : '<span>Bấm “Gửi lời mời” để mời người mới.</span>') + '</div></td></tr>') +
     '</tbody></table></div></div>';
@@ -8154,10 +8167,10 @@ async function invPaint(box, scope, fresh) {
     if (e.target.closest('[data-ivnew]')) return invDialog(scope, () => invPaint(box, scope));
     const a = e.target.closest('[data-iva]'); if (!a) return;
     const x = D.list.find(y => y.id === a.closest('tr').dataset.iv); if (!x) return;
-    const k = a.dataset.iva;
-    if (k === 'copy') return copyText(x.url, 'Đã chép link lời mời — người nhận đăng nhập bằng ' + x.email);
-    if (k === 'revoke' && !await ask('Thu hồi lời mời gửi ' + x.email + '? Họ sẽ không vào được bằng lời mời này nữa.', { danger: true, ok: 'Thu hồi' })) return;
-    if (k === 'del' && !await ask('Xoá lời mời của ' + x.email + ' khỏi danh sách? Tài khoản (nếu đã nhận) giữ nguyên.', { danger: true, ok: 'Xoá' })) return;
+    const k = a.dataset.iva, who = x.open ? 'link mời “' + (x.name || 'Link mời') + '”' : 'lời mời gửi ' + x.email;
+    if (k === 'copy') return copyText(x.url, x.open ? 'Đã chép link mời' : 'Đã chép link lời mời — người nhận đăng nhập bằng ' + x.email);
+    if (k === 'revoke' && !await ask('Thu hồi ' + who + '? ' + (x.open ? 'Link sẽ không dùng được nữa; người đã vào giữ nguyên tài khoản.' : 'Họ sẽ không vào được bằng lời mời này nữa.'), { danger: true, ok: 'Thu hồi' })) return;
+    if (k === 'del' && !await ask('Xoá ' + who + ' khỏi danh sách? Tài khoản (nếu đã nhận) giữ nguyên.', { danger: true, ok: 'Xoá' })) return;
     a.disabled = true;
     try { INV[scope] = await rpc(k === 'resend' ? 'inviteResend' : 'inviteRevoke', { id: x.id, scope: scope }); toast(k === 'resend' ? 'Đã gửi lại lời mời tới ' + x.email : k === 'revoke' ? 'Đã thu hồi lời mời' : 'Đã xoá', 'ok'); }
     catch (er) { fail(er); }
@@ -8167,13 +8180,17 @@ async function invPaint(box, scope, fresh) {
 /** hộp gửi lời mời. scope task: chỉ chọn vai trò Kiến Task. scope all: chọn phạm vi (toàn app / chỉ Kiến Task), vai trò, ứng dụng, vào thẳng, vai trò Kiến Task. */
 function invDialog(scope, done) {
   const D = INV[scope]; if (!D) return;
-  let sc = scope === 'task' ? 'task' : 'all', roles = ['giasu'], apps = [], home = '';
+  let sc = scope === 'task' ? 'task' : 'all', roles = ['giasu'], apps = [], home = '', md = 'link';      // md: link = link mời (không cần email) · email = mời theo email
   const tRole = ((D.taskRoles.find(r => r.id === 'teacher') || D.taskRoles.find(r => r.id !== 'admin') || D.taskRoles[0] || {}).id || '');      // mặc định Giáo viên — không bao giờ mặc định Admin
   const rpick = () => D.roles.filter(r => r.id !== 'tasker').map(r => { const on = roles.indexOf(r.id) >= 0, dis = r.id === 'admin' && !D.canAdmin;
     return '<button type="button" class="rp' + (on ? ' on' : '') + '" data-r="' + esc(r.id) + '" style="--rc:' + esc(r.color) + '"' + (dis ? ' disabled title="Chỉ quản trị viên mời được vai trò này"' : '') + '><i class="bi ' + (on ? 'bi-check-circle-fill' : 'bi-circle') + '"></i><b>' + esc(r.label) + '</b></button>'; }).join('');
   const tOpts = (sel, def) => (def ? '<option value=""' + (!sel ? ' selected' : '') + '>Theo vai trò Kiến CM (mặc định)</option>' : '') + D.taskRoles.map(r => '<option value="' + esc(r.id) + '"' + (sel === r.id ? ' selected' : '') + '>' + esc(r.label) + '</option>').join('');
   const body = () => '<div class="stack">' +
-    '<div class="fg"><label class="flabel">Email người được mời — mỗi dòng một người (“Tên, email” hoặc chỉ email)</label><textarea class="ta" id="ivT" rows="4" autofocus placeholder="Nguyễn Văn A, gva@gmail.com&#10;hsb@gmail.com"></textarea></div>' +
+    '<div class="fg"><label class="flabel">Cách mời</label><div class="seg fill" id="ivMd"><button type="button" class="seg-b" data-md="link" aria-pressed="true"><i class="bi bi-link-45deg"></i>Link mời — không cần email</button><button type="button" class="seg-b" data-md="email" aria-pressed="false"><i class="bi bi-envelope"></i>Theo email</button></div></div>' +
+    '<div class="fg" id="ivEm" hidden><label class="flabel">Email người được mời — mỗi dòng một người (“Tên, email” hoặc chỉ email)</label><textarea class="ta" id="ivT" rows="4" placeholder="Nguyễn Văn A, gva@gmail.com&#10;hsb@gmail.com"></textarea></div>' +
+    '<div class="grid g2" id="ivLk"><div class="fg"><label class="flabel">Tên link (để nhận biết)</label><input class="inp" id="ivL" maxlength="80" placeholder="VD: Nhóm CTV tháng 10"></div>' +
+      '<div class="fg"><label class="flabel">Số người được dùng</label><select class="sel" id="ivX">' + [[1, '1 người'], [5, '5 người'], [10, '10 người'], [20, '20 người'], [50, '50 người'], [0, 'Không giới hạn']].map(o => '<option value="' + o[0] + '"' + (o[0] === 10 ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>' +
+      '<div class="small muted" style="grid-column:1/-1"><i class="bi bi-info-circle"></i> Ai mở link và đăng nhập (Google hoặc email bất kỳ) trong hạn, còn lượt là vào được ngay với quyền bên dưới. Link không cấp được vai trò Admin.</div></div>' +
     (scope === 'task' ? '' : '<div class="fg"><label class="flabel">Được vào</label><div class="seg fill" id="ivSc"><button type="button" class="seg-b" data-sc="all" aria-pressed="' + (sc === 'all') + '"><i class="bi bi-grid-3x3-gap"></i>Theo vai trò & ứng dụng</button><button type="button" class="seg-b" data-sc="task" aria-pressed="' + (sc === 'task') + '"><i class="bi bi-kanban"></i>Chỉ Kiến Task</button></div></div>') +
     '<div id="ivAll"' + (sc === 'task' ? ' hidden' : '') + ' class="stack">' +
       '<div class="fg"><label class="flabel">Vai trò Kiến CM (chọn một hoặc nhiều)</label><div class="rpick" id="ivR">' + rpick() + '</div></div>' +
@@ -8184,13 +8201,14 @@ function invDialog(scope, done) {
     '<div id="ivTask"' + (sc === 'task' ? '' : ' hidden') + ' class="fg"><label class="flabel">Vai trò Kiến Task</label><select class="sel" id="ivTR">' + tOpts(tRole, 0) + '</select>' +
       '<div class="small muted" style="margin-top:6px"><i class="bi bi-info-circle"></i> Người mới chỉ thấy Kiến Task. Quyền của từng vai trò xem ở Kiến Task › Phân quyền › Vai trò & quyền.</div></div>' +
     '<div class="grid g2"><div class="fg"><label class="flabel">Lời mời có hiệu lực</label><select class="sel" id="ivD">' + D.days.map(d => '<option value="' + d + '"' + (d === 14 ? ' selected' : '') + '>' + d + ' ngày</option>').join('') + '</select></div>' +
-      '<div class="fg"><label class="flabel">Lời nhắn trong mail (không bắt buộc)</label><input class="inp" id="ivN" maxlength="300" placeholder="VD: Chào mừng bạn vào nhóm chuyên môn Toán 5"></div></div>' +
-    '<label class="row" style="gap:10px"><span class="sw"><input type="checkbox" id="ivM" checked><span></span></span><span><b>Gửi email mời</b><br><span class="small muted">Tắt = chỉ tạo lời mời, tự chép link gửi qua Zalo. ' + (D.mailLeft != null ? 'Hôm nay còn khoảng ' + D.mailLeft + ' lượt gửi mail.' : '') + '</span></span></label></div>';
+      '<div class="fg" id="ivNf" hidden><label class="flabel">Lời nhắn trong mail (không bắt buộc)</label><input class="inp" id="ivN" maxlength="300" placeholder="VD: Chào mừng bạn vào nhóm chuyên môn Toán 5"></div></div>' +
+    '<label class="row" id="ivMf" hidden style="gap:10px"><span class="sw"><input type="checkbox" id="ivM" checked><span></span></span><span><b>Gửi email mời</b><br><span class="small muted">Tắt = chỉ tạo lời mời, tự chép link gửi qua Zalo. ' + (D.mailLeft != null ? 'Hôm nay còn khoảng ' + D.mailLeft + ' lượt gửi mail.' : '') + '</span></span></label></div>';
   const m = modal({ title: scope === 'task' ? 'Mời vào Kiến Task' : 'Gửi lời mời', icon: 'bi-send-plus', body: body(),
     foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Gửi lời mời', cls: 'pri', i: 'bi-send', fn: async mm => {
       const text = mm.$('#ivT').value;
-      if (!/@/.test(text)) { toast('Nhập ít nhất một email', 'warn'); mm.$('#ivT').focus(); return false; }
-      const pl = { scope: sc, text: text, days: Number(mm.$('#ivD').value), note: mm.$('#ivN').value, send: mm.$('#ivM').checked };
+      if (md === 'email' && !/@/.test(text)) { toast('Nhập ít nhất một email', 'warn'); mm.$('#ivT').focus(); return false; }
+      const pl = md === 'link' ? { mode: 'link', label: mm.$('#ivL').value, maxUses: Number(mm.$('#ivX').value), days: Number(mm.$('#ivD').value) }
+        : { text: text, days: Number(mm.$('#ivD').value), note: mm.$('#ivN').value, send: mm.$('#ivM').checked };
       if (sc === 'task') pl.taskRole = mm.$('#ivTR').value;
       else { if (!roles.length) { toast('Chọn ít nhất một vai trò', 'warn'); return false; } Object.assign(pl, { role: roles.join(','), apps: apps.join(','), home: mm.$('#ivH').value, taskRole: mm.$('#ivTR2').value }); }
       const r = await rpc('inviteCreate', Object.assign(pl, { scope: scope === 'task' ? 'task' : sc }));
@@ -8198,7 +8216,11 @@ function invDialog(scope, done) {
       if (done) done();
       invResult(r.results || []);
     } }] });
+  const btnT = () => { const b = m.btns[1]; if (b) b.innerHTML = md === 'link' ? '<i class="bi bi-link-45deg"></i>Tạo link mời' : '<i class="bi bi-send"></i>Gửi lời mời'; };
+  btnT();
   m.el.addEventListener('click', e => {
+    const d = e.target.closest('[data-md]'); if (d) { md = d.dataset.md; m.$$('#ivMd .seg-b').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.md === md)));
+      ['#ivEm', '#ivNf', '#ivMf'].forEach(k => { m.$(k).hidden = md !== 'email'; }); m.$('#ivLk').hidden = md !== 'link'; btnT(); if (md === 'email') m.$('#ivT').focus(); return; }
     const s = e.target.closest('[data-sc]'); if (s) { sc = s.dataset.sc; m.$$('#ivSc .seg-b').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sc === sc))); m.$('#ivAll').hidden = sc === 'task'; m.$('#ivTask').hidden = sc !== 'task';
       return; }
     const r = e.target.closest('#ivR [data-r]'); if (r && !r.disabled) { const id = r.dataset.r; roles = roles.indexOf(id) >= 0 ? roles.filter(x => x !== id) : roles.concat([id]); m.$('#ivR').innerHTML = rpick(); return; }
@@ -8208,6 +8230,15 @@ function invDialog(scope, done) {
 /** kết quả gửi lời mời: ai đã gửi mail, ai được cấp quyền ngay, ai bị bỏ qua; người chưa nhận được mail → nút chép link */
 function invResult(res) {
   const ok = res.filter(r => r.st !== 'skip').length;
+  if (res.length === 1 && res[0].st === 'link') {      // link mời vừa tạo: hiện link (tên miền riêng) + chép
+    const r = res[0];
+    const m = modal({ title: 'Link mời đã tạo', icon: 'bi-link-45deg', body: '<div class="stack"><div class="iv-url"><input class="inp mono" readonly value="' + esc(r.url) + '"><button class="btn pri" data-lcp><i class="bi bi-clipboard"></i>Chép</button></div>' +
+        '<div class="small muted">Hết hạn ngày <b>' + esc(fmtD(r.until)) + '</b> · ' + (r.max ? 'tối đa <b>' + r.max + '</b> người' : 'không giới hạn số người') + '. Gửi link qua Zalo / tin nhắn — người nhận mở link, đăng nhập là vào. Thu hồi bất cứ lúc nào ở danh sách lời mời.</div></div>',
+      foot: [{ t: 'Xong', cls: 'ghost' }] });
+    m.el.addEventListener('click', e => { if (e.target.closest('[data-lcp]')) copyText(r.url, 'Đã chép link mời'); });
+    setTimeout(() => { const i = m.$('.iv-url input'); if (i) i.select(); }, 80);
+    return;
+  }
   if (res.length && res.every(r => r.st === 'sent' && r.mail)) return toast('Đã gửi ' + res.length + ' lời mời', 'ok', 3500);
   const lab = r => r.st === 'applied' ? ['bi-person-check', 'var(--ok)', 'Đã có tài khoản — cấp quyền ngay' + (r.mail ? ', đã báo qua mail' : '')]
     : r.st === 'skip' ? ['bi-dash-circle', '#94A3B8', 'Bỏ qua: ' + (r.why || '')]
