@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T16:25:41.293Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T16:39:27.413Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4804,6 +4804,19 @@ async function boot() {
   try { S.as = sessionStorage.getItem('kgsAs') || ''; S.asW = sessionStorage.getItem('kgsAsW') === '1'; } catch (e) { S.as = S.as || ''; }
   // mở thẳng link một tài liệu (…/file/<mã>): tải nội dung + bộ vẽ PDF NGAY, song song với lúc app khởi động — không đợi giao diện / chỉ mục xong mới tải
   { const fm = /^file\/([\w-]{10,})/.exec(window.INIT_ROUTE || ''); if (fm && S.token && typeof fileData === 'function') { fileData(fm[1], true).catch(() => {}); try { pdfReady().catch(() => {}); } catch (e) {} } }
+  // VÀO NGAY: đã đăng nhập trên máy này → dựng giao diện bằng thông tin lần trước, máy chủ xác thực ngầm ngay sau (bootVerify).
+  // Máy chủ vẫn kiểm phiên & quyền ở MỌI lệnh; phiên hết hạn / bị khoá → về màn đăng nhập, quyền đổi → thanh bên đổi theo.
+  { const c = S.token && !S.as ? lsGet('bootC', null) : null;
+    if (c && c.k === bootKey() && c.b && c.b.me && c.b.me.active && !c.b.me.preview && Date.now() - (c.at || 0) < 14 * 864e5) {
+      if (c.b.ann) c.b.ann = Object.assign({}, c.b.ann, { must: [] });      // thông tin bắt buộc đọc: theo bản mới của máy chủ (bootVerify), không theo bản cũ
+      S.boot = c.b; applyTheme(lsGet('theme', null) || c.b.theme); applyGlass(glassPref());
+      S.me = c.b.me; S.fastIn = true;
+      if (S.token) shellTok(S.token);
+      ixReset(); warmUp.done = {};
+      startApp();
+      bootVerify();
+      return;
+    } }
   ovStep('Đang xác thực tài khoản…', 25);
   try {
     const b = await rpc('bootstrap', {}, { quiet: true });
@@ -4817,6 +4830,7 @@ async function boot() {
     if (!b.me.preview && !await confirmDetected(b.me)) return showLogin();
     if (!b.me.active) return showInactive(b.me);
     S.me = b.me;
+    bootSave(b);
     ixReset(); warmUp.done = {};                              // chỉ mục thư viện tải sau (needIndex / warmUp) — không giữ chân màn hình khởi động
     ovStep('Đang chuẩn bị giao diện…', 80);
     startApp();
@@ -4824,6 +4838,35 @@ async function boot() {
     ovStep('Lỗi: ' + e.message, 100);
     if (/setup/.test(e.message)) $('#ovMsg').innerHTML = esc(e.message);
   }
+}
+
+/* ── VÀO NGAY bằng thông tin lần trước ──
+   bootC = { k: dấu của mã phiên (không lưu lại mã), at, b: kết quả bootstrap } — chỉ khi đăng nhập bằng mã phiên, không khi đang xem thử vai trò. */
+function bootKey() { let h = 2166136261; const t = String(S.token || ''); for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + t.length; }
+function bootSave(b) { if (!S.token || S.as || !b || !b.me || b.me.preview || !b.me.active) return; if (!lsSet('bootC', { k: bootKey(), at: Date.now(), b: b })) lsDel('bootC'); }
+/** xác thực ngầm sau khi đã vào bằng thông tin cũ: cập nhật quyền / ứng dụng / số đếm; phiên hỏng → màn đăng nhập */
+async function bootVerify() {
+  let b;
+  for (let i = 0; i < 3 && !b; i++) { try { b = await rpc('bootstrap', {}, { quiet: true }); } catch (e) { if (e.srv) break; await new Promise(r => setTimeout(r, 1500 * (i + 1))); } }      // mất mạng: thử lại, vẫn dùng bản cũ
+  if (!b) return;
+  if (!b.me) { lsDel('bootC'); lsDel('token'); S.token = ''; shellTok(''); toast('Phiên đăng nhập đã hết — vui lòng đăng nhập lại', 'warn', 5000); return showLogin(); }
+  if (!b.me.active) { lsDel('bootC'); $('#app').hidden = true; return showInactive(b.me); }
+  if (b.me.email !== (S.me && S.me.email)) { lsDel('bootC'); return location.reload(); }
+  const old = S.boot, sig = x => JSON.stringify([x.me.caps, x.me.apps, x.me.roles, x.me.home, x.me.taskRole, x.mods, x.app, x.sub, x.todo, x.pending]);
+  const changed = sig(old) !== sig(b), idxChanged = old.idx !== b.idx, mustOld = JSON.stringify((old.ann && old.ann.must) || []);
+  if (b.themeAt && String(lsGet('themeAt', '')) < String(b.themeAt)) { lsDel('theme'); lsDel('glass'); lsSet('themeAt', b.themeAt); }
+  Object.keys(S.boot).forEach(k => { if (!(k in b)) delete S.boot[k]; }); Object.assign(S.boot, b);
+  Object.keys(S.me).forEach(k => { if (!(k in b.me)) delete S.me[k]; }); Object.assign(S.me, b.me); S.boot.me = S.me;
+  bootSave(b);
+  if (old.theme !== b.theme) { applyTheme(lsGet('theme', null) || b.theme); applyGlass(glassPref()); }
+  try { ntSet(b.nu || 0); } catch (e) {}
+  if (changed) {
+    buildNav(); brandPaint();
+    const key = String(S.route || '').split('/')[0];
+    if (key && ROUTES[key] && !canAny(ROUTES[key].cap)) go(homeRoute(), { replace: true });      // vừa bị gỡ quyền trang đang mở
+  }
+  if (idxChanged) { ixReset(); const R = ROUTES[String(S.route || '').split('/')[0]]; if (R && R.ix) needIndex().then(() => go(S.route, { nohist: 1, refresh: 1 })).catch(() => {}); }
+  if (b.ann && b.ann.must && b.ann.must.length && JSON.stringify(b.ann.must) !== mustOld) setTimeout(() => annGate(b.ann.must), 300);
 }
 
 /* ══════════ ĐĂNG NHẬP ══════════
@@ -4999,7 +5042,7 @@ function logout() {
   const tok = S.token;
   try { google.script.run.api('logout', {}, tok); } catch (e) {}
   try { google.accounts.id.disableAutoSelect(); } catch (e) {}
-  lsDel('token'); S.token = ''; shellTok('');
+  lsDel('token'); lsDel('bootC'); S.token = ''; shellTok('');
   try { if (S.me && S.me.email) ['clCache:', 'lkCache:', 'reqCache:', 'qlCfg:'].forEach(k => lsDel(k + S.me.email)); ['usrCache', 'tpCache', 'infoCache', 'annCache'].forEach(lsDel); } catch (e) {}   // máy dùng chung: không để lại dữ liệu
   try { const o = lsGet('okAcc', {}); if (S.me && S.me.email) { delete o[S.me.email]; lsSet('okAcc', o); } } catch (e) {}
   clearTimeout(PRES.t); PRES.on = false;
@@ -5629,7 +5672,6 @@ function startApp() {
   const me = S.me;
   brandPaint();      // thanh bên: vòng tròn cánh diều + tên ứng dụng đang mở (trang Apps: “Kiến Trẻ”)
   $('#appSub').textContent = S.boot.sub || 'Chuyên môn';
-  $('.ov-t .w') && ($('.ov-t .w').textContent = S.boot.sub || 'Chuyên môn');
   document.title = S.boot.app || 'Kiến Chuyên môn';
   $('#meAv').textContent = initials(me.name);
   $('#meName').textContent = me.name;
@@ -5665,6 +5707,7 @@ function startApp() {
   $('#app').hidden = false;
   $('#app').classList.add('enter');
   hideOv();
+  try { performance.mark('kt-ui'); } catch (e) {}      // đo: giao diện hiện lúc nào (DevTools › Performance hoặc performance.getEntriesByName('kt-ui'))
   if (!startApp.bound) { startApp.bound = 1;      // đăng nhập lại tại chỗ (sau Đăng xuất) không gắn trùng sự kiện
   $('#sbNav').addEventListener('click', e => {
     const a = e.target.closest('[data-r]');
