@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T18:21:09.065Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T19:20:05.021Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4110,6 +4110,15 @@ html.tk-noadd .tk-quick, html.tk-noadd #tkNew, html.tk-noadd #tkNewS, html.tk-no
 .iv-res > div{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; background:var(--surface-2); font-size:12.5px } .iv-res > div > span{ flex:1; min-width:0; overflow-wrap:anywhere } .iv-res small{ display:block; color:var(--muted) }
 @media (min-width:701px){ .modal:has(#ivT){ width:min(640px,100%) } }
 @media (max-width:700px){ .iv-tbl td.iv-by, .iv-tbl th.iv-by{ display:none } }
+/* Tiến trình học — chế độ “Cập nhật bài đã học” (gia sư) */
+.cd-pgt0 .sp{ flex:1 } .cd-pgt0:has([data-pge]){ display:flex; align-items:center; gap:8px }
+.cd-pge-h{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; margin:0 0 10px; border-radius:12px; background:var(--lightprimary); color:var(--ink-2); font-size:12.5px; line-height:1.5 } .cd-pge-h > i{ color:var(--primary); font-size:16px; margin-top:1px }
+.cd-pgl.ed .cd-pgi{ cursor:pointer } .cd-pgl.ed .cd-pgi:hover:not(.dis){ background:var(--surface-2) } .cd-pgl.ed .cd-pgi.dis{ cursor:default; opacity:.75 }
+.cd-pgc{ width:18px; height:18px; flex-shrink:0; accent-color:var(--ok); cursor:pointer } .cd-pgc:disabled{ cursor:not-allowed }
+.cd-pgl.ed .cd-upto{ margin-left:auto; opacity:0; transition:opacity .15s } .cd-pgl.ed .cd-pgi:hover .cd-upto, .cd-upto:focus-visible{ opacity:1 }
+@media (hover:none){ .cd-pgl.ed .cd-upto{ opacity:1 } }
+.cd-pge-bar{ position:sticky; bottom:0; z-index:3; display:flex; align-items:center; gap:8px; margin-top:10px; padding:10px 12px; border-radius:12px; background:var(--surface); box-shadow:0 -6px 18px rgba(14,27,51,.08), 0 0 0 1px var(--border); font-size:12.5px; color:var(--ink-2) }
+.cd-pge-bar .sp{ flex:1 }
 </style>
 
   <style>
@@ -5742,7 +5751,9 @@ function startApp() {
     S.mod = ok(init) ? init : home || [lsGet('mod', '')].find(ok) || (L[0] || {}).id || '';
     let fresh = false; try { fresh = !!sessionStorage.getItem('ktJustIn'); sessionStorage.removeItem('ktJustIn'); } catch (e) {}
     S.freshIn = fresh && !home && L.length > 1;      // vừa đăng nhập + nhiều ứng dụng (và không được đặt “vào thẳng”) → màn hình chính, kể cả khi link đang mở là một trang cụ thể
-    S.modFirst = !home && L.length > 1 && (!ok(init) || S.freshIn); modScope(); }
+    // link chính (kientre-internal.click/ — chưa chỉ trang nào) → luôn mở trang Apps khi có từ 2 ứng dụng, kể cả người được đặt “vào thẳng” (yêu cầu 18-10-2026)
+    const root = !window.INIT_ROUTE || window.INIT_ROUTE === 'home';
+    S.modFirst = L.length > 1 && (root || (!home && (!ok(init) || S.freshIn))); modScope(); }
   buildNav();
   OB.q.forEach(x => { delete x.sending; }); OB.hold = false; obUI(); setTimeout(obFlush, 800);
   presStart();
@@ -11181,7 +11192,7 @@ function clDetail(B, v, id) {
       setKeep($('#cdT', B), clKids(IX, T.key, FS).map(d => item(d, 0, false)).join(''));
     }
     if (man) clLessons(c.id).then(Ls => { const el = B.dataset.tab === 'detail:' + c.id && $('#cdHi', B); if (el) el.innerHTML = clHistHtml(Ls); }).catch(() => {});
-    if (!man && p) clLessons(c.id).then(Ls => { const el = B.dataset.tab === 'detail:' + c.id && $('#cdPg', B); if (el) el.innerHTML = clProgressHtml(c, Ls, used); }).catch(e => { const el = $('#cdPg', B); if (el) el.innerHTML = '<div class="lk-empty sm"><span>' + esc(e.message || 'Không tải được tiến trình') + '</span></div>'; });
+    if (!man && p) clLessons(c.id).then(Ls => { const el = B.dataset.tab === 'detail:' + c.id && $('#cdPg', B); if (el) clProgMount(el, c, Ls, used); }).catch(e => { const el = $('#cdPg', B); if (el) el.innerHTML = '<div class="lk-empty sm"><span>' + esc(e.message || 'Không tải được tiến trình') + '</span></div>'; });
     bind(nPrint, canPrint);
   };
   const more = btn => {
@@ -11465,17 +11476,59 @@ function clHistHtml(Ls) {
         '<div class="cd-hl">' + g.pre.map(t => '<div class="cd-hx"><span>' + esc(t) + '</span><em class="cl-ub gray">học trước</em></div>').join('') +
           g.items.map(it => '<div class="cd-hx"><span>' + esc(it.n) + '</span><small>' + dm(it.d).slice(0, 5) + '</small></div>').join('') + (n ? '' : '<div class="cd-hx z">Chưa dạy bài nào ở chương trình này</div>') + '</div></details>'; }).join('') + '</div>';
 }
-/** danh sách bài theo lộ trình, chỉ tên — trạng thái lấy từ các buổi của lớp + bài đã học trước */
-function clProgressHtml(c, Ls, used) {
+/** danh sách bài theo lộ trình, chỉ tên — trạng thái lấy từ các buổi của lớp + bài đánh dấu đã học (Classes.done).
+    sel (Set) = đang ở chế độ “Cập nhật bài đã học”: mỗi bài có ô tick; bài đã dạy / đã phát theo buổi bị khoá. */
+function clProgressHtml(c, Ls, used, sel) {
   if (!Ls.lessons.length) return clHistHtml(Ls) + '<div class="lk-empty sm"><i class="bi bi-folder-x"></i><span>Chương trình chưa có bài</span></div>';
-  const pre = new Set(Ls.done || []);
+  const pre = sel || new Set(Ls.done || []), ed = !!sel;
   const st = id => used[id] ? used[id] : pre.has(id) ? { k: 'pre', c: 'gray' } : null;
+  const lock = id => used[id] && (used[id].k === 'taught' || used[id].k === 'out');
   const doneN = Ls.lessons.filter(l => { const u = st(l.id); return u && (u.k === 'taught' || u.k === 'pre'); }).length;
-  const lab = { taught: '✓ đã dạy', out: 'đã phát', draft: 'đã xếp', prev: 'đã duyệt', pre: '✓ học trước', wait: 'đã xếp', off: '' };
+  const lab = { taught: '✓ đã dạy', out: 'đã phát', draft: 'đã xếp', prev: 'đã duyệt', pre: '✓ đã học', wait: 'đã xếp', off: '' };
   let g0 = null;
-  return clHistHtml(Ls) + '<div class="cd-pgt0"><i class="bi bi-mortarboard"></i>' + esc(Ls.prog || 'Chương trình đang học') + '</div><div class="cd-pgh"><b>' + doneN + ' / ' + Ls.lessons.length + '</b> bài đã học<div class="cd-pgb"><i style="width:' + Math.round(doneN * 100 / Ls.lessons.length) + '%"></i></div></div><div class="cd-pgl">' +
-    Ls.lessons.map((l, i) => { const u = st(l.id), gh = l.g !== g0 ? (g0 = l.g, l.g ? '<div class="cd-pgg"><i class="bi bi-folder2"></i>' + esc(l.g) + '</div>' : '') : '';
-      return gh + '<div class="cd-pgi' + (u ? ' on k-' + u.k : '') + '"><span class="cd-pgn">' + (i + 1) + '</span><span class="cd-pgt">' + esc(l.n) + '</span>' + (u && lab[u.k] ? '<em class="cl-ub ' + u.c + '">' + lab[u.k] + '</em>' : '') + '</div>'; }).join('') + '</div>';
+  return (ed ? '' : clHistHtml(Ls)) + '<div class="cd-pgt0"><i class="bi bi-mortarboard"></i>' + esc(Ls.prog || 'Chương trình đang học') +
+      (Ls.canStart && !ed ? '<span class="sp"></span><button type="button" class="btn xs" data-pge title="Bật chế độ tick bài đã học"><i class="bi bi-pencil-square"></i>Cập nhật bài đã học</button>' : '') + '</div>' +
+    (ed ? '<div class="cd-pge-h"><i class="bi bi-check2-square"></i><span>Tick những bài học sinh <b>đã học</b> (kể cả học ngoài các buổi trên app), rồi bấm <b>Lưu</b>. Bài đã dạy / đã phát theo buổi bị khoá — sửa ở nút “Đã dạy” của buổi đó. Lưu xong, các buổi chưa duyệt tự xếp lại từ bài chưa học.</span></div>' : '') +
+    '<div class="cd-pgh"><b>' + doneN + ' / ' + Ls.lessons.length + '</b> bài đã học<div class="cd-pgb"><i style="width:' + Math.round(doneN * 100 / Ls.lessons.length) + '%"></i></div></div><div class="cd-pgl' + (ed ? ' ed' : '') + '">' +
+    Ls.lessons.map((l, i) => { const u = st(l.id), gh = l.g !== g0 ? (g0 = l.g, l.g ? '<div class="cd-pgg"><i class="bi bi-folder2"></i>' + esc(l.g) + '</div>' : '') : '', lk = lock(l.id);
+      const badge = u && lab[u.k] ? '<em class="cl-ub ' + u.c + '">' + lab[u.k] + '</em>' : '';
+      return gh + (ed
+        ? '<label class="cd-pgi' + (u ? ' on k-' + u.k : '') + (lk ? ' dis' : '') + '"><input type="checkbox" class="cd-pgc" data-pl="' + esc(l.id) + '"' + (lk || pre.has(l.id) ? ' checked' : '') + (lk ? ' disabled' : '') + '><span class="cd-pgn">' + (i + 1) + '</span><span class="cd-pgt">' + esc(l.n) + '</span>' +
+          (lk ? badge : '<button type="button" class="btn xs ghost cd-upto" data-upto="' + i + '" title="Tick từ đầu tới bài này">Đến bài này</button>') + '</label>'
+        : '<div class="cd-pgi' + (u ? ' on k-' + u.k : '') + '"><span class="cd-pgn">' + (i + 1) + '</span><span class="cd-pgt">' + esc(l.n) + '</span>' + badge + '</div>'); }).join('') + '</div>' +
+    (ed ? '<div class="cd-pge-bar"><span id="cdPgD">Chưa có thay đổi</span><span class="sp"></span><button type="button" class="btn sm ghost" data-pgx>Huỷ</button><button type="button" class="btn sm pri" data-pgs disabled><i class="bi bi-check2"></i>Lưu</button></div>' : '');
+}
+/** Tiến trình học của gia sư: chỉ tick được sau khi bấm “Cập nhật bài đã học” (tránh bấm nhầm), Huỷ / Lưu ở thanh dưới.
+    Lưu = danh sách bài đã học ngoài buổi (Classes.done, cùng lệnh với Buổi học đầu — classStart); gia sư cần duyệt thì gửi quản lý duyệt. */
+function clProgMount(el, c, Ls, used) {
+  let sel = null;
+  const lock = id => used[id] && (used[id].k === 'taught' || used[id].k === 'out');
+  const base = () => new Set((Ls.done || []).filter(id => !lock(id)));
+  const diff = () => { const b = base(); let add = 0, rem = 0; sel.forEach(id => { if (!b.has(id)) add++; }); b.forEach(id => { if (!sel.has(id)) rem++; }); return { add: add, rem: rem }; };
+  const draw = () => { const k = el.scrollTop; el.innerHTML = clProgressHtml(c, Ls, used, sel); el.scrollTop = k; if (sel) mark(); };
+  const mark = () => { const d = diff(), n = d.add + d.rem, t = $('#cdPgD', el), b = $('[data-pgs]', el);
+    if (t) t.textContent = n ? [d.add ? '+' + d.add + ' bài đã học' : '', d.rem ? '−' + d.rem + ' bài bỏ tick' : ''].filter(Boolean).join(' · ') : 'Chưa có thay đổi';
+    if (b) b.disabled = !n;
+    const cn = $('.cd-pgh b', el), all = Ls.lessons.length, k = $$('.cd-pgc:checked', el).length; if (cn) cn.textContent = k + ' / ' + all; const bar = $('.cd-pgb i', el); if (bar) bar.style.width = Math.round(k * 100 / all) + '%';
+    $$('.cd-pgc', el).forEach(i => { const r = i.closest('.cd-pgi'); if (!i.disabled) r.classList.toggle('on', i.checked); r.classList.toggle('k-pre', i.checked && !i.disabled); }); };
+  el.onchange = e => { const i = e.target.closest('.cd-pgc'); if (!i || !sel) return; i.checked ? sel.add(i.dataset.pl) : sel.delete(i.dataset.pl); mark(); };
+  el.onclick = async e => {
+    if (e.target.closest('[data-pge]')) { sel = base(); return draw(); }
+    if (!sel) return;
+    const u = e.target.closest('[data-upto]');
+    if (u) { e.preventDefault(); const n = Number(u.dataset.upto); Ls.lessons.forEach((l, i) => { if (lock(l.id)) return; if (i <= n) sel.add(l.id); else sel.delete(l.id); }); return draw(); }
+    if (e.target.closest('[data-pgx]')) { const d = diff(); if ((d.add || d.rem) && !await ask('Bỏ các thay đổi chưa lưu?', { ok: 'Bỏ thay đổi', danger: true })) return; sel = null; return draw(); }
+    if (e.target.closest('[data-pgs]')) {
+      const d = diff(); if (!d.add && !d.rem) return;
+      const done = Ls.lessons.filter(l => sel.has(l.id)).map(l => l.id), ap = !CL.d.manage && CL.d.cfg && CL.d.cfg.tutorApprove !== false && !S.asW;
+      delete CL_LES[c.id];
+      clQueue('classStart', { id: c.id, done: done }, { key: 'cst:' + c.id, label: 'Cập nhật bài đã học · ' + clName(c), merge: (a, b) => b });
+      if (ap) toast('Đã gửi quản lý duyệt cập nhật bài đã học', 'info', 4000);
+      else { Ls.done = done; c.done = done; toast('Đã lưu bài đã học — các buổi chưa duyệt đang xếp lại', 'ok', 3500); }
+      sel = null; draw();
+    }
+  };
+  draw();
 }
 async function clStartDlg(c, after) {
   let Ls, sel, list;
