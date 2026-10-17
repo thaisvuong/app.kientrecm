@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T16:42:21.725Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T16:51:51.668Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4079,6 +4079,9 @@ button.md-card.ext{ font:inherit }
 html.tk-noadd .tk-quick, html.tk-noadd #tkNew, html.tk-noadd #tkNewS, html.tk-noadd #tkNewE, html.tk-noadd .tk-addb, html.tk-noadd .tk-addr{ display:none !important }
 /* xem tài liệu: ảnh thu nhỏ trang đầu hiện ngay trong lúc tải nội dung */
 .vw-thph{ display:block; width:min(380px, 80%); margin:0 auto 12px; border-radius:8px; box-shadow:0 8px 28px rgba(14,27,51,.12); opacity:.75; filter:saturate(.9) }
+/* Quản trị › Tài khoản gửi mail */
+.gmo-now{ display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; background:var(--surface-2); flex-wrap:wrap }
+.gmo-now > i{ font-size:20px; color:var(--primary) } .gmo-now > div{ flex:1 1 220px; display:flex; flex-direction:column; gap:2px; min-width:0 } .gmo-now small{ color:var(--muted); font-size:12px }
 </style>
 
   <style>
@@ -8450,6 +8453,37 @@ function setSystem(B, cfg, setCfg) {
       '<label class="sw"><input type="checkbox" id="sTrig"' + (cfg.trigger ? ' checked' : '') + '><span></span></label>') +
     row('bi-lightning-charge', 'Xoá bộ đệm', 'Buộc máy chủ và trình duyệt đọc lại dữ liệu mới nhất (khi vừa sửa tay trên Sheet).', '<button class="btn sm" id="sFlush"><i class="bi bi-arrow-clockwise"></i>Xoá bộ đệm</button>') +
     '</div></div>';
+  // ── tài khoản gửi mail: kết nối một tài khoản Gmail khác bằng Google (OAuth, quyền gmail.send) ──
+  const gc = document.createElement('div'); gc.className = 'card gmo-card'; gc.style.marginTop = '12px'; B.appendChild(gc);
+  gc.innerHTML = '<div class="card-h"><h2><i class="bi bi-send-check"></i>Tài khoản gửi mail</h2></div><div class="card-b">' + miniLoader('Đang tải…') + '</div>';
+  const gmPaint = G => {
+    const st = G.on ? ['ok', 'Đang gửi bằng ' + G.email] : G.err ? ['red', 'Bị ngắt — đang gửi bằng tài khoản chạy app'] : ['', 'Đang gửi bằng tài khoản chạy app'];
+    gc.innerHTML = '<div class="card-h"><h2><i class="bi bi-send-check"></i>Tài khoản gửi mail</h2><span class="sp"></span><span class="tag ' + st[0] + '">' + esc(st[1]) + '</span></div><div class="card-b stack">' +
+      '<div class="gmo-now"><i class="bi bi-envelope-at"></i><div><b>' + esc(G.on ? G.email : G.owner) + '</b><small>' + (G.on ? 'Mail của app (mã đăng nhập, thông báo, nhắc việc…) gửi từ tài khoản này qua Gmail · kết nối ' + esc(fmtDT(G.at)) : 'Tài khoản chạy app (Apps Script) — Gmail thường khoảng 100 người nhận / ngày') + '</small>' +
+        (G.err ? '<small style="color:var(--danger)">' + esc(G.err) + '</small>' : '') + '</div>' +
+        (G.on ? '<button class="btn sm" id="gmT"><i class="bi bi-send"></i>Gửi thử</button><button class="btn sm ghost" id="gmX"><i class="bi bi-plug"></i>Ngắt</button>' : '') + '</div>' +
+      '<div class="grid g2"><div class="fg"><label class="flabel">OAuth Client ID (loại Web application)</label><input class="inp mono" id="gmC" value="' + esc(G.cid) + '" placeholder="1234567890-xxxx.apps.googleusercontent.com"></div>' +
+        '<div class="fg"><label class="flabel">Client secret</label><input class="inp mono" id="gmS" type="password" autocomplete="off" placeholder="' + (G.hasSecret ? '•••••••• đã lưu — để trống nếu không đổi' : 'GOCSPX-…') + '"></div></div>' +
+      '<div class="row"><button class="btn" id="gmSave"><i class="bi bi-check2"></i>Lưu</button><button class="btn pri" id="gmGo"' + (G.cid && G.hasSecret ? '' : ' disabled') + '><i class="bi bi-google"></i>' + (G.on ? 'Kết nối tài khoản khác' : 'Kết nối tài khoản Gmail…') + '</button>' +
+        '<button class="btn ghost" id="gmR" title="Tải lại trạng thái sau khi cấp quyền"><i class="bi bi-arrow-clockwise"></i></button></div>' +
+      '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Cách lấy Client ID & secret (làm một lần, ~5 phút)</summary><ol class="lg-steps">' +
+        '<li>Mở <a href="https://console.cloud.google.com/apis/library/gmail.googleapis.com" target="_blank">Google Cloud › Gmail API</a> (cùng project với đăng nhập Google nếu đã có) → <b>Enable</b>.</li>' +
+        '<li><a href="https://console.cloud.google.com/auth/overview" target="_blank">OAuth consent screen</a>: External, điền tên app + email; ở <b>Audience</b> bấm <b>Publish app</b> (để “Testing” thì quyền hết hạn sau 7 ngày).</li>' +
+        '<li><a href="https://console.cloud.google.com/apis/credentials" target="_blank">Credentials</a> › <b>Create credentials › OAuth client ID</b> › <b>Web application</b> (hoặc mở client đăng nhập Google đang dùng).</li>' +
+        '<li>Ở <b>Authorized redirect URIs</b> thêm đúng địa chỉ này: <span class="lg-origin"><code>' + esc(G.redirect) + '</code><button class="btn xs" id="gmRc"><i class="bi bi-clipboard"></i>Chép</button></span></li>' +
+        '<li>Save → chép <b>Client ID</b> và <b>Client secret</b> vào hai ô trên → Lưu → <b>Kết nối tài khoản Gmail…</b></li>' +
+        '<li>Đăng nhập tài khoản Gmail muốn dùng làm người gửi → Google báo “chưa xác minh” thì bấm <b>Nâng cao › Đi tới …</b> → tick <b>Gửi email thay bạn</b> → Tiếp tục. Thấy “Đã kết nối” thì đóng tab, bấm ⟳ ở trên.</li></ol>' +
+        '<div class="small muted">Client secret và quyền gửi chỉ lưu ở máy chủ Apps Script (không nằm trên Sheet, không gửi về trình duyệt). Ngắt = thu hồi quyền ngay. Gmail thường gửi được khoảng 500 người nhận / ngày, Google Workspace khoảng 2.000.</div></details></div>';
+    $('#gmSave', gc).onclick = async e => { const stop = btnWait(e.currentTarget, 'Đang lưu…'); try { gmPaint(await rpc('gmoSave', { cid: $('#gmC', gc).value.trim(), secret: $('#gmS', gc).value.trim() }, { quiet: true })); toast('Đã lưu'); } catch (er) { stop(); fail(er); } };
+    $('#gmGo', gc).onclick = async () => { const w = window.open('', '_blank'); try { const r = await rpc('gmoStart', {}, { quiet: true }); if (w) w.location = r.url; else location.href = r.url; toast('Cấp quyền ở tab mới, xong quay lại đây', 'info', 5000); } catch (er) { if (w) w.close(); fail(er); } };
+    $('#gmR', gc).onclick = () => gmLoad();
+    $('#gmRc', gc).onclick = () => copyText(G.redirect, 'Đã chép Redirect URI');
+    const t = $('#gmT', gc); if (t) t.onclick = async e => { const stop = btnWait(e.currentTarget, 'Đang gửi…'); try { const r = await rpc('gmoTest', {}, { quiet: true }); stop(); toast('Đã gửi thử từ ' + r.from + ' tới ' + r.to, 'ok', 4000); } catch (er) { stop(); fail(er); gmLoad(); } };
+    const x = $('#gmX', gc); if (x) x.onclick = async () => { if (!await ask('Ngắt tài khoản gửi ' + G.email + '? Mail sẽ quay về gửi bằng tài khoản chạy app (' + G.owner + ').', { ok: 'Ngắt', danger: true })) return; try { gmPaint(await rpc('gmoOff', {}, { quiet: true })); toast('Đã ngắt'); mlLoad(); } catch (er) { fail(er); } };
+  };
+  const gmLoad = () => rpc('gmoGet', {}, { quiet: true }).then(G => { if (gc.isConnected) gmPaint(G); }).catch(e => { $('.card-b', gc).innerHTML = '<div class="empty small">' + esc(e.message) + '</div>'; });
+  gmLoad();
+  window.addEventListener('focus', function gmF() { if (!gc.isConnected) return window.removeEventListener('focus', gmF); gmLoad(); });      // cấp quyền ở tab khác xong quay lại → tự cập nhật
   // ── mail gửi đi: lượt còn lại hôm nay, đã gửi / bỏ qua theo loại, mức giữ lại cho mã đăng nhập ──
   const mc = document.createElement('div'); mc.className = 'card ml-card'; mc.style.marginTop = '12px'; B.appendChild(mc);
   mc.innerHTML = '<div class="card-h"><h2><i class="bi bi-envelope"></i>Mail gửi đi</h2></div><div class="card-b">' + miniLoader('Đang tải…') + '</div>';
