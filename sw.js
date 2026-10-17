@@ -1,11 +1,11 @@
-/* Service worker của trang vỏ Kiến Trẻ CM: nhận thông báo đẩy (Web Push) & mở đúng trang khi bấm.
+/* Service worker của trang vỏ Kiến Trẻ (kientre-internal.click): nhận thông báo đẩy (Web Push) & mở đúng trang khi bấm.
    Máy chủ gửi push không nội dung → hỏi app thông báo mới nhất của máy này rồi hiện lên. */
 const APP = 'https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec';
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 self.addEventListener('push', e => {
   e.waitUntil((async () => {
-    let d = { title: 'Kiến Trẻ CM', body: 'Bạn có thông báo mới', route: '', unread: 0 };
+    let d = { title: 'Kiến Trẻ', body: 'Bạn có thông báo mới', route: '', unread: 0 };
     try {
       if (e.data) { try { d = Object.assign(d, e.data.json()); } catch (x) { d.body = e.data.text(); } }
       else {

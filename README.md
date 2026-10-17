@@ -1,7 +1,60 @@
-# app.kientrecm
+# Tên miền riêng — kientre-internal.click
 
-Trang vỏ để cài **Kiến Trẻ CM** lên màn hình chính điện thoại (biểu tượng + tên riêng, mở toàn màn hình).
-App thật chạy trên Google Apps Script, được nhúng trong khung của `index.html` — repo này không chứa dữ liệu hay mã máy chủ.
+Apps Script không gắn thẳng được tên miền riêng. Tên miền trỏ tới một **trang vỏ** tĩnh (thư mục này) chạy trên **GitHub Pages**.
+Trang vỏ mở web app trong khung toàn màn hình, giữ hộ phiên đăng nhập, nhận thông báo đẩy, và cho **thêm vào màn hình chính có logo** (manifest + icons).
+Đây chính là trang vỏ đang chạy ở `thaisvuong.github.io/app.kientrecm`, chỉ đổi tên thành “Kiến Trẻ” và gửi kèm `?so=&su=` để app biết đang chạy dưới tên miền mới.
 
-- Đổi biểu tượng: thay các file trong `icons/` (giữ đúng tên & kích thước: 512, 192, 180 = apple-touch-icon, 32).
-- Đổi tên dưới biểu tượng: `manifest.webmanifest` (`name`, `short_name`) và thẻ `apple-mobile-web-app-title` trong `index.html`.
+| Tệp | Vai trò |
+|---|---|
+| `index.html` | trang vỏ: khung app, giữ mã đăng nhập, vùng an toàn iPhone, hỏi bật thông báo |
+| `sw.js` | service worker nhận thông báo đẩy |
+| `manifest.webmanifest`, `icons/` | tên + logo khi “Thêm vào màn hình chính” |
+| `CNAME` | `kientre-internal.click` — GitHub Pages đọc tệp này để gắn tên miền |
+| `404.html` | link sai đường dẫn → về trang chính (giữ `?page=`) |
+| `task/index.html` | link cũ `/task/` → `/?page=tasks` |
+
+`https://kientre-internal.click/?page=tasks` mở thẳng Kiến Task; `?page=file/<mã>` mở thẳng một tài liệu.
+
+## 1. Đưa thư mục này lên GitHub Pages
+
+Cách gọn nhất là dùng lại repo trang vỏ đang chạy (`thaisvuong/app.kientrecm`):
+1. Thay nội dung repo bằng nội dung thư mục `domain/` này (có sẵn `CNAME`).
+2. Repo › **Settings › Pages** › ô **Custom domain** hiện `kientre-internal.click` › Save.
+3. Đợi DNS chạy (bước 2) và GitHub cấp chứng chỉ (vài phút – 1 giờ), rồi tick **Enforce HTTPS**.
+
+Khi repo có tên miền riêng, link cũ `thaisvuong.github.io/app.kientrecm/…` **tự chuyển** sang `kientre-internal.click/…`.
+
+## 2. Gửi cho người quản lý tên miền (Mắt Bão)
+
+> Tên miền: **kientre-internal.click** · Giữ Name Server mặc định của Mắt Bão (ns1/ns2.matbao.com).
+> Vào **Bản ghi DNS › Tạo bản ghi**, thêm:
+>
+> | Host | Loại | Giá trị | TTL |
+> |---|---|---|---|
+> | `@` | A | `185.199.108.153` | 3600 |
+> | `@` | A | `185.199.109.153` | 3600 |
+> | `@` | A | `185.199.110.153` | 3600 |
+> | `@` | A | `185.199.111.153` | 3600 |
+> | `www` | CNAME | `thaisvuong.github.io.` | 3600 |
+>
+> (Không bắt buộc, cho mạng IPv6: `@` AAAA `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`.)
+> Không xoá bản ghi NS đang có. Nếu đã có bản ghi A / CNAME khác cho `@` hoặc `www` (VD trỏ về hosting mặc định của Mắt Bão) thì **xoá** chúng.
+
+Dấu **!** đỏ cạnh tên miền ở trang quản lý Mắt Bão thường là nhắc **xác thực thông tin chủ thể tên miền**. Cần làm xong, nếu không tên miền
+có thể bị tạm ngưng phân giải (DNS đúng mà vẫn không mở được).
+
+Kiểm tra sau 5 phút – vài giờ:
+```
+dig kientre-internal.click +short
+```
+phải ra đủ 4 địa chỉ `185.199.10x.153`.
+
+## 3. Sau khi tên miền chạy
+
+- Gửi mọi người `https://kientre-internal.click/`. Trên điện thoại: mở bằng Safari / Chrome › Chia sẻ › **Thêm vào MH chính** → biểu tượng cánh diều, tên “Kiến Trẻ”.
+- Đây là địa chỉ mới với trình duyệt: mỗi người **đăng nhập lại một lần**, **bật lại thông báo** (Cài đặt › Thông báo), và nên xoá biểu tượng cũ trên màn hình chính rồi thêm biểu tượng mới.
+- App đã nhận trang vỏ trên tên miền này (`CFG.SHELL_ORIGINS` trong `src/Code.gs`).
+
+## Đổi link /exec
+
+Link /exec nằm trong `index.html` (biến `APP`) và `sw.js`. Deploy bằng `tools/deploy.sh` giữ nguyên link → không phải sửa.
