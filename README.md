@@ -1,20 +1,15 @@
-# Tên miền riêng — kientre-internal.click
+# Tên miền riêng — https://kientre-internal.click
 
-Apps Script không gắn thẳng được tên miền riêng. Tên miền trỏ tới một **trang vỏ** tĩnh (thư mục này) chạy trên **GitHub Pages**.
-Trang vỏ mở web app trong khung toàn màn hình, giữ hộ phiên đăng nhập, nhận thông báo đẩy, và cho **thêm vào màn hình chính có logo** (manifest + icons).
-Đây chính là trang vỏ đang chạy ở `thaisvuong.github.io/app.kientrecm`, chỉ đổi tên thành “Kiến Trẻ” và gửi kèm `?so=&su=` để app biết đang chạy dưới tên miền mới.
-
-| Tệp | Vai trò |
-|---|---|
-| `index.html` | trang vỏ: khung app, giữ mã đăng nhập, vùng an toàn iPhone, hỏi bật thông báo |
-| `sw.js` | service worker nhận thông báo đẩy |
-| `manifest.webmanifest`, `icons/` | tên + logo khi “Thêm vào màn hình chính” |
-| `CNAME` | `kientre-internal.click` — GitHub Pages đọc tệp này để gắn tên miền |
-| `404.html` | bản sao `index.html` — GitHub Pages trả trang này cho mọi đường dẫn sâu |
-
-**Đường dẫn đẹp**: thanh địa chỉ đổi theo trang đang mở — `kientre-internal.click/tasks/plan`, `/tasks/item/<mã>`, `/file/<mã>`, `/library/<thư mục>`, `/dashboard`… (tiếng Anh)
-(bảng đổi tên ở `index.html`, biến `SLUG` / `SUB`). Mở thẳng một đường dẫn sâu: GitHub Pages trả `404.html` — bản sao của `index.html` — nên vẫn vào đúng trang.
-**Sửa `index.html` thì chép đè sang `404.html`.** Link cũ dạng `?page=tasks` vẫn chạy.
+Từ bản 1.26 **app chạy thẳng trên tên miền** (GitHub Pages), không còn mở trong khung Apps Script:
+- `index.html` / `404.html` là **chính giao diện app**, dựng từ `src/` bằng `node tools/build-static.js` (đừng sửa tay — sửa `src/` rồi dựng lại).
+  Mọi lệnh gọi máy chủ đi bằng `fetch` POST vào link /exec (`doPost` → `api()` trong `Code.gs`: cùng mã phiên, cùng kiểm quyền).
+- `sw.js`: lần mở sau lấy giao diện **ngay từ máy** (bản mới tải ngầm cho lần sau) + thông báo đẩy.
+- `share.html`: link tạm `/s/<mã>` — trang xem link tạm vẫn do Apps Script dựng, mở trong khung.
+- Đường dẫn tiếng Anh: `/tasks`, `/tasks/plan`, `/tasks/item/<mã>`, `/file/<mã>`, `/library/…`, `/dashboard`… (bảng đổi ở `tools/static/head.js`).
+- Nguồn: `tools/static/` (head.js · runtime.js · share.html · sw.js · push.css). Bản trang vỏ cũ (mở app trong khung): `tools/static/frame-shell.html`.
+- **Deploy**: `tools/deploy.sh` đẩy Apps Script rồi gọi `tools/publish-domain.sh` (dựng + đẩy lên repo `thaisvuong/app.kientrecm`, giữ ở `webapp/.pages`).
+- **Đăng nhập Google** trên tên miền: trong Google Cloud Console › Credentials › OAuth Client ID đang dùng (Cài đặt › Chung), thêm
+  `https://kientre-internal.click` vào *Authorized JavaScript origins*. Chưa thêm thì vẫn đăng nhập bằng mã email.
 
 ## 1. Đưa thư mục này lên GitHub Pages
 
