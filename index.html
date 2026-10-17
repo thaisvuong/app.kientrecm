@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T16:51:51.668Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-17T17:05:48.194Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -2424,7 +2424,7 @@ html[data-glass] .nt-pop{ background:#fff }
 .cl-rmh{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; background:#FDECEC; color:#7F1D1D } .cl-rmh b{ font-size:14px }
 .btn.red{ background:var(--danger); color:#fff; border:0 } .btn.red:hover{ filter:brightness(1.05); color:#fff }
 /* cài đặt thông báo đẩy */
-.ntf .card-b{ display:flex; flex-direction:column; gap:12px }
+.ntf .card-b{ display:flex; flex-direction:column; gap:12px } .ntf + .ntf{ margin-top:12px }      /* Thông báo đẩy · Cài app: hai thẻ cách nhau, không dính góc */
 .ntf-row{ display:flex; align-items:center; gap:16px } .ntf-row > div{ flex:1; min-width:0 } .ntf-row b{ display:block; font-size:14px } .ntf-row small{ display:block; font-size:12px; color:var(--muted); margin-top:2px }
 .ntf-act{ display:flex; gap:8px }
 .sw.busy{ opacity:.6; pointer-events:none }
@@ -4774,10 +4774,10 @@ function shellTok(t) { if (window.SHELL && window.SHELL_ORIGIN) try { window.top
 function shellAsk(type, data, waitTypes, ms) {
   if (!window.SHELL || !window.SHELL_ORIGIN || (window.top === window && !window.STATIC)) return Promise.resolve(null);
   return new Promise(res => {
-    const on = e => { if (e.origin !== window.SHELL_ORIGIN || !e.data || waitTypes.indexOf(e.data.kgs) < 0) return; window.removeEventListener('message', on); clearTimeout(t); res(e.data); };
+    const on = e => { if (e.origin !== window.SHELL_ORIGIN || !e.data || e.data._ask || waitTypes.indexOf(e.data.kgs) < 0) return; window.removeEventListener('message', on); clearTimeout(t); res(e.data); };      // _ask: chính câu hỏi vừa gửi (app chạy thẳng trên tên miền: hỏi & trả lời trong cùng trang) — bỏ qua
     window.addEventListener('message', on);
     const t = setTimeout(() => { window.removeEventListener('message', on); res(null); }, ms || 8000);
-    try { window.top.postMessage(Object.assign({ kgs: type }, data || {}), window.SHELL_ORIGIN); } catch (e) { res(null); }
+    try { window.top.postMessage(Object.assign({ kgs: type, _ask: 1 }, data || {}), window.SHELL_ORIGIN); } catch (e) { res(null); }
   });
 }
 /* vùng thanh Home (iPhone) — trang vỏ đo env(safe-area-inset-bottom) rồi gửi vào (trong khung không đọc được) → thanh tab sát đáy */
@@ -8130,7 +8130,7 @@ async function setNotify(B) {
     const sub = st && st.subscribed, can = !!(st && st.supported && (st.standalone || !isIOS) && st.perm !== 'denied');
     const title = !window.SHELL ? 'Chưa dùng được ở đây' : !st ? 'Đang kiểm tra…' : !st.supported ? 'Thiết bị chưa hỗ trợ' : isIOS && !st.standalone ? 'Cần mở từ màn hình chính' : st.perm === 'denied' ? 'Đã bị chặn' : sub ? 'Đang bật trên máy này' : 'Chưa bật';
     const sub2 = !window.SHELL ? 'Thông báo đẩy chỉ hoạt động khi mở app từ biểu tượng trên màn hình chính (link cài).' : !st ? '' : !st.supported ? 'iPhone / iPad cần iOS 16.4 trở lên. Máy tính: Chrome, Edge, Safari mới.'
-      : isIOS && !st.standalone ? 'Thêm Kiến Chuyên môn vào màn hình chính rồi mở từ biểu tượng để bật.' : st.perm === 'denied' ? 'Mở Cài đặt của máy › Thông báo › Kiến Chuyên môn › Cho phép, rồi quay lại đây.' : sub ? 'Nhận ngay: yêu cầu được duyệt, giao lớp, buổi có nội dung, được cấp quyền…' : 'Bật để nhận thông báo tức thì';
+      : isIOS && !st.standalone ? 'Thêm Kiến Trẻ vào màn hình chính rồi mở từ biểu tượng để bật.' : st.perm === 'denied' ? 'Mở Cài đặt của máy › Thông báo › Kiến Trẻ › Cho phép, rồi quay lại đây.' : sub ? 'Nhận ngay: yêu cầu được duyệt, giao lớp, buổi có nội dung, được cấp quyền…' : 'Bật để nhận thông báo tức thì';
     B.innerHTML = '<div class="card ntf"><div class="card-h"><h2><i class="bi bi-bell"></i>Thông báo đẩy</h2><span class="sp"></span><button class="btn sm ghost" id="pnDiag"><i class="bi bi-heart-pulse"></i>Chẩn đoán</button></div>' +
       '<div class="card-b"><div class="ntf-row"><div><b>' + title + '</b><small>' + sub2 + '</small></div>' +
         '<label class="sw' + (busy ? ' busy' : '') + '"><input type="checkbox" id="pnSw"' + (sub ? ' checked' : '') + (!window.SHELL || !st || (!can && !sub) || busy ? ' disabled' : '') + '><span></span></label></div>' +
@@ -8138,7 +8138,7 @@ async function setNotify(B) {
         '</div></div>' +
       // cài app lên màn hình chính — chung chỗ với thông báo (đã mở từ biểu tượng thì không cần)
       (matchMedia('(display-mode: standalone)').matches ? '' : '<div class="card ntf"><div class="card-h"><h2><i class="bi bi-house-add"></i>Cài app lên màn hình chính</h2></div><div class="card-b stack">' +
-        '<div class="small muted">Có biểu tượng Kiến Chuyên môn trên điện thoại, mở thẳng app toàn màn hình và nhận được thông báo đẩy.</div>' +
+        '<div class="small muted">Có biểu tượng Kiến Trẻ trên điện thoại, mở thẳng app toàn màn hình và nhận được thông báo đẩy.</div>' +
         '<div class="gd-url"><i class="bi bi-link-45deg"></i><span class="mono">' + GD_APP_URL + '</span><button class="btn xs pri" id="pnCopy"><i class="bi bi-clipboard"></i>Sao chép link</button></div>' +
         '<ol class="ntf-ol"><li><b>iPhone:</b> mở link bằng Safari › nút Chia sẻ <i class="bi bi-box-arrow-up"></i> › <b>Thêm vào MH chính</b>.</li><li><b>Android:</b> mở link bằng Chrome › ⋮ › <b>Thêm vào màn hình chính</b>.</li><li>Mở app từ biểu tượng rồi quay lại đây bật thông báo.</li></ol></div></div>');
     const cp = $('#pnCopy', B); if (cp) cp.onclick = () => copyText(GD_APP_URL, 'Đã sao chép link cài — mở bằng Safari / Chrome');
@@ -12577,7 +12577,7 @@ const gdTip = (t, kind) => '<div class="gd-tip ' + (kind || '') + '"><i class="b
 const gdBtn = (t, i, cls) => '<span class="btn xs ' + (cls || '') + '"><i class="bi ' + i + '"></i>' + t + '</span>';
 
 const gdApprove = what => gdTip('<b>Cần quản lý duyệt:</b> ' + what + ' được gửi đi chờ duyệt. Xem kết quả ở <b>⋯ Thêm › Yêu cầu</b>.', 'warn');
-const GD_APP_URL = 'https://thaisvuong.github.io/app.kientrecm/';
+const GD_APP_URL = 'https://kientre-internal.click/';      // link cài app lên màn hình chính (tên miền riêng — link github.io cũ tự chuyển về đây)
 /* lộ trình của gia sư mới: 3 việc là dạy được */
 const GD_FLOW = [['tabs', 'Làm quen', 'bi-phone'], ['sessions', 'Dạy một buổi', 'bi-easel'], ['addclass', 'Tạo lớp', 'bi-plus-circle']];
 /** thanh tab dưới cùng (giả lập) */
