@@ -18,6 +18,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/favicon-192.png">
@@ -27,13 +30,39 @@
   /* khung app phủ kín tới đáy màn hình; app tự chừa vùng thanh Home (nhận số đo qua postMessage 'safe') → thanh tab nằm sát đáy như app thật */
   #app { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: transparent; }
   #sab { position: fixed; left: 0; bottom: 0; width: 0; height: env(safe-area-inset-bottom); pointer-events: none; visibility: hidden; }
-  #ld { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font: 600 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1B2A6B; transition: opacity .3s; }
-  #ld img { width: 72px; height: 72px; border-radius: 20px; box-shadow: 0 10px 30px rgba(27,42,107,.25); }
-  #ld i { width: 140px; height: 4px; border-radius: 4px; background: #DCE4F5; overflow: hidden; position: relative; }
-  #ld i::after { content: ""; position: absolute; inset: 0; width: 40%; border-radius: inherit; background: #2F45C8; animation: mv 1.1s ease-in-out infinite; }
-  @keyframes mv { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
-  #ld.out { opacity: 0; pointer-events: none; }
-  @media (prefers-color-scheme: dark) { html, body { background: #0E1424; } #ld { color: #C9D4F2; } #ld i { background: #1E2A48; } }
+  /* MÀN CHỜ: giống hệt màn chờ của app (Index.html #ov, bộ màu sáng) → từ lúc bấm biểu tượng tới lúc app hiện chỉ thấy MỘT màn chờ liền mạch.
+     Ẩn khi app báo 'ready' (lúc đó màn chờ của app đã hiện đúng chỗ này). */
+  #ld { position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: #FFFFFF; overflow: hidden;
+        font-family: Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; transition: opacity .3s cubic-bezier(.4,0,.2,1), visibility .3s; }
+  #ld::before, #ld::after { content: ''; position: absolute; width: 56vmax; height: 56vmax; border-radius: 50%; filter: blur(70px); opacity: .08; pointer-events: none;
+        background: radial-gradient(circle, #4A78BD 0%, transparent 68%); animation: ovDrift 14s ease-in-out infinite alternate; }
+  #ld::after { background: radial-gradient(circle, #2D5DA3 0%, transparent 68%); animation-duration: 19s; animation-direction: alternate-reverse; }
+  @keyframes ovDrift { from { transform: translate(-22%,-18%) scale(.92); } to { transform: translate(20%,16%) scale(1.08); } }
+  #ld.out { opacity: 0; visibility: hidden; pointer-events: none; }
+  .ov-grid { position: absolute; inset: -2px; pointer-events: none; opacity: .05; background-image: linear-gradient(rgba(0,0,0,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.5) 1px, transparent 1px);
+        background-size: 44px 44px; -webkit-mask: radial-gradient(60% 55% at 50% 45%, #000 0%, transparent 75%); mask: radial-gradient(60% 55% at 50% 45%, #000 0%, transparent 75%); animation: ovGrid 18s linear infinite; }
+  @keyframes ovGrid { to { background-position: 44px 44px, 44px 44px; } }
+  .ov-stage { position: relative; width: 170px; height: 150px; z-index: 1; margin-bottom: 4px; }
+  .ov-doc { position: absolute; left: 50%; top: 50%; width: 78px; height: 100px; margin: -50px 0 0 -39px; border-radius: 10px; background: linear-gradient(180deg,#fff,#EEF1F8); box-shadow: 0 14px 30px rgba(0,0,0,.12), inset 0 0 0 1px #E4E4E7; }
+  .ov-doc.d3 { opacity: .35; animation: ovFan3 3.2s cubic-bezier(.4,0,.2,1) infinite; } .ov-doc.d2 { opacity: .6; animation: ovFan2 3.2s cubic-bezier(.4,0,.2,1) infinite; } .ov-doc.d1 { animation: ovFloat 3.2s ease-in-out infinite; overflow: hidden; }
+  @keyframes ovFan3 { 0%,100% { transform: rotate(-4deg) translate(-4px,4px); } 45%,70% { transform: rotate(-16deg) translate(-26px,6px); } }
+  @keyframes ovFan2 { 0%,100% { transform: rotate(3deg) translate(3px,3px); } 45%,70% { transform: rotate(12deg) translate(24px,4px); } }
+  @keyframes ovFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .ov-doc i { position: absolute; left: 12px; height: 6px; border-radius: 3px; background: #C7CEDB; width: 54px; transform-origin: left; animation: ovType 3.2s cubic-bezier(.4,0,.2,1) infinite; }
+  .ov-doc i.h { top: 14px; width: 34px; height: 8px; background: #1A3B6C; } .ov-doc i.l1 { top: 32px; animation-delay: .15s; } .ov-doc i.l2 { top: 44px; width: 46px; animation-delay: .3s; }
+  .ov-doc i.l3 { top: 56px; width: 52px; animation-delay: .45s; } .ov-doc i.l4 { top: 68px; width: 30px; animation-delay: .6s; }
+  @keyframes ovType { 0%,8% { transform: scaleX(0); } 30%,85% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
+  .ov-stamp { position: absolute; right: 8px; bottom: 8px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #16A34A; box-shadow: 0 4px 10px rgba(22,163,74,.45); animation: ovStamp 3.2s cubic-bezier(.34,1.42,.5,1) infinite; }
+  @keyframes ovStamp { 0%,48% { transform: scale(0) rotate(-40deg); opacity: 0; } 60%,88% { transform: scale(1) rotate(0); opacity: 1; } 100% { transform: scale(.6); opacity: 0; } }
+  .ov-orbit { position: absolute; inset: -8px; border-radius: 50%; border: 1px dashed rgba(0,0,0,.1); animation: spin 9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ov-orbit b { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #2D5DA3; }
+  .ov-orbit b:nth-child(1) { top: -4px; left: 50%; margin-left: -4px; } .ov-orbit b:nth-child(2) { bottom: 18%; right: 2%; width: 6px; height: 6px; opacity: .7; } .ov-orbit b:nth-child(3) { bottom: 12%; left: 6%; width: 5px; height: 5px; opacity: .5; }
+  .ov-t { z-index: 1; color: #0A0A0A; font-size: 19px; font-weight: 800; letter-spacing: .2px; text-align: center; padding: 0 20px; }
+  .ov-t .k { padding: 2px 9px; margin-right: 4px; border-radius: 8px; background: #204983; border: 1px solid #204983; color: #fff; letter-spacing: 1.5px; }
+  .ov-bar { z-index: 1; width: 220px; height: 4px; border-radius: 4px; background: #E4E4E7; overflow: hidden; }
+  .ov-bar i { display: block; height: 100%; width: 12%; border-radius: 4px; background: #204983; }
+  .ov-s { z-index: 1; color: #71717A; font-size: 12px; min-height: 16px; }
   #pushSheet { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10; max-width: 460px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 18px 50px rgba(15,23,42,.28); padding: 14px; font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0F172A; animation: up .25s ease; }
   #pushSheet .ps-b { display: flex; gap: 12px; align-items: center; } #pushSheet img { width: 44px; height: 44px; border-radius: 12px; }
   #pushSheet b { display: block; font-size: 15px; } #pushSheet span { display: block; font-size: 12.5px; color: #475569; margin-top: 2px; }
@@ -45,7 +74,13 @@
 </head>
 <body>
 <div id="sab"></div>
-<div id="ld"><img src="icons/icon-192.png" alt=""><span>Đang mở Kiến Trẻ…</span><i></i></div>
+<div id="ld" role="status" aria-live="polite"><div class="ov-grid"></div>
+  <div class="ov-stage"><div class="ov-orbit"><b></b><b></b><b></b></div><div class="ov-doc d3"></div><div class="ov-doc d2"></div>
+    <div class="ov-doc d1"><i class="h"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i>
+      <span class="ov-stamp"><svg width="14" height="14" viewBox="0 0 16 16" fill="#fff" aria-hidden="true"><path d="M11.74 10.34a6.5 6.5 0 1 0-1.4 1.4l3.85 3.85a1 1 0 0 0 1.41-1.41l-3.85-3.85zM6.5 11a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg></span></div></div>
+  <div class="ov-t"><span class="k">KIẾN</span> <span class="w">Trẻ</span></div>
+  <div class="ov-bar"><i></i></div>
+  <div class="ov-s">Đang kết nối…</div></div>
 <iframe id="app" title="Kiến Trẻ" allow="clipboard-read; clipboard-write; fullscreen; autoplay; encrypted-media; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
 <script>
   // Trang vỏ (kientre-internal.click — chạy trên GitHub Pages): biểu tượng & tên app trên màn hình chính; app thật (Apps Script) chạy trong khung bên dưới.
@@ -73,7 +108,9 @@
   if (deep && deep !== 'index.html' && deep !== '404.html' && !q.get('page')) q.set('page', toRoute(deep));      // mở thẳng /tasks/plan → app mở đúng trang
   q.set('so', location.origin); q.set('su', location.origin + window.KT_BASE);      // app chỉ nhận trang vỏ có trong danh sách (CFG.SHELL_ORIGINS); link “mở tab mới / chép link” trỏ về đây
   var f = document.getElementById('app'), ld = document.getElementById('ld');
-  f.onload = function () { setTimeout(function () { ld.classList.add('out'); }, 400); };
+  // link tạm (/s/<mã>): trang xem tài liệu riêng, không báo 'ready' → bỏ màn chờ ngay khi khung tải xong
+  var share = /^s\//.test(q.get('page') || '');
+  f.onload = function () { setTimeout(function () { ld.classList.add('out'); }, share ? 500 : 6000); };      // dự phòng: app không báo 'ready' (VD trang lỗi của Google)
   setTimeout(function () { ld.classList.add('out'); }, 15000);
   f.src = APP + '?' + q.toString();
   // Bàn phím iPhone: iOS đẩy cả trang vỏ lên để lộ ô nhập → thanh trên / tên bé trôi khỏi màn hình.
@@ -126,6 +163,7 @@
     if (!OK.test(e.origin) || !e.data || typeof e.data !== 'object') return;
     var d = e.data;
     if (e.source) SRC = { s: e.source, o: e.origin };
+    if (d.kgs === 'ready') ld.classList.add('out');      // màn chờ của app đã hiện → bỏ màn chờ của trang vỏ, không chớp
     if (d.kgs === 'ready' || d.kgs === 'get') safe();
     // app đổi trang → thanh địa chỉ đổi theo (thay, không thêm lịch sử: nút Quay lại vẫn do app xử lý), tab trình duyệt mang tên trang
     if (d.kgs === 'route' && typeof d.r === 'string' && d.r.length < 300) {
