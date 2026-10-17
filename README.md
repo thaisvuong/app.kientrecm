@@ -17,10 +17,12 @@ Trang vỏ mở web app trong khung toàn màn hình, giữ hộ phiên đăng n
 
 ## 1. Đưa thư mục này lên GitHub Pages
 
-Cách gọn nhất là dùng lại repo trang vỏ đang chạy (`thaisvuong/app.kientrecm`):
-1. Thay nội dung repo bằng nội dung thư mục `domain/` này (có sẵn `CNAME`).
-2. Repo › **Settings › Pages** › ô **Custom domain** hiện `kientre-internal.click` › Save.
-3. Đợi DNS chạy (bước 2) và GitHub cấp chứng chỉ (vài phút – 1 giờ), rồi tick **Enforce HTTPS**.
+Dùng lại repo trang vỏ đang chạy (`thaisvuong/app.kientrecm`):
+1. ✅ (17-10-2026, commit `fb351b5`) Đã đưa trang vỏ mới lên repo — **trừ tệp `CNAME`**, vì DNS ở Mắt Bão chưa có bản ghi: gắn tên miền lúc này thì link
+   github.io cũ tự chuyển sang một địa chỉ chưa mở được.
+2. Khi `dig kientre-internal.click +short` đã ra 4 địa chỉ ở bước 2: thêm tệp `CNAME` vào repo (hoặc Repo › **Settings › Pages** › **Custom domain** =
+   `kientre-internal.click` › Save).
+3. Đợi GitHub cấp chứng chỉ (vài phút – 1 giờ), rồi tick **Enforce HTTPS**.
 
 Khi repo có tên miền riêng, link cũ `thaisvuong.github.io/app.kientrecm/…` **tự chuyển** sang `kientre-internal.click/…`.
 
