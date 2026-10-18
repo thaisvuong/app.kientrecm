@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-18T14:54:20.084Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-18T17:09:11.095Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -568,6 +568,7 @@ table.tbl{ width:100%; border-collapse:separate; border-spacing:0; font-size:12.
 
 /* ── đang xử lý: nút có vệt sáng quét + thẻ nổi ở giữa đáy màn hình ── */
 .btn.busy{ opacity:1 !important; cursor:progress }
+.modal-f .modal-wait{ margin-right:auto; display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#7A4A06 } .modal-f .modal-wait i{ animation:spin 1.6s linear infinite }
 .btn.busy::after{ content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit; background-size:220% 100%; animation:btnSheen 1.05s linear infinite;
   background-image:linear-gradient(110deg, transparent 25%, rgba(255,255,255,.34) 45%, rgba(255,255,255,.34) 55%, transparent 75%) }
 .btn:not(.pri).busy::after{ background-image:linear-gradient(110deg, transparent 25%, color-mix(in srgb, var(--brand-500) 20%, transparent) 50%, transparent 75%) }
@@ -4408,7 +4409,7 @@ const obTransient = e => !e.srv || /lock|timeout|timed out|too many|exceeded|ser
 /* lệnh ghi gửi gộp được (máy chủ API.batch): nhiều lệnh liên tiếp đi chung MỘT lần gọi — kéo điền, đẩy lùi, duyệt nhiều buổi lưu nhanh hơn hẳn */
 const OB_BATCH = { classSave: 1, classMine: 1, classStudent: 1, classStart: 1, classLcfg: 1, classAdd: 1, classRemove: 1, classDelete: 1, reqDecide: 1,
                    sessionSave: 1, sessionContent: 1, sessionApprove: 1, sessionOff: 1, sessionTaught: 1, sessionAdd: 1, sessionDelete: 1, notifRead: 1,
-                   taskSave: 1, taskMove: 1, taskDelete: 1 };
+                   taskSave: 1, taskMove: 1, taskDelete: 1, taskProjectSave: 1, taskProjectDelete: 1 };
 /** lệnh it đã lưu xong (đang đứng đầu hàng đợi) */
 function obDone(it, r) {
   if (OB.q[0] === it) OB.q.shift(); else { const i = OB.q.indexOf(it); if (i >= 0) OB.q.splice(i, 1); }
@@ -4627,10 +4628,14 @@ function modal(o) {
       btn.innerHTML = (b.i ? '<i class="bi ' + b.i + '"></i>' : '') + esc(b.t);
       btn.onclick = async () => {
         if (!b.fn) return m.close();
+        if (f.classList.contains('wait')) return;
         btn.classList.add('busy'); btn.disabled = true;
+        // việc chạy lâu hơn chớp mắt → hiện dòng báo + khoá các nút khác: tránh bấm lại / đóng hộp giữa chừng
+        const tw = setTimeout(() => { if (m.closed) return; f.classList.add('wait'); m.btns.forEach(x => { if (x !== btn) x.disabled = true; }); bg.querySelector('[data-x]').disabled = true;
+          if (!f.querySelector('.modal-wait')) f.insertAdjacentHTML('afterbegin', '<span class="modal-wait" role="status"><i class="bi bi-hourglass-split"></i>Đang xử lý — đừng bấm lại hay đóng hộp</span>'); }, 250);
         try { const r = await b.fn(m, btn); if (r !== false) m.close(); }
         catch (e) { fail(e); }
-        finally { btn.classList.remove('busy'); btn.disabled = false; }
+        finally { clearTimeout(tw); btn.classList.remove('busy'); btn.disabled = false; if (!m.closed) { f.classList.remove('wait'); const w = f.querySelector('.modal-wait'); if (w) w.remove(); m.btns.forEach(x => { x.disabled = false; }); bg.querySelector('[data-x]').disabled = false; } }
       };
       f.appendChild(btn);
       m.btns.push(btn);
@@ -8399,6 +8404,7 @@ const SET_TABS = [
   { k: 'theme', t: 'Phím tắt', i: 'bi-keyboard' },
   { k: 'notify', t: 'Thông báo & cài app', i: 'bi-bell', auth: 1 },      // mọi người đã đăng nhập, ở mọi ứng dụng (bật / tắt thông báo đẩy là theo từng máy)
   { k: 'tasks', t: 'Nhắc việc', i: 'bi-envelope-check', cap: 'tasks.remind', mod: ['task'] },
+  { k: 'taskdemo', t: 'Dữ liệu mẫu', i: 'bi-magic', cap: 'tasks.manage', mod: ['task'] },
   { k: 'general', t: 'Chung & truy cập', i: 'bi-sliders', cap: 'settings.manage', mod: ['sys'] },
   { k: 'menu', t: 'Menu & tab', i: 'bi-layout-sidebar', cap: 'settings.manage', mod: ['sys'] },
   { k: 'rules', t: 'Quy tắc trích xuất', i: 'bi-magic', cap: 'sources.manage', mod: ['lib'] },
@@ -8427,7 +8433,7 @@ async function viewSettings(arg, v) {
     setTitle(T.t, T.i, [{ t: (modInfo(S.mod) || {}).t || S.boot.app, r: homeRoute() }, { t: 'Cài đặt', r: 'settings' }], v);
     if ((T.k === 'general' || T.k === 'rules' || T.k === 'system') && !cfg) { B.innerHTML = miniLoader('Đang tải cài đặt…'); cfg = can('settings.manage') ? await rpc('getSettings', {}, { quiet: true }) : { values: { kindRules: IX.kinds }, defaults: { kindRules: IX.kinds } }; }
     if (cur === 'rules' && !IX.loaded) { B.innerHTML = miniLoader('Đang tải danh mục tài liệu…'); await needIndex(); }
-    ({ tasks: setTasks, me: setMe, notify: setNotify, theme: setTheme, access: setAccess, menu: setMenu, general: setGeneral, rules: setRules, system: setSystem, audit: setAudit })[cur](B, cfg, c => { cfg = c; });
+    ({ tasks: setTasks, taskdemo: setTaskDemo, me: setMe, notify: setNotify, theme: setTheme, access: setAccess, menu: setMenu, general: setGeneral, rules: setRules, system: setSystem, audit: setAudit })[cur](B, cfg, c => { cfg = c; });
   };
   $('#stN', v).onclick = e => {
     const m = e.target.closest('#stMo'); if (m) return openMenu(m, tabs.filter((t, i) => i >= 2 && t.k !== cur).map(t => ({ t: t.t, i: t.i, fn: () => go('settings/' + t.k) })));
@@ -15015,7 +15021,8 @@ Viết từ 3 đến 4 câu kể về em bé của nhà em (hoặc một em bé 
 .tk-due.late{ color:var(--danger) } .tk-due.today{ color:var(--orange) }
 .tk-pts{ min-width:22px; height:20px; padding:0 6px; border-radius:99px; background:var(--k-tray); font:600 10.5px/20px var(--font-mono); color:var(--ink-2); justify-content:center }
 .tk-pri.hi{ color:var(--orange) } .tk-pri{ color:var(--muted) }
-.tk-noav{ width:22px; height:22px; border-radius:50%; border:1px dashed var(--border-strong); display:grid; place-items:center; font-size:11px; color:var(--muted) }
+.tk-noav, .tk-c-ft .tk-noav{ width:22px; height:22px; flex-shrink:0; border-radius:50%; border:1px dashed var(--border-strong); display:inline-flex; align-items:center; justify-content:center; font-size:11px; line-height:1; color:var(--muted) }
+.tk-noav i{ display:block; line-height:1 } .tk-noav i::before{ display:block; vertical-align:0 }      /* chân thẻ (.tk-c-ft span = inline-flex, không canh giữa) từng làm biểu tượng người lệch trái */
 .tk-view .av.sm{ background:var(--k-ink) }
 .tk-st{ display:inline-flex; align-items:center; gap:6px; height:22px; font-size:11px; font-weight:600; padding:0 9px; border-radius:99px; background:var(--k-tray); color:var(--ink-2); white-space:nowrap } .tk-st.d{ background:#E2F1E8; color:var(--ok) } .tk-st.w{ background:var(--k-ink); color:#fff }
 /* backlog */
@@ -15100,7 +15107,30 @@ Viết từ 3 đến 4 câu kể về em bé của nhà em (hoặc một em bé 
 .tk-ck input[type=text]{ flex:1; border:0; border-bottom:1px solid transparent; background:none; outline:none; font:inherit; font-size:13px; padding:3px 0; color:var(--ink) } .tk-ck input[type=text]:focus{ border-bottom-color:var(--brand-500) } .tk-ck.d input[type=text]{ color:var(--muted); text-decoration:line-through }
 .tk-cm{ display:flex; gap:9px; padding:7px 0 } .tk-cm .b{ min-width:0; flex:1 } .tk-cm .h{ font-size:11px; color:var(--muted) } .tk-cm .h b{ color:var(--ink); font-size:12.5px }
 .tk-cm .x{ font-size:13px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; margin-top:2px } .tk-cm.a{ padding:2px 0 } .tk-cm.a .x{ display:inline; font-size:11.5px; color:var(--muted) }
-.tk-cols{ display:flex; flex-direction:column; gap:6px } .tk-cols .r{ display:flex; align-items:center; gap:6px } .tk-cols .w{ width:64px; flex-shrink:0; text-align:center } .tk-cols label{ display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--muted); white-space:nowrap }
+/* hộp tạo / sửa bảng: mỗi cột một dòng (tên · tối đa khi bật · bỏ), cột “xong” chọn một lần ở dưới */
+.tk-cols{ display:flex; flex-direction:column; gap:6px }
+.tk-cols .r, .tk-colh{ display:grid; grid-template-columns:minmax(0, 1fr) 36px; gap:6px; align-items:center } .tk-cols.wip .r, .tk-cols.wip .tk-colh{ grid-template-columns:minmax(0, 1fr) 84px 36px }
+.tk-colh{ font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:-2px } .tk-colh span:nth-child(2){ text-align:center }
+.tk-cols .nm{ position:relative; display:block; min-width:0 } .tk-cols .nm .inp{ width:100% } .tk-cols .r.dn .nm .inp{ padding-right:36px }
+.tk-cols .nm > i{ position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:16px; color:var(--ok); pointer-events:none }
+.tk-cols .w{ width:100%; min-width:0; padding:0 8px; text-align:center }
+.tk-pdlg .opt{ font-size:11px; font-weight:500; letter-spacing:0; text-transform:none; color:var(--muted); margin-left:4px }
+.tk-pdlg .hint{ font-size:12px; line-height:1.5; color:var(--muted); margin-top:6px } .tk-pdlg .hint i{ font-size:12px }
+.tk-pdn{ display:flex; align-items:center; flex-wrap:wrap; gap:8px 10px; margin-top:14px; font-size:13px; color:var(--ink-2) } .tk-pdn .sel{ width:auto; min-width:170px }
+.tk-wipt{ display:flex; gap:10px; align-items:flex-start; margin-top:12px; font-size:13px; line-height:1.45; color:var(--ink); cursor:pointer } .tk-wipt input{ width:18px; height:18px; margin-top:1px; flex-shrink:0; accent-color:var(--primary) }
+/* Báo cáo: lọc theo người · điểm đóng góp */
+.tk-whoc{ display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 4px 0 6px; border-radius:99px; background:var(--lightprimary); color:var(--primary); font-size:12.5px; max-width:220px }
+.tk-whoc b{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .tk-whoc button{ width:26px; height:26px; border:0; border-radius:50%; background:none; color:inherit; cursor:pointer; display:grid; place-items:center; flex-shrink:0 } .tk-whoc button:hover{ background:rgba(0,0,0,.06) }
+.tk-sc-top{ display:flex; align-items:flex-start; gap:12px 18px; flex-wrap:wrap; margin-bottom:12px }
+.tk-pool{ display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--ink-2) } .tk-pool .inp{ width:150px; height:36px; text-align:right; font-variant-numeric:tabular-nums } .tk-pool em{ font-style:normal; color:var(--muted) }
+.tk-how{ flex:1 1 320px; font-size:12.5px; line-height:1.55; color:var(--ink-2) } .tk-how summary{ cursor:pointer; color:var(--primary); font-weight:600; display:inline-flex; align-items:center; gap:6px; height:36px } .tk-how div{ padding:8px 12px; border-radius:10px; background:var(--surface-2) }
+.tk-sct tr[data-scw]{ cursor:pointer } .tk-sct tr.on td{ background:var(--lightprimary) } .tk-sct .av, .tk-sct .tk-noav{ vertical-align:middle; margin-right:6px } .tk-late{ color:var(--danger) }
+.tk-scb{ display:flex; align-items:center; gap:8px; min-width:140px } .tk-scb span{ flex:1; height:8px; border-radius:8px; background:var(--k-tray); overflow:hidden } .tk-scb i{ display:block; height:100%; border-radius:8px; background:var(--primary) } .tk-scb b{ min-width:34px; text-align:right } .tk-scb b{ font-variant-numeric:tabular-nums; font-size:12.5px }
+/* Cài đặt › Dữ liệu mẫu · báo đang chạy */
+.tk-dm-st{ display:flex; gap:12px; align-items:center; padding:12px 14px; border-radius:12px; background:var(--surface-2); border:1px solid var(--border) } .tk-dm-st > i{ font-size:22px; color:var(--muted) }
+.tk-dm-st.on > i{ color:var(--primary) } .tk-dm-st div{ display:flex; flex-direction:column; gap:2px; min-width:0 } .tk-dm-st span{ font-size:12px; color:var(--muted) }
+.tk-busy{ display:flex; gap:10px; align-items:flex-start; padding:10px 14px; border-radius:12px; background:#FFF4E5; color:#7A4A06; font-size:12.5px; line-height:1.5 } .tk-busy > i{ margin-top:2px; animation:spin 1.6s linear infinite }
+.tk-pend{ display:inline-flex; align-items:center; gap:4px; height:20px; padding:0 8px; border-radius:99px; background:#FFF4E5; color:#7A4A06; font-size:11px; font-weight:600; white-space:nowrap } .tk-pend i{ font-size:11px }
 @media (max-width:820px){
   .tk-row{ grid-template-columns:18px 50px minmax(0, 1fr) 86px 16px 48px } .tk-row .c-ep, .tk-row .c-due, .tk-row .c-pt{ display:none }
   .tk-dlg{ grid-template-columns:minmax(0, 1fr) } .tk-g2{ grid-template-columns:1fr } .tk-kpis{ grid-template-columns:repeat(2, minmax(0, 1fr)) } .tk-col{ flex-basis:82vw; max-height:none }
@@ -15386,6 +15416,38 @@ function tkCard(t, drag, i, o) {
       (kids.length ? '<span class="tk-kid" title="Việc trong story đã xong"><i class="bi bi-diagram-2"></i>' + dn + '/' + kids.length + (sm ? ' việc' : '') + '</span>' : sm && !tkDone(t) ? '<span class="tk-kid" title="Story chưa có việc nào bên trong — mở story › Thêm việc">chưa có việc</span>' : '') +
       tkAvs(t) + '</div></div>';
 }
+/* ══════════ ĐIỂM ĐÓNG GÓP (Báo cáo) — căn cứ chia thưởng trong nhóm ══════════
+   Mỗi VIỆC xong trong kỳ (không tính epic / story — chúng chỉ gom việc) cho người phụ trách:
+     điểm = trọng số ưu tiên (Thấp 1 · Vừa 2 · Cao 3 · Khẩn 4) × hệ số hạn (đúng hạn 1 · không đặt hạn 0,8 · trễ hạn 0,5) ÷ số người cùng phụ trách
+   Trừ 1 điểm (÷ số người) cho mỗi việc ĐANG quá hạn. Điểm âm tính 0. Tỉ lệ thưởng = điểm người / tổng điểm cả nhóm. Đổi hệ số: sửa TK_SCORE. */
+const TK_SCORE = { w: { low: 1, med: 2, high: 3, urgent: 4 }, on: 1, nd: 0.8, late: 0.5, od: 1 };
+function tkScoreRows(L, since, td) {
+  const ms = x => (x ? new Date(x).getTime() : 0), R = {}, row = e => R[e] || (R[e] = { e: e, dn: 0, on: 0, late: 0, nd: 0, od: 0, pt: 0, minus: 0 });
+  L.forEach(t => { if (t.type === 'epic' || t.type === 'story') return; const who = tkWho(t); if (!who.length) return; const sh = 1 / who.length, w = TK_SCORE.w[t.priority] || TK_SCORE.w.med;
+    if (tkDone(t)) { if (!(t.doneAt && ms(t.doneAt) > since)) return; const dd = tkYmd(new Date(t.doneAt)), k = !t.due ? 'nd' : dd <= t.due ? 'on' : 'late';
+      who.forEach(e => { const r = row(e); r.dn++; r[k]++; r.pt += w * TK_SCORE[k] * sh; }); }
+    else if (t.due && t.due < td) who.forEach(e => { const r = row(e); r.od++; r.minus += TK_SCORE.od * sh; }); });
+  const out = Object.keys(R).map(k => { const r = R[k]; r.sc = Math.max(0, Math.round((r.pt - r.minus) * 10) / 10); return r; }), tot = out.reduce((a, r) => a + r.sc, 0);
+  out.forEach(r => { r.pc = tot ? r.sc / tot : 0; });
+  return out.sort((a, b) => b.sc - a.sc || b.dn - a.dn);
+}
+function tkScoreBox(L, since, td, sw) {
+  const R = tkScoreRows(L, since, td), f1 = n => (Math.round(n * 10) / 10).toLocaleString('vi'), pool = Number(lsGet('tkPool', 0)) || 0, mx = Math.max(1, ...R.map(r => r.sc));
+  if (!R.length) return '<div class="small muted">Chưa có ai được giao việc trong các bảng này</div>';
+  return '<div class="tk-sc-top"><label class="tk-pool"><span>Quỹ thưởng</span><input class="inp" id="tkPool" inputmode="numeric" autocomplete="off" placeholder="VD 10.000.000" value="' + (pool ? pool.toLocaleString('vi') : '') + '"><em>đ</em></label>' +
+    '<details class="tk-how"><summary><i class="bi bi-info-circle"></i>Cách tính điểm</summary><div>Mỗi <b>việc xong trong kỳ</b> (không tính epic, story): <b>trọng số ưu tiên</b> (Thấp 1 · Vừa 2 · Cao 3 · Khẩn 4) × <b>hệ số hạn</b> (đúng hạn ×1 · không đặt hạn ×0,8 · trễ hạn ×0,5), chia đều cho những người cùng phụ trách. ' +
+      'Mỗi việc <b>đang quá hạn</b> trừ 1 điểm. <b>Tỉ lệ thưởng</b> = điểm của người đó ÷ tổng điểm cả nhóm. Nên chốt cùng nhóm: việc phải được giao đúng người, đặt hạn và ưu tiên trước khi làm — điểm chỉ công bằng khi dữ liệu đủ.</div></details></div>' +
+    '<div class="tbl-wrap pf-tbl"><table class="tbl tk-sct"><thead><tr><th>Người</th><th class="n">Việc xong</th><th class="n">Đúng hạn</th><th class="n">Không hạn</th><th class="n">Trễ</th><th class="n">Đang quá hạn</th><th>Điểm</th><th class="n">Tỉ lệ</th><th class="n">Thưởng</th></tr></thead><tbody>' +
+    R.map(r => '<tr data-scw="' + esc(r.e) + '"' + (sw === r.e ? ' class="on"' : '') + ' title="Bấm để lọc báo cáo theo ' + esc(tkUser(r.e)) + '"><td>' + tkAv(r.e) + ' ' + esc(tkUser(r.e)) + '</td><td class="n">' + r.dn + '</td><td class="n">' + r.on + '</td><td class="n">' + r.nd + '</td><td class="n">' + (r.late ? '<b class="tk-late">' + r.late + '</b>' : 0) + '</td><td class="n">' + (r.od ? '<b class="tk-late">' + r.od + '</b>' : 0) + '</td>' +
+      '<td><div class="tk-scb"><span><i style="width:' + (r.sc ? Math.max(3, r.sc / mx * 100) : 0) + '%"></i></span><b>' + f1(r.sc) + '</b></div></td><td class="n">' + Math.round(r.pc * 1000) / 10 + '%</td><td class="n" data-pc="' + r.pc + '">—</td></tr>').join('') + '</tbody></table></div>';
+}
+/** điền cột Thưởng theo quỹ: làm tròn nghìn đồng, phần lẻ còn lại chia cho ai bị làm tròn xuống nhiều nhất → tổng luôn đúng bằng quỹ. Gõ quỹ không vẽ lại cả trang */
+function tkPoolPaint(v, n) {
+  const T = $$('.tk-sct td[data-pc]', v), U = 1000, k = Math.floor(n / U), raw = T.map(td => k * Number(td.dataset.pc)), got = raw.map(Math.floor);
+  let left = n && raw.some(Boolean) ? k - got.reduce((a, b) => a + b, 0) : 0;
+  raw.map((x, i) => [x - got[i], i]).sort((a, b) => b[0] - a[0]).forEach(x => { if (left > 0 && raw[x[1]]) { got[x[1]]++; left--; } });
+  T.forEach((td, i) => { td.textContent = n ? (got[i] * U + (i === 0 ? n % U : 0)).toLocaleString('vi') + 'đ' : '—'; });
+}
 /** Cài đặt › Nhắc việc (chỉ trong ứng dụng Kiến Task) */
 async function setTasks(B) {
   B.innerHTML = miniLoader('Đang tải…'); if (!TK.d) await tkLoad(true);
@@ -15400,6 +15462,35 @@ async function setTasks(B) {
     toast(TK.d.remind.on ? 'Đã bật nhắc việc lúc ' + pad(TK.d.remind.hour) + ':00 mỗi ngày' : 'Đã tắt nhắc việc tự động'); } catch (e) { fail(e); } };
   $('#rNow', B).onclick = async () => { try { const r = await rpc('taskRemindNow', {}); toast('Đã nhắc ' + r.people + ' người · ' + r.tasks + ' việc' + (r.sent ? ' · ' + r.sent + ' mail' : ''), 'info', 4000); } catch (e) { fail(e); } };
 }
+/** Cài đặt › Dữ liệu mẫu (quyền tasks.manage): tạo / xoá bộ bảng mô phỏng để thử Kiến Task.
+    Xoá chỉ đụng tới những dòng do bộ mẫu sinh ra — việc người dùng tự thêm vào bảng mẫu được giữ lại (máy chủ: taskDemoScan_). */
+async function setTaskDemo(B) {
+  B.innerHTML = miniLoader('Đang kiểm tra dữ liệu mẫu…');
+  let I; try { I = await rpc('taskDemoInfo', {}, { quiet: true }); } catch (e) { B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'; return; }
+  const has = I.boards || I.tasks;
+  B.innerHTML = '<div class="card"><div class="card-h"><h2><i class="bi bi-magic"></i>Dữ liệu mẫu</h2></div><div class="card-b stack" style="max-width:620px">' +
+    '<p class="small" style="margin:0;line-height:1.6">Bộ mẫu gồm <b>3 bảng chung</b> (Giáo trình Toán 5 có đợt làm việc · Tuyển sinh · Vận hành lớp) và <b>1 bảng riêng</b> của bạn, khoảng 47 việc có hạn, người phụ trách, bình luận — để thử Bảng, Kế hoạch, Timeline, Lịch, Báo cáo trước khi dùng thật.</p>' +
+    '<div class="tk-dm-st ' + (has ? 'on' : '') + '"><i class="bi ' + (has ? 'bi-database-fill-check' : 'bi-database') + '"></i><div>' +
+      (has ? '<b>Đang có ' + I.boards + ' bảng mẫu · ' + I.tasks + ' việc mẫu</b><span>' + esc(I.names.join(' · ')) + '</span>' : '<b>Chưa có dữ liệu mẫu</b><span>Bảng và việc thật của bạn không bị ảnh hưởng khi tạo.</span>') + '</div></div>' +
+    (I.keepTasks ? '<div class="tk-mg-note"><i class="bi bi-shield-check"></i><span>Có <b>' + I.keepTasks + ' việc bạn tự thêm</b> vào bảng mẫu — khi xoá, các việc này <b>được giữ lại</b> và bảng chứa chúng thành bảng thật (chỉ việc mẫu bị xoá).</span></div>' : '') +
+    '<div class="row"><button class="btn pri" id="dmMk"><i class="bi bi-magic"></i>' + (has ? 'Tạo lại dữ liệu mẫu' : 'Tạo dữ liệu mẫu') + '</button>' +
+    (has ? '<button class="btn red" id="dmClr"><i class="bi bi-eraser"></i>Xoá dữ liệu mẫu</button>' : '') + '</div><div id="dmWait"></div>' +
+    '<p class="small muted" style="margin:0">Chỉ xoá đúng những gì bộ mẫu đã tạo (bảng, đợt, việc, bình luận của việc mẫu). Bảng, việc, bình luận thật — kể cả việc thật nằm trong bảng mẫu — luôn được giữ.</p></div></div>';
+  const run = async (clear, btn) => {
+    const msg = clear ? 'Xoá ' + I.boards + ' bảng mẫu và ' + I.tasks + ' việc mẫu?' + (I.keepTasks ? '\n' + I.keepTasks + ' việc bạn tự thêm vào bảng mẫu sẽ được giữ lại.' : '') + '\nBảng và việc thật không bị đụng tới.'
+      : (has ? 'Dữ liệu mẫu hiện có sẽ được xoá rồi tạo lại từ đầu.\n' : '') + 'Bảng và việc thật không bị đụng tới.';
+    if (!await ask(msg, { title: clear ? 'Xoá dữ liệu mẫu' : 'Tạo dữ liệu mẫu', ok: clear ? 'Xoá dữ liệu mẫu' : 'Tạo', danger: clear })) return;
+    $$('#dmMk, #dmClr', B).forEach(b => { b.disabled = true; }); btn.classList.add('busy');
+    $('#dmWait', B).innerHTML = '<div class="tk-busy"><i class="bi bi-hourglass-split"></i><span><b>' + (clear ? 'Đang xoá dữ liệu mẫu…' : 'Đang tạo dữ liệu mẫu…') + '</b> Mất khoảng 10–30 giây — đừng bấm lại hay tắt trang.</span></div>';
+    try { const d = await rpc('taskDemo', { clear: clear ? 1 : 0 }, { quiet: true }); const r = d.demoDone || {}; delete d.demoDone;
+      TK.d = d; TK.at = Date.now(); if (!S.as) lsSet(tkCacheKey(), { at: Date.now(), d: d }); if (!d.projects.some(x => x.id === TK.proj)) TK.proj = '';
+      toast(clear ? 'Đã xoá ' + (r.tasks || 0) + ' việc mẫu' + (r.kept ? ' · giữ ' + r.kept + ' việc thật' : '') : 'Đã tạo dữ liệu mẫu — mở Bảng, Kế hoạch, Báo cáo để thử', 'ok', 4000); }
+    catch (e) { fail(e); }
+    setTaskDemo(B);
+  };
+  $('#dmMk', B).onclick = e => run(false, e.currentTarget);
+  const c = $('#dmClr', B); if (c) c.onclick = e => run(true, e.currentTarget);
+}
 /* TẢI NHANH: bản dữ liệu lần trước cất trên máy (theo tài khoản) → mở tab Kiến Task là hiện ngay, bản mới nhất tải ngầm rồi vẽ lại.
    Thay đổi còn chờ gửi (hàng đợi ghi ngầm, còn nguyên khi tắt tab) luôn được phủ lên dữ liệu vừa tải → không “mất” việc vừa thêm / vừa sửa. */
 const tkCacheKey = () => 'tkCache:' + ((S.me && S.me.email) || '');
@@ -15411,6 +15502,12 @@ function tkPrime() {
 }
 /** phủ các thay đổi chưa lên Sheet (hàng đợi ghi ngầm + vừa lưu xong) lên bản dữ liệu d */
 function tkOverlay(d) {
+  obPending('taskProjectSave', true).forEach(p => {
+    if (p.newId) { if (!d.projects.some(x => x.id === p.newId)) d.projects.push(tkMkP(p, d)); return; }
+    const x = d.projects.find(y => y.id === p.id); if (x) tkApplyP(x, p, d);
+  });
+  const gone = {}; obPending('taskProjectDelete', true).forEach(p => { gone[p.id] = 1; });
+  if (Object.keys(gone).length) d.projects = d.projects.filter(x => !gone[x.id]);
   const by = {}; d.tasks.forEach(t => { by[t.id] = t; });
   obPending('taskSave', true).forEach(p => {
     if (p.newId) { if (!by[p.newId]) { const pr = d.projects.find(x => x.id === p.projectId); if (pr) { const t = tkMk(pr, p, d.me); d.tasks.push(t); by[t.id] = t; } } return; }
@@ -15454,6 +15551,35 @@ function tkMk(p, pl, me) {
   return { id: pl.newId, projectId: p.id, key: p.key + '-…', title: pl.title, desc: pl.desc || '', status: st, priority: TK_PRI[pl.priority] ? pl.priority : 'med', type: ty, assignee: who.join(','), assignees: who, reporter: me, due: pl.due || '',
     labels: (pl.labels || []).slice(), checklist: (pl.checklist || []).slice(), order: pl.order, createdAt: now, updatedAt: now, doneAt: p.cols.some(c => c.id === st && c.done) ? now : '', sprintId: pl.sprintId || '',
     epicId: ty === 'epic' ? '' : par ? par.epicId : pl.epicId || '', parentId: par ? par.id : pl.parentId || '', points: '', nc: 0, pend: 1 };
+}
+/* BẢNG cũng “hiện trước, lưu sau”: mã bảng đặt sẵn trên máy (newId), lệnh tạo / sửa / xoá bảng vào hàng đợi ghi ngầm — thêm việc vào bảng
+   vừa tạo ngay được (lệnh tạo việc xếp sau lệnh tạo bảng, đi chung một lần gọi). */
+function tkNewPid() { return 'TP' + tkNewId().slice(2); }
+/** cột trạng thái như máy chủ chuẩn hoá (taskCols_): ≤ 8 cột có tên, ít nhất 2, luôn có một cột hoàn thành */
+function tkColsNorm(a, def) {
+  const cols = (a || []).filter(c => c && c.id && c.t).slice(0, 8).map(c => ({ id: String(c.id), t: String(c.t).slice(0, 30), c: c.c || '#64748B', done: c.done ? 1 : 0, wip: Math.max(0, Math.min(99, Number(c.wip) || 0)) }));
+  if (cols.length < 2) return JSON.parse(JSON.stringify(def));
+  if (!cols.some(c => c.done)) cols[cols.length - 1].done = 1;
+  return cols;
+}
+/** mã bảng (tiền tố mã việc) như máy chủ đặt → { key, err }: gõ tay mà trùng bảng khác = lỗi; tự sinh mà trùng = thêm số */
+function tkKeyOf(name, typed) {
+  const taken = k => TK.d.projects.some(x => x.key === k && x.status !== 'deleted');
+  let key = String(typed || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  if (key) return taken(key) ? { err: 'Mã “' + key + '” đã có bảng dùng — chọn mã khác hoặc để trống cho app tự đặt' } : { key: key };
+  key = fold(name).toUpperCase().split(/\s+/).map(w => w[0] || '').join('').replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TK';
+  if (taken(key)) { let i = 2; while (taken(key.slice(0, 5) + i) && i < 99) i++; key = key.slice(0, 5) + i; }
+  return { key: key };
+}
+function tkMkP(pl, d) {
+  return { id: pl.newId, key: pl.key, name: pl.name, desc: pl.desc || '', color: '#204983', members: pl.scope === 'personal' ? [] : String(pl.members || '').toLowerCase().split(/[,;\s]+/).filter(e => /@/.test(e)),
+    cols: tkColsNorm(pl.cols, d.defCols), status: 'active', createdBy: d.me, createdAt: new Date().toISOString(), scope: pl.scope === 'personal' ? 'personal' : 'team', demo: 0, pend: 1 };
+}
+/** áp một lệnh sửa bảng (chưa lên Sheet) lên bản trên máy */
+function tkApplyP(x, pl, d) {
+  if (pl.name !== undefined) x.name = pl.name; if (pl.desc !== undefined) x.desc = pl.desc;
+  if (pl.members !== undefined && x.scope !== 'personal') x.members = String(pl.members || '').toLowerCase().split(/[,;\s]+/).filter(e => /@/.test(e));
+  if (pl.cols) x.cols = tkColsNorm(pl.cols, d.defCols);
 }
 function tkAdd(p, payload) {
   if (S.as && !S.asW) { toast('Đang xem thử ở chế độ chỉ xem — bật “Cho phép thao tác” trên dải tím để lưu bằng tên bạn.', 'warn'); return null; }
@@ -15521,8 +15647,7 @@ async function viewTasks(arg, v) {
     const np = $('#tkNewP', top); if (np) np.onclick = e => { const cp = TK.proj === '*' ? null : curProj();
       openMenu(e.currentTarget, (C().personal ? [{ t: 'Tạo bảng riêng', i: 'bi-lock', d: 'Chỉ mình bạn thấy — việc cá nhân', fn: () => projDialog(null, 'personal') }] : [])
         .concat(C().team ? [{ t: 'Tạo bảng chung cho team', i: 'bi-people', d: 'Mọi thành viên cùng thấy và cập nhật', fn: () => projDialog(null, 'team') }] : [])
-        .concat(canEdit(cp) ? [{ t: 'Sửa “' + cp.name + '”', i: 'bi-pencil', d: 'Tên, thành viên, cột trạng thái, giới hạn WIP', fn: () => projDialog(cp) }] : [])
-        .concat(C().demo ? ['-', { t: 'Tạo dữ liệu mẫu', i: 'bi-magic', d: '3 bảng chung + 1 bảng riêng mô phỏng', fn: () => demo(false) }, { t: 'Xoá dữ liệu mẫu', i: 'bi-eraser', danger: true, fn: () => demo(true) }] : [])); };
+        .concat(canEdit(cp) ? [{ t: 'Sửa “' + cp.name + '”', i: 'bi-pencil', d: 'Tên, thành viên, cột trạng thái', fn: () => projDialog(cp) }] : [])); };
     const r = $('#tkRem', top); if (r) r.onclick = () => go('settings/tasks');
   };
   /* thanh công cụ MỘT dòng: chọn bảng · tìm · nút Bộ lọc (bấm mới hiện các lựa chọn, số trên nút = số bộ lọc đang bật) · Kanban / Bảng dữ liệu */
@@ -15534,7 +15659,7 @@ async function viewTasks(arg, v) {
     const cp = o.all ? pf() : (TK.proj === '*' && mode === 'board' ? '*' : (curProj() || {}).id), n = fltN();
     // chọn bảng: MỘT nút hiện bảng đang mở, bấm ra danh sách (nhiều dự án cũng không làm dài thanh)
     const curP = cp && cp !== '*' ? tkProj(cp) : null, open = cp && cp !== '*' ? (cnt[cp] || 0) : P.reduce((a, p) => a + (cnt[p.id] || 0), 0);
-    return '<div class="tk-bar"><button class="tk-pill pick" data-pick aria-haspopup="menu" title="Chọn bảng"><i class="bi ' + (!curP ? 'bi-layers' : curP.scope === 'personal' ? 'bi-lock-fill' : 'bi-kanban') + '"></i><b>' + esc(curP ? curP.name : 'Tất cả bảng') + '</b><span class="n">' + open + '</span><i class="bi bi-chevron-down"></i></button><span class="tk-sp"></span>' +
+    return '<div class="tk-bar"><button class="tk-pill pick" data-pick aria-haspopup="menu" title="Chọn bảng"><i class="bi ' + (!curP ? 'bi-layers' : curP.scope === 'personal' ? 'bi-lock-fill' : 'bi-kanban') + '"></i><b>' + esc(curP ? curP.name : 'Tất cả bảng') + '</b><span class="n">' + open + '</span><i class="bi bi-chevron-down"></i></button>' + (curP && curP.pend ? '<span class="tk-pend" title="Bảng đã dùng được ngay — app đang lưu lên Sheet, đừng tắt trang"><i class="bi bi-cloud-arrow-up"></i>Đang lưu</span>' : '') + '<span class="tk-sp"></span>' +
       (o.noFilter ? '' : '<div class="search tk-find' + (TK.q ? ' has' : '') + '"><i class="bi bi-search"></i><input class="inp" id="tkQ" placeholder="Tìm việc…" aria-label="Tìm việc" value="' + esc(TK.q) + '"></div>' +
         '<button type="button" class="tk-fbtn' + (n ? ' on' : '') + '" data-filter aria-haspopup="menu" title="Bộ lọc" aria-label="Bộ lọc' + (n ? ' · đang bật ' + n : '') + '"><i class="bi bi-funnel' + (n ? '-fill' : '') + '"></i>' + (n ? '<em>' + n + '</em>' : '') + '</button>') +
       (o.extra || '') + (o.views ? '<div class="seg tk-vw"><button class="seg-b" data-v="tasks" aria-pressed="' + (mode === 'board') + '" title="Kanban"><i class="bi bi-kanban"></i><span>Kanban</span></button><button class="seg-b" data-v="tasks/list" aria-pressed="' + (mode === 'list') + '" title="Bảng dữ liệu — sửa thẳng trong ô"><i class="bi bi-table"></i><span>Bảng dữ liệu</span></button></div>' : '') + '</div>';
@@ -15555,7 +15680,7 @@ async function viewTasks(arg, v) {
     openMenu(a, L);
   };
   const empty = () => '<div class="card"><div class="empty"><i class="bi bi-kanban"></i><b>Chưa có dự án nào</b><span>' + (C().team ? 'Tạo bảng chung cho team hoặc bảng riêng cho mình rồi bắt đầu giao việc.' : 'Bạn chưa thuộc bảng chung nào' + (C().personal ? ' — tạo bảng riêng cho mình, hoặc' : ' —') + ' nhờ TL / quản trị thêm bạn vào bảng chung.') + '</span>' +
-    '<div class="row" style="justify-content:center">' + (C().personal ? '<button class="btn pri" data-newp><i class="bi bi-lock"></i>Tạo bảng riêng</button>' : '') + (C().team ? '<button class="btn" id="tkFirst"><i class="bi bi-people"></i>Tạo bảng chung</button>' : '') + (C().demo ? '<button class="btn" id="tkDemo"><i class="bi bi-magic"></i>Tạo dữ liệu mẫu</button>' : '') + '</div>' + '</div></div>';
+    '<div class="row" style="justify-content:center">' + (C().personal ? '<button class="btn pri" data-newp><i class="bi bi-lock"></i>Tạo bảng riêng</button>' : '') + (C().team ? '<button class="btn" id="tkFirst"><i class="bi bi-people"></i>Tạo bảng chung</button>' : '') + (C().demo ? '<button class="btn ghost" data-go="settings/taskdemo"><i class="bi bi-magic"></i>Thử với dữ liệu mẫu</button>' : '') + '</div>' + '</div></div>';
   const sprintHero = (p, sp) => {
     const L = D().tasks.filter(t => t.sprintId === sp.id && t.type !== 'epic'), dn = L.filter(tkDone), pc = L.length ? Math.round(dn.length / L.length * 100) : 0;
     const left = sp.end ? Math.round((new Date(sp.end + 'T12:00').getTime() - new Date(tkToday() + 'T12:00').getTime()) / 864e5) : null;
@@ -15754,7 +15879,10 @@ async function viewTasks(arg, v) {
   const paintSum = () => {
     if (!projs().length) { v.innerHTML = empty(); return; }
     const one = pf() ? projs().find(x => x.id === pf()) : null, P = one ? [one] : projs(), okP = {}; P.forEach(x => { okP[x.id] = 1; });
-    const L = D().tasks.filter(t => okP[t.projectId] && t.type !== 'epic'), td = tkToday(), per = TK.per, since = Date.now() - per * 864e5, ms = x => (x ? new Date(x).getTime() : 0), day = n => tkYmd(new Date(new Date(td + 'T12:00').getTime() + n * 864e5));
+    // LỌC THEO NGƯỜI (quyền “Xem hiệu suất của mọi người”): mọi biểu đồ chỉ tính việc người đó phụ trách — bảng điểm đóng góp vẫn tính cả nhóm để so sánh
+    const pAll = !!C().perfAll, L0 = D().tasks.filter(t => okP[t.projectId] && t.type !== 'epic'), ppl = pAll ? [...new Set([].concat(...L0.map(tkWho)))].filter(Boolean) : [];
+    if (TK.sumWho && ppl.indexOf(TK.sumWho) < 0) TK.sumWho = '';
+    const sw = TK.sumWho, L = sw ? L0.filter(t => tkWho(t).indexOf(sw) >= 0) : L0, td = tkToday(), per = TK.per, since = Date.now() - per * 864e5, ms = x => (x ? new Date(x).getTime() : 0), day = n => tkYmd(new Date(new Date(td + 'T12:00').getTime() + n * 864e5));
     const open = L.filter(t => !tkDone(t)), done = L.filter(tkDone), late = open.filter(t => t.due && t.due < td), soon = open.filter(t => t.due && t.due >= td && t.due <= day(7));
     const doneIn = L.filter(t => t.doneAt && ms(t.doneAt) > since), newIn = L.filter(t => ms(t.createdAt) > since);
     const cyc = doneIn.filter(t => ms(t.createdAt)).map(t => Math.max(0, (ms(t.doneAt) - ms(t.createdAt)) / 864e5)), cycAvg = cyc.length ? cyc.reduce((x, y) => x + y, 0) / cyc.length : null;
@@ -15817,7 +15945,10 @@ async function viewTasks(arg, v) {
     const hot = late.slice().sort((x, y) => String(x.due).localeCompare(String(y.due))).slice(0, 6);
     const cmp = P.map(x => { const T = L.filter(t => t.projectId === x.id), o = T.filter(t => !tkDone(t)); return [x.name, o.length, T.length, o.filter(t => t.due && t.due < td).length]; }), cmpMax = Math.max(1, ...cmp.map(x => x[1]));
     const kpi = (cls, n, l, sub) => '<div class="tk-kpi ' + cls + '"><b>' + n + '</b><small>' + l + '</small>' + (sub ? '<span>' + sub + '</span>' : '') + '</div>';
-    v.innerHTML = bar({ all: 1, noFilter: 1, extra: '<div class="seg tk-per" title="Khoảng thời gian tính “trong kỳ”">' + [7, 30, 90].map(n => '<button class="seg-b" data-per="' + n + '" aria-pressed="' + (per === n) + '">' + n + ' ngày</button>').join('') + '</div>' }) +
+    const scHtml = pAll && ppl.length ? tkScoreBox(L0, since, td, sw) : '';
+    const whoF = pAll && ppl.length ? '<button type="button" class="tk-fbtn' + (sw ? ' on' : '') + '" data-sumwho aria-haspopup="menu" title="Lọc theo người" aria-label="Lọc theo người' + (sw ? ' · đang xem ' + esc(tkUser(sw)) : '') + '"><i class="bi bi-funnel' + (sw ? '-fill' : '') + '"></i></button>' +
+      (sw ? '<span class="tk-whoc">' + tkAv(sw) + '<b>' + esc(tkUser(sw)) + '</b><button type="button" data-sumwho-x aria-label="Bỏ lọc theo người" title="Bỏ lọc"><i class="bi bi-x"></i></button></span>' : '') : '';
+    v.innerHTML = bar({ all: 1, noFilter: 1, extra: whoF + '<div class="seg tk-per" title="Khoảng thời gian tính “trong kỳ”">' + [7, 30, 90].map(n => '<button class="seg-b" data-per="' + n + '" aria-pressed="' + (per === n) + '">' + n + ' ngày</button>').join('') + '</div>' }) +
       '<div class="tk-kpis k6">' + kpi('ink', open.length, 'Đang mở', pts(open) ? pts(open) + ' điểm' : '') + kpi(late.length ? 'hot' : '', late.length, 'Quá hạn', open.length ? pc(late.length, open.length) + '% việc mở' : '') + kpi('', soon.length, 'Đến hạn 7 ngày tới', '') +
         kpi('', doneIn.length, 'Xong trong ' + per + ' ngày', 'tạo mới ' + newIn.length) + kpi('', pc(done.length, L.length) + '%', 'Tỉ lệ hoàn thành', done.length + '/' + L.length + ' việc') + kpi('', cycAvg == null ? '—' : (Math.round(cycAvg * 10) / 10).toLocaleString('vi'), 'Ngày xử lý trung bình', cyc.length ? 'trên ' + cyc.length + ' việc xong' : '') + '</div>' +
       '<div class="tk-dash">' +
@@ -15834,8 +15965,12 @@ async function viewTasks(arg, v) {
         (eps.length ? box('w3', 'Tiến độ epic', eps.map(e => { const ch = L.filter(t => t.epicId === e.id), dn = ch.filter(tkDone).length; return barR(e.title, dn, Math.max(1, ch.length), false, dn + '/' + ch.length); }).join('')) : '') +
         box(eps.length ? 'w3' : 'w6', 'Cần chú ý', hot.length ? '<div class="tk-hot">' + hot.map(t => '<button type="button" data-id="' + t.id + '"><span class="tk-key">' + esc(t.key) + '</span><b>' + esc(t.title) + '</b><span class="tk-due late"><i class="bi bi-calendar3"></i>' + tkDmy(t.due) + '</span>' + tkAvs(t) + '</button>').join('') + '</div>'
           : '<div class="small muted"><i class="bi bi-check2-circle"></i> Không có việc quá hạn' + (open.some(t => !tkWho(t).length) ? ' · ' + open.filter(t => !tkWho(t).length).length + ' việc chưa giao cho ai' : '') + '</div>', hot.length ? 'quá hạn lâu nhất' : '') +
-        (P.length > 1 ? box('w6', 'So sánh các bảng', cmp.map(x => barR(x[0], x[1], cmpMax, false, x[1] + '/' + x[2] + (x[3] ? '<b> · ' + x[3] + ' trễ</b>' : ''), true)).join(''), 'việc đang mở / tổng số') : '') + '</div>';
-    setTitle(one ? one.name : 'Tất cả bảng', 'bi-bar-chart', [{ t: 'Kiến Task', r: 'tasks' }, { t: 'Báo cáo', r: 'tasks/sum' }], v);
+        (P.length > 1 ? box('w6', 'So sánh các bảng', cmp.map(x => barR(x[0], x[1], cmpMax, false, x[1] + '/' + x[2] + (x[3] ? '<b> · ' + x[3] + ' trễ</b>' : ''), true)).join(''), 'việc đang mở / tổng số') : '') +
+        (scHtml ? box('w6 tk-sc', 'Điểm đóng góp &amp; chia thưởng', scHtml, per + ' ngày gần nhất · cả nhóm') : '') + '</div>';
+    setTitle((one ? one.name : 'Tất cả bảng') + (sw ? ' · ' + tkUser(sw) : ''), 'bi-bar-chart', [{ t: 'Kiến Task', r: 'tasks' }, { t: 'Báo cáo', r: 'tasks/sum' }], v);
+    tkPoolPaint(v, Number(lsGet('tkPool', 0)) || 0);
+    const pool = $('#tkPool', v); if (pool) pool.onblur = () => { const n = Number(pool.value.replace(/\D/g, '')) || 0; pool.value = n ? n.toLocaleString('vi') : ''; };
+    if (pool) pool.oninput = () => { const n = Number(pool.value.replace(/\D/g, '')) || 0; lsSet('tkPool', n); tkPoolPaint(v, n); };
   };
   /* ══════════ HIỆU SUẤT (tasks/perf) — biểu đồ theo người ══════════
      Tính ngay trên máy từ dữ liệu đã tải (không gọi máy chủ → mở tức thì). Ai có quyền “Xem hiệu suất của mọi người” thấy cả nhóm và chọn từng người;
@@ -15977,12 +16112,9 @@ async function viewTasks(arg, v) {
     $$('.tk-board, .tk-tlw', v).forEach((x, i) => { if (keep[i]) x.scrollLeft = keep[i]; }); $$('.tk-col-b', v).forEach((x, i) => { x.scrollTop = tops[i] || 0; });
     if (paint.seen === mode + TK.proj) $$('.tk-card', v).forEach(c => { c.style.animation = 'none'; }); paint.seen = mode + TK.proj;      // chỉ trồi lên ở lần vẽ đầu của mỗi màn
     const f = $('#tkFirst', v); if (f) f.onclick = () => projDialog(null, 'team');
-    const dm = $('#tkDemo', v); if (dm) dm.onclick = () => demo(false);
     const q = $('#tkQ', v); if (q) q.oninput = debounce(() => { TK.q = q.value; const pp = q.selectionStart; paint(); const n = $('#tkQ', v); if (n) { n.focus(); n.setSelectionRange(pp, pp); } }, 200);
   };
   const reload = async quiet => { try { await tkLoad(quiet); paint(); } catch (e) { if (!quiet) fail(e); } };
-  const demo = async clear => { if (!await ask(clear ? 'Xoá mọi dự án mẫu (kèm đợt làm việc, việc, bình luận của chúng)? Dự án thật không bị đụng tới.' : 'Tạo 3 dự án mẫu (khoảng 36 việc) để thử? Dữ liệu mẫu cũ sẽ được thay mới; dự án thật không bị đụng tới.', { ok: clear ? 'Xoá' : 'Tạo', danger: clear })) return;
-    try { TK.d = await rpc('taskDemo', { clear: clear ? 1 : 0 }); TK.at = Date.now(); TK.proj = ''; paint(); toast(clear ? 'Đã xoá dữ liệu mẫu' : 'Đã tạo dữ liệu mẫu — thử Bảng, Kế hoạch, Timeline, Lịch, Báo cáo'); } catch (e) { fail(e); } };
   /** vẽ lại mà vẫn giữ ô đang gõ (ô thêm nhanh, ô tìm, ô của bảng dữ liệu): chữ gõ dở và con trỏ còn nguyên */
   const selOf = a => { const d = a.dataset, q = x => '"' + CSS.escape(x || '') + '"', tr = a.closest('tr');
     return a.id ? '#' + a.id : 'dbnew' in d ? '[data-dbnew]' : 'addin' in d ? 'tr[data-add=' + q(tr.dataset.add) + '] [data-addin]' : 'quick' in d ? '.tk-quick[data-quick=' + q(d.quick) + '][data-qp=' + q(d.qp) + ']' + (d.qty ? '[data-qty]' : ':not([data-qty])')
@@ -16028,11 +16160,16 @@ async function viewTasks(arg, v) {
     if (e.target.closest('[data-newp]')) return projDialog(null, 'personal');
     const pk = e.target.closest('[data-pick]');
     if (pk) { const P = projs(), cnt = {}, set = id => { TK.proj = id; TK.epic = ''; lsSet('tkProj', TK.proj); paint(); }; D().tasks.forEach(t => { if (!tkDone(t) && t.type !== 'epic') cnt[t.projectId] = (cnt[t.projectId] || 0) + 1; });
-      const all = mode === 'mine' || mode === 'cal' || mode === 'sum' || mode === 'time', item = p => ({ t: p.name + (TK.proj === p.id ? '  ✓' : ''), d: (cnt[p.id] || 0) + ' việc đang mở' + (p.scope === 'personal' ? ' · bảng riêng' : ''), i: p.scope === 'personal' ? 'bi-lock' : 'bi-kanban', fn: () => set(p.id) });
+      const all = mode === 'mine' || mode === 'cal' || mode === 'sum' || mode === 'time', item = p => ({ t: p.name + (TK.proj === p.id ? '  ✓' : ''), d: (p.pend ? 'Đang lưu lên Sheet · ' : '') + (cnt[p.id] || 0) + ' việc đang mở' + (p.scope === 'personal' ? ' · bảng riêng' : '') + (p.demo ? ' · dữ liệu mẫu' : ''), i: p.scope === 'personal' ? 'bi-lock' : 'bi-kanban', fn: () => set(p.id) });
       return openMenu(pk, (all ? [{ t: 'Tất cả bảng', i: 'bi-layers', fn: () => set('') }] : mode === 'board' && P.length > 1 ? [{ t: 'Tất cả bảng', d: 'Xem mọi bảng cùng lúc', i: 'bi-layers', fn: () => set('*') }] : [])
         .concat(P.filter(p => p.scope !== 'personal').map(item), P.filter(p => p.scope === 'personal').map(item), C().personal || C().team ? ['-'] : [], C().personal ? [{ t: 'Tạo bảng riêng', i: 'bi-plus-lg', d: 'Chỉ mình bạn thấy', fn: () => projDialog(null, 'personal') }] : [], C().team ? [{ t: 'Tạo bảng chung cho team', i: 'bi-people', fn: () => projDialog(null, 'team') }] : [])); }
     const pb = e.target.closest('[data-p]'); if (pb) { TK.proj = pb.dataset.p; TK.epic = ''; lsSet('tkProj', TK.proj); return paint(); }
     const fb = e.target.closest('[data-filter]'); if (fb) return filterMenu(fb);
+    const swb = e.target.closest('[data-sumwho]'); if (swb) { const ck = on => (on ? 'bi-check-circle-fill' : 'bi-circle'), okP = {}; (pf() ? [tkProj(pf())] : projs()).forEach(x => { if (x) okP[x.id] = 1; }); const n = {};
+      D().tasks.forEach(t => { if (okP[t.projectId] && t.type !== 'epic') tkWho(t).forEach(e2 => { n[e2] = (n[e2] || 0) + 1; }); });
+      return openMenu(swb, [{ t: 'Cả nhóm', d: 'Mọi người', i: ck(!TK.sumWho), fn: () => { TK.sumWho = ''; paint(); } }, '-'].concat(Object.keys(n).sort((a, b) => tkUser(a).localeCompare(tkUser(b), 'vi')).map(e2 => ({ t: tkUser(e2), d: n[e2] + ' việc', i: ck(TK.sumWho === e2), fn: () => { TK.sumWho = e2; paint(); } })))); }
+    if (e.target.closest('[data-sumwho-x]')) { TK.sumWho = ''; return paint(); }
+    const scw = mode === 'sum' && e.target.closest('[data-scw]'); if (scw) { TK.sumWho = TK.sumWho === scw.dataset.scw ? '' : scw.dataset.scw; paint(); return void window.scrollTo({ top: 0, behavior: 'smooth' }); }
     const tz = e.target.closest('[data-tlz]'); if (tz) { TK.zoom = TK.zoom === 'm' ? 'w' : 'm'; lsSet('tkZoom', TK.zoom); TK.t0 = ''; return paint(); }
     const tn = e.target.closest('[data-tl]'); if (tn) { const k = Number(tn.dataset.tl); if (!k) TK.t0 = ''; else TK.t0 = tkYmd(new Date(new Date(TK.t0 + 'T12:00').getTime() + k * (matchMedia('(max-width:820px)').matches ? (TK.zoom === 'm' ? 14 : 7) : (TK.zoom === 'm' ? 28 : 14)) * 864e5)); return paint(); }
     const pw = mode === 'perf' && e.target.closest('[data-pfw]'); if (pw && !pw.disabled) { TK.pfWho = TK.pfWho === pw.dataset.pfw ? '' : pw.dataset.pfw; return paint(); }
@@ -16259,29 +16396,73 @@ async function viewTasks(arg, v) {
     }
   }
 
-  /* ── hộp dự án ── */
+  /* ── hộp bảng: tạo / sửa → đóng ngay, bảng hiện ngay trên màn hình, lưu ngầm lên Sheet (hàng đợi ghi ngầm, tắt tab vẫn còn) ── */
   function projDialog(p, scope) {
     const isNew = !p, personal = p ? p.scope === 'personal' : scope === 'personal';
     if (!isNew && !canEdit(p)) return toast('Chỉ người tạo bảng hoặc quản lý task được sửa', 'warn'); let cols = JSON.parse(JSON.stringify(p ? p.cols : D().defCols));
-    const colHtml = () => cols.map((c, i) => '<div class="r" data-i="' + i + '"><input class="inp" value="' + esc(c.t) + '" placeholder="Tên cột"><input class="inp w" type="number" min="0" max="99" value="' + (c.wip || '') + '" placeholder="Tối đa" title="Giới hạn số việc trong cột (để trống = không giới hạn)"><label><input type="radio" name="tkDone"' + (c.done ? ' checked' : '') + '>Hoàn thành</label><button class="ibtn" data-cx title="Bỏ cột"' + (cols.length <= 2 ? ' disabled' : '') + '><i class="bi bi-x"></i></button></div>').join('');
+    let wipOn = cols.some(c => c.wip);
+    // mỗi cột MỘT dòng: tên · (giới hạn, khi bật) · bỏ cột. Cột “xong” chọn MỘT lần ở ô bên dưới — không lặp chữ “Hoàn thành” ở mọi dòng
+    const colHtml = () => (wipOn ? '<div class="tk-colh"><span>Tên cột</span><span>Tối đa</span><span></span></div>' : '') + cols.map((c, i) => '<div class="r' + (c.done ? ' dn' : '') + '" data-i="' + i + '"><span class="nm"><input class="inp" value="' + esc(c.t) + '" placeholder="Tên cột" aria-label="Tên cột ' + (i + 1) + '">' +
+      (c.done ? '<i class="bi bi-check2-circle" title="Việc vào cột này = đã xong"></i>' : '') + '</span>' +
+      (wipOn ? '<input class="inp w" type="number" min="0" max="99" inputmode="numeric" value="' + (c.wip || '') + '" placeholder="—" aria-label="Số việc tối đa trong cột ' + esc(c.t) + '" title="Số việc tối đa nên nằm trong cột cùng lúc — để trống = không giới hạn">' : '') +
+      '<button type="button" class="ibtn" data-cx title="Bỏ cột" aria-label="Bỏ cột"' + (cols.length <= 2 ? ' disabled' : '') + '><i class="bi bi-x-lg"></i></button></div>').join('');
+    const doneHtml = () => cols.map((c, i) => '<option value="' + i + '"' + (c.done ? ' selected' : '') + '>' + esc(c.t || 'Cột ' + (i + 1)) + '</option>').join('');
     const m = modal({ title: (isNew ? 'Tạo ' : 'Sửa ') + (personal ? 'bảng riêng' : 'bảng chung'), icon: personal ? 'bi-lock' : 'bi-people', sticky: true, body:
-      '<div class="stack"><div class="row" style="flex-wrap:nowrap;align-items:flex-end"><div class="fg" style="flex:1"><label class="flabel">Tên bảng</label><input class="inp" id="pN" value="' + esc(p ? p.name : '') + '"' + (isNew ? ' autofocus' : '') + ' placeholder="' + (personal ? 'VD: Việc riêng của tôi' : 'VD: Soạn giáo trình Toán 5') + '"></div>' +
-        '<div class="fg" style="width:96px"><label class="flabel">Mã</label><input class="inp mono" id="pK" value="' + esc(p ? p.key : '') + '"' + (isNew ? '' : ' disabled') + ' placeholder="T5" maxlength="6" title="Tiền tố mã việc: T5-1, T5-2… (không đổi sau khi tạo)"></div></div>' +
-        '<div class="fg"><label class="flabel">Mô tả</label><input class="inp" id="pD" value="' + esc(p ? p.desc : '') + '"></div>' +
-        (personal ? '<div class="small muted"><i class="bi bi-lock-fill"></i> Bảng riêng: chỉ mình bạn thấy, kể cả người quản lý cũng không thấy.</div><div hidden>' : '') + '<div class="fg"><label class="flabel">Thành viên</label><textarea class="ta" id="pM" style="height:64px;padding:8px 10px" placeholder="email1@…, email2@…">' + esc(p ? p.members.join(', ') : '') + '</textarea>' +
-          '<select class="sel" id="pMA" style="margin-top:6px"><option value="">+ Thêm thành viên từ danh sách người dùng…</option>' + D().users.filter(u => u.task).map(u => '<option value="' + esc(u.email) + '">' + esc(u.name + ' · ' + u.email) + '</option>').join('') + '</select></div>' + (personal ? '</div>' : '') +
-        '<div class="fg"><label class="flabel">Cột trạng thái</label><div class="tk-cols" id="pCols">' + colHtml() + '</div><button type="button" class="btn sm" id="pCA" style="margin-top:6px;align-self:flex-start"><i class="bi bi-plus-lg"></i>Thêm cột</button></div></div>',
-      foot: (isNew ? [] : [{ t: 'Xoá bảng', cls: 'ghost', i: 'bi-trash', fn: async () => { if (!await ask('Xoá dự án “' + p.name + '”? Các công việc của dự án sẽ ẩn theo (dữ liệu vẫn còn trên Sheet).', { ok: 'Xoá', danger: true })) return false;
-          await rpc('taskProjectDelete', { id: p.id }); await reload(true); toast('Đã xoá dự án'); } }])
-        .concat([{ t: 'Huỷ', cls: 'ghost' }, { t: isNew ? 'Tạo dự án' : 'Lưu', cls: 'pri', i: 'bi-check2', fn: async mm => {
-          readCols(); const name = mm.$('#pN').value.trim(); if (!name) { mm.$('#pN').focus(); toast('Chưa nhập tên dự án', 'warn'); return false; }
-          const r = await rpc('taskProjectSave', { id: p ? p.id : '', scope: personal ? 'personal' : 'team', name: name, key: mm.$('#pK').value, desc: mm.$('#pD').value, members: mm.$('#pM').value, cols: cols.filter(c => c.t) });
-          TK.proj = r.id; lsSet('tkProj', r.id); await reload(true); toast(isNew ? 'Đã tạo bảng ' + r.name : 'Đã lưu bảng');
+      '<div class="stack tk-pdlg"><div class="row" style="flex-wrap:nowrap;align-items:flex-end"><div class="fg" style="flex:1"><label class="flabel">Tên bảng</label><input class="inp" id="pN" value="' + esc(p ? p.name : '') + '"' + (isNew ? ' autofocus' : '') + ' placeholder="' + (personal ? 'VD: Việc riêng của tôi' : 'VD: Soạn giáo trình Toán 5') + '"></div>' +
+        '<div class="fg" style="width:96px"><label class="flabel">Mã</label><input class="inp mono" id="pK" value="' + esc(p ? p.key : '') + '"' + (isNew ? '' : ' disabled') + ' placeholder="Tự đặt" maxlength="6" title="Tiền tố mã việc: T5-1, T5-2… Để trống = lấy chữ đầu của tên bảng. Không đổi được sau khi tạo."></div></div>' +
+        '<div class="fg"><label class="flabel">Mô tả <span class="opt">tuỳ chọn</span></label><input class="inp" id="pD" value="' + esc(p ? p.desc : '') + '"></div>' +
+        (personal ? '<div class="small muted"><i class="bi bi-lock-fill"></i> Bảng riêng: chỉ mình bạn thấy, kể cả người quản lý cũng không thấy.</div><div hidden>' : '') +
+        '<div class="fg"><label class="flabel">Thành viên <span class="opt">tuỳ chọn · thêm sau cũng được</span></label><textarea class="ta" id="pM" style="height:64px;padding:8px 10px" placeholder="email1@…, email2@…">' + esc(p ? p.members.join(', ') : '') + '</textarea>' +
+          '<select class="sel" id="pMA" style="margin-top:6px"><option value="">+ Thêm thành viên từ danh sách người dùng…</option>' + D().users.filter(u => u.task).map(u => '<option value="' + esc(u.email) + '">' + esc(u.name + ' · ' + u.email) + '</option>').join('') + '</select>' +
+          '<div class="hint">Để trống = mọi người dùng Kiến Task đều thấy bảng. Thêm / bớt người lúc nào cũng được: nút <i class="bi bi-folder-plus"></i> › Sửa bảng.</div></div>' + (personal ? '</div>' : '') +
+        '<div class="fg"><label class="flabel">Cột trạng thái</label><div class="tk-cols' + (wipOn ? ' wip' : '') + '" id="pCols">' + colHtml() + '</div><button type="button" class="btn sm" id="pCA" style="margin-top:8px;align-self:flex-start"><i class="bi bi-plus-lg"></i>Thêm cột</button>' +
+          '<label class="tk-pdn"><span>Việc tính là <b>đã xong</b> khi nằm ở cột</span><select class="sel" id="pDone">' + doneHtml() + '</select></label>' +
+          '<label class="tk-wipt"><input type="checkbox" id="pWip"' + (wipOn ? ' checked' : '') + '><span><b>Giới hạn số việc mỗi cột</b> <span class="opt">tuỳ chọn</span><br><span class="small muted">VD “Đang làm” tối đa 3 việc: quá số này, số đếm trên đầu cột chuyển cam để nhắc làm xong bớt rồi mới nhận thêm. Không chặn kéo thả.</span></span></label></div></div>',
+      foot: (isNew ? [] : [{ t: 'Xoá bảng', cls: 'ghost', i: 'bi-trash', fn: async () => { if (!await ask('Xoá bảng “' + p.name + '”? Các công việc của bảng sẽ ẩn theo (dữ liệu vẫn còn trên Sheet).', { ok: 'Xoá', danger: true })) return false; projDel(p); } }])
+        .concat([{ t: 'Huỷ', cls: 'ghost' }, { t: isNew ? 'Tạo bảng' : 'Lưu', cls: 'pri', i: 'bi-check2', fn: mm => {
+          readCols(); const name = mm.$('#pN').value.trim(); if (!name) { mm.$('#pN').focus(); toast('Chưa nhập tên bảng', 'warn'); return false; }
+          const k = isNew ? tkKeyOf(name, mm.$('#pK').value) : { key: p.key }; if (k.err) { mm.$('#pK').focus(); toast(k.err, 'warn', 4500); return false; }
+          const pl = { id: p ? p.id : '', scope: personal ? 'personal' : 'team', name: name, key: k.key, desc: mm.$('#pD').value.trim(), members: personal ? '' : mm.$('#pM').value, cols: cols.filter(c => c.t).map(c => Object.assign({}, c, { wip: wipOn ? c.wip : 0 })) };
+          if (isNew) projAdd(pl); else projEdit(p, pl);
         } }]) });
-    const readCols = () => { $$('#pCols .r', m.el).forEach((r, i) => { if (!cols[i]) return; cols[i].t = $('.inp', r).value.trim(); cols[i].wip = Number($('.w', r).value) || 0; cols[i].done = $('input[type=radio]', r).checked ? 1 : 0; }); };
+    const readCols = () => { const di = Number(m.$('#pDone').value); $$('#pCols .r', m.el).forEach((r, i) => { if (!cols[i]) return; cols[i].t = $('.inp', r).value.trim(); const w = $('.w', r); if (w) cols[i].wip = Math.max(0, Math.min(99, Number(w.value) || 0)); cols[i].done = i === di ? 1 : 0; }); };
+    const redraw = () => { m.$('#pCols').innerHTML = colHtml(); m.$('#pCols').classList.toggle('wip', wipOn); m.$('#pDone').innerHTML = doneHtml(); };
     m.$('#pMA').onchange = e => { const em = e.target.value; e.target.value = ''; if (!em) return; const ta = m.$('#pM'), have = ta.value.split(/[,;\s]+/).filter(Boolean); if (have.indexOf(em) < 0) ta.value = have.concat([em]).join(', '); };
-    m.$('#pCA').onclick = () => { readCols(); if (cols.length >= 8) return toast('Tối đa 8 cột', 'warn'); cols.splice(Math.max(1, cols.length - 1), 0, { id: 'c' + Date.now().toString(36), t: '', done: 0, wip: 0 }); m.$('#pCols').innerHTML = colHtml(); const ins = m.$$('#pCols .r'); $('.inp', ins[ins.length - 2]).focus(); };
-    m.$('#pCols').addEventListener('click', e => { const x = e.target.closest('[data-cx]'); if (!x) return; readCols(); cols.splice(Number(x.closest('.r').dataset.i), 1); if (!cols.some(c => c.done)) cols[cols.length - 1].done = 1; m.$('#pCols').innerHTML = colHtml(); });
+    m.$('#pCA').onclick = () => { readCols(); if (cols.length >= 8) return toast('Tối đa 8 cột', 'warn'); cols.splice(Math.max(1, cols.length - 1), 0, { id: 'c' + Date.now().toString(36), t: '', done: 0, wip: 0 }); redraw(); const ins = m.$$('#pCols .r'); $('.inp', ins[ins.length - 2]).focus(); };
+    m.$('#pCols').addEventListener('click', e => { const x = e.target.closest('[data-cx]'); if (!x) return; readCols(); cols.splice(Number(x.closest('.r').dataset.i), 1); if (!cols.some(c => c.done)) cols[cols.length - 1].done = 1; redraw(); });
+    m.$('#pCols').addEventListener('input', e => { if (!e.target.matches('.nm .inp')) return; const i = Number(e.target.closest('.r').dataset.i), o = m.$('#pDone').options[i]; if (o) o.textContent = e.target.value.trim() || 'Cột ' + (i + 1); });
+    m.$('#pDone').onchange = () => { readCols(); redraw(); };
+    m.$('#pWip').onchange = e => { readCols(); wipOn = e.target.checked; redraw(); };
+  }
+  /** tạo bảng: hiện ngay + mở bảng đó, lệnh tạo vào hàng đợi ghi ngầm */
+  function projAdd(pl) {
+    if (S.as && !S.asW) return toast('Đang xem thử ở chế độ chỉ xem — bật “Cho phép thao tác” trên dải tím để lưu bằng tên bạn.', 'warn');
+    pl = Object.assign({}, pl, { newId: tkNewPid() }); delete pl.id;
+    const x = tkMkP(pl, D()); D().projects.push(x);
+    TK.proj = x.id; lsSet('tkProj', x.id); TK.epic = ''; paint();
+    toast('Đã tạo bảng “' + x.name + '” — thêm việc được ngay, app đang lưu lên Sheet', 'ok', 3200);
+    queueRpc('taskProjectSave', pl, { label: 'Tạo bảng “' + pl.name.slice(0, 60) + '”' }).then(r => {
+      const y = TK.d && TK.d.projects.find(z => z.id === x.id) || x; Object.assign(y, r); delete y.pend;
+      if (TK.d && !TK.d.projects.some(z => z.id === y.id)) TK.d.projects.push(y);
+      if (TK.ui) TK.ui.paint();
+    }, () => { if (TK.d) { TK.d.projects = TK.d.projects.filter(z => z.id !== x.id); TK.d.tasks = TK.d.tasks.filter(t => t.projectId !== x.id); } if (TK.proj === x.id) TK.proj = ''; if (TK.ui) TK.ui.paint(); });
+  }
+  /** sửa bảng: đổi ngay trên máy (việc ở cột bị bỏ dời về cột đầu như máy chủ làm), lưu ngầm; máy chủ từ chối → trả lại như cũ */
+  function projEdit(p, pl) {
+    const was = JSON.parse(JSON.stringify(p)), moved = [];
+    tkApplyP(p, pl, D());
+    const keep = {}; p.cols.forEach(c => { keep[c.id] = 1; });
+    D().tasks.forEach(t => { if (t.projectId === p.id && !keep[t.status]) { moved.push([t, t.status, t.doneAt]); t.status = p.cols[0].id; t.doneAt = ''; } });
+    D().tasks.forEach(t => { if (t.projectId === p.id) { const dn = p.cols.some(c => c.id === t.status && c.done); if (dn && !t.doneAt) t.doneAt = new Date().toISOString(); else if (!dn) t.doneAt = ''; } });
+    paint(); toast('Đã lưu bảng “' + p.name + '”', 'ok', 1800);
+    queueRpc('taskProjectSave', { id: p.id, name: pl.name, desc: pl.desc, members: pl.members, cols: pl.cols }, { label: 'Sửa bảng “' + pl.name.slice(0, 60) + '”', key: 'tkp:' + p.id })
+      .then(r => { const y = TK.d && TK.d.projects.find(z => z.id === p.id); if (y) { Object.assign(y, r); if (TK.ui) TK.ui.paint(); } },
+        () => { const y = TK.d && TK.d.projects.find(z => z.id === p.id); if (y) { Object.keys(y).forEach(k => { delete y[k]; }); Object.assign(y, was); } moved.forEach(m2 => { m2[0].status = m2[1]; m2[0].doneAt = m2[2]; }); if (TK.ui) TK.ui.paint(); });
+  }
+  function projDel(p) {
+    const at = D().projects.indexOf(p); D().projects = D().projects.filter(x => x !== p); if (TK.proj === p.id) TK.proj = ''; paint(); toast('Đã xoá bảng “' + p.name + '”');
+    queueRpc('taskProjectDelete', { id: p.id }, { label: 'Xoá bảng “' + p.name.slice(0, 60) + '”' })
+      .catch(() => { if (TK.d && !TK.d.projects.some(x => x.id === p.id)) { TK.d.projects.splice(Math.max(0, at), 0, p); if (TK.ui) TK.ui.paint(); } });
   }
 
   const openTask = () => { if (!openId) return; const t = D().tasks.find(x => x.id === openId); if (t) { TK.proj = t.projectId; paint(); taskDialog(t); } else toast('Không tìm thấy công việc hoặc bạn không phải thành viên dự án', 'warn'); };
