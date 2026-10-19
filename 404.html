@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-18T17:09:11.095Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-19T04:38:52.434Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4089,6 +4089,7 @@ html.tk-noadd .tk-quick, html.tk-noadd #tkNew, html.tk-noadd #tkNewS, html.tk-no
 .lg3 .gsi-btn:has(.spin-s){ border:1px solid var(--border); background:var(--surface) }
 .lg-or{ display:flex; align-items:center; gap:12px; margin:14px 0; font-size:11.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted) }
 .lg-or::before, .lg-or::after{ content:''; flex:1; height:1px; background:var(--border) }
+.lg-otpl{ display:flex; margin:14px auto 0; color:var(--muted); font-weight:500 } .lg-otpl:hover{ color:var(--ink) }      /* có nút Google: lối mã email thu vào một liên kết nhỏ */
 .lg3 .lg-in{ height:46px; font-size:15px; border-radius:10px }
 .lg3 .lg-big{ height:46px; justify-content:center; font-size:14.5px; border-radius:10px }
 .lg-inv{ display:flex; gap:10px; align-items:flex-start; text-align:left; padding:11px 13px; border-radius:12px; background:var(--lightprimary); border:1px solid var(--brand-100); margin:0 0 14px; font-size:12.5px }
@@ -5041,13 +5042,15 @@ function showLogin() {
   const home = () => {
     L.innerHTML = '<div class="login-card lg3"><div class="login-logo"><i class="bi bi-journal-bookmark-fill"></i></div><h1>' + esc(app) + '</h1><p>Chào mừng bạn! Đăng nhập để tiếp tục.</p>' +
       '<div id="lgInv" hidden></div>' +
-      (gsi ? '<div class="lg-g"><div id="gsiBtn" class="gsi-btn"><span class="spin-s"></span>Đang tải nút Google…</div></div>' + (otp ? '<div class="lg-or"><span>hoặc</span></div>' : '') : '') +
-      (otp ? '<div id="lgOtpF">' + otpForm + '</div>' : '') +
+      (gsi ? '<div class="lg-g"><div id="gsiBtn" class="gsi-btn"><span class="spin-s"></span>Đang tải nút Google…</div></div>' : '') +
+      // có nút Google → đăng nhập bằng Google là chính, mã email chỉ là lối dự phòng nằm sau một liên kết nhỏ (tắt hẳn ở Cài đặt › Chung & truy cập)
+      (otp && gsi ? '<button type="button" class="btn ghost sm lg-otpl" id="lgOtpL"><i class="bi bi-envelope"></i>Không dùng Google? Nhận mã qua email</button><div id="lgOtpF" hidden><div class="lg-or"><span>hoặc</span></div>' + otpForm + '</div>' : otp ? '<div id="lgOtpF">' + otpForm + '</div>' : '') +
       (!gsi && !otp ? '<p>Không xác định được tài khoản. Hãy đăng nhập Google bằng tài khoản đã được cấp quyền rồi mở lại trang, hoặc liên hệ quản trị viên.</p>' : '') +
       (B.signupOpen ? '<small class="muted lg-note">Lần đầu sử dụng? Sau khi xác nhận email, tài khoản được tạo và chờ quản trị viên duyệt. Có lời mời thì vào được ngay.</small>' : '') + helpLogin(B) + '</div>';
     invP.then(invBox);
     if (gsi) renderGsi();
     if (otp) bindOtp();
+    const ol = $('#lgOtpL', L); if (ol) ol.onclick = () => { ol.remove(); $('#lgOtpF', L).hidden = false; $('#lgE', L).focus(); };
   };
   const renderGsi = async () => {
     try {
@@ -15202,6 +15205,9 @@ Viết từ 3 đến 4 câu kể về em bé của nhà em (hoặc một em bé 
 .tk-db td{ height:46px; padding:0 4px; border-bottom:1px solid var(--border); vertical-align:middle } .tk-db tbody tr:last-child td{ border-bottom:0 }
 .tk-db tbody tr{ transition:background var(--t-fast); scroll-margin:52px 0 } .tk-db tbody tr:hover{ background:var(--surface-2) } .tk-db tr.sv{ opacity:.6 }
 .pend .tk-key{ opacity:.5 }      /* việc vừa thêm, đang lưu ngầm lên Sheet: mã tạm “KEY-…” mờ đi, lưu xong hiện mã thật */
+.tk-ep.pend{ border-style:dashed }      /* epic vừa tạo, đang lưu ngầm */
+.tk-flash, .tk-db tr.tk-flash td{ animation:tkFlash 1.8s ease-out }      /* mục vừa tạo từ hộp Tạo epic / story / việc sáng lên chốc lát */
+@keyframes tkFlash{ 0%, 35%{ background:color-mix(in srgb, var(--orange, #ED5814) 22%, transparent) } 100%{ background:transparent } }
 .tk-db td.k{ padding-left:20px; font:600 12px var(--font-mono); color:var(--muted); white-space:nowrap } .tk-db td.k i{ margin-right:8px; font-size:14px; color:var(--ink-2); vertical-align:-2px }
 .tk-db .c{ width:100%; height:34px; padding:0 8px; border:1px solid transparent; border-radius:var(--r-s); background:transparent; font:inherit; color:var(--ink); outline:none; text-overflow:ellipsis; transition:border-color var(--t-fast), background var(--t-fast) }
 .tk-db select.c{ cursor:pointer; -webkit-appearance:none; appearance:none; padding-right:22px; background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6' fill='none'%3E%3Cpath stroke='%235F6B7A' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='m1 1 4 4 4-4'/%3E%3C/svg%3E") right 8px center/9px no-repeat }
@@ -15811,7 +15817,7 @@ async function viewTasks(arg, v) {
         '<div class="tk-rows">' + (it.map(t => row(t, true)).join('') || '<div class="tk-none">' + (sp ? 'Kéo việc từ “Việc chờ” vào đây để xếp cho đợt này' : 'Chưa có việc chờ') + '</div>') + '</div>' +
         '<input class="tk-quick" data-quick-sp="' + (sp ? sp.id : '') + '" placeholder="+ Thêm việc vào ' + esc(sp ? sp.name : 'Việc chờ') + ' — gõ rồi Enter"></section>'; };
     v.innerHTML = bar({}) + (eps.length ? '<div class="tk-epics">' + eps.map(e => { const ch = all.filter(t => t.epicId === e.id), dn = ch.filter(tkDone).length;
-        return '<button class="tk-ep' + (TK.epic === e.id ? ' on' : '') + '" data-ep="' + e.id + '" title="Bấm để lọc theo epic · bấm đúp để sửa"><b><i class="bi bi-lightning-charge-fill"></i> ' + esc(e.title) + '</b><small>' + dn + '/' + ch.length + ' việc · ' + pts(ch) + ' điểm</small><div class="bar"><i style="width:' + (ch.length ? dn / ch.length * 100 : 0) + '%"></i></div></button>'; }).join('') + '</div>' : '') +
+        return '<button class="tk-ep' + (TK.epic === e.id ? ' on' : '') + (e.pend ? ' pend' : '') + '" data-ep="' + e.id + '" title="Bấm để lọc theo epic · bấm đúp để sửa"><b><i class="bi bi-lightning-charge-fill"></i> ' + esc(e.title) + '</b><small>' + dn + '/' + ch.length + ' việc · ' + pts(ch) + ' điểm</small><div class="bar"><i style="width:' + (ch.length ? dn / ch.length * 100 : 0) + '%"></i></div></button>'; }).join('') + '</div>' : '') +
       SP.map(s => sec(s, L.filter(t => t.sprintId === s.id))).join('') + sec(null, L.filter(t => !live[t.sprintId] && !(t.sprintId && tkDone(t))));
     setTitle(p.name, 'bi-list-nested', [{ t: 'Kiến Task', r: 'tasks' }, { t: 'Kế hoạch', r: 'tasks/backlog' }], v);
   };
@@ -16112,6 +16118,7 @@ async function viewTasks(arg, v) {
     $$('.tk-board, .tk-tlw', v).forEach((x, i) => { if (keep[i]) x.scrollLeft = keep[i]; }); $$('.tk-col-b', v).forEach((x, i) => { x.scrollTop = tops[i] || 0; });
     if (paint.seen === mode + TK.proj) $$('.tk-card', v).forEach(c => { c.style.animation = 'none'; }); paint.seen = mode + TK.proj;      // chỉ trồi lên ở lần vẽ đầu của mỗi màn
     const f = $('#tkFirst', v); if (f) f.onclick = () => projDialog(null, 'team');
+    if (TK.flash) { const id = TK.flash; TK.flash = ''; requestAnimationFrame(() => reveal(id, true)); }      // mục vừa tạo rồi chuyển màn (showAt)
     const q = $('#tkQ', v); if (q) q.oninput = debounce(() => { TK.q = q.value; const pp = q.selectionStart; paint(); const n = $('#tkQ', v); if (n) { n.focus(); n.setSelectionRange(pp, pp); } }, 200);
   };
   const reload = async quiet => { try { await tkLoad(quiet); paint(); } catch (e) { if (!quiet) fail(e); } };
@@ -16122,10 +16129,22 @@ async function viewTasks(arg, v) {
   const paintKeep = () => { const a = document.activeElement, s = a && v.contains(a) && a.matches('input') ? selOf(a) : '', val = s && a.value, c0 = s && a.selectionStart, c1 = s && a.selectionEnd;
     paint(); const n = s && $(s, v); if (!n) return; n.focus({ preventScroll: true }); if (n.value !== val) n.value = val; try { n.setSelectionRange(c0, c1); } catch (e) {} };
   /** một việc vừa lưu ngầm xong: chỉ thay mã tạm bằng mã thật trên thẻ / dòng của nó — KHÔNG vẽ lại cả màn hình (người dùng có thể đang gõ việc kế tiếp hoặc đang kéo thẻ) */
-  const saved = t => $$('[data-id="' + t.id + '"], [data-row="' + t.id + '"]', v).forEach(el => { el.classList.remove('pend'); const k = $('.tk-key', el); if (k) k.textContent = t.key; });
+  const saved = t => $$('[data-id="' + t.id + '"], [data-row="' + t.id + '"], [data-ep="' + t.id + '"]', v).forEach(el => { el.classList.remove('pend'); const k = $('.tk-key', el); if (k) k.textContent = t.key; });
   TK.ui = { paint: paintKeep, saved: saved };
-  /** đưa việc vừa thêm vào tầm nhìn (cột dài, bảng dài) và cho thẻ trồi lên một lần */
-  const reveal = id => { const el = $('.tk-card[data-id="' + id + '"], .tk-row[data-id="' + id + '"], tr[data-row="' + id + '"]', v); if (!el) return; el.style.animation = ''; el.scrollIntoView({ block: 'nearest' }); };
+  /** đưa việc vừa thêm vào tầm nhìn (cột dài, bảng dài) và cho thẻ trồi lên một lần; hl = tô sáng chốc lát (mục tạo từ hộp Tạo epic / story / việc) */
+  const reveal = (id, hl) => { const el = $('.tk-card[data-id="' + id + '"], .tk-row[data-id="' + id + '"], tr[data-row="' + id + '"], .tk-ep[data-ep="' + id + '"]', v); if (!el) return; el.style.animation = ''; el.scrollIntoView({ block: 'nearest' });
+    if (hl) { el.classList.remove('tk-flash'); void el.offsetWidth; el.classList.add('tk-flash'); setTimeout(() => el.classList.remove('tk-flash'), 2000); } };
+  /** màn nào hiện được mục vừa tạo: '' = màn đang mở; còn lại là route cần chuyển tới.
+      Epic chỉ có ở Bảng dữ liệu (phân cấp) và Kế hoạch; Kanban xem theo Việc không có story → đổi sang xem theo Story. */
+  const showAt = ty => {
+    if (ty === 'epic') {
+      if (mode === 'backlog' || (mode === 'list' && TK.tree && !TK.q && !fltN())) return '';
+      if ((mode === 'board' || mode === 'list') && !TK.q && !fltN()) { TK.tree = true; lsSet('tkTree', true); return 'tasks/list'; }
+      return 'tasks/backlog';
+    }
+    if (ty === 'story' && mode === 'board' && TK.lv !== 'story') { TK.lv = 'story'; lsSet('tkLv', TK.lv); }
+    return '';
+  };
   /** thêm nhanh: việc hiện NGAY trên màn hình (tkAdd), con trỏ vẫn ở ô đang gõ để gõ tiếp việc sau; lưu lên Sheet chạy ngầm */
   const quickAdd = (title, extra, pid) => { const p = tkProj(pid) || curProj(); if (!p || !title) return; const a = tkAdd(p, Object.assign({ title: title }, extra)); if (!a) return;
     paintKeep(); reveal(a.t.id); a.pr.catch(e => toast('Chưa lưu được “' + title + '” — ' + e.message, 'err', 8000)); };
@@ -16334,8 +16353,9 @@ async function viewTasks(arg, v) {
           // hiện / đổi ngay trên màn hình rồi đóng hộp, lưu lên Sheet chạy ngầm; máy chủ từ chối → trả lại như cũ và mở lại hộp với nội dung vừa nhập
           if (isNew) { const a = tkAdd(tkProj(mm.$('#tP').value) || p0, pl); if (!a) return false; const pid = a.t.projectId;
             if (mode === 'board' || mode === 'backlog' || mode === 'list' || mode === 'sum') { TK.proj = pid; lsSet('tkProj', TK.proj); }
-            paint(); reveal(a.t.id);
-            a.pr.then(r => toast('Đã tạo ' + r.key + (ty === 'epic' ? ' — xem ở tab Kế hoạch' : '')), e => { toast('Chưa tạo được “' + title + '” — ' + e.message, 'err', 8000); taskDialog(null, { projectId: pid, draft: pl }); }); }
+            const to = showAt(ty);      // màn đang mở không hiện cấp vừa tạo (Kanban không có epic) → chuyển sang màn hiện được, mục mới sáng lên
+            if (to) { TK.flash = a.t.id; go(to); } else { paint(); reveal(a.t.id, true); }
+            a.pr.then(r => toast('Đã tạo ' + r.key), e => { toast('Chưa tạo được “' + title + '” — ' + e.message, 'err', 8000); taskDialog(null, { projectId: pid, draft: pl }); }); }
           else { const x = D().tasks.find(k => k.id === cur.id) || cur, was = Object.assign({}, x), pj = tkProj(x.projectId), pa = pl.parentId ? tkStory(pl.parentId) : null, now = new Date().toISOString(); pl.id = cur.id;
             Object.assign(x, pl, { assignee: pl.assignees.join(','), assignees: pl.assignees.slice(), points: pl.points === '' || isNaN(Number(pl.points)) ? '' : Number(pl.points), epicId: pa ? pa.epicId : pl.epicId, updatedAt: now,
               doneAt: pj && pj.cols.some(c => c.id === pl.status && c.done) ? x.doneAt || now : '' });
