@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-19T07:39:39.023Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-19T07:52:54.467Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -15225,6 +15225,8 @@ Viết từ 3 đến 4 câu kể về em bé của nhà em (hoặc một em bé 
 .tk-pks{ display:flex; flex-direction:column; gap:4px; max-height:60vh; overflow:auto } .tk-pk{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; cursor:pointer } .tk-pk:hover{ background:var(--surface-2) }
 .tk-pk input{ width:18px; height:18px; margin:0; accent-color:var(--primary); flex:0 0 18px } .tk-pk > i{ color:var(--muted); font-size:16px } .tk-pk span{ display:flex; flex-direction:column; min-width:0 } .tk-pk b{ font-weight:600 } .tk-pk small{ color:var(--muted); font-size:12px }
 .tk-pk.all{ border-bottom:1px solid var(--border); border-radius:10px 10px 0 0; margin-bottom:4px }
+.tk-pk-h{ display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 8px; margin:8px 0 0; padding:10px 12px 4px; border-top:1px solid var(--border); font-size:12px; font-weight:700; color:var(--ink-2); text-transform:uppercase; letter-spacing:.03em }
+.tk-pk-h i{ color:var(--muted) } .tk-pk-h small{ font-weight:500; text-transform:none; letter-spacing:0; color:var(--muted) }
 /* ô THÊM cuối cột Kanban: + · Epic Story Task · ô gõ (xuống dòng khi cột hẹp) */
 .tk-qadd{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:8px 2px 2px; padding:6px 8px 6px 12px; border-radius:var(--r-m, 12px); background:rgba(255,255,255,.55); transition:background .2s, box-shadow .2s; cursor:text }
 .tk-qadd > i{ color:var(--primary); font-size:14px } .tk-qadd:hover{ background:var(--surface) } .tk-qadd:focus-within{ background:var(--surface); box-shadow:0 0 0 2px var(--ring) }
@@ -15244,6 +15246,7 @@ Viết từ 3 đến 4 câu kể về em bé của nhà em (hoặc một em bé 
 .tk-kid-i{ align-items:center; gap:7px; padding:4px 4px 4px 2px; border-radius:6px } .tk-kid-i:hover{ background:var(--surface-2) } .tk-kid-i input{ margin:0 } .tk-kid-i .tk-ty{ flex:none; width:18px; height:18px; font-size:10px }
 .tk-kid-i > span:not(.tk-ty):not(.tk-key){ flex:1; min-width:0; overflow-wrap:anywhere } .tk-kid-i .tk-key{ flex:none; font:600 10.5px var(--font-mono); color:var(--muted) } .tk-kid-i.pend{ opacity:.6 }
 .tk-kid-new{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:2px } .tk-kid-new > .tk-ty{ flex:none; width:18px; height:18px; font-size:10px } .tk-kid-new .tk-sub-new{ flex:1 1 140px; min-width:0; margin:0 }
+.tk-dkid{ margin:6px 0 4px } .tk-dkid .tk-sub-new{ padding:8px 10px; font-size:13.5px } .tk-dkid .tk-lvs button{ height:28px !important; font-size:12px !important }
 .tk-kid-new .tk-lvs button{ height:22px; font-size:11px; padding:0 7px 0 3px } .tk-kid-new .tk-lvs button .tk-ty{ width:16px; height:16px; font-size:9px }
 .tk-sub-new{ margin-top:2px; padding:5px 6px; border:1px dashed var(--border); border-radius:8px; background:transparent; font:inherit; font-size:12.5px; color:var(--ink); outline:0 } .tk-sub-new:focus{ border-style:solid; border-color:var(--primary) }
 /* nút CẤP: Kanban (Epic · Story · Task) và hộp chi tiết — cùng kiểu với dòng thêm ở Bảng dữ liệu */
@@ -15749,8 +15752,11 @@ async function viewTasks(arg, v) {
   // bảng riêng của NGƯỜI KHÁC (chỉ Admin nhận được từ máy chủ): không lẫn vào danh sách bảng thường — chỉ hiện khi đang mở chính bảng đó (chọn ở nút chọn bảng)
   const other = p => p.scope === 'personal' && p.createdBy !== D().me;
   const projs = () => D().projects.filter(p => p.status === 'active' && (!other(p) || p.id === TK.proj));
-  /* TẤT CẢ BẢNG (TK.proj = '*'): xem nhiều bảng cùng lúc ở mọi màn. TK.pick = những bảng được chọn hiện (trống / không còn bảng nào hợp lệ = mọi bảng) — nhớ trên máy */
-  const shown = () => { const P = projs().filter(p => !other(p)), S = P.filter(p => TK.pick.indexOf(p.id) >= 0); return S.length ? S : P; };
+  /* TẤT CẢ BẢNG (TK.proj = '*'): xem nhiều bảng cùng lúc ở mọi màn. TK.pick = những bảng được chọn hiện (trống / không còn bảng nào hợp lệ = mọi bảng của mình; '*' = mọi bảng của mình
+     kể cả bảng tạo sau này) — nhớ trên máy. Admin chọn thêm được BẢNG RIÊNG CỦA NGƯỜI KHÁC (máy chủ chỉ gửi những bảng đó cho Admin; mặc định không hiện) */
+  const others = () => D().projects.filter(p => p.status === 'active' && other(p)).sort((a, b) => tkUser(a.createdBy).localeCompare(tkUser(b.createdBy), 'vi') || a.name.localeCompare(b.name, 'vi'));
+  const shown = () => { const P = projs().filter(p => !other(p)), X = others().filter(p => TK.pick.indexOf(p.id) >= 0), S = TK.pick.indexOf('*') >= 0 ? P : P.filter(p => TK.pick.indexOf(p.id) >= 0);
+    return S.length || X.length ? S.concat(X) : P; };
   const curProj = () => (TK.proj === '*' ? shown()[0] : projs().find(p => p.id === TK.proj)) || projs()[0] || null;
   const pf = () => (TK.proj === '*' ? '' : TK.proj);      // '' = mọi bảng đang hiện (shown)
   const multi = () => TK.proj === '*' && shown().length > 1;
@@ -16393,12 +16399,12 @@ async function viewTasks(arg, v) {
     if (pk) { const P = projs().filter(p => !other(p)), cnt = {}, set = id => { TK.proj = id; TK.epic = ''; lsSet('tkProj', TK.proj); paint(); }; D().tasks.forEach(t => { if (!tkDone(t) && t.type !== 'epic') cnt[t.projectId] = (cnt[t.projectId] || 0) + 1; });
       const item = p => ({ t: p.name + (TK.proj === p.id ? '  ✓' : ''), d: (p.pend ? 'Đang lưu lên Sheet · ' : '') + (cnt[p.id] || 0) + ' việc đang mở' + (p.scope === 'personal' ? ' · bảng riêng' : '') + (p.demo ? ' · dữ liệu mẫu' : ''), i: p.scope === 'personal' ? 'bi-lock' : 'bi-kanban', fn: () => set(p.id) });
       // TẤT CẢ BẢNG luôn có ở mọi màn (Kanban · Bảng dữ liệu · Kế hoạch xếp từng bảng; các màn tổng hợp gộp chung) + chọn những bảng được hiện
-      const nS = shown().length, sub = nS < P.length;
-      return openMenu(pk, [{ t: 'Tất cả bảng' + (TK.proj === '*' ? '  ✓' : ''), d: sub ? nS + '/' + P.length + ' bảng đã chọn' : 'Xem mọi bảng cùng lúc', i: 'bi-layers', fn: () => set('*') },
+      const nS = shown().length, nO = shown().filter(other).length, sub = nS !== P.length || nO > 0;
+      return openMenu(pk, [{ t: 'Tất cả bảng' + (TK.proj === '*' ? '  ✓' : ''), d: sub ? (nS - nO) + '/' + P.length + ' bảng đã chọn' + (nO ? ' · +' + nO + ' bảng riêng của người khác' : '') : 'Xem mọi bảng cùng lúc', i: 'bi-layers', fn: () => set('*') },
           { t: 'Chọn bảng hiện…', d: 'Tick những bảng muốn xem cùng lúc', i: 'bi-ui-checks', fn: () => pickDialog(P, cnt, () => set('*')) }, '-']
         .concat(P.filter(p => p.scope !== 'personal').map(item), P.filter(p => p.scope === 'personal' && !other(p)).map(item),
           // Admin: bảng riêng của từng người (xem lặng lẽ — chủ bảng không nhận thông báo gì)
-          (() => { const O = D().projects.filter(p => p.status === 'active' && other(p)).sort((a, b) => tkUser(a.createdBy).localeCompare(tkUser(b.createdBy), 'vi'));
+          (() => { const O = others();
             return O.length ? ['-'].concat(O.map(p => ({ t: p.name + (TK.proj === p.id ? '  ✓' : ''), d: 'Bảng riêng của ' + tkUser(p.createdBy) + ' · ' + (cnt[p.id] || 0) + ' việc đang mở', i: 'bi-person-lock', fn: () => set(p.id) }))) : []; })(),
           C().personal || C().team ? ['-'] : [], C().personal ? [{ t: 'Tạo bảng riêng', i: 'bi-plus-lg', d: 'Chỉ mình bạn thấy', fn: () => projDialog(null, 'personal') }] : [], C().team ? [{ t: 'Tạo bảng chung cho team', i: 'bi-people', fn: () => projDialog(null, 'team') }] : [])); }
     const pb = e.target.closest('[data-p]'); if (pb) { TK.proj = pb.dataset.p; TK.epic = ''; lsSet('tkProj', TK.proj); return paint(); }
@@ -16553,15 +16559,17 @@ async function viewTasks(arg, v) {
     const spOpts = p => [['', 'Việc chờ (chưa xếp đợt)']].concat(sprints(p).filter(s => s.status !== 'done' || s.id === cur.sprintId).map(s => [s.id, s.name + (s.status === 'active' ? ' · đang chạy' : '')]));
     const epOpts = p => [['', 'Không']].concat(D().tasks.filter(x => x.projectId === p.id && x.type === 'epic' && x.id !== cur.id).map(x => [x.id, x.title]));
     const ckHtml = () => (cur.checklist || []).map((c, i) => '<div class="tk-ck' + (c.d ? ' d' : '') + '" data-i="' + i + '"><input type="checkbox"' + (c.d ? ' checked' : '') + ' aria-label="Xong"><input type="text" value="' + esc(c.t) + '" aria-label="Bước cần làm"><button class="ibtn" data-ckx title="Xoá"><i class="bi bi-x"></i></button></div>').join('');
-    const kids = !isNew && (cur.type === 'epic' || cur.type === 'story') ? tkKids(cur) : [];
+    const kids = !isNew && (cur.type === 'epic' || cur.type === 'story') ? tkKids(cur) : [], kOpts = isNew ? [] : (TK_KID[tkLv(cur)] || []).filter(x => x !== 'sub');
+    let kTy = kOpts[0];
     const paOpts = p => [['', 'Không']].concat(D().tasks.filter(x => x.projectId === p.id && x.type === 'story' && x.id !== cur.id).map(x => [x.id, x.key + ' · ' + x.title]));
     const kidRow = k => '<div class="tk-row s' + (tkDone(k) ? ' done' : '') + '" data-id="' + k.id + '">' + tkTyIc(k) + '<span class="tk-key">' + esc(k.key) + '</span><span class="t">' + esc(k.title) + '</span>' + tkStPill(k) + '</div>';
     const m = modal({ title: isNew ? (cur.type === 'story' ? 'Tạo story' : cur.type === 'epic' ? 'Tạo epic' : 'Tạo task') : cur.key + ' · ' + (TK_TYPE[cur.type] || TK_TYPE.task)[0], icon: (TK_TYPE[cur.type] || TK_TYPE.task)[1], size: 'lg', sticky: true, body:
       '<div class="tk-dlg"><div><div class="tk-path" id="tPath" aria-label="Vị trí trong ba cấp Epic › Story › Việc"></div><input class="tk-ti" id="tT" placeholder="Tên công việc" value="' + esc(cur.title) + '"' + (isNew ? ' autofocus' : '') + '>' +
         '<div class="tk-h">Mô tả<a class="tk-tpl" id="tTpl" hidden>Chèn mẫu story</a></div><textarea class="ta" id="tD" placeholder="Mô tả chi tiết, đường link tài liệu, tiêu chí hoàn thành…">' + esc(cur.desc) + '</textarea>' +
-        (!isNew && cur.type === 'epic' ? '<div class="tk-h">Story & việc thuộc epic · ' + kids.filter(tkDone).length + '/' + kids.length + '<a class="tk-tpl" id="tEpAdd"><i class="bi bi-bookmark-plus"></i> Thêm story</a></div>' : '') +
-        (!isNew && cur.type === 'story' ? '<div class="tk-h">Việc trong story · ' + kids.filter(tkDone).length + '/' + kids.length + '<a class="tk-tpl" id="tStAdd"><i class="bi bi-plus-lg"></i> Thêm việc</a></div>' : '') +
-        (kids.length ? '<div class="tk-rows tk-kids" style="box-shadow:none;background:var(--k-tray)">' + (cur.type === 'epic' ? kids.filter(k => !tkStory(k.parentId)).map(k => kidRow(k) + (k.type === 'story' ? tkKids(k).map(c2 => '<div class="tk-kin">' + kidRow(c2) + '</div>').join('') : '')).join('') : kids.map(kidRow).join('')) + '</div>' : '') +
+        // CẤP CON thêm ngay trong hộp (giống nút “+” trên thẻ): Epic → Story · Task · Story → Task — gõ tên rồi Enter, hộp không đóng, danh sách cập nhật ngay
+        (kOpts.length ? '<div class="tk-h">' + (cur.type === 'epic' ? 'Story & task thuộc epic' : 'Task trong story') + ' · <span id="tKidN"></span><a class="tk-tpl" id="tKidAdd"><i class="bi bi-plus-lg"></i> Thêm ' + kOpts.map(x => TK_LV[x].toLowerCase()).join(' / ') + '</a></div><div id="tKids"></div>' +
+          '<div class="tk-kid-new tk-dkid">' + (kOpts.length > 1 ? '<span class="tk-lvs" role="group" aria-label="Cấp sẽ thêm">' + kOpts.map(x => '<button type="button" data-dkty="' + x + '" aria-pressed="' + (x === kTy) + '">' + tkTyIc({ type: x }) + '<span>' + TK_LV[x] + '</span></button>').join('') + '</span>' : tkTyIc({ type: kTy })) +
+          '<input class="tk-sub-new" id="tKidNew" placeholder="Thêm ' + TK_LV[kTy].toLowerCase() + ' vào ' + esc(cur.key) + ' — gõ tên rồi Enter" aria-label="Thêm vào ' + esc(cur.key) + '"></div>' : '') +
         '<div class="tk-h">Subtask <span id="tCkN" class="small"></span></div><div id="tCk">' + ckHtml() + '</div><div class="tk-ck"><i class="bi bi-plus-lg muted" style="width:17px;text-align:center"></i><input type="text" id="tCkNew" placeholder="Thêm subtask rồi nhấn Enter"></div>' +
         (isNew ? '' : '<div class="tk-h">Bình luận & hoạt động</div><div id="tCm">' + miniLoader('Đang tải…') + '</div><div class="row" style="flex-wrap:nowrap;align-items:flex-end;margin-top:6px"><textarea class="ta" id="tCmT" style="min-height:44px;height:44px" placeholder="Viết bình luận… (nhắc ai đó: @email)"></textarea><button class="btn pri sm" id="tCmS"><i class="bi bi-send"></i>Gửi</button></div>') + '</div>' +
       '<div class="tk-side"><div><label>Cấp</label><span class="tk-lvs tk-dlv" id="tLvB" role="group" aria-label="Cấp của mục này">' + ['epic', 'story', 'task'].map(k => '<button type="button" data-dlv="' + k + '" aria-pressed="' + (tkLv(cur) === k) + '" title="Đổi thành ' + TK_LV[k] + '">' + tkTyIc({ type: k }) + '<span>' + TK_LV[k] + '</span></button>').join('') + '</span></div>' +
@@ -16620,10 +16628,20 @@ async function viewTasks(arg, v) {
       m.$('#tTpl').hidden = !st || !!m.$('#tD').value.trim(); };
     m.$('#tTpl').onclick = () => { const d = m.$('#tD'); d.value = STORY_TPL; m.$('#tTpl').hidden = true; d.focus(); d.setSelectionRange(3, 3); };
     m.$('#tD').addEventListener('input', () => { m.$('#tTpl').hidden = tyNow() !== 'story' || !!m.$('#tD').value.trim(); });
-    { const ea = m.$('#tEpAdd'); if (ea) ea.onclick = () => { m.close(); taskDialog(null, { projectId: cur.projectId, type: 'story', epicId: cur.id }); }; }
-    { const sa = m.$('#tStAdd'); if (sa) sa.onclick = () => { m.close(); taskDialog(null, { projectId: cur.projectId, parentId: cur.id, epicId: cur.epicId }); }; }
     m.$('#tPa').onchange = m.$('#tEp').onchange = tyFix;
-    { const kl = m.$('.tk-kids'); if (kl) kl.onclick = e => { const r = e.target.closest('[data-id]'), k = r && D().tasks.find(x => x.id === r.dataset.id); if (k) { m.close(); taskDialog(k); } }; }      // bấm một việc bên trong → mở việc đó
+    if (kOpts.length) {      // danh sách con + ô thêm con trong hộp
+      const box = m.$('#tKids'), inp = m.$('#tKidNew');
+      const kPaint = () => { const K = tkKids(cur); m.$('#tKidN').textContent = K.filter(tkDone).length + '/' + K.length;
+        box.innerHTML = K.length ? '<div class="tk-rows tk-kids" style="box-shadow:none;background:var(--k-tray)">' + (cur.type === 'epic' ? K.filter(k => !tkStory(k.parentId)).sort((a, b) => a.order - b.order).map(k => kidRow(k) + (k.type === 'story' ? tkKids(k).sort((a, b) => a.order - b.order).map(c2 => '<div class="tk-kin">' + kidRow(c2) + '</div>').join('') : '')).join('') : K.sort((a, b) => a.order - b.order).map(kidRow).join('')) + '</div>' : ''; };
+      kPaint();
+      box.onclick = e => { const r = e.target.closest('[data-id]'), k = r && D().tasks.find(x => x.id === r.dataset.id); if (k && !k.pend) { m.close(); taskDialog(k); } };      // bấm một việc bên trong → mở việc đó (việc đang lưu thì chờ)
+      m.$('#tKidAdd').onclick = () => inp.focus();
+      $$('[data-dkty]', m.el).forEach(b => { b.onclick = () => { kTy = b.dataset.dkty; $$('[data-dkty]', m.el).forEach(x => x.setAttribute('aria-pressed', x === b)); inp.placeholder = 'Thêm ' + TK_LV[kTy].toLowerCase() + ' vào ' + cur.key + ' — gõ tên rồi Enter'; inp.focus(); }; });
+      inp.onkeydown = e => { if (e.key !== 'Enter') return; e.preventDefault(); e.stopPropagation(); const val = inp.value.trim(), par = D().tasks.find(x => x.id === cur.id), p = par && tkProj(par.projectId); if (!val || !p) return;
+        const sp = activeSp(p), a = tkAdd(p, Object.assign({ title: val.slice(0, 200), type: kTy, sprintId: sp ? sp.id : '' }, par.type === 'epic' ? { epicId: par.id } : { parentId: par.id, epicId: par.epicId })); if (!a) return;
+        inp.value = ''; paintKeep(); kPaint();
+        a.pr.then(() => { if (m.el.isConnected) kPaint(); }, er => { if (m.el.isConnected) kPaint(); toast('Chưa lưu được “' + val + '” — ' + er.message, 'err', 8000); }); };
+    }
     ckCount(); tyFix(); m.$('#tLv').onchange = m.$('#tKd').onchange = tyFix;
     /* ĐỔI CẤP ngay trên hộp: Task ⇄ Story ⇄ Epic — lưu lại mới áp dụng. Story đổi cấp: task bên trong tách ra (thành task lẻ); epic đổi cấp: story / task bên trong bỏ gắn epic */
     m.$('#tLvB').onclick = e => { const b = e.target.closest('[data-dlv]'); if (!b) return; const k = b.dataset.dlv, was = tkLv(cur);
@@ -16661,14 +16679,15 @@ async function viewTasks(arg, v) {
   /** chọn những bảng hiện ở chế độ TẤT CẢ BẢNG — tick từng bảng; tick hết = mọi bảng (cả bảng tạo sau này). Nhớ trên máy (tkPick). */
   function pickDialog(P, cnt, done) {
     const on = {}; shown().forEach(p => { on[p.id] = 1; });
-    const rowH = p => '<label class="tk-pk"><input type="checkbox" value="' + p.id + '"' + (on[p.id] ? ' checked' : '') + '><i class="bi ' + (p.scope === 'personal' ? 'bi-lock' : 'bi-kanban') + '"></i><span><b>' + esc(p.name) + '</b><small>' + (cnt[p.id] || 0) + ' việc đang mở' + (p.scope === 'personal' ? ' · bảng riêng' : '') + '</small></span></label>';
+    const O = others(), rowH = p => '<label class="tk-pk"><input type="checkbox" value="' + p.id + '"' + (on[p.id] ? ' checked' : '') + (other(p) ? ' data-oth' : '') + '><i class="bi ' + (other(p) ? 'bi-person-lock' : p.scope === 'personal' ? 'bi-lock' : 'bi-kanban') + '"></i><span><b>' + esc(p.name) + '</b><small>' + (cnt[p.id] || 0) + ' việc đang mở' + (other(p) ? ' · bảng riêng của ' + esc(tkUser(p.createdBy)) : p.scope === 'personal' ? ' · bảng riêng' : '') + '</small></span></label>';
     const m = modal({ title: 'Chọn bảng hiện', icon: 'bi-ui-checks', body: '<div class="tk-pks"><label class="tk-pk all"><input type="checkbox" id="pkAll"' + (P.every(p => on[p.id]) ? ' checked' : '') + '><i class="bi bi-layers"></i><span><b>Tất cả bảng</b><small>Kể cả bảng tạo sau này</small></span></label>' +
-        P.filter(p => p.scope !== 'personal').map(rowH).join('') + P.filter(p => p.scope === 'personal').map(rowH).join('') + '</div>',
+        P.filter(p => p.scope !== 'personal').map(rowH).join('') + P.filter(p => p.scope === 'personal').map(rowH).join('') +
+        (O.length ? '<div class="tk-pk-h"><i class="bi bi-shield-lock"></i>Bảng riêng của người khác <small>chỉ Admin thấy · chủ bảng không nhận thông báo</small></div>' + O.map(rowH).join('') : '') + '</div>',
       foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Xem các bảng đã chọn', cls: 'pri', i: 'bi-check2', fn: mm => {
-        const ids = $$('.tk-pk:not(.all) input', mm.el).filter(x => x.checked).map(x => x.value);
+        const B = $$('.tk-pk:not(.all) input', mm.el), own = B.filter(x => !('oth' in x.dataset)), ids = B.filter(x => x.checked).map(x => x.value), oth = B.filter(x => x.checked && 'oth' in x.dataset).map(x => x.value);
         if (!ids.length) { toast('Chọn ít nhất một bảng', 'warn'); return false; }
-        TK.pick = ids.length === P.length ? [] : ids; lsSet('tkPick', TK.pick); done(); } }] });
-    const all = m.$('#pkAll'), boxes = () => $$('.tk-pk:not(.all) input', m.el);
+        TK.pick = own.every(x => x.checked) ? (oth.length ? ['*'].concat(oth) : []) : ids; lsSet('tkPick', TK.pick); done(); } }] });
+    const all = m.$('#pkAll'), boxes = () => $$('.tk-pk:not(.all) input:not([data-oth])', m.el);      // “Tất cả bảng” = mọi bảng của mình; bảng riêng của người khác tick riêng
     all.onchange = () => boxes().forEach(x => { x.checked = all.checked; });
     m.el.addEventListener('change', e => { if (e.target !== all && e.target.closest('.tk-pk')) all.checked = boxes().every(x => x.checked); });
   }
