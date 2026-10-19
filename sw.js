@@ -3,7 +3,7 @@
       cho lần mở sau (stale-while-revalidate). Lần đầu trên máy chưa có bản cất → tải từ mạng như bình thường.
    2. THÔNG BÁO ĐẨY: nhận push → hỏi máy chủ thông báo mới nhất rồi hiện; bấm thông báo mở đúng trang. */
 const APP = 'https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec';
-const CACHE = 'kt-app-mverlau8';
+const CACHE = 'kt-app-mvesihsh';
 const SHELL = '/index.html';
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.add(new Request(SHELL, { cache: 'no-cache' }))).catch(() => {})); });
 self.addEventListener('activate', e => e.waitUntil((async () => {
@@ -12,7 +12,7 @@ self.addEventListener('activate', e => e.waitUntil((async () => {
 })()));
 self.addEventListener('fetch', e => {
   const r = e.request; if (r.method !== 'GET' || r.mode !== 'navigate') return;
-  const u = new URL(r.url); if (u.origin !== location.origin || /^\/(s\/|share\.html)/.test(u.pathname)) return;
+  const u = new URL(r.url); if (u.origin !== location.origin || /^\/(s\/|share\.html|privacy\.html)/.test(u.pathname)) return;
   e.respondWith((async () => {
     const c = await caches.open(CACHE), hit = await c.match(SHELL);
     const net = fetch(SHELL, { cache: 'no-cache' }).then(res => { if (res.ok) c.put(SHELL, res.clone()); return res; });
