@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-20T16:03:04.844Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-20T16:09:33.893Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5380,6 +5380,7 @@ async function warmUp() {
       await step(mod === 'lib' && can('links.manage'), async () => { const d = await rpc('listLinks', {}, { quiet: true }); lsSet('lkCache:' + em, d); if (window.LK && !LK.data) LK.data = d; });
       await step(mod === 'task' && canAny(TASK_TABS) && typeof tkLoad === 'function', async () => { if (!tkPrime()) await tkRefresh(); else tkRefresh().catch(() => {}); });
       await step(mod === 'sys' && can('users.manage'), async () => lsSet('usrCache', await rpc('listUsers', {}, { quiet: true })));
+      await step(mod === 'sys' && can('users.manage') && typeof invLoad === 'function', () => invLoad('all'));      // Lời mời: lấy trước lúc rảnh → bấm tab là hiện ngay
       // bảng tin là theo từng ứng dụng (ANN.d giữ bản của ứng dụng đang mở) → chỉ lấy trước cho ứng dụng đang mở
       await step(mod === S.mod && (mod === 'tutor' || mod === 'task'), async () => { const r = await rpc('annList', {}, { quiet: true }); if (S.mod !== mod) return; ANN.d = r; lsSet('annCache', r); if (!r.man) annUnread(r.list.filter(x => !x.read).length); });
       if (!document.hidden && S.me && S.me.email === em) done[mod] = Date.now();
@@ -6143,7 +6144,9 @@ function paintTitle(t, icon, crumbs) {
      (trước đây lặp “Kiến Chuyên môn” ngay dưới logo, và trang của Quản trị lại ghi “Kiến Chuyên môn › Người dùng”). Bỏ cả mục trùng tên trang.
      Mục còn lại vẫn bấm được (data-go); không còn mục nào thì ẩn dòng đường dẫn. */
   const appN = new Set([S.boot && S.boot.app, 'Kiến Chuyên môn'].concat(((S.boot && S.boot.mods) || []).map(m => m.t)).filter(Boolean).map(fold));
-  const cs = (crumbs || []).filter(c => c && c.t && !appN.has(fold(c.t)) && fold(c.t) !== fold(t));
+  // mục trỏ sang một TAB KHÁC đang nằm trên thanh bên (tab ngang hàng, không phải trang cha) cũng bỏ — VD đang ở tab Lời mời không ghi “Người dùng”
+  let navR = [], cur = ''; try { const L = navItems(); navR = L.map(x => x.r); cur = navOf(S.route, L); } catch (e) {}
+  const cs = (crumbs || []).filter(c => c && c.t && !appN.has(fold(c.t)) && fold(c.t) !== fold(t) && !(cur && c.r && c.r !== cur && navR.indexOf(c.r) >= 0 && navOf(c.r, navItems()) !== cur));
   $('#crumb').innerHTML = cs.map(c => '<a data-go="' + esc(c.r) + '" title="Mở ' + esc(c.t) + '">' + esc(c.t) + '</a>').join('<i class="bi bi-chevron-right"></i>');
   $('#crumb').hidden = !cs.length;
   if (!same) { tt.classList.remove('swap'); void tt.offsetWidth; tt.classList.add('swap'); }
@@ -8146,7 +8149,7 @@ async function viewUsers(arg, v) {
   const uq = (fn, pl, label, local) => { local(); lsSet('usrCache', list); paint(); queueRpc(fn, pl, { label: label }).then(r => { if (Array.isArray(r)) { list = r; lsSet('usrCache', list); if (v.isConnected) paint(); } }).catch(() => {}); };
   const paint = async () => {
     paintTop();
-    setTitle(tab === 'roles' ? 'Vai trò & quyền' : tab === 'apps' ? 'Ứng dụng của người dùng' : tab === 'invites' ? 'Lời mời' : 'Người dùng', tab === 'roles' ? 'bi-shield-lock' : tab === 'apps' ? 'bi-grid-3x3-gap' : tab === 'invites' ? 'bi-envelope-paper-heart' : 'bi-people', [{ t: S.boot.app, r: 'home' }].concat(tab !== 'list' ? [{ t: 'Người dùng', r: 'users' }] : []), v);
+    setTitle(tab === 'roles' ? 'Vai trò & quyền' : tab === 'apps' ? 'Ứng dụng của người dùng' : tab === 'invites' ? 'Lời mời' : 'Người dùng', tab === 'roles' ? 'bi-shield-lock' : tab === 'apps' ? 'bi-grid-3x3-gap' : tab === 'invites' ? 'bi-envelope-paper-heart' : 'bi-people', [], v)      // Vai trò & quyền · Phân quyền ứng dụng · Lời mời là tab riêng trên thanh bên (không phải trang con của Người dùng) → không có đường dẫn;
     if (tab === 'list') {
       if (!list) { list = lsGet('usrCache', null);       // hiện ngay bản đã lưu, tải bản mới ngầm
         if (list) rpc('listUsers', {}, { quiet: true }).then(x => { list = x; lsSet('usrCache', x); if (v.isConnected) paint(); }).catch(() => {});
@@ -8337,13 +8340,23 @@ async function viewUsers(arg, v) {
    Mời từ Kiến Task: người được mời chỉ vào được Kiến Task. Email đã có tài khoản: áp dụng ngay (từ Kiến Task chỉ THÊM Kiến Task). */
 const INV = {};
 const INV_ST = { pending: ['Chờ nhận', '#B45309', 'bi-hourglass-split'], full: ['Hết lượt', '#94A3B8', 'bi-people'], used: ['Đã nhận', 'var(--ok)', 'bi-check-circle'], expired: ['Hết hạn', '#94A3B8', 'bi-clock-history'], revoked: ['Đã thu hồi', '#94A3B8', 'bi-slash-circle'] };
+const invCk = scope => 'invCache:' + ((S.me && S.me.email) || '') + ':' + scope;
+/** tải danh sách lời mời (gộp các lần gọi trùng), cất trên máy để lần sau mở là hiện ngay */
+function invLoad(scope) {
+  if (INV['_p' + scope]) return INV['_p' + scope];
+  const pr = INV['_p' + scope] = rpc('inviteList', { scope: scope }, { quiet: true }).then(d => { INV[scope] = d; if (!S.as) lsSet(invCk(scope), d); return d; }).finally(() => { delete INV['_p' + scope]; });
+  return pr;
+}
 async function invPaint(box, scope, fresh) {
   if (!box || !box.isConnected) return;
+  if (!INV[scope] && !S.as) INV[scope] = lsGet(invCk(scope), null);      // 1.31.2: hiện ngay bản đã lưu (trước đây chờ máy chủ xong mới vẽ → trang trống vài giây)
   if (!INV[scope] || fresh) {
-    if (!INV[scope]) box.innerHTML = miniLoader('Đang tải lời mời…');
-    try { INV[scope] = await rpc('inviteList', { scope: scope }, { quiet: true }); }
-    catch (e) { box.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được lời mời</b><span>' + esc(e.message) + '</span></div></div>'; return; }
-    if (!box.isConnected) return;
+    if (!INV[scope]) {
+      box.innerHTML = miniLoader('Đang tải lời mời…');
+      try { await invLoad(scope); }
+      catch (e) { box.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được lời mời</b><span>' + esc(e.message) + '</span></div></div>'; return; }
+      if (!box.isConnected) return;
+    } else invLoad(scope).then(() => { if (box.isConnected) invPaint(box, scope); }).catch(() => {});      // có bản cũ: vẽ ngay, bản mới về thì vẽ lại
   }
   const D = INV[scope], q = fold(box._q || ''), f = box._f || '';
   const rows = D.list.filter(x => (!f || x.state === f) && (!q || fold(x.email + ' ' + x.name + ' ' + x.byName).indexOf(q) >= 0));
