@@ -4,7 +4,7 @@ Từ bản 1.26 **app chạy thẳng trên tên miền** (GitHub Pages), không 
 - `index.html` / `404.html` là **chính giao diện app**, dựng từ `src/` bằng `node tools/build-static.js` (đừng sửa tay — sửa `src/` rồi dựng lại).
   Mọi lệnh gọi máy chủ đi bằng `fetch` POST vào link /exec (`doPost` → `api()` trong `Code.gs`: cùng mã phiên, cùng kiểm quyền).
 - `sw.js`: lần mở sau lấy giao diện **ngay từ máy** (bản mới tải ngầm cho lần sau) + thông báo đẩy.
-- `share.html`: link tạm `/s/<mã>` — trang xem link tạm vẫn do Apps Script dựng, mở trong khung.
+- `share.html`: link tạm `/s/<mã>` — từ 1.31 là trang xem chạy thẳng trên tên miền (dựng từ `src/Share.html`, gọi `shareOpen · shareFile` bằng fetch): ai có link là xem được, không cần tài khoản.
 - Đường dẫn tiếng Anh: `/tasks`, `/tasks/plan`, `/tasks/item/<mã>`, `/file/<mã>`, `/library/…`, `/dashboard`… (bảng đổi ở `tools/static/head.js`).
 - Nguồn: `tools/static/` (head.js · runtime.js · share.html · sw.js · push.css). Bản trang vỏ cũ (mở app trong khung): `tools/static/frame-shell.html`.
 - **Deploy**: `tools/deploy.sh` đẩy Apps Script rồi gọi `tools/publish-domain.sh` (dựng + đẩy lên repo `thaisvuong/app.kientrecm`, giữ ở `webapp/.pages`).
