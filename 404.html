@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-20T15:51:38.512Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-20T16:03:04.844Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -282,6 +282,7 @@ a{ color:var(--brand-700) }
 .crumb{ font-size:10px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:6px; white-space:nowrap }
 .crumb a{ color:inherit; text-decoration:none; cursor:pointer } .crumb a:hover{ color:var(--brand-700) }
 .crumb i{ font-size:9px; opacity:.6 }
+.crumb[hidden]{ display:none !important }      /* đường dẫn chỉ còn tên ứng dụng (đã ở thanh bên) → ẩn hẳn */
 .tb-t1{ font-size:15px; font-weight:800; color:var(--ink); letter-spacing:-.1px; line-height:1.25; display:flex; align-items:center; gap:var(--sp-2); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .tb-t1 > i{ color:var(--brand-600); font-size:16px }
 .tb-title.swap .crumb, .tb-title.swap .tb-t1{ animation:titleIn 380ms var(--ease) both }
@@ -6138,7 +6139,13 @@ function paintTitle(t, icon, crumbs) {
   const same = $('#pageTitle').textContent === t;
   $('#pageTitle').textContent = t;
   $('#pageIcon').className = 'bi ' + icon;
-  $('#crumb').innerHTML = (crumbs || []).map(c => '<a data-go="' + esc(c.r) + '">' + esc(c.t) + '</a>').join('<i class="bi bi-chevron-right"></i>');
+  /* ĐƯỜNG DẪN (1.31.1): tên ứng dụng đã nằm ở thanh bên (Kiến Chuyên môn, Kiến Task, Quản trị…) → bỏ mục tên ứng dụng khỏi đường dẫn
+     (trước đây lặp “Kiến Chuyên môn” ngay dưới logo, và trang của Quản trị lại ghi “Kiến Chuyên môn › Người dùng”). Bỏ cả mục trùng tên trang.
+     Mục còn lại vẫn bấm được (data-go); không còn mục nào thì ẩn dòng đường dẫn. */
+  const appN = new Set([S.boot && S.boot.app, 'Kiến Chuyên môn'].concat(((S.boot && S.boot.mods) || []).map(m => m.t)).filter(Boolean).map(fold));
+  const cs = (crumbs || []).filter(c => c && c.t && !appN.has(fold(c.t)) && fold(c.t) !== fold(t));
+  $('#crumb').innerHTML = cs.map(c => '<a data-go="' + esc(c.r) + '" title="Mở ' + esc(c.t) + '">' + esc(c.t) + '</a>').join('<i class="bi bi-chevron-right"></i>');
+  $('#crumb').hidden = !cs.length;
   if (!same) { tt.classList.remove('swap'); void tt.offsetWidth; tt.classList.add('swap'); }
   shellRoute();
 }
