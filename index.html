@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-23T15:08:48.722Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-23T15:15:49.391Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -15415,7 +15415,7 @@ Viết từ 3 đến 4 câu kể về em bé của nhà em (hoặc một em bé 
    trang thông tin (dải số, thông tin chương trình, định hướng, chặng đường ôn tập & kiểm tra), lộ trình từng học kỳ có dải chủ điểm.
    Chữ: Helvetica · tiêu đề bìa Helvetica Neue Condensed Black (đủ dấu tiếng Việt, đúng font của mẫu) · icon Font Awesome 5 Solid như mẫu.
    Bộ đọc chịu được chữ bị ngắt dòng, đầu bảng lặp lại giữa trang, “Buổi A)” rơi xuống dòng sau… Bảng tự chia trang: tiêu đề không nằm trơ
-   cuối trang, đầu bảng lặp lại ở trang sau, không tách một buổi ra hai trang; mỗi học kỳ bắt đầu trang mới.
+   cuối trang, đầu bảng lặp lại ở trang sau, không tách một buổi ra hai trang; các phần chảy liền — không để khoảng trống lớn cuối trang.
    ══════════════════════════════════════════════════════════════ */
 const SY = { v: null, code: '', doc: null, dirty: false };
 const SY_C = { g: '#036528', gd: '#0B4D23', o: '#ED5814', r: '#C1272D', mu: '#6A726C', ln: '#C9D3CC' };
@@ -15553,7 +15553,7 @@ const SY_INFO_IC = [[/sách/i, 'book'], [/bám sát/i, 'compass'], [/cấu trúc
 function syTag(d) { return (d.meta.mon + ' ' + d.meta.lop).trim().toUpperCase() + (d.meta.loai === 'NC' ? ' NC' : ''); }
 function syName(d) { return 'Lớp ' + (d.meta.lop || '') + d.meta.loai + '_Syllabus_Chương trình học'; }
 function syPage(d, no) {
-  return '<div class="sy-page"><header class="sy-hd"><img src="' + CP_LOGO + '" alt="Kiến Gia Sư"><span class="sy-pill">' + syE(syTag(d)) + '</span></header><div class="sy-bd"></div>' +
+  return '<div class="sy-page' + (d.tight ? ' tight' : '') + '"><header class="sy-hd"><img src="' + CP_LOGO + '" alt="Kiến Gia Sư"><span class="sy-pill">' + syE(syTag(d)) + '</span></header><div class="sy-bd"></div>' +
     '<footer class="sy-ft"><b>KIẾN GIA SƯ</b><i>Một học sinh - Một lộ trình</i><span class="sy-pn">' + no + '</span></footer></div>';
 }
 /** đường cong trơn qua các điểm (Catmull-Rom) → mảng điểm dày */
@@ -15674,7 +15674,7 @@ function syBlocks(d) {
   [['I', d.S.filter(x => x.n <= M.endI), 'medal'], ['II', d.S.filter(x => x.n > M.endI), 'graduation-cap']].forEach((h, hi) => {
     const L = h[1]; if (!L.length) return;
     const w = (a, b) => a === b ? 'Tuần ' + a : 'Tuần ' + a + '–' + b;
-    B.push({ h: syH('map', 'LỘ TRÌNH HỌC KỲ ' + h[0], w(L[0].w, L[L.length - 1].w) + ' · Buổi ' + L[0].n + '–' + L[L.length - 1].n), keep: 3, pb: 1 });
+    B.push({ h: syH('map', 'LỘ TRÌNH HỌC KỲ ' + h[0], w(L[0].w, L[L.length - 1].w) + ' · Buổi ' + L[0].n + '–' + L[L.length - 1].n), keep: 3 });      // chảy liền ngay sau phần trước (không ép sang trang mới → không để trống cuối trang); keep: tiêu đề không trơ cuối trang
     B.push({ h: '<div class="sy-lg"><span><i class="sy-dot"></i>Nội dung chính: bám sát PPCT sách giáo khoa</span><span><em class="sy-cd">CĐ</em>Chuyên đề nâng cao: cột phải' + (M.cd ? ', đánh số 1–' + M.cd : '') + '</span><span><i class="fas fa-clipboard-check" style="color:' + SY_C.r + '"></i>Ôn tập, kiểm tra</span></div>' });
     B.push({ h: SY_TH });
     let g = null;
@@ -15704,6 +15704,11 @@ function syPaginate(host, d) {
     if (bd.children.length) { newPage(); if (b.th) put(SY_TH); ns = grp.map(g => put(g.h)); i += grp.length - 1; continue; }
     ns = grp.map(g => put(g.h)); i += grp.length - 1;      // trang trống mà vẫn không vừa: để nguyên (khối quá cao) — không lặp vô hạn
   }
+  /* căn đáy trang: phần trống còn lại (do buổi kế tiếp không vừa) chia đều vào các dòng của trang → đáy trang kín, không trống cuối trang (trừ trang cuối) */
+  const pages = $$('.sy-bd', host);
+  pages.slice(0, -1).forEach(b => { const R = $$('.sy-r', b), l = b.lastElementChild; if (!R.length || !l) return;
+    const gap = b.clientHeight - (l.offsetTop + l.offsetHeight) - 2, each = Math.min(14, Math.floor(gap / R.length)); if (each < 1) return;
+    R.forEach(r => { r.style.minHeight = (r.offsetHeight + each) + 'px'; }); });
   // chữ tiêu đề bìa vừa một dòng (mm)
   $$('[data-fit]', host).forEach(el => { const max = +el.dataset.fit * 96 / 25.4; let f = parseFloat(getComputedStyle(el).fontSize); while (el.scrollWidth > max && f > 40) { f -= 2; el.style.fontSize = f + 'px'; } });
   return no + 1;
@@ -15753,7 +15758,10 @@ function syRender() {
   const d = syParse(SY.code), lo = lsGet('sy.loai', ''); if (lo) d.meta.loai = lo;
   SY.doc = d;
   if (!d.S.length) { st.innerHTML = '<span class="warn"><i class="bi bi-exclamation-triangle"></i>Chưa thấy buổi nào — mỗi buổi cần bắt đầu bằng “Buổi N (Tuần T …”</span>'; host.innerHTML = ''; return; }
-  const n = syPaginate(host, d);
+  let n = syPaginate(host, d);
+  /* trang cuối quá thưa (< 30% trang — VD chỉ còn 1 buổi) → dựng lại bản dòng gọn hơn; ít trang hơn thì giữ, không thì trả lại bản thường */
+  const fill = () => { const b = $$('.sy-bd', host).pop(), l = b && b.lastElementChild; return l ? (l.offsetTop + l.offsetHeight) / b.clientHeight : 1; };
+  if (n > 2 && fill() < 0.3) { d.tight = 1; const n2 = syPaginate(host, d); if (n2 < n) n = n2; else { d.tight = 0; syPaginate(host, d); } }
   const M = d.meta, ng = new Set(d.S.filter(x => x.g).map(x => x.g)).size;
   st.innerHTML = '<span><i class="bi bi-check2-circle"></i><b>' + syE(syName(d)) + '</b> · ' + n + ' trang · ' + M.total + ' buổi (' + M.base + ' nền tảng, ' + M.adv + ' nâng cao) · ' + ng + ' chủ điểm · ' + M.miles.length + ' mốc · học kỳ I: buổi 1–' + M.endI + '</span>' +
     (M.warn.length ? '<span class="warn" title="' + syE(M.warn.join('\n')) + '"><i class="bi bi-exclamation-triangle"></i>' + syE(M.warn.slice(0, 3).join(' · ')) + (M.warn.length > 3 ? ' …' : '') + '</span>' : '') +
@@ -15990,6 +15998,9 @@ KIỂM TRA CUỐI NĂM & TỔNG KẾT:
 .sy-cd{ display:inline-block; align-self:flex-start; background:#ED5814; color:#fff; font-weight:700; font-size:7.6pt; letter-spacing:.04em; padding:.5mm 1.8mm; border-radius:1mm; font-style:normal; margin-bottom:1mm }
 .sy-lg .sy-cd{ margin:0; font-size:6.8pt; padding:.3mm 1.2mm }
 .sy-n3{ display:flex; gap:2.4mm; align-items:baseline; margin:0; line-height:1.4 } .sy-n3 i{ font-size:9.5pt } .sy-c3 ul + .sy-n3{ margin-top:1mm }
+/* bản gọn (tự bật khi trang cuối chỉ còn vài dòng): dòng bảng & khoảng cách nhỏ hơn một chút để dồn vào trang trước */
+.sy-page.tight .sy-c1, .sy-page.tight .sy-c2{ padding-top:1.1mm; padding-bottom:1.2mm } .sy-page.tight .sy-c3{ padding-top:1.1mm; padding-bottom:1.2mm }
+.sy-page.tight .sy-c2 li, .sy-page.tight .sy-c3 li{ line-height:1.34 } .sy-page.tight .sy-band{ margin-top:2.6mm } .sy-page.tight .sy-h{ margin-top:6mm }
 .sy-end{ position:relative; height:9mm; margin:6mm 0 1mm } .sy-end::before{ content:''; position:absolute; left:0; right:0; top:50%; border-top:1.3pt solid #036528 }
 .sy-end span{ position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); width:7.6mm; height:7.6mm; border-radius:50%; background:#fff; border:1.3pt solid #036528; color:#036528; display:grid; place-items:center; font-size:9pt }
 /* ── bìa ── */
