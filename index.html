@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-23T14:22:52.906Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-23T15:08:48.722Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -15410,54 +15410,64 @@ Viết từ 3 đến 4 câu kể về em bé của nhà em (hoặc một em bé 
 
 <script>
 /* ══════════════════════════════════════════════════════════════
-   SYLLABUS VĂN (Kiến Style › Văn › Syllabus) — dán khung chương trình THÔ (chép từ Google Docs / PDF của giáo viên)
-   → dựng tệp “Lớp <N>NT_Syllabus_Chương trình học” đúng kiểu Kiến Gia Sư: bìa (đồi + con đường + em bé thả diều),
-   trang thông tin (dải số, thông tin chương trình, định hướng, chặng đường ôn tập & kiểm tra), lộ trình từng học kỳ.
-   Bộ đọc chịu được chữ bị ngắt dòng, đầu bảng lặp lại giữa trang, “Buổi A)” rơi xuống dòng sau… Không cần mã riêng;
-   chỉnh thêm bằng vài dòng @ (xem hướng dẫn trong ô bên trái). Bảng tự chia trang: tiêu đề không nằm trơ cuối trang,
-   đầu bảng lặp lại ở trang sau, không tách một buổi ra hai trang.
+   SYLLABUS VĂN (Kiến Style › Văn › Syllabus) — dán khung chương trình (THÔ chép từ Google Docs / PDF, hoặc mã Gemini trả về theo Prompt AI)
+   → dựng tệp “Lớp <N>NT_Syllabus_Chương trình học” GIỐNG MẪU “Lớp 2NT_Syllabus” (Support Văn/Tiếng Việt 2): bìa (đồi + con đường + em bé thả diều),
+   trang thông tin (dải số, thông tin chương trình, định hướng, chặng đường ôn tập & kiểm tra), lộ trình từng học kỳ có dải chủ điểm.
+   Chữ: Helvetica · tiêu đề bìa Helvetica Neue Condensed Black (đủ dấu tiếng Việt, đúng font của mẫu) · icon Font Awesome 5 Solid như mẫu.
+   Bộ đọc chịu được chữ bị ngắt dòng, đầu bảng lặp lại giữa trang, “Buổi A)” rơi xuống dòng sau… Bảng tự chia trang: tiêu đề không nằm trơ
+   cuối trang, đầu bảng lặp lại ở trang sau, không tách một buổi ra hai trang; mỗi học kỳ bắt đầu trang mới.
    ══════════════════════════════════════════════════════════════ */
 const SY = { v: null, code: '', doc: null, dirty: false };
 const SY_C = { g: '#036528', gd: '#0B4D23', o: '#ED5814', r: '#C1272D', mu: '#6A726C', ln: '#C9D3CC' };
 const SY_JUNK = /^(BUỔI\s*\/\s*TUẦN|NỘI DUNG CHÍNH.*|KHO KIẾN TRẺ\)?|CHUYÊN ĐỀ NÂNG.*|CAO\s*\/\s*ÔN TẬP.*|TRA|PHIẾU\s*\d+\s*:.*|\(?DỰ KIẾN\)?|-)$/i;
-const SY_BUL = /^[●•▪◦○■□\-–*]\s*/;
+const SY_BUL = /^[●•▪◦○■□\-–*]\s+|^[●•▪◦○■□]/;
+const SY_GRP = '\u0007';      // dòng đánh dấu nhóm trong phần các buổi: “## chủ điểm” · “# HỌC KỲ II”
 
-/* ══════════ ĐỌC NỘI DUNG THÔ ══════════ */
+/* ══════════ ĐỌC NỘI DUNG ══════════ */
 function syParse(raw) {
-  const txt = String(raw || '').replace(/[​-‍﻿­]/g, '').replace(/\r/g, '').replace(/\t/g, ' ').normalize('NFC');
-  const meta = { mon: '', lop: '', loai: 'NT', intro: '', info: [], miles: [], warn: [] };
+  const txt = String(raw || '').replace(/[​-‍﻿­]/g, '').replace(/\r/g, '').replace(/\t/g, ' ').replace(/^\s*```[^\n]*$/gm, '').normalize('NFC');
+  const meta = { mon: '', lop: '', loai: 'NT', intro: '', skills: '', info: [], miles: [], warn: [] };
   const L = [];
   txt.split('\n').forEach(l => {
     const d = /^\s*@([\p{L}\s]+?)\s*:\s*(.*)$/u.exec(l);
     if (d) { const k = cpFold(d[1]).toLowerCase(), v = d[2].trim();
       if (k === 'mon') meta.mon = v; else if (k === 'lop') meta.lop = v.replace(/\D+/g, '') || v; else if (k === 'loai') meta.loai = /nc|nang/i.test(cpFold(v)) ? 'NC' : 'NT';
-      else if (k === 'gioithieu') meta.intro = v; else if (k === 'tuan') meta.weeks = +v || 0; return; }
+      else if (k === 'gioithieu') meta.intro = v; else if (k === 'tuan') meta.weeks = +v || 0; else if (k === 'kynang') meta.skills = v; return; }
     L.push(l.replace(/\s+$/, ''));
   });
   const first = L.findIndex(l => /^\s*Buổi\s+\d+\s*\(/i.test(l));
   const pre = first < 0 ? L : L.slice(0, first), body = first < 0 ? [] : L.slice(first);
-  /* phần đầu: tên chương trình + “Thông tin chương trình” (mục đánh số, mục con ○ là các mốc) */
-  let cur = null;
+  /* phần đầu: tên chương trình + “Thông tin chương trình” (mục đánh số / gạch đầu dòng; mục con ○ là các mốc) */
+  let cur = null, g0 = null;
   pre.forEach(l0 => {
     const l = l0.trim(); if (!l) return;
+    const h = /^(#{1,2})\s*(.+)$/.exec(l);
+    if (h) { if (h[1] === '##') g0 = h[2]; return; }      // “## chủ điểm” đứng ngay trước Buổi 1
     const t = /CHƯƠNG TRÌNH\s+(.+?)\s+LỚP\s*(\d+)/i.exec(l);
     if (t && !meta.info.length) { if (!meta.mon) meta.mon = t[1].trim(); if (!meta.lop) meta.lop = t[2]; if (/NÂNG CAO/i.test(l)) meta.loai = 'NC'; return; }
     if (SY_JUNK.test(l) || /^Thông tin chương trình/i.test(l)) return;
-    const n = /^\d+[.)]\s*(.*)$/.exec(l);
-    if (n) { cur = { t: n[1], sub: [] }; meta.info.push(cur); return; }
-    if (SY_BUL.test(l) && cur) { cur.sub.push(l.replace(SY_BUL, '')); return; }
+    const n = /^(?:\d+[.)]|[●•▪\-–*])\s*(.*)$/.exec(l);
+    if (n && !(cur && /^[○◦]/.test(l))) { cur = { t: n[1], sub: [] }; meta.info.push(cur); return; }
+    if (/^[○◦]/.test(l) && cur) { cur.sub.push(l.replace(/^[○◦]\s*/, '')); return; }
     if (cur) { if (cur.sub.length) cur.sub[cur.sub.length - 1] += ' ' + l; else cur.t += ' ' + l; }
   });
   meta.info = meta.info.map(x => { const m = /^([^:]{2,80}):\s*(.*)$/.exec(x.t.trim()); return { k: m ? m[1].replace(/\s*\([^)]*\)\s*$/, '').trim() : '', v: (m ? m[2] : x.t).trim(), sub: x.sub }; });
+  meta.info.forEach(x => { if (!x.sub.length && /mốc/i.test(x.k) && /tuần|buổi/i.test(x.v)) x.sub = x.v.split(/\s+·\s+|;\s*/).map(s => s.trim().replace(/\.$/, '')).filter(Boolean); });
   meta.info.forEach(x => x.sub.forEach(s => { const m = /^(.+?):\s*(.*)$/.exec(s), w = /Tuần\s*(\d+)/i.exec(s), b = /Buổi\s*(\d+)(?:\s*[–-]\s*(\d+))?/i.exec(s);
     if (w || b) meta.miles.push({ name: (m ? m[1] : s).replace(/\s*\(.*?\)\s*$/, '').trim(), week: w ? +w[1] : 0, from: b ? +b[1] : 0, to: b ? +(b[2] || b[1]) : 0 }); }));
   /* các buổi: mỗi buổi mở đầu bằng “Buổi N (Tuần T” — phần còn lại (“- Buổi A)”) có thể rơi xuống dòng sau */
-  const S = [], all = body.join('\n'), re = /Buổi\s+(\d+)\s*\(\s*Tuần\s*(\d+)/gi; let m, marks = [];
+  const S = [], all = body.map(l => { const h = /^\s*(#{1,2})\s*(.+)$/.exec(l); return h ? SY_GRP + h[1].length + h[2].trim() : l; }).join('\n');
+  const re = /Buổi\s+(\d+)\s*\(\s*Tuần\s*(\d+)/gi; let m, marks = [], grp = g0 ? { t: g0 } : null, hk2 = 0, split = 0;
   while ((m = re.exec(all))) marks.push({ i: m.index, e: re.lastIndex, n: +m[1], w: +m[2] });
   marks.forEach((k, j) => {
     let c = all.slice(k.e, j + 1 < marks.length ? marks[j + 1].i : all.length), ab = '';
     c = c.replace(/^\s*[-–]?\s*Buổi\s*([AB])\s*\)/i, (x, a) => { ab = a.toUpperCase(); return ''; }).replace(/\n\s*[-–]?\s*Buổi\s*([AB])\s*\)\s*(?=\n|$)/i, (x, a) => { ab = ab || a.toUpperCase(); return '\n'; }).replace(/^\s*\)/, '').replace(/^\s*[-–]\s*(?=\S)/, '');      // “Buổi 3 (Tuần 2 - Chủ đề: …” → bỏ gạch nối còn sót
-    S.push(sySession(k.n, k.w, ab, c.split('\n')));
+    const lines = c.split('\n'), x = sySession(k.n, k.w, ab, lines.filter(l => l.indexOf(SY_GRP) !== 0));
+    x.g = grp; x.hk2 = hk2; S.push(x);
+    lines.filter(l => l.indexOf(SY_GRP) === 0).forEach(l => {      // nhóm khai báo sau buổi này → áp cho các buổi tiếp theo
+      const lv = l.charAt(1), t = l.slice(2);
+      if (lv === '1') { if (/II\b|2\b/.test(t)) { hk2 = 1; split = 1; } grp = null; } else grp = { t: t };
+    });
   });
   S.sort((a, b) => a.n - b.n);
   for (let i = 1; i < S.length; i++) if (S[i].n !== S[i - 1].n + 1) meta.warn.push('Thiếu buổi ' + (S[i - 1].n + 1) + (S[i].n - S[i - 1].n > 2 ? '–' + (S[i].n - 1) : ''));
@@ -15470,18 +15480,23 @@ function syParse(raw) {
   meta.per = +((/(\d+)\s*buổi\s*\/\s*tuần/i.exec(info) || [])[1] || (S.some(x => x.ab === 'B') ? 2 : 1));
   meta.min = +((/(\d+)\s*phút/i.exec(info) || [])[1] || 0);
   meta.weeks = meta.weeks || +((/(\d+)\s*tuần/i.exec(info) || [])[1] || 0) || Math.max(0, ...S.map(x => x.w));
-  meta.skills = ((/k[ĩỹ]\s*năng\s*:\s*([^.\n]+)/i.exec(info) || [])[1] || '').trim();
+  meta.skills = meta.skills || ((/k[ĩỹ]\s*năng\s*:\s*([^.\n]+)/i.exec(info) || [])[1] || '').trim();
   const hk = /Học kỳ I\s*:[^;)]*?buổi\s*(\d+)\s*[–-]\s*(\d+)/i.exec(info);
-  const endI = hk ? +hk[2] : (meta.miles.find(x => /cuối\s*(HKI\b|học kỳ I\b|HK1)/i.test(x.name)) || {}).to || (S.find(x => x.kind === 'final' && /HKI\b|học kỳ I\b/i.test(x.title)) || {}).n || Math.ceil(S.length / 2);
-  meta.endI = endI;
+  meta.endI = split ? (S.filter(x => !x.hk2).pop() || { n: 0 }).n : hk ? +hk[2] : (meta.miles.find(x => /cuối\s*(HKI\b|học kỳ I\b|HK1)/i.test(x.name)) || {}).to || (S.find(x => x.kind === 'final' && /HKI\b|học kỳ I\b/i.test(x.title)) || {}).n || Math.ceil(S.length / 2);
   if (!meta.miles.length) {      // không ghi mốc ở phần thông tin → lấy từ các buổi ôn tập / kiểm tra
     S.filter(x => x.kind === 'test' || x.kind === 'final').forEach(x => meta.miles.push({ name: syCase(x.title), week: x.w, from: x.n, to: x.n }));
   }
+  /* dải chủ điểm: nhóm liên tiếp cùng tên; dải “ôn tập / kiểm tra” tô đỏ, không đánh số */
+  let no = 0, last = null;
+  S.forEach(x => { if (!x.g) { last = null; return; } if (last && last.raw === x.g.t) { x.g = last; return; }
+    const t = x.g.t.replace(/^!\s*/, ''), rev = /^!/.test(x.g.t) || /^(luyện tập\s*&\s*)?(ôn tập|kiểm tra|tổng kết)/i.test(t);
+    last = x.g = { raw: x.g.t, t: t.replace(/^\d+\s*[.:·–-]?\s*/, ''), rev: rev, no: rev ? 0 : ++no, first: x.n }; });
   return { meta: meta, S: S };
 }
-/** một buổi: “Chủ đề: …” · gạch đầu dòng ● · “Chuyên đề N: …” (cột nâng cao) · dòng IN HOA “ÔN TẬP / KIỂM TRA …:” (mốc) · đoạn sau khoảng trống = cột phải */
+/** một buổi: “Chủ đề: …” · gạch đầu dòng ● · “Chuyên đề N: …” (cột nâng cao, gạch đầu dòng sau nó cũng vào cột này) · dòng IN HOA “ÔN TẬP / KIỂM TRA …:” (mốc) ·
+    “→ …” hoặc đoạn sau khoảng trống = ghi chú cột phải */
 function sySession(n, w, ab, lines) {
-  const x = { n: n, w: w, ab: ab, title: '', bul: [], adv: '', note: '', kind: 'learn', lead: 0 };
+  const x = { n: n, w: w, ab: ab, title: '', bul: [], adv: '', abul: [], note: '', kind: 'learn', lead: 0 };
   let mode = '';
   const add = s => { if (x.bul.length) x.bul[x.bul.length - 1] += ' ' + s; else x.bul.push(s); };
   lines.forEach(l0 => {
@@ -15489,14 +15504,17 @@ function sySession(n, w, ab, lines) {
     if (!l) { if (mode === 'bul' || mode === 'desc') mode = 'gap'; return; }
     if (SY_JUNK.test(l)) return;
     let m;
+    if ((m = /^(?:→|=>|->)\s*(.*)$/.exec(l))) { x.note = m[1]; mode = 'note'; return; }
     if ((m = /^Chủ đề\s*:\s*(.*)$/i.exec(l))) { x.title = m[1]; mode = 'title'; return; }
     if (/^Chuyên đề\s*\d+/i.test(l)) { x.adv = l; mode = 'adv'; return; }
-    if (SY_BUL.test(l)) { const b = l.replace(SY_BUL, '').trim(); if (b) { x.bul.push(b); mode = 'bul'; } return; }
+    if (SY_BUL.test(l)) { const b = l.replace(SY_BUL, '').trim(); if (!b) return;
+      if (mode === 'adv' || mode === 'abul') { x.abul.push(b); mode = 'abul'; } else { x.bul.push(b); mode = 'bul'; } return; }
     if (!x.title && !x.bul.length && (m = /^([^:]{3,90}):\s*(.*)$/.exec(l))) {      // “ÔN TẬP GIỮA HỌC KỲ I: …” · “Luyện tập câu & Tả người thân:”
       const up = m[1] === m[1].toUpperCase() && /\p{L}/u.test(m[1]);
       x.title = m[1].trim(); x.lead = up ? 1 : 0; if (m[2].trim()) x.bul.push(m[2].trim()); mode = 'desc'; return; }
-    if (mode === 'title') { if (/^\(/.test(l) || (x.title.split('(').length > x.title.split(')').length)) { x.title += (/^\(/.test(l) ? ' ' : ' ') + l; return; } x.bul.push(l); mode = 'bul'; return; }
+    if (mode === 'title') { if (/^\(/.test(l) || (x.title.split('(').length > x.title.split(')').length)) { x.title += ' ' + l; return; } x.bul.push(l); mode = 'bul'; return; }
     if (mode === 'adv') { x.adv += ' ' + l; return; }
+    if (mode === 'abul') { x.abul[x.abul.length - 1] += ' ' + l; return; }
     if (mode === 'note') { x.note += ' ' + l; return; }
     if (mode === 'gap') { if (/^\p{Lu}/u.test(l) && (x.lead || x.title || x.bul.length)) { x.note = l; mode = 'note'; } else add(l); return; }
     if (mode === 'bul' || mode === 'desc') { add(l); return; }
@@ -15507,8 +15525,9 @@ function sySession(n, w, ab, lines) {
   x.title = tidy(x.title).replace(/\s*:$/, ''); x.note = tidy(x.note);
   // hai ý dính liền vì thiếu dấu ● (“… (Thanh Thảo) Viết đoạn văn …”) → tách
   x.bul = [].concat(...x.bul.map(b => tidy(b).split(/(?<=\))\s+(?=(?:Viết|LTVC|Đọc|Nghe|Rèn|Luyện)\s)/))).map(b => b.replace(/^LTVC\s+(?!:)/, 'LTVC: ')).filter(b => b && b !== '-');
+  x.abul = x.abul.map(tidy).filter(Boolean);
   if (x.adv) { const a = tidy(x.adv), mm = /^(Chuyên đề\s*\d+(?:\s*\([^)]*\))?)\s*:?\s*(.*)$/i.exec(a); x.adv = { label: mm ? mm[1] : a, text: mm ? mm[2].replace(/^n\s*&\s*/, '').trim() : '' }; }
-  const k = fold(x.title + ' ' + (x.lead ? '' : '')).toLowerCase();
+  const k = fold(x.title).toLowerCase();
   if (x.lead || /^luyen de|thi thu/.test(k)) x.kind = /kiem tra|danh gia/.test(k) ? (/cuoi/.test(k) ? 'final' : 'test') : /luyen de|thi thu/.test(k) ? 'mock' : 'review';
   if (x.lead) x.title = syCase(x.title);
   if (x.kind === 'learn' && !x.title && !x.bul.length && x.adv) x.kind = 'adv';
@@ -15526,111 +15545,141 @@ function syCase(s) {
 
 /* ══════════ DỰNG TRANG ══════════ */
 const syE = s => esc(String(s == null ? '' : s));
-const SY_KIND = { review: ['bi-arrow-repeat', SY_C.g], test: ['bi-clipboard-check', SY_C.g], mock: ['bi-bullseye', SY_C.o], final: ['bi-trophy-fill', SY_C.r] };
-const SY_INFO_IC = [[/sách/i, 'bi-book'], [/bám sát/i, 'bi-check2-circle'], [/cấu trúc/i, 'bi-grid-3x3-gap'], [/nhịp/i, 'bi-clock'], [/mốc|ôn tập|kiểm tra/i, 'bi-calendar-check'], [/./, 'bi-info-circle']];
+/** chữ trong ô: *tên tác phẩm* → nghiêng (như mẫu) */
+const syI = s => syE(s).replace(/\*([^*]+)\*/g, '<i>$1</i>');
+const fa = n => '<i class="fas fa-' + n + '"></i>';
+const SY_KIND = { review: ['clipboard-check', SY_C.r], test: ['clipboard-check', SY_C.r], mock: ['bullseye', SY_C.o], final: ['trophy', SY_C.r] };
+const SY_INFO_IC = [[/sách/i, 'book'], [/bám sát/i, 'compass'], [/cấu trúc/i, 'calendar-alt'], [/nhịp/i, 'clock'], [/mốc|ôn tập|kiểm tra/i, 'clipboard-check'], [/./, 'info']];
 function syTag(d) { return (d.meta.mon + ' ' + d.meta.lop).trim().toUpperCase() + (d.meta.loai === 'NC' ? ' NC' : ''); }
 function syName(d) { return 'Lớp ' + (d.meta.lop || '') + d.meta.loai + '_Syllabus_Chương trình học'; }
 function syPage(d, no) {
   return '<div class="sy-page"><header class="sy-hd"><img src="' + CP_LOGO + '" alt="Kiến Gia Sư"><span class="sy-pill">' + syE(syTag(d)) + '</span></header><div class="sy-bd"></div>' +
     '<footer class="sy-ft"><b>KIẾN GIA SƯ</b><i>Một học sinh - Một lộ trình</i><span class="sy-pn">' + no + '</span></footer></div>';
 }
-/** bìa: tranh vector (đồi nhiều lớp, con đường uốn lượn lên đỉnh, em bé thả diều), tiêu đề lớn, câu giới thiệu, 3 chip */
+/** đường cong trơn qua các điểm (Catmull-Rom) → mảng điểm dày */
+function sySpline(P, k) {
+  const out = [];
+  for (let i = 0; i < P.length - 1; i++) { const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
+    for (let s = 0; s < k; s++) { const t = s / k, t2 = t * t, t3 = t2 * t, f = (a, b, c, e) => 0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - e) * t2 + (-a + 3 * b - 3 * c + e) * t3);
+      out.push([f(p0[0], p1[0], p2[0], p3[0]), f(p0[1], p1[1], p2[1], p3[1])]); } }
+  out.push(P[P.length - 1]); return out;
+}
+/** bìa — dựng theo số đo của mẫu: tranh vector (4 lớp đồi, con đường uốn lượn lên đỉnh, mặt trời, em bé thả diều), tiêu đề Condensed Black, câu giới thiệu, 3 chip */
 function syCover(d) {
-  const M = d.meta, W = 794, H = 1123, top = { x: 585, y: 606 }, bot = { x: 335, y: H };
-  const pt = t => { const a = 88 * Math.pow(1 - t, 1.25); return { x: bot.x + (top.x - bot.x) * t + a * Math.sin(t * Math.PI * 3.1), y: bot.y - (bot.y - top.y) * t }; };
-  const wd = t => 74 * Math.pow(1 - t, 1.1) + 5;
-  const N = 90, P = [], Lft = [], Rgt = [];
-  for (let i = 0; i <= N; i++) P.push(pt(i / N));
-  P.forEach((p, i) => { const q = P[Math.min(N, i + 1)], o = P[Math.max(0, i - 1)], dx = q.x - o.x, dy = q.y - o.y, l = Math.hypot(dx, dy) || 1, w = wd(i / N) / 2;
-    Lft.push((p.x - dy / l * w).toFixed(1) + ' ' + (p.y + dx / l * w).toFixed(1)); Rgt.push((p.x + dy / l * w).toFixed(1) + ' ' + (p.y - dx / l * w).toFixed(1)); });
-  const road = 'M' + Lft.join(' L') + ' L' + Rgt.reverse().join(' L') + 'Z';
-  let dash = ''; for (let i = 2; i < N - 2; i += 4) { const a = P[i], b = P[i + 2]; dash += '<line x1="' + a.x.toFixed(1) + '" y1="' + a.y.toFixed(1) + '" x2="' + b.x.toFixed(1) + '" y2="' + b.y.toFixed(1) + '" stroke-width="' + (wd(i / N) * 0.07 + 0.8).toFixed(2) + '"/>'; }
-  const tree = (x, y, s) => '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><path d="M0 -26 L9 -6 L5 -6 L12 8 L-12 8 L-5 -6 L-9 -6Z" fill="#2E6B45"/><rect x="-1.6" y="8" width="3.2" height="6" fill="#5B4636"/></g>';
-  const marks = [[0.12, 'bi-book', 'ĐỌC HIỂU', 30, SY_C.g], [0.33, 'bi-spellcheck', 'LUYỆN TỪ VÀ CÂU', 25, SY_C.g], [0.55, 'bi-pencil-fill', 'VIẾT', 20, SY_C.o], [0.76, 'bi-trophy-fill', 'KỲ THI', 15, SY_C.r]];
-  const svg = '<svg class="sy-cv-art" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true"><defs><linearGradient id="syBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6F0"/><stop offset=".55" stop-color="#FDF4EE"/><stop offset="1" stop-color="#F3F8F4"/></linearGradient>' +
-      '<radialGradient id="sySun"><stop offset="0" stop-color="#F7B99B"/><stop offset=".45" stop-color="#F9D3C0"/><stop offset="1" stop-color="#FCE9DF" stop-opacity="0"/></radialGradient></defs>' +
+  const M = d.meta, W = 794, H = 1123;
+  // tâm con đường, từ đỉnh đồi (em bé) xuống chân trang — đi qua đúng 4 mốc
+  const K = [[598, 466], [566, 520], [512, 572], [482, 609], [468, 652], [478, 700], [449, 752], [398, 796], [380, 842], [410, 886], [417, 940], [378, 992], [310, 1030], [282, 1078], [296, 1130]];
+  const P = sySpline(K, 14), N = P.length - 1, wd = i => 5 + 78 * Math.pow(i / N, 1.25), Lf = [], Rt = [];
+  P.forEach((p, i) => { const q = P[Math.min(N, i + 1)], o = P[Math.max(0, i - 1)], dx = q[0] - o[0], dy = q[1] - o[1], l = Math.hypot(dx, dy) || 1, w = wd(i) / 2;
+    Lf.push((p[0] - dy / l * w).toFixed(1) + ' ' + (p[1] + dx / l * w).toFixed(1)); Rt.push((p[0] + dy / l * w).toFixed(1) + ' ' + (p[1] - dx / l * w).toFixed(1)); });
+  const road = 'M' + Lf.join(' L') + ' L' + Rt.reverse().join(' L') + 'Z';
+  let dash = ''; for (let i = 3; i < N - 2; i += 5) { const a = P[i], b = P[i + 2]; dash += '<line x1="' + a[0].toFixed(1) + '" y1="' + a[1].toFixed(1) + '" x2="' + b[0].toFixed(1) + '" y2="' + b[1].toFixed(1) + '" stroke-width="' + (wd(i) * 0.06 + 0.9).toFixed(2) + '"/>'; }
+  const tree = (x, y, s, c) => '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')" fill="' + c + '"><path d="M0 -22 L8 -8 L4.5 -8 L11 3 L5.5 3 L12 13 L-12 13 L-5.5 3 L-11 3 L-4.5 -8 L-8 -8Z"/><rect x="-1.5" y="13" width="3" height="5"/></g>';
+  const cloud = (x, y, s) => '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')" fill="#fff" opacity=".85"><ellipse cx="0" cy="0" rx="22" ry="11"/><ellipse cx="-14" cy="3" rx="14" ry="8"/><ellipse cx="14" cy="4" rx="15" ry="7"/><ellipse cx="2" cy="-7" rx="12" ry="9"/></g>';
+  const bird = (x, y, s) => '<path d="M' + x + ' ' + y + ' q' + 4 * s + ' -' + 4 * s + ' ' + 8 * s + ' 0 q' + 4 * s + ' -' + 4 * s + ' ' + 8 * s + ' 0" fill="none" stroke="#7D8A82" stroke-width="1.1" stroke-linecap="round"/>';
+  const sun = [598, 448];
+  const svg = '<svg class="sy-cv-art" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="syBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".45" stop-color="#FEF4EF"/><stop offset="1" stop-color="#FDF1EA"/></linearGradient></defs>' +
     '<rect width="' + W + '" height="' + H + '" fill="url(#syBg)"/>' +
-    '<circle cx="' + top.x + '" cy="' + (top.y - 40) + '" r="165" fill="url(#sySun)"/><circle cx="' + top.x + '" cy="' + (top.y - 40) + '" r="112" fill="#FAD9C8" opacity=".55"/><circle cx="' + top.x + '" cy="' + (top.y - 40) + '" r="62" fill="#F8C3A8" opacity=".6"/>' +
-    '<g fill="none" stroke="#7A8A80" stroke-width="1.6" stroke-linecap="round"><path d="M130 612 q6 -6 12 0 q6 -6 12 0"/><path d="M168 594 q5 -5 10 0 q5 -5 10 0"/><path d="M640 540 q5 -5 10 0 q5 -5 10 0"/></g>' +
-    '<path d="M0 742 C120 700 250 690 372 676 C470 664 530 618 ' + top.x + ' ' + top.y + ' C640 616 700 650 794 668 L794 1123 L0 1123Z" fill="#DCEBDF"/>' +
-    '<path d="M0 812 C150 772 300 796 430 764 C540 738 650 772 794 744 L794 1123 L0 1123Z" fill="#BFD9C5"/>' +
-    '<path d="M0 892 C140 856 290 880 410 868 C550 856 660 900 794 860 L794 1123 L0 1123Z" fill="#93C2A1"/>' +
-    '<path d="M0 978 C160 944 300 972 430 966 C566 960 680 994 794 956 L794 1123 L0 1123Z" fill="#64A277"/>' +
-    '<path d="M0 1046 C200 1020 380 1050 520 1040 C640 1032 720 1052 794 1034 L794 1123 L0 1123Z" fill="#34804F"/>' +
-    [[96, 860, .9], [128, 872, .7], [700, 846, .8], [736, 862, .6], [60, 950, 1.1], [690, 930, 1], [742, 990, 1.2], [210, 1000, .9], [520, 908, .7], [470, 720, .5], [650, 700, .5]].map(t => tree(t[0], t[1], t[2])).join('') +
-    '<path d="' + road + '" fill="#FCF1E8" stroke="#E7D5C7" stroke-width="1.2"/><g stroke="' + SY_C.o + '" stroke-linecap="round">' + dash + '</g>' +
-    /* em bé thả diều trên đỉnh + con diều (thân thoi 4 mảnh cam – xanh, nan trắng, đuôi dải lụa) */
-    '<g transform="translate(' + top.x + ' ' + (top.y - 4) + ')"><circle cx="0" cy="-30" r="6.5" fill="' + SY_C.gd + '"/><path d="M-6 -22 Q0 -25 6 -22 L7 -6 L3 -6 L3 6 L-0.5 6 L-0.5 -4 L-1.5 -4 L-1.5 6 L-5 6 L-5 -6 L-7 -6Z" fill="' + SY_C.gd + '"/><path d="M5 -20 L14 -34" stroke="' + SY_C.gd + '" stroke-width="3" stroke-linecap="round"/><path d="M-5 -20 L-11 -10" stroke="' + SY_C.gd + '" stroke-width="3" stroke-linecap="round"/></g>' +
-    '<path d="M' + (top.x + 14) + ' ' + (top.y - 38) + ' C' + (top.x + 60) + ' ' + (top.y - 160) + ' 620 360 676 300" fill="none" stroke="#5F6B63" stroke-width="1"/>' +
-    '<g transform="translate(676 232) rotate(-18)"><path d="M0 -72 Q30 -40 46 -6 L0 0Z" fill="' + SY_C.o + '"/><path d="M0 -72 Q-30 -40 -46 -6 L0 0Z" fill="#F47B40"/><path d="M-46 -6 Q-24 30 0 74 L0 0Z" fill="' + SY_C.g + '"/><path d="M46 -6 Q24 30 0 74 L0 0Z" fill="#1F7A3E"/>' +
-      '<path d="M0 -72 L0 74 M-46 -6 L46 -6" stroke="#fff" stroke-width="2"/><circle cx="0" cy="-34" r="5" fill="#fff" opacity=".9"/>' +
-      '<path d="M0 74 C14 96 -16 112 2 134 C18 152 -10 170 6 192" fill="none" stroke="' + SY_C.o + '" stroke-width="3.2" stroke-linecap="round"/><path d="M2 84 C16 104 -12 122 4 142" fill="none" stroke="' + SY_C.g + '" stroke-width="2" stroke-linecap="round" opacity=".8"/></g>' +
-    '<rect y="' + (H - 34) + '" width="' + W + '" height="34" fill="' + SY_C.gd + '"/></svg>';
-  const pins = marks.map(k => { const p = pt(k[0]), r = k[3]; return '<span class="sy-cv-pin" style="left:' + (p.x / W * 100).toFixed(2) + '%;top:' + (p.y / H * 100).toFixed(2) + '%;--d:' + r * 2 + 'px;--c:' + k[4] + '"><i class="bi ' + k[1] + '"></i><em class="' + (k[0] > 0.5 ? 'r' : 'l') + '" style="color:' + k[4] + '">' + k[2] + '</em></span>'; }).join('');
-  const intro = M.intro || ('Lộ trình ' + M.total + ' buổi bám sát sách giáo khoa' + (M.cd ? ', thêm ' + M.cd + ' chuyên đề nâng cao' : '') + (M.skills ? ', rèn kĩ năng ' + M.skills.replace(/\s*[–-]\s*/g, ' – ') : '') + '.');
+    cloud(430, 128, 1) + cloud(568, 205, .8) + cloud(530, 330, .9) +
+    '<circle cx="' + sun[0] + '" cy="' + sun[1] + '" r="114" fill="#FCE7DD"/><circle cx="' + sun[0] + '" cy="' + sun[1] + '" r="75" fill="#F9D7C6"/><circle cx="' + sun[0] + '" cy="' + sun[1] + '" r="46" fill="#F6C4AB"/>' +
+    bird(468, 355, 1) + bird(492, 378, 1.1) + bird(516, 360, .9) +
+    '<path d="M0 640 C110 600 250 585 380 565 C470 550 540 505 598 462 C650 500 720 530 794 548 L794 1123 L0 1123Z" fill="#E2EEE5"/>' +
+    '<path d="M0 735 C150 690 300 700 430 722 C560 744 680 694 794 676 L794 1123 L0 1123Z" fill="#C5DECA"/>' +
+    '<path d="M0 826 C160 788 330 798 470 830 C600 858 700 800 794 784 L794 1123 L0 1123Z" fill="#86B893"/>' +
+    '<path d="M0 945 C140 905 300 922 430 962 C560 1004 680 905 794 880 L794 1123 L0 1123Z" fill="#307E49"/>' +
+    [[84, 662, .8, '#A8C8B0'], [113, 700, .55, '#A8C8B0'], [695, 660, .7, '#A8C8B0'], [725, 672, .5, '#A8C8B0'], [52, 790, .9, '#5E9A6F'], [90, 790, .65, '#5E9A6F'], [634, 778, .8, '#5E9A6F'], [672, 774, .65, '#5E9A6F'], [747, 766, .7, '#5E9A6F'],
+     [128, 925, .95, '#1F5E36'], [175, 922, .75, '#1F5E36'], [665, 940, .9, '#5E9A6F']].map(t => tree(t[0], t[1], t[2], t[3])).join('') +
+    '<path d="' + road + '" fill="#FFF7F2" stroke="#1F5E36" stroke-opacity=".35" stroke-width="1.2"/><g stroke="' + SY_C.o + '" stroke-linecap="round">' + dash + '</g>' +
+    /* em bé (dáng logo: hai tay giơ chữ V) trên đỉnh */
+    '<g transform="translate(598 462)" fill="' + SY_C.gd + '"><circle cx="0" cy="-30" r="5.6"/><path d="M-5 -23 L5 -23 L5.5 -9 L3 -9 L3 3 L.6 3 L.6 -7 L-.6 -7 L-.6 3 L-3 3 L-3 -9 L-5.5 -9Z"/>' +
+      '<path d="M4 -21 L12 -33" stroke="' + SY_C.gd + '" stroke-width="3" stroke-linecap="round"/><path d="M-4 -21 L-12 -33" stroke="' + SY_C.gd + '" stroke-width="3" stroke-linecap="round"/></g>' +
+    /* dây diều */
+    '<path d="M611 430 C640 380 650 340 667 320" fill="none" stroke="#56635B" stroke-width=".9"/>' +
+    /* con diều: thân thoi 4 mảnh (cam trên, xanh dưới), nan trắng, sao trắng, bóng mờ, đuôi dải lụa cam – xanh */
+    '<g><path d="M694 219 L648 256 L679 330 L736 268Z" fill="#000" opacity=".1"/>' +
+      '<path d="M689 214 L643 251 L683 256.5Z" fill="#F07B3C"/><path d="M689 214 L731 263 L683 256.5Z" fill="#DC5520"/><path d="M643 251 L674 325 L683 256.5Z" fill="#1F7A3D"/><path d="M731 263 L674 325 L683 256.5Z" fill="#0E5E2C"/>' +
+      '<path d="M689 214 L674 325 M643 251 L731 263" stroke="#fff" stroke-width="1.6"/>' +
+      '<path d="M688 228 l2.2 4.6 5 .6 -3.7 3.4 1 5 -4.5 -2.5 -4.5 2.5 1 -5 -3.7 -3.4 5 -.6Z" fill="#fff"/>' +
+      '<path d="M674 325 C684 345 668 356 683 372 S710 395 724 392 S748 398 760 412" fill="none" stroke="' + SY_C.o + '" stroke-width="3" stroke-linecap="round"/>' +
+      '<path d="M674 325 C684 345 668 356 683 372 S710 395 724 392 S748 398 760 412" fill="none" stroke="' + SY_C.g + '" stroke-width="3" stroke-dasharray="9 13" stroke-linecap="round"/></g>' +
+    '<rect y="' + (H - 41) + '" width="' + W + '" height="41" fill="' + SY_C.gd + '"/></svg>';
+  const marks = [[12, 'book-open', 'ĐỌC HIỂU', 70, SY_C.gd, 'l'], [9, 'spell-check', 'LUYỆN TỪ VÀ CÂU', 50, SY_C.gd, 'l'], [6, 'pen-nib', 'VIẾT', 38, SY_C.o, 'r'], [3, 'trophy', 'KỲ THI', 31, SY_C.r, 'r']];
+  const pins = marks.map(k => { const p = K[k[0]]; return '<span class="sy-cv-pin" style="left:' + (p[0] / W * 100).toFixed(2) + '%;top:' + (p[1] / H * 100).toFixed(2) + '%;--d:' + (k[3] * 210 / W).toFixed(2) + 'mm;--c:' + k[4] + '">' + fa(k[1]) +
+    '<em class="' + k[5] + '" style="color:' + k[4] + '">' + k[2] + '</em></span>'; }).join('');
+  const intro = M.intro || ('Lộ trình ' + M.total + ' buổi bám sát sách giáo khoa' + (M.cd ? ', thêm ' + M.cd + ' chuyên đề nâng cao' : '') + (M.skills ? ', rèn ' + (M.skills.split(/\s*[–-]\s*/).length === 4 ? 'bốn ' : M.skills.split(/\s*[–-]\s*/).length === 3 ? 'ba ' : '') + 'kĩ năng ' + M.skills.replace(/\s*[–-]\s*/g, ' – ') : '') + '.');
   return '<div class="sy-page sy-cover">' + svg + pins +
     '<img class="sy-cv-logo" src="' + CP_LOGO + '" alt="Kiến Gia Sư">' +
-    '<div class="sy-cv-t"><div class="sy-cv-k">CHƯƠNG TRÌNH</div><div class="sy-cv-m" data-fit="560">' + syE(M.mon.toUpperCase()) + '</div>' +
-      '<div class="sy-cv-l"><span class="sy-cv-hl">LỚP</span>' + (M.lop ? '<span class="sy-cv-n">' + syE(M.lop) + '</span>' : '') + (M.loai === 'NC' ? '<span class="sy-cv-nc">NÂNG CAO</span>' : '') + '</div>' +
-      '<p class="sy-cv-p">' + syE(intro) + '</p>' +
-      '<div class="sy-cv-chips"><span><i class="bi bi-book"></i><b>' + M.total + '</b> buổi học</span>' + (M.cd ? '<span><i class="bi bi-rocket-takeoff" style="color:' + SY_C.o + '"></i><b>' + M.cd + '</b> chuyên đề nâng cao</span>' : '') + '<span><i class="bi bi-clock"></i><b>' + M.per + '</b> buổi mỗi tuần</span></div></div>' +
-    '<div class="sy-cv-ft"><b>KIẾN GIA SƯ</b><span>Một học sinh – Một lộ trình</span></div></div>';
+    '<div class="sy-cv-k">CHƯƠNG TRÌNH</div><div class="sy-cv-m" data-fit="132">' + syE(M.mon.toUpperCase()) + '</div>' +
+    '<div class="sy-cv-l"><span class="sy-cv-hl">LỚP</span>' + (M.lop ? '<span class="sy-cv-n">' + syE(M.lop) + '</span>' : '') + (M.loai === 'NC' ? '<span class="sy-cv-hl sy-cv-nc">NÂNG CAO</span>' : '') + '</div>' +
+    '<p class="sy-cv-p">' + syE(intro) + '</p>' +
+    '<div class="sy-cv-chips"><span><i class="fas fa-book" style="color:' + SY_C.g + '"></i><b>' + M.total + '</b> buổi học</span>' + (M.cd ? '<span><i class="fas fa-brain" style="color:' + SY_C.o + '"></i><b>' + M.cd + '</b> chuyên đề nâng cao</span>' : '') +
+      '<span><i class="fas fa-clock" style="color:' + SY_C.g + '"></i><b>' + M.per + '</b> buổi mỗi tuần</span></div>' +
+    '<div class="sy-cv-ft"><b>KIẾN GIA SƯ</b><span>·</span><b>Một học sinh – Một lộ trình</b></div></div>';
 }
-/** tiêu đề mục: ô icon cam + chữ xanh đậm + vạch dưới; r = chữ phụ bên phải */
-const syH = (ic, t, r) => '<div class="sy-h"><span class="sy-hi"><i class="bi ' + ic + '"></i></span><b>' + syE(t) + '</b>' + (r ? '<small>' + syE(r) + '</small>' : '') + '</div>';
-/** chặng đường ôn tập & kiểm tra: con đường sóng ngang trang (xanh học kỳ I, cam học kỳ II), mốc so le trên / dưới, ngoặc học kỳ bên dưới */
+/** tiêu đề mục: ô icon cam bo góc + chữ đậm + vạch xám có đoạn cam đầu; r = chữ phụ bên phải */
+const syH = (ic, t, r) => '<div class="sy-h"><span class="sy-hi">' + fa(ic) + '</span><b>' + syE(t) + '</b>' + (r ? '<small>' + syE(r) + '</small>' : '') + '</div>';
+/** chặng đường ôn tập & kiểm tra: con đường sóng (xanh học kỳ I, cam học kỳ II, vạch giữa trắng), mốc giữa kỳ là vòng trắng (nhãn trên),
+    mốc cuối kỳ là vòng đỏ đặc có cúp (nhãn đỏ bên dưới), ngoặc HỌC KỲ I / II */
 function syPath(d) {
   const M = d.meta, ml = M.miles.filter(x => x.week || x.from); if (!ml.length) return null;
-  const W = 680, H = 190, x0 = 26, x1 = W - 26, yc = 96, wk = Math.max(M.weeks, ...ml.map(x => x.week)) || 35;
+  const W = 780, H = 232, x0 = 4, x1 = W - 4, yc = 92, wk = Math.max(M.weeks, ...ml.map(x => x.week)) || 35;
   const S1 = d.S.find(x => x.n === M.endI), wI = S1 ? S1.w : Math.round(wk / 2);
-  const X = w => x0 + (x1 - x0) * Math.max(0, Math.min(1, (w - 0.5) / wk)), Y = x => yc + 14 * Math.sin((x - x0) / (x1 - x0) * Math.PI * 4);
-  const seg = (a, b) => { let s = ''; for (let x = a; x <= b + 0.1; x += 4) s += (s ? ' L' : 'M') + x.toFixed(1) + ' ' + Y(x).toFixed(1); return s; };
-  const xm = X(wI + 0.5);
-  const fin = x => /cuối/i.test(x.name);
-  const pts = ml.map((x, i) => ({ x: X(x.week || ((d.S.find(s => s.n === x.from) || {}).w) || 1), m: x, up: i % 2 === 0 }));
-  return ['<div class="sy-path"><svg viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' +
-      '<path d="' + seg(x0, xm) + '" stroke="' + SY_C.g + '" stroke-width="15" fill="none" stroke-linecap="round"/><path d="' + seg(xm, x1) + '" stroke="' + SY_C.o + '" stroke-width="15" fill="none" stroke-linecap="round"/>' +
-      '<path d="' + seg(x0, x1) + '" stroke="#fff" stroke-width="1.6" stroke-dasharray="6 6" fill="none"/>' +
-      '<g fill="none" stroke-width="1.2"><path d="M' + x0 + ' 168 v-8 M' + x0 + ' 168 H' + (xm - 6) + ' v-8" stroke="' + SY_C.g + '"/><path d="M' + (xm + 6) + ' 168 v-8 M' + (xm + 6) + ' 168 H' + x1 + ' v-8" stroke="' + SY_C.o + '"/></g></svg>' +
-    pts.map(p => { const f = fin(p.m), c = f ? SY_C.r : p.x > xm ? SY_C.o : SY_C.g;
-      return '<span class="sy-pm' + (f ? ' f' : '') + '" style="left:' + (p.x / W * 100).toFixed(2) + '%;top:' + (Y(p.x) / H * 100).toFixed(2) + '%;--c:' + c + '"><i class="bi ' + (f ? 'bi-trophy-fill' : 'bi-clipboard-check') + '"></i></span>' +
-        '<span class="sy-pl ' + (p.up ? 'up' : 'dn') + '" style="left:' + (p.x / W * 100).toFixed(2) + '%;top:' + (Y(p.x) / H * 100).toFixed(2) + '%;--ax:' + (p.x / W > 0.84 ? -92 : p.x / W < 0.16 ? -8 : -50) + '%;text-align:' + (p.x / W > 0.84 ? 'right' : p.x / W < 0.16 ? 'left' : 'center') + '"><b style="color:' + (f ? SY_C.r : SY_C.gd) + '">' + syE(p.m.name) + '</b><small>' + (p.m.week ? 'Tuần ' + p.m.week : '') + (p.m.from ? ' · Buổi ' + p.m.from + (p.m.to && p.m.to !== p.m.from ? '–' + p.m.to : '') : '') + '</small></span>'; }).join('') +
-    '<span class="sy-pk" style="left:' + ((x0 + xm) / 2 / W * 100).toFixed(2) + '%;color:' + SY_C.g + '">HỌC KỲ I</span><span class="sy-pk" style="left:' + ((xm + x1) / 2 / W * 100).toFixed(2) + '%;color:' + SY_C.o + '">HỌC KỲ II</span></div>',
-    '<div class="sy-mt"><div class="sy-mth"><span>Mốc</span><span>Tuần</span><span>Buổi</span></div>' + ml.map(x => '<div class="sy-mtr"><span><i class="bi ' + (fin(x) ? 'bi-trophy-fill' : 'bi-clipboard-check') + '" style="color:' + (fin(x) ? SY_C.r : SY_C.g) + '"></i>' + syE(x.name) + '</span><span>' + (x.week || '—') + '</span><span>' + (x.from ? x.from + (x.to && x.to !== x.from ? '–' + x.to : '') : '—') + '</span></div>').join('') + '</div>'];
+  const X = w => 40 + (x1 - 70) * Math.max(0, Math.min(1, (w - 1) / (wk - 1))), Y = x => yc + 17 * Math.sin((x - x0) / (x1 - x0) * Math.PI * 4 + Math.PI);
+  const seg = (a, b) => { let s = ''; for (let x = a; x <= b + 0.1; x += 3) s += (s ? ' L' : 'M') + x.toFixed(1) + ' ' + Y(x).toFixed(1); return s; };
+  const xm = (X(wI) + X(wI + 1)) / 2, fin = x => /cuối/i.test(x.name);
+  const br = (a, b, c, t) => { const m = (a + b) / 2, hw = t.length * 3.6 + 10; return '<path d="M' + a + ' 200 q0 8 8 8 H' + (m - hw) + ' M' + (m + hw) + ' 208 H' + (b - 8) + ' q8 0 8 -8" fill="none" stroke="' + c + '" stroke-width="1.1"/>' +
+    '<text x="' + m + '" y="212" text-anchor="middle" font-size="10.5" font-weight="700" letter-spacing="1.2" fill="' + c + '">' + syE(t) + '</text>'; };
+  const pts = ml.map(x => ({ x: X(x.week || ((d.S.find(s => s.n === x.from) || {}).w) || 1), m: x, f: fin(x) }));
+  return '<div class="sy-path"><svg viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' +
+      '<path d="' + seg(x0, xm) + '" stroke="' + SY_C.g + '" stroke-width="13" fill="none" stroke-linecap="round"/><path d="' + seg(xm, x1) + '" stroke="' + SY_C.o + '" stroke-width="13" fill="none" stroke-linecap="round"/>' +
+      '<path d="' + seg(x0, x1) + '" stroke="#fff" stroke-width="1.5" stroke-dasharray="5 4" fill="none"/>' + br(x0 + 6, xm - 10, SY_C.g, 'HỌC KỲ I') + br(xm + 10, x1 - 6, SY_C.o, 'HỌC KỲ II') + '</svg>' +
+    pts.map(p => { const c = p.f ? SY_C.r : p.x > xm ? SY_C.o : SY_C.g, L = (p.x / W * 100).toFixed(2), T = (Y(p.x) / H * 100).toFixed(2), ax = p.x / W > 0.86 ? -88 : p.x / W < 0.14 ? -12 : -50;
+      return '<span class="sy-pm' + (p.f ? ' f' : '') + '" style="left:' + L + '%;top:' + T + '%;--c:' + c + '">' + fa(p.f ? 'trophy' : 'clipboard-check') + '</span>' +
+        '<span class="sy-pl ' + (p.f ? 'dn' : 'up') + '" style="left:' + L + '%;top:' + T + '%;--ax:' + ax + '%"><b' + (p.f ? ' style="color:' + SY_C.r + '"' : '') + '>' + syE(p.m.name) + '</b><small>' + (p.m.week ? 'Tuần ' + p.m.week : '') +
+          (p.m.from ? '<span>·</span>Buổi ' + p.m.from + (p.m.to && p.m.to !== p.m.from ? '–' + p.m.to : '') : '') + '</small></span>'; }).join('') + '</div>';
 }
 /** một dòng của bảng lộ trình */
 function syRow(d, x) {
-  const k = SY_KIND[x.kind], two = d.meta.per > 1 && x.ab;
-  const c2 = x.kind === 'adv' ? '' : (x.title ? '<div class="sy-tt">' + (k ? '<i class="bi ' + k[0] + '" style="color:' + k[1] + '"></i>' : '') + syE(x.title) + '</div>' : '') + (x.bul.length ? '<ul>' + x.bul.map(b => '<li>' + syE(b) + '</li>').join('') + '</ul>' : '');
-  const c3 = x.adv ? '<span class="sy-cd">' + syE(x.adv.label.toUpperCase()) + '</span>' + (x.adv.text ? '<p>' + syE(x.adv.text) + '</p>' : '') + (x.note ? '<p class="sy-n3">' + syE(x.note) + '</p>' : '')
-    : x.note ? '<p class="sy-n3">' + (k ? '<i class="bi ' + k[0] + '" style="color:' + k[1] + '"></i>' : '') + syE(x.note) + '</p>' : '';
-  return '<div class="sy-r k-' + x.kind + '"><div class="sy-c1"><b>' + x.n + '</b><small>Tuần ' + x.w + (two ? ' · ' + x.ab : '') + '</small></div><div class="sy-c2">' + c2 + '</div><div class="sy-c3">' + c3 + '</div></div>';
+  const k = SY_KIND[x.kind], two = d.meta.per > 1 && x.ab, hot = x.kind !== 'learn' && x.kind !== 'adv';
+  const c2 = x.kind === 'adv' ? '' : (x.title ? '<div class="sy-tt">' + (hot ? '<i class="fas fa-' + k[0] + '" style="color:' + k[1] + '"></i>' : '') + syI(x.title) + '</div>' : '') +
+    (x.bul.length ? '<ul>' + x.bul.map(b => '<li>' + syI(b) + '</li>').join('') + '</ul>' : '');
+  const adv = x.adv ? '<span class="sy-cd">' + syE(x.adv.label.toUpperCase()) + '</span><ul>' + (x.abul.length ? x.abul : x.adv.text ? [x.adv.text] : []).map(b => '<li>' + syI(b) + '</li>').join('') + '</ul>' : '';
+  const nt = x.note ? '<p class="sy-n3"' + (hot ? ' style="color:' + k[1] + '"' : '') + '><i class="fas fa-' + (hot ? k[0] : 'book-reader') + '" style="color:' + (hot ? k[1] : SY_C.g) + '"></i><span>' + syI(x.note) + '</span></p>' : '';
+  return '<div class="sy-r k-' + x.kind + (hot ? ' hot' : '') + '"><div class="sy-c1"><b>' + x.n + '</b><small>Tuần ' + x.w + (two ? ' · ' + x.ab : '') + '</small></div><div class="sy-c2">' + c2 + '</div><div class="sy-c3">' + adv + nt + '</div></div>';
 }
 const SY_TH = '<div class="sy-th"><span>BUỔI</span><span>NỘI DUNG CHÍNH (THEO PPCT SGK)</span><span>NÂNG CAO / ÔN TẬP, KIỂM TRA</span></div>';
-/** khối nội dung theo thứ tự — mỗi khối { h: html, keep: số khối sau phải đi cùng trang, th: dòng bảng (trang mới lặp lại đầu bảng) } */
+/** dải chủ điểm (số cam + tên xanh, vạch xanh) · dải ôn tập (đỏ) */
+function syBand(d, g) {
+  const L = d.S.filter(x => x.g === g), a = L[0], b = L[L.length - 1], last = /cuối/i.test(g.t);
+  const r = (a.w === b.w ? 'Tuần ' + a.w : 'Tuần ' + a.w + '–' + b.w) + ' · ' + (a.n === b.n ? 'Buổi ' + a.n : 'Buổi ' + a.n + '–' + b.n);
+  return '<div class="sy-band' + (g.rev ? ' rev' : '') + '"><span class="sy-bi">' + fa(g.rev ? (last ? 'trophy' : 'clipboard-check') : 'book-open') + '</span>' + (g.no ? '<em>' + String(g.no).padStart(2, '0') + '</em>' : '') +
+    '<b>' + syE(g.t.toUpperCase()) + '</b><small>' + syE(r) + '</small></div>';
+}
+/** khối nội dung theo thứ tự — mỗi khối { h: html, keep: số khối sau phải đi cùng trang, th: dòng bảng (trang mới lặp lại đầu bảng), pb: sang trang mới } */
 function syBlocks(d) {
   const M = d.meta, B = [], pct = M.total ? Math.round(M.base / M.total * 100) : 100;
   const title = 'CHƯƠNG TRÌNH ' + M.mon.toUpperCase() + ' LỚP ' + M.lop + (M.loai === 'NC' ? ' NÂNG CAO' : '');
   B.push({ h: '<div class="sy-ban">' + syE(title) + '</div>' });
-  B.push({ h: '<div class="sy-kpi">' + [['bi-book', M.total, 'BUỔI HỌC'], ['bi-journal-text', M.base, 'BUỔI NỀN TẢNG'], ['bi-rocket-takeoff', M.adv, 'BUỔI NÂNG CAO'], M.min ? ['bi-clock', M.min, 'PHÚT / BUỔI'] : ['bi-calendar-week', M.per, 'BUỔI / TUẦN']]
-    .map((k, i) => '<div><span class="sy-ki"><i class="bi ' + k[0] + '"></i></span><b' + (i === 2 ? ' style="color:' + SY_C.o + '"' : '') + '>' + k[1] + '</b><small>' + k[2] + '</small></div>').join('') + '</div>' });
+  B.push({ h: '<div class="sy-kpi">' + [['book-open', M.total, 'BUỔI HỌC'], ['book', M.base, 'BUỔI NỀN TẢNG'], ['rocket', M.adv, 'BUỔI NÂNG CAO', 1], M.min ? ['clock', M.min, 'PHÚT / BUỔI'] : ['calendar-week', M.per, 'BUỔI / TUẦN']]
+    .map(k => '<div' + (k[3] ? ' class="o"' : '') + '><span class="sy-ki">' + fa(k[0]) + '</span><b>' + k[1] + '</b><small>' + k[2] + '</small></div>').join('') + '</div>' });
   if (M.info.length) {
-    B.push({ h: syH('bi-info-lg', 'THÔNG TIN CHƯƠNG TRÌNH'), keep: 1 });
-    B.push({ h: '<div class="sy-info">' + M.info.filter(x => !(x.sub.length && M.miles.length && /mốc|kiểm tra/i.test(x.k))).map(x => {      // mốc đã có ở chặng đường + bảng mốc → không lặp const ic = SY_INFO_IC.find(r => r[0].test(x.k || x.v))[1];
+    B.push({ h: syH('info-circle', 'THÔNG TIN CHƯƠNG TRÌNH'), keep: 1 });
+    B.push({ h: '<div class="sy-info">' + M.info.map(x => { const ic = SY_INFO_IC.find(r => r[0].test(x.k || x.v))[1];
       const v = x.sub.length ? x.sub.map(s => s.replace(/\s*\(Đã chuẩn hóa[^)]*\)/i, '')).join(' · ') : x.v.replace(/\s*\(Đã chuẩn hóa[^)]*\)\s*:?$/i, '');
-      return '<div><i class="bi ' + ic + '"></i><span>' + (x.k ? '<b>' + syE(x.k.replace(/\s*\(Đã chuẩn hóa[^)]*\)/i, '')) + ':</b> ' : '') + syE(v || x.v) + '</span></div>'; }).join('') + '</div>' });
+      return '<div><span class="sy-ii">' + fa(ic) + '</span><span>' + (x.k ? '<b>' + syE(x.k) + ':</b> ' : '') + syI(v || x.v) + '</span></div>'; }).join('') + '</div>' });
   }
-  B.push({ h: syH('bi-bullseye', 'ĐỊNH HƯỚNG NỘI DUNG'), keep: 1 });
+  B.push({ h: syH('bullseye', 'ĐỊNH HƯỚNG NỘI DUNG'), keep: 1 });
   B.push({ h: '<div class="sy-bar"><span style="flex:' + pct + '">' + pct + '% BÁM SÁT SÁCH GIÁO KHOA</span>' + (pct < 100 ? '<span style="flex:' + (100 - pct) + '">' + (100 - pct) + '% NÂNG CAO</span>' : '') + '</div>' });
-  const pa = syPath(d); if (pa) { B.push({ h: syH('bi-signpost-split', 'CHẶNG ĐƯỜNG ÔN TẬP VÀ KIỂM TRA'), keep: 1 }); B.push({ h: pa[0] }); B.push({ h: pa[1] }); }
-  [['I', d.S.filter(x => x.n <= M.endI), 'bi-award-fill'], ['II', d.S.filter(x => x.n > M.endI), 'bi-mortarboard-fill']].forEach((h, hi) => {
+  const pa = syPath(d); if (pa) { B.push({ h: syH('flag-checkered', 'CHẶNG ĐƯỜNG ÔN TẬP VÀ KIỂM TRA'), keep: 1 }); B.push({ h: pa }); }
+  [['I', d.S.filter(x => x.n <= M.endI), 'medal'], ['II', d.S.filter(x => x.n > M.endI), 'graduation-cap']].forEach((h, hi) => {
     const L = h[1]; if (!L.length) return;
     const w = (a, b) => a === b ? 'Tuần ' + a : 'Tuần ' + a + '–' + b;
-    B.push({ h: syH('bi-map', 'LỘ TRÌNH HỌC KỲ ' + h[0], w(L[0].w, L[L.length - 1].w) + ' · Buổi ' + L[0].n + '–' + L[L.length - 1].n), keep: hi ? 2 : 3 });
-    if (!hi) B.push({ h: '<div class="sy-lg"><span><i class="bi bi-circle-fill" style="color:' + SY_C.g + '"></i>Nội dung chính: bám sát PPCT sách giáo khoa</span><span><em class="sy-cd">CĐ</em>Chuyên đề nâng cao: cột phải</span><span><i class="bi bi-clipboard-check" style="color:' + SY_C.g + '"></i>Ôn tập, kiểm tra</span></div>' });
+    B.push({ h: syH('map', 'LỘ TRÌNH HỌC KỲ ' + h[0], w(L[0].w, L[L.length - 1].w) + ' · Buổi ' + L[0].n + '–' + L[L.length - 1].n), keep: 3, pb: 1 });
+    B.push({ h: '<div class="sy-lg"><span><i class="sy-dot"></i>Nội dung chính: bám sát PPCT sách giáo khoa</span><span><em class="sy-cd">CĐ</em>Chuyên đề nâng cao: cột phải' + (M.cd ? ', đánh số 1–' + M.cd : '') + '</span><span><i class="fas fa-clipboard-check" style="color:' + SY_C.r + '"></i>Ôn tập, kiểm tra</span></div>' });
     B.push({ h: SY_TH });
-    L.forEach(x => B.push({ h: syRow(d, x), th: 1 }));
-    B.push({ h: '<div class="sy-end"><span><i class="bi ' + h[2] + '"></i></span></div>' });
+    let g = null;
+    L.forEach(x => { if (x.g && x.g !== g) { g = x.g; B.push({ h: syBand(d, g), keep: 1, th: 1 }); } else if (!x.g) g = null; B.push({ h: syRow(d, x), th: 1 }); });
+    B.push({ h: '<div class="sy-end"><span>' + fa(h[2]) + '</span></div>' });
   });
   return B;
 }
@@ -15639,8 +15688,8 @@ function syPaginate(host, d) {
   host.innerHTML = '';
   const wrap = h => { const w = document.createElement('div'); w.className = 'sy-pw'; w.innerHTML = h; host.appendChild(w); return w.firstChild; };
   wrap(syCover(d));
-  let no = 1, page = null, bd = null;
-  const newPage = () => { no++; page = wrap(syPage(d, no)); bd = $('.sy-bd', page); };
+  let no = 0, bd = null;
+  const newPage = () => { no++; bd = $('.sy-bd', wrap(syPage(d, no))); };      // trang sau bìa đánh số 1 (như mẫu)
   const over = () => bd.scrollHeight > bd.clientHeight + 1;
   const put = h => { const t = document.createElement('template'); t.innerHTML = h; const n = t.content.firstChild; bd.appendChild(n); return n; };
   const B = syBlocks(d);
@@ -15655,19 +15704,27 @@ function syPaginate(host, d) {
     if (bd.children.length) { newPage(); if (b.th) put(SY_TH); ns = grp.map(g => put(g.h)); i += grp.length - 1; continue; }
     ns = grp.map(g => put(g.h)); i += grp.length - 1;      // trang trống mà vẫn không vừa: để nguyên (khối quá cao) — không lặp vô hạn
   }
-  // chữ tiêu đề bìa vừa một dòng
-  $$('[data-fit]', host).forEach(el => { let f = parseFloat(getComputedStyle(el).fontSize); const max = +el.dataset.fit; while (el.scrollWidth > max && f > 40) { f -= 2; el.style.fontSize = f + 'px'; } });
-  return no;
+  // chữ tiêu đề bìa vừa một dòng (mm)
+  $$('[data-fit]', host).forEach(el => { const max = +el.dataset.fit * 96 / 25.4; let f = parseFloat(getComputedStyle(el).fontSize); while (el.scrollWidth > max && f > 40) { f -= 2; el.style.fontSize = f + 'px'; } });
+  return no + 1;
 }
 
 /* ══════════ TRANG ══════════ */
+/** font & icon đúng như mẫu: Font Awesome 5 Solid + Helvetica Neue Condensed Black (máy Mac có sẵn; máy khác dùng Barlow Condensed) */
+function syAssets() {
+  if (syAssets.p) return syAssets.p;
+  const css = ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css', 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800&display=swap'];
+  return (syAssets.p = Promise.all(css.map(u => new Promise(res => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = u; l.onload = l.onerror = () => res(); document.head.appendChild(l); })))
+    .then(() => Promise.all([document.fonts.load('900 16px "Font Awesome 5 Free"'), document.fonts.load('16px SyCond'), document.fonts.load('800 16px "Barlow Condensed"')]).catch(() => {})));
+}
 function viewSyllabus(arg, v) {
   SY.v = v;
   setTitle('Syllabus Văn', 'bi-signpost-split', [{ t: S.boot.app, r: 'home' }], v);
-  const top = topBtns(v, '<button class="btn sm" id="syHow"><i class="bi bi-question-circle"></i><span class="cp-hs">Cách nhập</span></button><button class="btn sm pri" id="syPdf"><i class="bi bi-file-earmark-pdf"></i>Xuất PDF</button>', true);
+  const top = topBtns(v, '<button class="btn sm" id="syHow"><i class="bi bi-question-circle"></i><span class="cp-hs">Cách nhập</span></button><button class="btn sm" id="syAi" title="Sao chép prompt — dán vào Gemini kèm tệp khung chương trình, dán kết quả vào ô bên trái"><i class="bi bi-robot"></i><span class="cp-hs">Prompt AI</span></button><button class="btn sm pri" id="syPdf"><i class="bi bi-file-earmark-pdf"></i>Xuất PDF</button>', true);
   SY.code = lsGet('sy.code', '');
-  v.innerHTML = '<div class="cp-lay sy-lay"><aside class="card cp-side"><div class="cp-tabs sy-tabs"><b><i class="bi bi-file-earmark-text"></i>Khung chương trình (dán thô)</b></div>' +
-      '<textarea class="cp-ta" id="syCode" spellcheck="false" placeholder="Dán nguyên khung chương trình từ Google Docs / PDF — tên chương trình, Thông tin chương trình, rồi từng “Buổi 1 (Tuần 1 - Buổi A) …”"></textarea>' +
+  v.innerHTML = '<div class="cp-lay sy-lay"><aside class="card cp-side"><div class="cp-tabs sy-tabs"><b><i class="bi bi-file-earmark-text"></i>Khung chương trình</b></div>' +
+      '<div class="cp-how" id="syTip"><i class="bi bi-robot"></i><span><b>Dùng Gemini?</b> Bấm <b>Prompt AI</b> (tự sao chép) → dán vào Gemini kèm tệp khung chương trình → dán kết quả vào đây. Dán nguyên văn tệp cũng đọc được.</span></div>' +
+      '<textarea class="cp-ta" id="syCode" spellcheck="false" placeholder="Dán kết quả Gemini (theo Prompt AI) hoặc nguyên khung chương trình từ Google Docs / PDF — tên chương trình, Thông tin chương trình, rồi từng “Buổi 1 (Tuần 1) …”"></textarea>' +
       '<div class="cp-foot"><button class="btn sm cp-del" id="syNew"><i class="bi bi-eraser"></i>Làm mới</button><button class="btn sm ghost" id="sySample"><i class="bi bi-file-earmark-text"></i>Xem mẫu</button><span class="sp"></span>' +
         '<select class="sel cp-mini" id="syLoai" title="Loại chương trình — đổi tên tệp và tiêu đề"><option value="">Theo nội dung</option><option value="NT">Nền tảng (NT)</option><option value="NC">Nâng cao (NC)</option></select></div></aside>' +
     '<div class="cp-split"><i></i></div><section class="cp-prev"><div class="cp-stat" id="syStat"></div><div class="cp-pages sy-pages" id="syPages"></div></section></div>';
@@ -15680,23 +15737,27 @@ function viewSyllabus(arg, v) {
   $('#syNew', v).onclick = async () => { if (ta.value.trim() && !await ask('Xoá nội dung đang soạn?', { ok: 'Xoá', danger: true })) return; ta.value = ''; apply(); ta.focus(); };
   $('#syPdf', top).onclick = syPrint;
   $('#syHow', top).onclick = syHow;
+  $('#syAi', top).onclick = () => copyText(SY_PROMPT, 'Đã sao chép prompt — dán vào Gemini kèm tệp khung chương trình');
+  $('#syTip', v).onclick = syHow;
   v._onShow = () => { if (SY.dirty) syRender(); else syScale(); };
   if (!syRender.bound) { syRender.bound = 1; window.addEventListener('resize', debounce(() => { if (SY.v && !SY.v.hidden) syScale(); }, 120)); }
   syRender();
+  syAssets().then(() => syRender());      // font / icon tải xong → dựng lại cho đúng kích thước chữ
 }
 function syRender() {
   const v = SY.v; if (!v) return;
   if (v.hidden || !v.offsetWidth) { SY.dirty = true; return; }
   SY.dirty = false;
   const host = $('#syPages', v), st = $('#syStat', v);
-  if (!SY.code.trim()) { SY.doc = null; st.innerHTML = ''; host.innerHTML = '<div class="empty sy-empty"><i class="bi bi-signpost-split"></i><b>Dán khung chương trình vào ô bên trái</b><span>Chép nguyên văn từ Google Docs hoặc PDF — app tự nhận tên chương trình, thông tin, các mốc ôn tập & kiểm tra và từng buổi. Bấm <b>Xem mẫu</b> để thử.</span></div>'; return; }
+  if (!SY.code.trim()) { SY.doc = null; st.innerHTML = ''; host.innerHTML = '<div class="empty sy-empty"><i class="bi bi-signpost-split"></i><b>Dán khung chương trình vào ô bên trái</b><span>Bấm <b>Prompt AI</b> để Gemini chuẩn hoá tệp khung chương trình, hoặc chép nguyên văn từ Google Docs / PDF — app tự nhận tên chương trình, thông tin, các mốc và từng buổi. Bấm <b>Xem mẫu</b> để thử.</span></div>'; return; }
   const d = syParse(SY.code), lo = lsGet('sy.loai', ''); if (lo) d.meta.loai = lo;
   SY.doc = d;
-  if (!d.S.length) { st.innerHTML = '<span class="cp-st warn"><i class="bi bi-exclamation-triangle"></i>Chưa thấy buổi nào — mỗi buổi cần bắt đầu bằng “Buổi N (Tuần T …”</span>'; host.innerHTML = ''; return; }
+  if (!d.S.length) { st.innerHTML = '<span class="warn"><i class="bi bi-exclamation-triangle"></i>Chưa thấy buổi nào — mỗi buổi cần bắt đầu bằng “Buổi N (Tuần T …”</span>'; host.innerHTML = ''; return; }
   const n = syPaginate(host, d);
-  const M = d.meta;
-  st.innerHTML = '<span class="cp-st"><i class="bi bi-check2-circle"></i><b>' + syE(syName(d)) + '</b> · ' + n + ' trang · ' + M.total + ' buổi (' + M.base + ' nền tảng, ' + M.adv + ' nâng cao) · ' + M.miles.length + ' mốc · học kỳ I: buổi 1–' + M.endI + '</span>' +
-    (M.warn.length ? '<span class="cp-st warn" title="' + syE(M.warn.join('\n')) + '"><i class="bi bi-exclamation-triangle"></i>' + syE(M.warn.slice(0, 3).join(' · ')) + (M.warn.length > 3 ? ' …' : '') + '</span>' : '');
+  const M = d.meta, ng = new Set(d.S.filter(x => x.g).map(x => x.g)).size;
+  st.innerHTML = '<span><i class="bi bi-check2-circle"></i><b>' + syE(syName(d)) + '</b> · ' + n + ' trang · ' + M.total + ' buổi (' + M.base + ' nền tảng, ' + M.adv + ' nâng cao) · ' + ng + ' chủ điểm · ' + M.miles.length + ' mốc · học kỳ I: buổi 1–' + M.endI + '</span>' +
+    (M.warn.length ? '<span class="warn" title="' + syE(M.warn.join('\n')) + '"><i class="bi bi-exclamation-triangle"></i>' + syE(M.warn.slice(0, 3).join(' · ')) + (M.warn.length > 3 ? ' …' : '') + '</span>' : '') +
+    (!ng ? '<span title="Dùng Prompt AI để Gemini chia các buổi theo chủ điểm như mẫu"><i class="bi bi-lightbulb"></i>Chưa có chủ điểm — thêm dòng “## TÊN CHỦ ĐIỂM” trước buổi đầu mỗi chủ điểm</span>' : '');
   syScale();
 }
 /** thu trang A4 cho vừa khung xem trước */
@@ -15708,6 +15769,7 @@ function syScale() {
 /* ══════════ XUẤT PDF (in → “Lưu thành PDF”, khổ A4, lề: Không) ══════════ */
 async function syPrint() {
   if (!SY.doc || !SY.doc.S.length) return toast('Chưa có nội dung để xuất', 'warn');
+  await syAssets();
   const area = document.createElement('div'); area.id = 'syPrint';
   $$('.sy-page', SY.v).forEach(p => area.appendChild(p.cloneNode(true)));
   document.body.appendChild(area);
@@ -15724,148 +15786,229 @@ async function syPrint() {
 }
 function syHow() {
   modal({ title: 'Cách nhập khung chương trình', icon: 'bi-question-circle', size: 'lg', body: '<div class="sy-how">' +
-    '<p>Chép <b>nguyên văn</b> khung chương trình (Google Docs, Word hay PDF) rồi dán vào ô bên trái — không cần sửa định dạng. App tự nhận:</p><ul>' +
+    '<p><b>Cách nhanh nhất — Gemini:</b> bấm <b>Prompt AI</b> (tự sao chép) → mở Gemini, dán prompt và đính kèm tệp khung chương trình (Google Docs / Word / PDF) → chép kết quả Gemini trả về → dán vào ô bên trái. ' +
+      'Gemini chia các buổi theo <b>chủ điểm</b>, ghi “Đọc: / LTVC: / Viết:”, in nghiêng tên bài đọc — giống hệt mẫu.</p>' +
+    '<p>Dán <b>nguyên văn</b> tệp cũng đọc được (không có dải chủ điểm). App tự nhận:</p><ul>' +
     '<li><b>Tên chương trình</b>: dòng “CHƯƠNG TRÌNH TIẾNG VIỆT LỚP 3 …” → môn, lớp (năm học bị bỏ).</li>' +
     '<li><b>Thông tin chương trình</b>: các mục đánh số 1. 2. 3. … (“Sách giáo khoa: …”); mục con ○ có “Tuần 8 (Buổi 15 – 16)” là <b>mốc ôn tập & kiểm tra</b> → vẽ chặng đường.</li>' +
-    '<li><b>Từng buổi</b>: bắt đầu bằng “Buổi N (Tuần T - Buổi A)”; “Chủ đề: …” là tên bài, gạch đầu dòng ● là nội dung; “Chuyên đề N: …” vào cột Nâng cao;' +
-      ' dòng IN HOA “ÔN TẬP / KIỂM TRA …:” là buổi mốc, đoạn ngắn tách riêng phía sau là ghi chú cột phải.</li>' +
-    '<li>Học kỳ I lấy theo “Học kỳ I: …, buổi 1–34” (không có thì theo mốc cuối HKI).</li></ul>' +
-    '<p>Chỉnh thêm bằng dòng <code>@</code> ở đầu ô (tuỳ chọn):</p><pre>@mon: Tiếng Việt\n@lop: 3\n@loai: NC          → chương trình nâng cao\n@gioithieu: Câu giới thiệu trên bìa (vừa 2 dòng)\n@tuan: 35</pre>' +
+    '<li><b>Từng buổi</b>: bắt đầu bằng “Buổi N (Tuần T - Buổi A)”; “Chủ đề: …” là tên bài, gạch đầu dòng ● là nội dung; “Chuyên đề N: …” vào cột Nâng cao (gạch đầu dòng ngay sau cũng vào cột đó);' +
+      ' dòng IN HOA “ÔN TẬP / KIỂM TRA …:” là buổi mốc; dòng “→ …” là ghi chú cột phải.</li>' +
+    '<li><b>Chủ điểm</b>: dòng “## TÊN CHỦ ĐIỂM” trước buổi đầu của chủ điểm (bắt đầu bằng “## !” hoặc “## Ôn tập…” = dải ôn tập màu đỏ). Dòng “# HỌC KỲ II” trước buổi đầu học kỳ II.</li></ul>' +
+    '<p>Chỉnh thêm bằng dòng <code>@</code> ở đầu ô (tuỳ chọn):</p><pre>@mon: Tiếng Việt\n@lop: 3\n@loai: NC          → chương trình nâng cao\n@gioithieu: Câu giới thiệu trên bìa (vừa 2 dòng)\n@kynang: Đọc hiểu – LTVC – Nghe nói – Viết\n@tuan: 35</pre>' +
     '<p class="muted">Xuất PDF: bấm Xuất PDF → “Lưu thành PDF”, khổ A4, lề Không, bật Đồ hoạ nền. Tên tệp: Lớp &lt;N&gt;NT_Syllabus_Chương trình học.</p></div>',
-    foot: [{ t: 'Đóng', cls: 'pri' }] });
+    foot: [{ t: 'Đóng', cls: 'ghost' }, { t: 'Sao chép Prompt AI', cls: 'pri', i: 'bi-robot', fn: () => { copyText(SY_PROMPT, 'Đã sao chép prompt'); return false; } }] });
 }
-const SY_SAMPLE = `CHƯƠNG TRÌNH TIẾNG VIỆT LỚP 3 NĂM HỌC 2026 - 2027
-(DỰ KIẾN)
+const SY_PROMPT = `Bạn là trợ lý soạn SYLLABUS (chương trình học) môn Văn – Tiếng Việt của trung tâm Kiến Gia Sư.
+Tôi đính kèm khung chương trình (bảng các buổi). Hãy CHUẨN HOÁ nó thành đúng định dạng dưới đây để app dựng PDF. CHỈ trả về một khối mã (\`\`\`text … \`\`\`), không giải thích.
+
+QUY TẮC
+1. Giữ ĐÚNG số buổi, số tuần, thứ tự, tên bài đọc, tác giả như tệp gốc. Không bịa thêm buổi; được sửa lỗi chính tả, nối dòng bị ngắt, tách ý bị dính.
+2. Nội dung KHÔNG in đậm. Tên tác phẩm / bài đọc đặt giữa *dấu sao* để in nghiêng (VD: Đọc: *Mùa hè lấp lánh* (Quỳnh Mai)).
+3. Mỗi buổi học thường: dòng “Chủ đề: <tên bài ngắn gọn>”, rồi 2–4 gạch đầu dòng “● ” mở đầu bằng kĩ năng + dấu hai chấm: “Đọc: …”, “LTVC: …”, “Nghe - nói: …”, “Viết: …”. Mỗi ý ≤ 18 chữ.
+4. Buổi chuyên đề nâng cao (không có nội dung SGK): dòng “Chuyên đề N:” rồi 2–3 gạch đầu dòng “● ” mô tả (ngắn gọn). Buổi luyện đề có chuyên đề: viết nội dung chính trước, dòng “Chuyên đề N (Phần 1):” sau cùng.
+5. Buổi ôn tập / kiểm tra: dòng IN HOA kết thúc bằng dấu hai chấm (VD “ÔN TẬP GIỮA HỌC KỲ I:” · “KIỂM TRA CUỐI HỌC KỲ I:” · “KIỂM TRA CUỐI NĂM:”), rồi 1 gạch đầu dòng mô tả,
+   rồi dòng “→ Kiểm tra / Đánh giá giữa HKI” (ghi chú cột phải). Buổi ôn tập tổng hợp có thể thêm “→ Tổng ôn Đọc hiểu”.
+6. CHIA CHỦ ĐIỂM: gom 3–6 buổi liền nhau cùng mạch nội dung thành một chủ điểm, đặt dòng “## TÊN CHỦ ĐIỂM” (IN HOA, ≤ 6 chữ, VD “## THẾ GIỚI DIỆU KỲ & SỐNG TỬ TẾ”) ngay trước buổi đầu của chủ điểm.
+   Các buổi ôn tập – kiểm tra cuối kỳ gom vào dải “## ! LUYỆN TẬP & ÔN TẬP CUỐI HỌC KỲ I” (dấu ! = dải màu đỏ). Đặt dòng “# HỌC KỲ II” ngay trước buổi đầu học kỳ II.
+7. Đầu tệp: các dòng @ và phần THÔNG TIN như mẫu; mục “Các mốc ôn tập & kiểm tra” liệt kê từng mốc dạng “Tên mốc (tuần T – buổi B)” ngăn bằng “ · ”.
+8. Mỗi buổi mở đầu bằng “Buổi N (Tuần T)” — nếu 2 buổi/tuần ghi “Buổi N (Tuần T - Buổi A)” / “… - Buổi B)”.
+
+MẪU ĐỊNH DẠNG
+@mon: Tiếng Việt
+@lop: 2
+@loai: NT
+@kynang: Đọc hiểu – LTVC – Nghe nói – Viết
+@gioithieu: Lộ trình 35 buổi bám sát sách giáo khoa, thêm 5 chuyên đề nâng cao, rèn bốn kĩ năng Đọc hiểu – LTVC – Nghe nói – Viết.
+
 Thông tin chương trình:
-1. Sách giáo khoa: Tiếng Việt 3 – bộ Kết nối tri thức với cuộc sống.
-2. Bám sát chương trình: Môn Tiếng Việt lớp 3 của Bộ Giáo dục và Đào tạo: đi
-đúng thứ tự các bài theo chủ điểm và sát với tiến độ học trên lớp.
-3. Cấu trúc: 35 tuần – 70 buổi; cơ bản: 60 buổi, nâng cao - mở rộng: 10 buổi (Học
-kỳ I: 17 tuần, buổi 1–34; Học kỳ II: 18 tuần, buổi 35–70).
-4. Nhịp học: 2 buổi/tuần, mỗi buổi 120 phút. Dạy theo đơn vị kiến thức của chủ
-điểm, mỗi buổi đều có tổ hợp từ 2 - 3 kĩ năng: Đọc hiểu – LTVC – Viết.
-5. Các mốc Ôn tập & Kiểm tra:
-○ Ôn tập & Kiểm tra giữa HKI: Tuần 8 (Buổi 15 – 16)
-○ Ôn tập & Kiểm tra cuối HKI: Tuần 17 (Buổi 33 – 34)
-○ Ôn tập & Kiểm tra giữa HKII: Tuần 25 (Buổi 49 – 50)
-○ Ôn tập & Kiểm tra cuối năm (HKII): Tuần 35 (Buổi 69 – 70)
+1. Sách giáo khoa: Tiếng Việt 2 — bộ Kết nối tri thức với cuộc sống.
+2. Bám sát chương trình: Môn Tiếng Việt lớp 2 của Bộ Giáo dục và Đào tạo: đi đúng thứ tự các bài theo chủ điểm chung, không bỏ sót bài nào, khớp tiến độ học trên lớp.
+3. Cấu trúc: 35 tuần - 35 buổi; cơ bản: 30 buổi, nâng cao - mở rộng: 5 buổi (Học kỳ I: 17 tuần, buổi 1–17; Học kỳ II: 18 tuần, buổi 18–35).
+4. Nhịp học: 1 buổi/tuần, mỗi buổi 120 phút. Dạy theo đơn vị kiến thức của chủ điểm, mỗi buổi đều có tổ hợp các kĩ năng: Đọc hiểu - LTVC - Nghe và nói - Viết.
+5. Các mốc ôn tập & kiểm tra: Ôn tập giữa HKI (tuần 8 – buổi 8) · Ôn tập cuối HKI (tuần 17 – buổi 17) · Ôn tập giữa HKII (tuần 25 – buổi 25) · Kiểm tra cuối năm (tuần 35 – buổi 35)
 
-Buổi 1 (Tuần 1 - Buổi A)
-Chủ đề: Mùa hè lấp lánh
-● Đọc thơ Mùa hè lấp lánh (Quỳnh
-Mai)
-● LTVC Từ chỉ sự vật
-● Viết đoạn văn ngắn về mùa hè.
+## THẾ GIỚI DIỆU KỲ & SỐNG TỬ TẾ
+Buổi 1 (Tuần 1)
+Chủ đề: Thế giới diệu kỳ
+● Đọc: Trích đoạn *Người đẹp và Quái vật* (Bella)
+● LTVC: Từ chỉ hoạt động, từ chỉ đặc điểm
+● Nghe - nói: Chào hỏi, tự giới thiệu bản thân
+● Viết: Tập chép, điền âm đầu s/x
 
-Buổi 2 (Tuần 1 - Buổi B)
-Chủ đề: Quê hương tuổi thơ
-● Đọc thơ Về quê (Mai Quyên)
-● Rèn kỹ năng viết đoạn văn giới
-thiệu về quê hương em.
-
-Buổi 3 (Tuần 2 - Buổi A)
+Buổi 5 (Tuần 5)
 Chuyên đề 1:
-Luyện tập chuyên sâu đọc hiểu văn bản
-nghệ thuật ngoài SGK (Truyện/Thơ).
+● Đọc hiểu văn bản ngoài SGK (chủ đề tình cảm gia đình/anh em)
+● Rèn kỹ năng tìm từ ngữ chỉ đặc điểm tính cách nhân vật
 
-Buổi 4 (Tuần 2 - Buổi B)
-ÔN TẬP GIỮA HỌC KỲ I: Hệ thống hóa
-kiến thức đọc hiểu văn bản truyện/thơ.
+## THIÊN NHIÊN & Ý CHÍ PHẤN ĐẤU
+Buổi 8 (Tuần 8)
+ÔN TẬP GIỮA HỌC KỲ I:
+● Nhận biết và hệ thống hóa kiến thức trọng tâm nửa đầu học kỳ I.
+→ Kiểm tra / Đánh giá giữa HKI
 
-Hệ thống hóa kiến
-thức giữa HKI
+## ! LUYỆN TẬP & ÔN TẬP CUỐI HỌC KỲ I
+Buổi 17 (Tuần 17)
+ÔN TẬP CUỐI HỌC KỲ I:
+● Nhận biết và tổng ôn toàn bộ kiến thức Học kỳ I.
+→ Kiểm tra / Đánh giá cuối HKI
 
-Buổi 5 (Tuần 3 - Buổi A)
-KIỂM TRA CUỐI HỌC KỲ I:
-Làm bài kiểm tra tổng hợp HKI và nhận
-xét đánh giá.
+# HỌC KỲ II
+## BẠN BÈ & NHỮNG NGƯỜI THÂN YÊU
+Buổi 18 (Tuần 18)
+Chủ đề: …`;
+const SY_SAMPLE = `@mon: Tiếng Việt
+@lop: 2
+@kynang: Đọc hiểu – LTVC – Nghe nói – Viết
 
-Kiểm tra / Đánh giá
-Cuối HKI
+Thông tin chương trình:
+1. Sách giáo khoa: Tiếng Việt 2 — bộ Kết nối tri thức với cuộc sống.
+2. Bám sát chương trình: Môn Tiếng Việt lớp 2 của Bộ Giáo dục và Đào tạo: đi đúng thứ tự các bài theo chủ điểm chung, không bỏ sót bài nào, khớp tiến độ học trên lớp.
+3. Cấu trúc: 35 tuần - 35 buổi; cơ bản: 30 buổi, nâng cao - mở rộng: 5 buổi (Học kỳ I: 17 tuần, buổi 1–17; Học kỳ II: 18 tuần, buổi 18–35).
+4. Nhịp học: 1 buổi/tuần, mỗi buổi 120 phút. Dạy theo đơn vị kiến thức của chủ điểm, mỗi buổi đều có tổ hợp các kĩ năng: Đọc hiểu - LTVC - Nghe và nói - Viết.
+5. Các mốc ôn tập & kiểm tra: Ôn tập giữa HKI (tuần 8 – buổi 8) · Ôn tập cuối HKI (tuần 17 – buổi 17) · Ôn tập giữa HKII (tuần 25 – buổi 25) · Kiểm tra cuối năm (tuần 35 – buổi 35)
 
-Buổi 6 (Tuần 3 - Buổi B)
-Chủ đề: Âm thanh cuộc sống (Con
-đường đến trường)
-● Đọc văn bản Con đường đến trường
-(Đỗ Đăng Dương)
-● LTVC Từ chỉ âm thanh.`;
+## THẾ GIỚI DIỆU KỲ & SỐNG TỬ TẾ
+Buổi 1 (Tuần 1)
+Chủ đề: Thế giới diệu kỳ
+● Đọc: Trích đoạn *Người đẹp và Quái vật* (Bella)
+● LTVC: Từ chỉ hoạt động, từ chỉ đặc điểm
+● Nghe - nói: Chào hỏi, tự giới thiệu bản thân
+● Viết: Tập chép, điền âm đầu s/x
+
+Buổi 2 (Tuần 2)
+Chủ đề: Sống tử tế
+● Đọc: Văn bản *Tử tế*
+● LTVC: Từ ngữ chỉ tình cảm, thái độ và hành động sẻ chia
+● Viết: Tập chép đoạn văn mẫu rèn nét chữ
+
+Buổi 3 (Tuần 3)
+Chuyên đề 1:
+● Đọc hiểu văn bản ngoài SGK (chủ đề tình cảm gia đình/anh em)
+● Viết đoạn văn cảm nhận
+
+## THIÊN NHIÊN & Ý CHÍ PHẤN ĐẤU
+Buổi 4 (Tuần 4)
+Chủ đề: Bình minh trong vườn
+● Đọc: *Bình minh trong vườn* (Trần Thu Hà)
+● LTVC: Phân biệt r/d/gi, tr/ch, ng/ngh
+● Viết: Tập chép đoạn văn miêu tả thiên nhiên
+
+## ! LUYỆN TẬP & ÔN TẬP CUỐI HỌC KỲ I
+Buổi 5 (Tuần 5)
+ÔN TẬP CUỐI HỌC KỲ I:
+● Nhận biết và tổng ôn toàn bộ kiến thức Học kỳ I.
+→ Kiểm tra / Đánh giá cuối HKI
+
+# HỌC KỲ II
+## BẠN BÈ & NGƯỜI THÂN
+Buổi 6 (Tuần 6)
+Chủ đề: Yêu kính ông bà
+● Đọc: *Cánh cửa nhớ bà*, *Vầng trăng của ngoại*
+● LTVC: Phân biệt s/x, tr/ch; nhận diện kiểu câu
+● Viết: Tập chép thơ biểu cảm về tình cảm gia đình
+
+## ! LUYỆN TẬP & ÔN TẬP HỌC KỲ II
+Buổi 7 (Tuần 7)
+Chủ đề: Ôn tập tổng hợp cuối năm
+● Nhận biết và luyện đề đọc hiểu nâng cao.
+→ Tổng ôn Đọc hiểu
+
+Buổi 8 (Tuần 8)
+KIỂM TRA CUỐI NĂM & TỔNG KẾT:
+● Đánh giá năng lực học sinh cuối năm theo chuẩn Bộ GD&ĐT.
+→ Kiểm tra / Đánh giá cuối năm`;
 </script>
 <style>
+/* tiêu đề bìa: đúng font của mẫu (Helvetica Neue Condensed Black — có sẵn trên Mac); máy khác: Barlow Condensed 800 (đủ dấu tiếng Việt) */
+@font-face{ font-family:SyCond; src:local("HelveticaNeue-CondensedBlack"), local("Helvetica Neue Condensed Black"); }
 .view.sy-view{ padding:0; gap:0; overflow:hidden }
 .sy-tabs b{ display:flex; align-items:center; gap:8px; font-size:13px } .sy-tabs b i{ color:#ED5814 }
+.sy-lay .cp-how{ cursor:pointer }
 .sy-pages{ --sy-s:1; align-items:center }
 .sy-pw{ width:calc(210mm * var(--sy-s)); height:calc(297mm * var(--sy-s)); flex:0 0 auto; position:relative }
 .sy-pw > .sy-page{ transform:scale(var(--sy-s)); transform-origin:0 0; position:absolute; left:0; top:0 }
-.sy-empty{ max-width:420px; margin:40px auto; text-align:center } .sy-empty span{ display:block; font-size:13px; color:var(--muted); line-height:1.55; margin-top:6px }
+.sy-empty{ max-width:440px; margin:40px auto; text-align:center } .sy-empty span{ display:block; font-size:13px; color:var(--muted); line-height:1.55; margin-top:6px }
 .sy-how ul{ padding-left:18px; line-height:1.6 } .sy-how pre{ background:var(--surface-3); padding:10px 12px; border-radius:8px; font-size:12px; overflow:auto }
-/* ── trang A4 (cả xem trước lẫn in) ── */
-.sy-page{ width:210mm; height:297mm; position:relative; overflow:hidden; background:#fff; color:#1D2420; box-shadow:0 2px 14px rgba(15,23,42,.14);
-  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif; font-size:10.5pt; line-height:1.4; -webkit-print-color-adjust:exact; print-color-adjust:exact }
+/* ── trang A4 (cả xem trước lẫn in) — số đo lấy từ mẫu Lớp 2NT_Syllabus ── */
+.sy-page{ width:210mm; height:297mm; position:relative; overflow:hidden; background:#fff; color:#222; box-shadow:0 2px 14px rgba(15,23,42,.14);
+  font-family:Helvetica, "Helvetica Neue", Arial, sans-serif; font-size:10.4pt; line-height:1.45; -webkit-print-color-adjust:exact; print-color-adjust:exact; text-align:left }
 .sy-page *{ box-sizing:border-box }
-.sy-hd{ position:absolute; left:14mm; right:14mm; top:8mm; height:12mm; display:flex; align-items:center; justify-content:space-between }
-.sy-hd img{ height:11mm; width:auto }
-.sy-pill{ background:#036528; color:#fff; font-weight:700; font-size:9.5pt; letter-spacing:.02em; padding:5px 14px; border-radius:7px }
-.sy-hd::after{ content:''; position:absolute; left:0; right:0; bottom:-3mm; border-bottom:.8pt solid #C9D3CC }
-.sy-hd::before{ content:''; position:absolute; left:0; width:22mm; bottom:-3.2mm; border-bottom:1.6pt solid #ED5814; z-index:1 }
-.sy-bd{ position:absolute; left:14mm; right:14mm; top:27mm; bottom:17mm; overflow:hidden; display:flex; flex-direction:column }
-.sy-ft{ position:absolute; left:14mm; right:14mm; bottom:7mm; height:7mm; display:flex; align-items:center; justify-content:space-between; font-size:8.5pt; border-top:.6pt solid #C9D3CC; padding-top:2mm }
-.sy-ft b{ color:#036528; letter-spacing:.04em } .sy-ft i{ color:#ED5814 }
-.sy-pn{ width:6mm; height:6mm; border-radius:50%; background:#036528; color:#fff; font-weight:700; display:grid; place-items:center; font-size:8pt }
-.sy-ban{ background:#036528; color:#fff; font-weight:800; font-size:14pt; text-align:center; padding:3.6mm 6mm; border-radius:3mm; letter-spacing:.01em; margin-bottom:4mm; white-space:nowrap }
-.sy-kpi{ display:grid; grid-template-columns:repeat(4, 1fr); gap:3mm; margin-bottom:1mm }
-.sy-kpi > div{ display:grid; grid-template-columns:auto 1fr; column-gap:3mm; align-items:center; border:.6pt solid #C9D3CC; border-radius:3mm; padding:3mm 3.5mm }
-.sy-ki{ grid-row:span 2; width:9mm; height:9mm; border-radius:50%; background:#E6F0E9; color:#036528; display:grid; place-items:center; font-size:12pt }
-.sy-kpi b{ font-size:20pt; line-height:1; color:#036528; font-weight:300 } .sy-kpi small{ font-size:6.8pt; color:#6A726C; letter-spacing:.04em; white-space:nowrap }
-.sy-h{ display:flex; align-items:center; gap:2.5mm; margin:4mm 0 2.5mm; padding-bottom:1.6mm; border-bottom:.8pt solid #C9D3CC }
-.sy-hi{ width:6.5mm; height:6.5mm; border-radius:1.6mm; background:#ED5814; color:#fff; display:grid; place-items:center; font-size:9.5pt; flex:0 0 auto }
-.sy-h b{ font-size:12.5pt; color:#0B4D23; font-weight:800; white-space:nowrap } .sy-h small{ margin-left:auto; font-size:8.5pt; color:#6A726C; white-space:nowrap }
-.sy-info{ border:.6pt solid #C9D3CC; border-radius:3mm; padding:2.6mm 4mm; display:flex; flex-direction:column; gap:1.5mm }
-.sy-info > div{ display:flex; gap:2.5mm; font-size:9.3pt; line-height:1.45 } .sy-info i{ color:#036528; font-size:10pt; margin-top:.4mm } .sy-info b{ font-weight:700 }
-.sy-bar{ display:flex; height:7mm; border-radius:1.6mm; overflow:hidden; font-size:7.5pt; font-weight:700; color:#fff }
-.sy-bar span{ display:flex; align-items:center; padding:0 3mm; background:#036528; white-space:nowrap } .sy-bar span + span{ background:#ED5814; justify-content:flex-end }
-.sy-bd > *{ flex:0 0 auto }
-.sy-path{ position:relative; width:100%; aspect-ratio:680 / 190; margin:0 0 1mm } .sy-path svg{ width:100%; height:100%; display:block }
-.sy-pm{ position:absolute; width:7.5mm; height:7.5mm; margin:-3.75mm 0 0 -3.75mm; border-radius:50%; background:#fff; border:1.4pt solid var(--c); color:var(--c); display:grid; place-items:center; font-size:9pt }
-.sy-pm.f{ width:9.5mm; height:9.5mm; margin:-4.75mm 0 0 -4.75mm; background:var(--c); color:#fff; font-size:11pt }
-.sy-pl{ position:absolute; transform:translateX(var(--ax, -50%)); text-align:center; white-space:nowrap; line-height:1.25 } .sy-pl.up{ margin-top:-15mm } .sy-pl.dn{ margin-top:7mm }
-.sy-pl b{ display:block; font-size:8.5pt; font-weight:700 } .sy-pl small{ font-size:7.5pt; color:#6A726C }
-.sy-pk{ position:absolute; bottom:0; transform:translateX(-50%); font-size:7pt; font-weight:800; letter-spacing:.08em; background:#fff; padding:0 2mm }
-.sy-mt{ font-size:9pt } .sy-mth, .sy-mtr{ display:grid; grid-template-columns:1fr 22mm 26mm; gap:2mm; padding:1.6mm 3mm }
-.sy-mth{ background:#036528; color:#fff; font-weight:700; border-radius:1.6mm; font-size:8pt; letter-spacing:.03em } .sy-mtr{ border-bottom:.6pt solid #C9D3CC } .sy-mtr i{ margin-right:2mm }
-.sy-lg{ display:flex; flex-wrap:wrap; gap:2mm 6mm; font-size:8pt; color:#6A726C; margin:-1mm 0 2.5mm } .sy-lg span{ display:inline-flex; align-items:center; gap:1.6mm } .sy-lg i{ font-size:7pt }
-.sy-th{ display:grid; grid-template-columns:16mm 1fr 52mm; background:#036528; color:#fff; font-weight:700; font-size:7.8pt; letter-spacing:.03em; border-radius:1.8mm; overflow:hidden; flex:0 0 auto }
-.sy-th span{ padding:2.4mm 3mm; display:flex; align-items:center } .sy-th span:first-child{ justify-content:center } .sy-th span:last-child{ background:#ED5814 }
-.sy-r{ display:grid; grid-template-columns:16mm 1fr 52mm; border-bottom:.6pt solid #C9D3CC; flex:0 0 auto; break-inside:avoid }
-.sy-c1{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.5mm 1mm; text-align:center }
-.sy-c1 b{ font-size:14pt; line-height:1; color:#036528; font-weight:700 } .sy-c1 small{ font-size:7pt; color:#6A726C; margin-top:1mm; white-space:nowrap }
-.sy-c2{ padding:1.5mm 3mm } .sy-c3{ padding:1.5mm 3mm; background:#FDF1EA; font-size:9pt }
-.sy-tt{ font-weight:700; color:#0B4D23; font-size:10pt; margin-bottom:.3mm; display:flex; gap:1.6mm; align-items:baseline } .sy-tt i{ font-size:9pt }
-.sy-c2 ul{ margin:0; padding:0; list-style:none } .sy-c2 li{ position:relative; padding-left:4mm; font-size:9.3pt; line-height:1.38; text-wrap:pretty }
-.sy-c2 li::before{ content:''; position:absolute; left:.6mm; top:1.75mm; width:1.6mm; height:1.6mm; border-radius:50%; background:#036528 }
-.sy-r.k-review .sy-c2, .sy-r.k-test .sy-c2, .sy-r.k-final .sy-c2, .sy-r.k-mock .sy-c2{ background:#FBF0F0 }
-.sy-r.k-final .sy-tt{ color:#C1272D }
-.sy-cd{ display:inline-block; background:#ED5814; color:#fff; font-weight:700; font-size:6.8pt; letter-spacing:.05em; padding:.6mm 2mm; border-radius:1mm; font-style:normal }
-.sy-c3 p{ margin:1mm 0 0; line-height:1.38; text-wrap:pretty } .sy-n3{ display:flex; gap:1.6mm } .sy-c3 .sy-cd + p{ margin-top:1.2mm }
-.sy-end{ position:relative; height:9mm; margin:3mm 0 1mm; flex:0 0 auto } .sy-end::before{ content:''; position:absolute; left:0; right:0; top:50%; border-top:1.2pt solid #036528 }
-.sy-end span{ position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); width:8mm; height:8mm; border-radius:50%; background:#fff; border:1.2pt solid #036528; color:#036528; display:grid; place-items:center; font-size:10pt }
+.sy-page .fas{ font-family:"Font Awesome 5 Free"; font-weight:900; font-style:normal }
+.sy-hd{ position:absolute; left:14.5mm; right:14.5mm; top:4.5mm; height:10.5mm; display:flex; align-items:center; justify-content:space-between }
+.sy-hd img{ height:10mm; width:auto }
+.sy-pill{ background:#036528; color:#fff; font-weight:700; font-size:11pt; padding:1.6mm 4.2mm; border-radius:2.2mm; line-height:1.2 }
+.sy-hd::after{ content:''; position:absolute; left:18mm; right:0; bottom:-1.6mm; border-bottom:1.3pt solid #D5DCD7 }
+.sy-hd::before{ content:''; position:absolute; left:0; width:18mm; bottom:-1.7mm; border-bottom:1.6pt solid #ED5814 }
+.sy-bd{ position:absolute; left:14.5mm; right:14.5mm; top:20mm; bottom:14mm; overflow:hidden; display:flex; flex-direction:column }
+.sy-bd > *{ flex:0 0 auto } .sy-bd > .sy-h:first-child{ margin-top:3mm }
+.sy-ft{ position:absolute; left:14.5mm; right:14.5mm; bottom:3.6mm; height:8mm; display:flex; align-items:center; justify-content:space-between; font-size:9pt; border-top:.7pt solid #DADFDB; padding-top:1.4mm }
+.sy-ft b{ color:#036528 } .sy-ft i{ color:#ED5814 }
+.sy-pn{ width:5.4mm; height:5.4mm; border-radius:50%; background:#036528; color:#fff; font-weight:700; display:grid; place-items:center; font-size:8.5pt }
+.sy-ban{ position:relative; background:#036528; color:#fff; font-weight:700; font-size:15pt; text-align:center; height:16.5mm; display:flex; align-items:center; justify-content:center; border-radius:2mm; overflow:hidden; white-space:nowrap; margin-bottom:11.5mm }
+.sy-ban::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:2.6mm; background:#ED5814 }
+.sy-kpi{ display:grid; grid-template-columns:repeat(4, 1fr); gap:3mm; margin-bottom:6mm }
+.sy-kpi > div{ display:grid; grid-template-columns:auto 1fr; column-gap:3mm; align-items:center; border:.7pt solid #E1E5E2; border-radius:2mm; padding:2.6mm 3.4mm; height:15.6mm }
+.sy-ki{ grid-row:span 2; width:9mm; height:9mm; border-radius:50%; background:#E3EFE6; color:#036528; display:grid; place-items:center; font-size:10.5pt }
+.sy-kpi .o .sy-ki{ background:#FCE5D8; color:#ED5814 } .sy-kpi .o b{ color:#ED5814 }
+.sy-kpi b{ font-size:21pt; line-height:1; color:#036528; font-weight:300; align-self:end } .sy-kpi small{ font-size:7pt; color:#555; letter-spacing:.02em; white-space:nowrap; align-self:start; margin-top:.6mm }
+.sy-h{ position:relative; display:flex; align-items:center; gap:3mm; margin:9mm 0 4mm; padding-bottom:3mm; border-bottom:.8pt solid #D5DCD7 }
+.sy-h::after{ content:''; position:absolute; left:0; bottom:-1.3pt; width:14mm; border-bottom:1.8pt solid #ED5814 }
+.sy-hi{ width:6.2mm; height:6.2mm; border-radius:1.4mm; background:#ED5814; color:#fff; display:grid; place-items:center; font-size:8.5pt; flex:0 0 auto }
+.sy-h b{ font-size:14pt; color:#222; font-weight:700; white-space:nowrap } .sy-h small{ margin-left:auto; font-size:9pt; color:#6A726C; white-space:nowrap }
+.sy-info{ border:.7pt solid #E1E5E2; border-radius:2mm; padding:4mm 5mm; display:flex; flex-direction:column; gap:1.6mm }
+.sy-info > div{ display:flex; gap:3mm; font-size:10.4pt; line-height:1.6 } .sy-info b{ font-weight:700 }
+.sy-ii{ flex:0 0 auto; width:5.4mm; height:5.4mm; margin-top:.4mm; border-radius:50%; background:#E3EFE6; color:#036528; display:grid; place-items:center; font-size:6.8pt }
+.sy-bar{ display:flex; gap:1mm; height:7mm; font-size:8pt; font-weight:700; color:#fff }
+.sy-bar span{ display:flex; align-items:center; padding:0 4.5mm; background:#036528; white-space:nowrap; border-radius:1.4mm 0 0 1.4mm } .sy-bar span + span{ background:#ED5814; justify-content:flex-end; padding:0 1.2mm; border-radius:0 1.4mm 1.4mm 0 }
+.sy-bar span:only-child{ border-radius:1.4mm }
+.sy-path{ position:relative; width:100%; aspect-ratio:780 / 232; margin:4mm 0 0 } .sy-path svg{ width:100%; height:100%; display:block; overflow:visible }
+.sy-path text{ font-family:Helvetica, Arial, sans-serif }
+.sy-pm{ position:absolute; width:8.6mm; height:8.6mm; margin:-4.3mm 0 0 -4.3mm; border-radius:50%; background:#fff; border:1.6pt solid var(--c); color:var(--c); display:grid; place-items:center; font-size:8.5pt }
+.sy-pm.f{ width:9.6mm; height:9.6mm; margin:-4.8mm 0 0 -4.8mm; background:var(--c); color:#fff; font-size:10pt; border:0 }
+.sy-pl{ position:absolute; transform:translateX(var(--ax, -50%)); text-align:center; white-space:nowrap; line-height:1.35 } .sy-pl.up{ margin-top:-16mm } .sy-pl.dn{ margin-top:6.6mm }
+.sy-pl b{ display:block; font-size:10.4pt; font-weight:700; color:#333 } .sy-pl small{ font-size:8.4pt; color:#6A726C } .sy-pl small span{ margin:0 1.6mm }
+.sy-lg{ display:flex; justify-content:space-between; gap:2mm 5mm; font-size:9pt; color:#555; margin:-1mm 0 2.6mm } .sy-lg span{ display:inline-flex; align-items:center; gap:2mm }
+.sy-dot{ width:3mm; height:3mm; border-radius:50%; background:#036528; display:inline-block }
+.sy-th{ display:grid; grid-template-columns:17mm 1fr 65mm; background:#036528; color:#fff; font-weight:700; font-size:8.4pt; letter-spacing:.02em; border-radius:2.4mm; overflow:hidden; height:7.8mm }
+.sy-th span{ padding:0 2.6mm; display:flex; align-items:center } .sy-th span:first-child{ justify-content:center } .sy-th span:last-child{ background:#ED5814; padding-left:1.8mm }
+.sy-band{ display:flex; align-items:center; gap:2.6mm; margin:3.6mm 0 1.4mm; padding:0 0 2mm; border-bottom:1.2pt solid #036528 }
+.sy-bi{ width:7mm; height:7mm; border-radius:50%; background:#E3EFE6; color:#036528; display:grid; place-items:center; font-size:8.5pt; flex:0 0 auto }
+.sy-band em{ font-style:normal; font-weight:300; color:#ED5814; font-size:17pt; line-height:1 } .sy-band b{ color:#036528; font-size:12.6pt; font-weight:700; white-space:nowrap }
+.sy-band small{ margin-left:auto; font-size:9pt; color:#6A726C; white-space:nowrap }
+.sy-band.rev{ border-bottom-color:#C1272D } .sy-band.rev .sy-bi{ background:#F9E1E1; color:#C1272D } .sy-band.rev b{ color:#C1272D }
+.sy-r{ display:grid; grid-template-columns:17mm 1fr 65mm; border-bottom:.7pt solid #D9DED9; break-inside:avoid }
+.sy-c1{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.6mm 1mm; text-align:center }
+.sy-c1 b{ font-size:14.5pt; line-height:1.1; color:#036528; font-weight:700 } .sy-c1 small{ font-size:8.4pt; color:#6A726C; margin-top:1.2mm; white-space:nowrap }
+.sy-r.k-adv .sy-c1 b{ color:#ED5814 }
+.sy-c2{ padding:1.6mm 2mm 1.8mm } .sy-c3{ padding:1.6mm 0 1.8mm 1.8mm; background:#FDF1E7; font-size:10pt; display:flex; flex-direction:column; justify-content:center }
+.sy-r.k-adv .sy-c3{ justify-content:flex-start }
+.sy-tt{ font-weight:700; color:#0B4D23; font-size:10.3pt; margin-bottom:.6mm; display:flex; gap:2mm; align-items:baseline } .sy-tt i{ font-size:9.5pt }
+.sy-c2 ul, .sy-c3 ul{ margin:0; padding:0; list-style:none } .sy-c2 li, .sy-c3 li{ position:relative; padding-left:3.8mm; font-size:10pt; line-height:1.42 }
+.sy-c2 li::before, .sy-c3 li::before{ content:''; position:absolute; left:0; top:1.5mm; width:2.2mm; height:2.2mm; border-radius:50%; background:#036528 }
+.sy-c3 li::before{ background:#ED5814 }
+.sy-r.hot .sy-c2, .sy-r.hot .sy-c3{ background:#FBEBEB } .sy-r.hot .sy-tt{ color:#C1272D } .sy-r.hot .sy-c2 ul{ padding-left:5.6mm } .sy-r.hot .sy-c2 li::before{ background:#C1272D }
+.sy-cd{ display:inline-block; align-self:flex-start; background:#ED5814; color:#fff; font-weight:700; font-size:7.6pt; letter-spacing:.04em; padding:.5mm 1.8mm; border-radius:1mm; font-style:normal; margin-bottom:1mm }
+.sy-lg .sy-cd{ margin:0; font-size:6.8pt; padding:.3mm 1.2mm }
+.sy-n3{ display:flex; gap:2.4mm; align-items:baseline; margin:0; line-height:1.4 } .sy-n3 i{ font-size:9.5pt } .sy-c3 ul + .sy-n3{ margin-top:1mm }
+.sy-end{ position:relative; height:9mm; margin:6mm 0 1mm } .sy-end::before{ content:''; position:absolute; left:0; right:0; top:50%; border-top:1.3pt solid #036528 }
+.sy-end span{ position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); width:7.6mm; height:7.6mm; border-radius:50%; background:#fff; border:1.3pt solid #036528; color:#036528; display:grid; place-items:center; font-size:9pt }
 /* ── bìa ── */
-.sy-cover{ background:#FFF6F0 }
+.sy-cover{ background:#FEF6F1 }
 .sy-cv-art{ position:absolute; inset:0; width:100%; height:100% }
-.sy-cv-logo{ position:absolute; left:15mm; top:12mm; height:20mm; width:auto }
-.sy-cv-t{ position:absolute; left:15mm; top:46mm; right:15mm }
-.sy-cv-k{ display:flex; align-items:center; gap:3mm; color:#ED5814; font-weight:700; font-size:11pt; letter-spacing:.32em } .sy-cv-k::before{ content:''; width:10mm; border-top:1.4pt solid #ED5814 }
-.sy-cv-m{ font-family:"Helvetica Neue Condensed", "HelveticaNeue-CondensedBlack", "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-stretch:condensed; font-weight:900; font-size:76pt; line-height:1; color:#0B4D23; margin-top:5mm; white-space:nowrap; width:max-content; letter-spacing:-.01em }
-.sy-cv-l{ display:flex; align-items:center; gap:4mm; margin-top:4mm; font-family:inherit }
-.sy-cv-hl{ font-family:"Helvetica Neue Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-stretch:condensed; font-weight:900; font-size:46pt; line-height:1; color:#ED5814; padding:0 2mm; background:linear-gradient(transparent 52%, #FCE1D3 52%) }
-.sy-cv-n{ width:19mm; height:19mm; border-radius:50%; background:#ED5814; color:#fff; display:grid; place-items:center; font-weight:900; font-size:36pt; line-height:1 }
-.sy-cv-nc{ font-family:"Helvetica Neue Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif; font-stretch:condensed; font-weight:900; font-size:30pt; color:#ED5814; padding:0 2mm; background:linear-gradient(transparent 55%, #FCE1D3 55%) }
-.sy-cv-p{ margin:7mm 0 0; max-width:122mm; text-wrap:pretty; font-size:11pt; line-height:1.55; color:#3E4A43 }
-.sy-cv-chips{ display:flex; flex-wrap:wrap; gap:2.5mm; margin-top:4mm } .sy-cv-chips span{ display:inline-flex; align-items:center; gap:1.6mm; background:#fff; border-radius:999px; padding:1.4mm 3.4mm; font-size:8.5pt; color:#3E4A43; box-shadow:0 1px 3px rgba(0,0,0,.08) }
-.sy-cv-chips i{ color:#036528 } .sy-cv-chips b{ color:#1D2420 }
-.sy-cv-pin{ position:absolute; width:var(--d); height:var(--d); margin:calc(var(--d) / -2) 0 0 calc(var(--d) / -2); border-radius:50%; background:var(--c); color:#fff; display:grid; place-items:center; font-size:calc(var(--d) * .42); box-shadow:0 0 0 2.5pt #fff, 0 3px 8px rgba(0,0,0,.18) }
-.sy-cv-pin em{ position:absolute; top:50%; transform:translateY(-50%); font-style:normal; font-weight:800; font-size:7.5pt; letter-spacing:.06em; white-space:nowrap; background:#fff; padding:.6mm 2mm; border-radius:1mm }
-.sy-cv-pin em.l{ right:calc(100% + 3mm) } .sy-cv-pin em.r{ left:calc(100% + 3mm) }
-.sy-cv-ft{ position:absolute; left:0; right:0; bottom:0; height:9mm; display:flex; align-items:center; justify-content:center; gap:10mm; color:#fff; font-size:8.5pt } .sy-cv-ft b{ letter-spacing:.06em }
+.sy-cv-logo{ position:absolute; left:15mm; top:12.5mm; height:25mm; width:auto }
+.sy-cv-k{ position:absolute; left:15.5mm; top:43.6mm; display:flex; align-items:center; gap:5mm; color:#ED5814; font-weight:700; font-size:13pt; letter-spacing:.14em; line-height:1 } .sy-cv-k::before{ content:''; width:9.5mm; border-top:1.8pt solid #ED5814 }
+.sy-cv-m{ position:absolute; left:14.5mm; top:55mm; font-family:SyCond, "Barlow Condensed", "Arial Narrow", sans-serif; font-weight:900; font-size:92pt; line-height:1; color:#0B4D23; white-space:nowrap; letter-spacing:0 }
+.sy-cv-l{ position:absolute; left:14.5mm; top:89mm; display:flex; align-items:center; gap:3.5mm }
+.sy-cv-hl{ font-family:SyCond, "Barlow Condensed", "Arial Narrow", sans-serif; font-weight:900; font-size:62pt; line-height:1; color:#ED5814; padding:1mm 3mm 0 2.5mm; background:linear-gradient(transparent 58%, #FBDDD0 58%, #FBDDD0 100%) }
+.sy-cv-nc{ font-size:44pt }
+.sy-cv-n{ position:relative; width:24mm; height:24mm; border-radius:50%; background:#ED5814; color:#fff; display:grid; place-items:center; font-family:Helvetica, Arial, sans-serif; font-weight:700; font-size:50pt; line-height:1; box-shadow:1.4mm 1mm 0 #F7C4AC }
+.sy-cv-p{ position:absolute; left:17mm; top:121mm; width:116mm; margin:0; font-size:11.6pt; line-height:1.62; color:#444; text-wrap:pretty }
+.sy-cv-chips{ position:absolute; left:16mm; top:138mm; display:flex; gap:5mm }
+.sy-cv-chips span{ display:inline-flex; align-items:center; gap:1.8mm; background:#fff; border-radius:999px; padding:1.5mm 3.6mm; font-size:9.6pt; color:#333; box-shadow:0 .6mm 2mm rgba(0,0,0,.08) } .sy-cv-chips b{ color:#222 } .sy-cv-chips i{ font-size:9pt }
+.sy-cv-pin{ position:absolute; width:var(--d); height:var(--d); margin:calc(var(--d) / -2) 0 0 calc(var(--d) / -2); border-radius:50%; background:var(--c); color:#fff; display:grid; place-items:center; font-size:calc(var(--d) * .42); box-shadow:0 0 0 1.1mm #fff, 0 1mm 2.5mm rgba(0,0,0,.18) }
+.sy-cv-pin em{ position:absolute; top:50%; transform:translateY(-50%); font-style:normal; font-weight:700; font-size:8pt; letter-spacing:.08em; white-space:nowrap; background:#fff; padding:1mm 2mm; border-radius:1mm; box-shadow:0 .4mm 1.6mm rgba(0,0,0,.1); line-height:1 }
+.sy-cv-pin em.l{ right:calc(100% + 4mm) } .sy-cv-pin em.r{ left:calc(100% + 4mm) }
+.sy-cv-ft{ position:absolute; left:0; right:0; bottom:0; height:10.2mm; display:flex; align-items:center; justify-content:center; gap:4mm; color:#fff; font-size:9.6pt } .sy-cv-ft span{ opacity:.7 }
 #syPrint{ display:none }
 @media print{ #syPrint{ display:block } #syPrint .sy-page{ transform:none !important } }
 </style>
