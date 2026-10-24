@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T14:54:33.123Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T15:10:33.877Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4986,6 +4986,7 @@ async function libHideSet(key, on) {
 async function libHideAsk(scope) {
   const isSrc = !!IX.src[scope], d = IX.dirs[scope], key = isSrc ? rootKey(scope) : scope, name = isSrc ? IX.src[scope].name : d ? d.name : '';
   if (!name) return;
+  if (S.me.preview) return toast('Đang xem thử vai trò — ẩn thư mục là thiết lập riêng của từng người: ' + (S.me.preview.label || 'người đó') + ' tự bấm Ẩn trên tài khoản của mình.', 'info', 6000);      // (1.39.1) xem thử không lưu
   if (!await ask('Ẩn “' + name + '” khỏi Thư viện của bạn?\n\n' + fmtN(IX.sub[scopeKey(scope)] || 0) + ' tài liệu bên trong sẽ không hiện ở Tổng quan, Thư viện, tìm kiếm và Mới cập nhật của bạn. Người khác không bị ảnh hưởng — hiện lại lúc nào cũng được (nút con mắt ở khung Thư mục).',
     { title: 'Ẩn thư mục', icon: 'bi-eye-slash', ok: 'Ẩn' })) return;
   try {
@@ -6930,7 +6931,7 @@ async function viewLibrary(arg, v) {
     const title = parts[parts.length - 1].t;
     const tb = topBtns(v, LIB.scope ? '<button class="btn sm" id="lbCopy" title="Lấy đường dẫn của thư mục này để gửi cho người khác"><i class="bi bi-share"></i><span class="bl">Chia sẻ</span><i class="bi bi-chevron-down cv"></i></button>' +
       (driveFolderOf(LIB.scope) && can('download') ? '<a class="btn sm" target="_blank" href="' + folderUrl(driveFolderOf(LIB.scope)) + '" title="Mở thư mục này trên Google Drive"><i class="bi bi-google"></i><span class="bl">Mở Drive</span></a>' : '') : '');
-    if (tb && LIB.scope && !S.me.preview) { tb.insertAdjacentHTML('beforeend', '<button class="btn sm" id="lbHide" title="Ẩn thư mục này khỏi Thư viện của bạn — người khác không bị ảnh hưởng"><i class="bi bi-eye-slash"></i><span class="bl">Ẩn</span></button>'); $('#lbHide', tb).onclick = () => libHideAsk(LIB.scope); }
+    if (tb && LIB.scope) { tb.insertAdjacentHTML('beforeend', '<button class="btn sm" id="lbHide" title="Ẩn thư mục này khỏi Thư viện của bạn — người khác không bị ảnh hưởng"><i class="bi bi-eye-slash"></i><span class="bl">Ẩn</span></button>'); $('#lbHide', tb).onclick = () => libHideAsk(LIB.scope); }
     const cb = tb && $('#lbCopy', tb); if (cb) cb.onclick = () => folderMenu(cb, LIB.scope);
     setTitle(LIB.scope ? title : 'Thư viện', LIB.scope ? (IX.src[LIB.scope] ? 'bi-hdd-network' : 'bi-folder2-open') : 'bi-collection',
       [{ t: S.boot.app || 'Kiến Chuyên môn', r: 'home' }].concat(LIB.scope ? [{ t: 'Thư viện', r: 'library' }] : []), v);
@@ -7062,7 +7063,9 @@ function folderMenu(anchor, scope, pt) {
     { t: 'Sao chép link Google Drive', d: 'Người nhận cần có quyền trên Drive', i: 'bi-google', fn: () => copyText(folderUrl(dz), 'Đã sao chép link Drive'), hidden: !dz || !can('download') },
     { t: 'Mở trên Google Drive', i: 'bi-box-arrow-up-right', fn: () => window.open(folderUrl(dz), '_blank'), hidden: !dz || !can('download') },
     { t: 'Quyền xem thư mục…', d: 'Công khai cho mọi người · hoặc chỉ một số vai trò', i: 'bi-shield-lock', fn: () => accessDlg(IX.src[scope] ? rootKey(scope) : scope, IX.src[scope] ? 'root' : 'dir', scopeName(scope)), hidden: !can('sources.manage') || !scope },
-    { t: 'Sao chép mã thư mục', d: 'Dùng khi gắn vào chương trình', i: 'bi-hash', fn: () => copyText(dz, 'Đã sao chép mã thư mục'), hidden: !dz || !can('sources.manage') }
+    { t: 'Sao chép mã thư mục', d: 'Dùng khi gắn vào chương trình', i: 'bi-hash', fn: () => copyText(dz, 'Đã sao chép mã thư mục'), hidden: !dz || !can('sources.manage') },
+    scope ? '-' : null,
+    { t: 'Ẩn khỏi Thư viện của tôi', d: 'Chỉ ẩn với riêng bạn — hiện lại ở nút con mắt của khung Thư mục', i: 'bi-eye-slash', fn: () => libHideAsk(scope), hidden: !scope }      // (1.39.1)
   ];
   if (pt) { const a = document.createElement('span'); a.style.cssText = 'position:fixed;width:1px;height:1px;left:' + pt.x + 'px;top:' + pt.y + 'px'; document.body.appendChild(a); openMenu(a, items); a.remove(); }
   else openMenu(anchor, items);
