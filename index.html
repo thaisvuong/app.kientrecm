@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-23T16:18:04.895Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T01:49:54.867Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4093,6 +4093,9 @@ html.tk-noadd .tk-quick, html.tk-noadd .tk-qadd, html.tk-noadd #tkNew, html.tk-n
 .vw-thph{ display:block; width:min(380px, 80%); margin:0 auto 12px; border-radius:8px; box-shadow:0 8px 28px rgba(14,27,51,.12); opacity:.75; filter:saturate(.9) }
 /* Quản trị › Tài khoản gửi mail */
 .gmo-now{ display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; background:var(--surface-2); flex-wrap:wrap }
+.dro-list{ display:flex; flex-direction:column; gap:8px } .dro-list .tag{ font-size:11px; vertical-align:1px }
+.dro-inv{ display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:12px; border:1px dashed var(--border-strong) } .dro-link{ display:flex; gap:8px } .dro-link .inp{ flex:1; min-width:0; font-size:12px }
+.dro-invl{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--muted) } .dro-invl > div{ display:flex; align-items:center; gap:8px } .dro-invl span{ flex:1 }
 .gmo-now > i{ font-size:20px; color:var(--primary) } .gmo-now > div{ flex:1 1 220px; display:flex; flex-direction:column; gap:2px; min-width:0 } .gmo-now small{ color:var(--muted); font-size:12px }
 /* ══════════ ĐĂNG NHẬP: Tiếp tục với Google · hoặc · email ══════════ */
 .lg3 .lg-g{ display:flex; justify-content:center; min-height:44px; margin:2px 0 0 }
@@ -9205,6 +9208,62 @@ function setSystem(B, cfg, setCfg) {
   const gmLoad = () => rpc('gmoGet', {}, { quiet: true }).then(G => { if (gc.isConnected) gmPaint(G); }).catch(e => { $('.card-b', gc).innerHTML = '<div class="empty small">' + esc(e.message) + '</div>'; });
   gmLoad();
   window.addEventListener('focus', function gmF() { if (!gc.isConnected) return window.removeEventListener('focus', gmF); gmLoad(); });      // cấp quyền ở tab khác xong quay lại → tự cập nhật
+  // ── tài khoản chủ Drive (1.35): tài liệu gia sư tải lên trong Kiến Task đứng tên tài khoản này (OAuth, quyền Drive) — DriveOwner.gs ──
+  const dc = document.createElement('div'); dc.className = 'card dro-card'; dc.style.marginTop = '12px'; B.appendChild(dc);
+  dc.innerHTML = '<div class="card-h"><h2><i class="bi bi-hdd-network"></i>Tài khoản chủ Drive</h2></div><div class="card-b">' + miniLoader('Đang tải…') + '</div>';
+  let drLast = null;      // link cấp quyền vừa tạo — giữ để chép lại khi thẻ vẽ lại (quay lại tab sau khi dán link vào Zalo…)
+  const drPaint = G => {
+    const ok = G.accounts.filter(a => !a.err).length;
+    if (G.link) drLast = { link: G.link, email: G.linkEmail, exp: G.linkExp };
+    if (drLast && !(G.invites || []).some(x => x.exp === drLast.exp)) drLast = null;      // đã dùng / thu hồi / hết hạn
+    dc.innerHTML = '<div class="card-h"><h2><i class="bi bi-hdd-network"></i>Tài khoản chủ Drive</h2><span class="sp"></span><span class="tag ' + (G.def ? 'ok' : '') + '">' + esc(G.def ? 'Mặc định: ' + G.def : 'Chưa kết nối') + '</span></div><div class="card-b stack">' +
+      '<div class="small muted">Tài liệu tải lên trong Kiến Task (hộp task › Tài liệu) được lưu vào thư mục Drive của Epic / Task và <b>đứng tên tài khoản chủ</b> dưới đây — không thuộc tài khoản của người tải. ' +
+        'Tài khoản chủ cần có quyền chỉnh sửa các thư mục đích. Mỗi Epic / Task chọn được tài khoản riêng; không chọn thì dùng tài khoản mặc định.</div>' +
+      (G.accounts.length ? '<div class="dro-list">' + G.accounts.map(a => '<div class="gmo-now"><i class="bi ' + (a.err ? 'bi-exclamation-triangle" style="color:var(--danger)' : 'bi-person-badge') + '"></i><div><b>' + esc(a.email) + (a.def ? ' <span class="tag ok">Mặc định</span>' : '') + '</b>' +
+          '<small>' + esc((a.name ? a.name + ' · ' : '') + 'kết nối ' + fmtDT(a.at) + (a.by ? ' bởi ' + a.by : '')) + '</small>' + (a.err ? '<small style="color:var(--danger)">Bị ngắt: ' + esc(a.err) + ' — bấm Kết nối lại</small>' : a.old ? '<small style="color:var(--warn, #A96606)">Kết nối bằng OAuth client cũ — nên kết nối lại</small>' : '') + '</div>' +
+          (a.err ? '<button class="btn sm pri" data-dre="' + esc(a.email) + '"><i class="bi bi-google"></i>Kết nối lại</button>' : '<button class="btn sm" data-drt="' + esc(a.email) + '"><i class="bi bi-activity"></i>Thử</button>' + (a.def ? '' : '<button class="btn sm" data-drd="' + esc(a.email) + '"><i class="bi bi-star"></i>Đặt mặc định</button>')) +
+          '<button class="btn sm ghost" data-drx="' + esc(a.email) + '"><i class="bi bi-plug"></i>Ngắt</button></div>').join('') + '</div>' : '') +
+      '<div class="row"><input class="inp" id="drH" type="email" placeholder="Email tài khoản chủ (VD admin@kitee.vn) — không bắt buộc" style="flex:1 1 260px"><button class="btn pri" id="drGo"' + (G.cid && G.hasSecret ? '' : ' disabled') + '><i class="bi bi-google"></i>' + (ok ? 'Kết nối thêm tài khoản…' : 'Kết nối tài khoản Google…') + '</button>' +
+        '<button class="btn ghost" id="drR" title="Tải lại trạng thái sau khi cấp quyền"><i class="bi bi-arrow-clockwise"></i></button></div>' +
+      // LINK CẤP QUYỀN: người giữ tài khoản chủ tự đăng nhập Google trên máy họ — không ai phải gửi mật khẩu / key
+      '<div class="dro-inv"><div class="small"><b><i class="bi bi-send"></i> Không giữ mật khẩu của tài khoản chủ?</b> Tạo link gửi cho người giữ tài khoản (ghi email ở ô trên để chỉ nhận đúng tài khoản đó). ' +
+          'Họ mở link, đăng nhập Google và bấm Cho phép — không cần gửi mật khẩu hay key cho ai.</div>' +
+        '<div class="row"><select class="sel" id="drIh" style="flex:0 0 auto;width:auto"><option value="24">Hạn 1 ngày</option><option value="72" selected>Hạn 3 ngày</option><option value="168">Hạn 7 ngày</option></select>' +
+          '<button class="btn" id="drInv"' + (G.cid && G.hasSecret ? '' : ' disabled') + '><i class="bi bi-link-45deg"></i>Tạo link cấp quyền</button></div>' +
+        (drLast ? '<div class="dro-link"><input class="inp mono" id="drL" readonly value="' + esc(drLast.link) + '"><button class="btn sm pri" id="drLc"><i class="bi bi-clipboard"></i>Chép link</button></div>' +
+          '<div class="small muted">Gửi link này cho người giữ <b>' + esc(drLast.email || 'tài khoản chủ') + '</b> (Zalo / mail). Dùng một lần, hết hạn ' + esc(fmtDT(new Date(drLast.exp).toISOString())) + '. Họ cấp quyền xong bạn nhận thông báo, tài khoản hiện ở danh sách trên.</div>' : '') +
+        ((G.invites || []).length ? '<div class="dro-invl">' + G.invites.map(x => '<div><i class="bi bi-hourglass-split"></i><span>Link cho <b>' + esc(x.email || 'tài khoản bất kỳ') + '</b> · tạo ' + esc(ago(x.at)) + ' · hết hạn ' + esc(fmtDT(new Date(x.exp).toISOString())) + '</span>' +
+          '<button class="btn xs ghost" data-dri="' + esc(x.id) + '"><i class="bi bi-x-circle"></i>Thu hồi</button></div>').join('') + '</div>' : '') + '</div>' +
+      '<div class="small muted"><i class="bi bi-key"></i> OAuth client: ' + (G.own ? '<b>riêng cho Drive</b> <code>' + esc(G.cid) + '</code>' : G.cid ? 'dùng chung với <b>Tài khoản gửi mail</b> <code>' + esc(G.cid) + '</code>' : '<b style="color:var(--danger)">chưa có</b> — nhập ở Tài khoản gửi mail (bên trên) hoặc client riêng bên dưới') + '</div>' +
+      '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Cài đặt một lần trên Google Cloud Console (~5 phút)</summary><ol class="lg-steps">' +
+        '<li>Dùng chung project + OAuth client với <b>Tài khoản gửi mail</b> (nếu đã có) — hoặc tạo client riêng ở bước 4.</li>' +
+        '<li>Bật <a href="https://console.cloud.google.com/apis/library/drive.googleapis.com" target="_blank">Google Drive API</a> → <b>Enable</b>.</li>' +
+        '<li><a href="https://console.cloud.google.com/auth/scopes" target="_blank">Data access</a> › <b>Add or remove scopes</b> → tick <code>…/auth/drive</code> (và <code>openid</code>, <code>email</code>, <code>profile</code>) → Save. ' +
+          '<a href="https://console.cloud.google.com/auth/audience" target="_blank">Audience</a>: để <b>Testing</b> thì thêm từng tài khoản chủ vào <b>Test users</b> (quyền hết hạn sau 7 ngày) — nên bấm <b>Publish app</b>.</li>' +
+        '<li><a href="https://console.cloud.google.com/apis/credentials" target="_blank">Credentials</a> › OAuth client (loại <b>Web application</b>) › <b>Authorized redirect URIs</b> có đúng địa chỉ: <span class="lg-origin"><code>' + esc(G.redirect) + '</code><button class="btn xs" id="drRc"><i class="bi bi-clipboard"></i>Chép</button></span></li>' +
+        '<li>Bấm <b>Kết nối tài khoản Google…</b> (hoặc <b>Tạo link cấp quyền</b> gửi cho người giữ tài khoản) → đăng nhập đúng tài khoản chủ (VD admin@kitee.vn) → “chưa xác minh” thì <b>Nâng cao › Đi tới …</b> → tick quyền <b>Google Drive</b> → Tiếp tục. Thấy “Đã kết nối” thì đóng tab, bấm ⟳.</li>' +
+        '<li>Chia sẻ quyền <b>Người chỉnh sửa</b> các thư mục đích cho tài khoản chủ (nếu nó chưa là chủ thư mục).</li></ol>' +
+        '<div class="grid g2"><div class="fg"><label class="flabel">Client ID riêng cho Drive (không bắt buộc)</label><input class="inp mono" id="drC" value="' + esc(G.ownCid) + '" placeholder="để trống = dùng chung client gửi mail"></div>' +
+          '<div class="fg"><label class="flabel">Client secret</label><input class="inp mono" id="drS" type="password" autocomplete="off" placeholder="' + (G.own ? '•••••••• đã lưu — để trống nếu không đổi' : 'GOCSPX-…') + '"></div></div>' +
+        '<div class="row"><button class="btn sm" id="drSave"><i class="bi bi-check2"></i>Lưu client</button></div>' +
+        '<div class="small muted">Refresh token của từng tài khoản chủ chỉ lưu ở máy chủ Apps Script (Script Properties), không nằm trong kho dữ liệu, không gửi về trình duyệt. File đi qua máy chủ từng khúc 4 MB. Ngắt = thu hồi quyền ngay; file đã tải vẫn thuộc tài khoản đó.</div></details></div>';
+    const start = async hint => { const w = window.open('', '_blank'); try { const r = await rpc('droStart', { hint: hint || '' }, { quiet: true }); if (w) w.location = r.url; else location.href = r.url; toast('Cấp quyền ở tab mới, xong quay lại đây', 'info', 5000); } catch (er) { if (w) w.close(); fail(er); } };
+    $('#drGo', dc).onclick = () => start($('#drH', dc).value.trim());
+    $('#drR', dc).onclick = () => drLoad();
+    $('#drInv', dc).onclick = async e => { const em = $('#drH', dc).value.trim(); if (!em && !await ask('Chưa ghi email — link sẽ nhận BẤT KỲ tài khoản Google nào bấm vào. Vẫn tạo?', { ok: 'Vẫn tạo' })) return;
+      const stop = btnWait(e.currentTarget, 'Đang tạo…'); try { drPaint(await rpc('droInvite', { email: em, hours: Number($('#drIh', dc).value) }, { quiet: true })); toast('Đã tạo link cấp quyền — bấm Chép link rồi gửi đi', 'ok', 4000); } catch (er) { stop(); fail(er); } };
+    { const lc = $('#drLc', dc); if (lc) lc.onclick = () => copyText(drLast.link, 'Đã chép link cấp quyền'); }
+    dc.querySelectorAll('[data-dri]').forEach(b => { b.onclick = async () => { if (!await ask('Thu hồi link cấp quyền này? Người nhận mở link sẽ thấy “không còn dùng được”.', { ok: 'Thu hồi', danger: true })) return; try { drPaint(await rpc('droInviteRevoke', { id: b.dataset.dri }, { quiet: true })); toast('Đã thu hồi link'); } catch (er) { fail(er); } }; });
+    $('#drRc', dc).onclick = () => copyText(G.redirect, 'Đã chép Redirect URI');
+    $('#drSave', dc).onclick = async e => { const stop = btnWait(e.currentTarget, 'Đang lưu…'); try { drPaint(await rpc('droClientSave', { cid: $('#drC', dc).value.trim(), secret: $('#drS', dc).value.trim() }, { quiet: true })); toast('Đã lưu'); } catch (er) { stop(); fail(er); } };
+    dc.querySelectorAll('[data-dre]').forEach(b => { b.onclick = () => start(b.dataset.dre); });
+    dc.querySelectorAll('[data-drd]').forEach(b => { b.onclick = async () => { try { drPaint(await rpc('droDefault', { email: b.dataset.drd }, { quiet: true })); toast('Tài khoản chủ mặc định: ' + b.dataset.drd); } catch (er) { fail(er); } }; });
+    dc.querySelectorAll('[data-drt]').forEach(b => { b.onclick = async e => { const stop = btnWait(e.currentTarget, 'Đang thử…'); try { const r = await rpc('droTest', { email: b.dataset.drt }, { quiet: true }); stop(); toast(r.email + ' · Drive đã dùng ' + fmtSize(r.used) + (r.limit ? ' / ' + fmtSize(r.limit) : ''), 'ok', 4000); } catch (er) { stop(); fail(er); drLoad(); } }; });
+    dc.querySelectorAll('[data-drx]').forEach(b => { b.onclick = async () => { if (!await ask('Ngắt tài khoản chủ ' + b.dataset.drx + '? App sẽ thôi tải tài liệu vào Drive của tài khoản này (file đã tải vẫn thuộc tài khoản đó).', { ok: 'Ngắt', danger: true })) return; try { drPaint(await rpc('droRemove', { email: b.dataset.drx }, { quiet: true })); toast('Đã ngắt ' + b.dataset.drx); } catch (er) { fail(er); } }; });
+  };
+  const drLoad = () => rpc('droInfo', {}, { quiet: true }).then(G => { if (dc.isConnected) drPaint(G); }).catch(e => { $('.card-b', dc).innerHTML = '<div class="empty small">' + esc(e.message) + '</div>'; });
+  drLoad();
+  window.addEventListener('focus', function drF() { if (!dc.isConnected) return window.removeEventListener('focus', drF); drLoad(); });
   // ── mail gửi đi: lượt còn lại hôm nay, đã gửi / bỏ qua theo loại, mức giữ lại cho mã đăng nhập ──
   const mc = document.createElement('div'); mc.className = 'card ml-card'; mc.style.marginTop = '12px'; B.appendChild(mc);
   mc.innerHTML = '<div class="card-h"><h2><i class="bi bi-envelope"></i>Mail gửi đi</h2></div><div class="card-b">' + miniLoader('Đang tải…') + '</div>';
@@ -16716,6 +16775,26 @@ button.tk-loose{ margin-top:16px; padding:5px 8px 5px 4px; border:0; border-radi
 .tk-lkt{ flex:1; min-width:0; display:flex; flex-direction:column } .tk-lkt b{ font-size:13px } .tk-lkt small{ font-size:11.5px; color:var(--muted) }
 .tk-lkto{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:700; max-width:34%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; color:var(--brand-700) }
 @media (max-width:720px){ .tk-lkr{ flex-wrap:wrap } .tk-lkto{ max-width:none; order:5; flex-basis:100% } .tk-lkr > .bi-arrow-right{ display:none } }
+/* TÀI LIỆU trong hộp task (1.35): thư mục đích · ô kéo thả · danh sách file đứng tên tài khoản chủ · hộp tải lên */
+.tk-docs{ display:flex; flex-direction:column; gap:8px; margin-bottom:6px }
+.tk-dv{ display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; background:var(--surface-2); font-size:13.5px }
+.tk-dv > i{ font-size:18px; color:#E3A008 } .tk-dv.no > i{ color:var(--muted) } .tk-dv > span{ flex:1; min-width:0; line-height:1.35 } .tk-dv a{ color:inherit } .tk-dv small{ color:var(--muted) }
+.tk-dvo{ display:flex; align-items:center; gap:5px; margin-top:2px; font-size:12px } .tk-dvo b{ color:var(--ink-2); font-weight:600 }
+.tk-dz{ display:flex; align-items:center; gap:12px; padding:12px 14px; border:1.5px dashed var(--border-strong); border-radius:12px; cursor:pointer; color:var(--ink-2); font-size:13.5px; transition:background .15s, border-color .15s }
+.tk-dz:hover, .tk-dz.on{ background:var(--brand-50); border-color:var(--brand-500) } .tk-dz > i{ font-size:22px; color:var(--brand-600) } .tk-dz small{ display:block; color:var(--muted); font-size:12px; margin-top:1px }
+.tk-dl{ display:flex; flex-direction:column; border:1px solid var(--border); border-radius:10px; overflow:hidden }
+.tk-df{ display:flex; align-items:center; gap:10px; padding:8px 12px; color:inherit; text-decoration:none; font-size:13.5px } .tk-df + .tk-df{ border-top:1px solid var(--border) } .tk-df:hover{ background:var(--surface-2) }
+.tk-df > i{ font-size:18px; color:#C4262B } .tk-df .t{ flex:1; min-width:0; display:flex; flex-direction:column } .tk-df .t b{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .tk-df small{ color:var(--muted); font-size:12px } .tk-df em{ font-style:normal; font-family:var(--font-mono); font-size:11px }
+.tk-dfo{ flex:none; display:flex; align-items:center; gap:4px; font-size:11.5px; color:#0F6B3D; background:#E7F6EE; padding:2px 8px; border-radius:99px }
+.tk-up-f{ display:flex; align-items:center; gap:10px } .tk-up-f > i{ font-size:26px; color:#C4262B } .tk-up-f small{ display:block; color:var(--muted) }
+.tk-up-path{ display:flex; flex-wrap:wrap; align-items:center; gap:4px; font-size:13.5px; padding:6px 0 } .tk-up-path a{ cursor:pointer; color:var(--brand-600) } .tk-up-path .bi-chevron-right{ font-size:11px; color:var(--muted) }
+.tk-up-kids{ display:flex; flex-direction:column; max-height:190px; overflow:auto; border:1px solid var(--border); border-radius:10px }
+.tk-up-kids > small{ padding:8px 12px } .tk-up-k{ display:flex; align-items:center; gap:8px; padding:7px 12px; border:0; background:none; text-align:left; font:inherit; font-size:13.5px; color:inherit; cursor:pointer } .tk-up-k + .tk-up-k{ border-top:1px solid var(--border) } .tk-up-k:hover{ background:var(--surface-2) } .tk-up-k i{ color:#E3A008 }
+.tk-up-hint{ display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background:#EEF2FF; font-size:13px } .tk-up-hint > span{ flex:1 } .tk-up-hint.ok{ background:#E7F6EE; color:#0F6B3D } .tk-up-hint.err{ background:#FDECEC; color:#9B1C1F }
+.tk-up-dup{ display:flex; flex-direction:column; gap:6px; padding:8px 12px; border-radius:10px; background:#FFF6E6; font-size:13px } .tk-up-dup .ck{ display:flex; align-items:center; gap:6px; cursor:pointer }
+.tk-up-own{ display:flex; gap:8px; align-items:flex-start; font-size:12.5px; color:var(--muted) } .tk-up-own i{ color:#0F7B45; font-size:15px } .tk-up-own b{ color:var(--ink-2) }
+.tk-up-bar{ position:relative; height:26px; border-radius:8px; background:var(--surface-3); overflow:hidden } .tk-up-bar > i{ position:absolute; inset:0 auto 0 0; width:0; background:var(--brand-500); transition:width .3s }
+.tk-up-bar > span{ position:relative; display:block; text-align:center; line-height:26px; font-size:12.5px; font-weight:600; color:var(--ink); mix-blend-mode:normal }
 </style>
 <script>
 /* ══════════════════════════════════════════════════════════════
@@ -18085,6 +18164,109 @@ async function viewTasks(arg, v) {
     m.$('#tCmS').onclick = async () => { const ta = m.$('#tCmT'), text = ta.value.trim(); if (!text) return ta.focus();
       try { const r = await rpc('taskComment', { id: M.id, text: text }); ta.value = ''; cm(r.comments); t.nc = r.comments.filter(c => c.kind !== 'a').length; paint(); toast('Đã gửi bình luận — ' + tkUser(M.owner) + ' sẽ nhận thông báo', 'ok', 2500); } catch (e) { fail(e); } };
   }
+  /* ── TÀI LIỆU (1.35): tải file lên Drive ĐỨNG TÊN TÀI KHOẢN CHỦ (Admin chọn) — thư mục đích theo Epic / Task, file đi từng khúc qua máy chủ (DriveOwner.gs) ── */
+  const tkFileIc = n => /\.pdf$/i.test(n) ? 'bi-file-earmark-pdf' : /\.(docx?|odt)$/i.test(n) ? 'bi-file-earmark-word' : /\.(xlsx?|csv)$/i.test(n) ? 'bi-file-earmark-spreadsheet' : /\.(png|jpe?g|gif|webp|heic)$/i.test(n) ? 'bi-file-earmark-image' : 'bi-file-earmark';
+  const tkB64 = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = () => rej(r.error || new Error('Không đọc được file')); r.readAsDataURL(blob); });
+  /** mục “Tài liệu” trong hộp task: thư mục đích · người đứng tên · ô kéo thả · danh sách đã tải (epic / task: gồm cả việc bên trong) */
+  function tkDocs(box, cur, cnt, onUp) {
+    let F = null;
+    const paint = () => {
+      if (!box.isConnected || !F) return;
+      if (cnt) cnt.textContent = F.files.length;
+      const r = F.root;
+      const own = F.owner ? '<i class="bi bi-person-badge"></i>Đứng tên <b>' + esc(F.owner) + '</b>' + (F.ownFrom ? ' · theo ' + esc(F.ownFrom) : '') : '<i class="bi bi-exclamation-triangle"></i>Chưa có tài khoản chủ Drive — ' + (F.man ? 'kết nối ở Quản trị › Hệ thống' : 'nhờ Admin kết nối');
+      const head = F.mir ? '' : r ? '<div class="tk-dv"><i class="bi bi-folder2-open"></i><span><a href="' + esc(r.url) + '" target="_blank" rel="noopener"><b>' + esc(r.name || 'Thư mục Drive') + '</b></a>' +
+            (r.from ? ' <small>· theo ' + esc(r.from) + (r.how === 'desc' ? ' (link trong mô tả)' : '') + '</small>' : r.how === 'desc' ? ' <small>· link trong mô tả</small>' : '') + '<small class="tk-dvo">' + own + '</small></span>' +
+            (F.canSet ? '<button type="button" class="btn xs ghost" data-dset title="Đặt thư mục / tài khoản chủ riêng cho ' + esc(cur.key) + '"><i class="bi bi-gear"></i>Thư mục</button>' : '') + '</div>'
+        : '<div class="tk-dv no"><i class="bi bi-folder-x"></i><span>Chưa có thư mục nhận tài liệu' + (F.canSet ? '' : ' — nhờ người phụ trách Epic / Task đặt') + '<small class="tk-dvo">' + own + '</small></span>' +
+            (F.canSet ? '<button type="button" class="btn xs" data-dset><i class="bi bi-folder-plus"></i>Đặt thư mục</button>' : '') + '</div>';
+      const drop = F.canUp && r && F.owner ? '<label class="tk-dz" data-drop><input type="file" multiple hidden data-dfile><i class="bi bi-cloud-arrow-up"></i><span><b>Kéo thả file vào đây</b> hoặc bấm để chọn<small>Lưu thẳng vào Drive, đứng tên ' + esc(F.owner) + ' — không phải tài khoản của bạn</small></span></label>' : '';
+      const list = F.files.length ? '<div class="tk-dl">' + F.files.map(f => '<a class="tk-df" href="' + esc(f.url) + '" target="_blank" rel="noopener" title="Mở trên Drive"><i class="bi ' + tkFileIc(f.name) + '"></i><span class="t"><b>' + esc(f.name) + '</b><small>' +
+          (f.key && f.taskId !== cur.id ? '<em>' + esc(f.key) + '</em> · ' : '') + esc(f.byName) + ' tải ' + esc(ago(f.at)) + (f.replaced ? ' (bản mới)' : '') + ' · ' + esc(fmtSize(f.size)) + (f.folder ? ' · ' + esc(f.folder) : '') + '</small></span>' +
+          '<span class="tk-dfo" title="Chủ sở hữu trên Drive"><i class="bi bi-person-badge"></i>' + esc(f.owner) + '</span></a>').join('') + '</div>' : (drop ? '' : '<div class="small muted">Chưa có tài liệu</div>');
+      box.innerHTML = head + drop + list;
+    };
+    const load = () => rpc('droFiles', { id: cur.id }, { quiet: true }).then(r => { F = r; paint(); }).catch(e => { if (box.isConnected) box.innerHTML = '<div class="small muted">' + esc(e.message || 'Không tải được tài liệu') + '</div>'; });
+    const take = async list => { for (const f of Array.from(list || [])) { const r = await tkUpDlg(cur, F, f); if (r === false) break; if (r) { F.files.unshift(r); paint(); if (onUp) onUp(r); } } load(); };
+    box.addEventListener('click', e => { if (e.target.closest('[data-dset]')) { e.preventDefault(); tkDocSet(cur, F).then(r => { if (r) { F = r; paint(); if (onUp) onUp(); } }); } });
+    box.addEventListener('change', e => { const i = e.target.closest('[data-dfile]'); if (i) { const L = Array.from(i.files || []); i.value = ''; take(L); } });
+    box.addEventListener('dragover', e => { const d = e.target.closest('[data-drop]'); if (d) { e.preventDefault(); d.classList.add('on'); } });
+    box.addEventListener('dragleave', e => { const d = e.target.closest('[data-drop]'); if (d) d.classList.remove('on'); });
+    box.addEventListener('drop', e => { const d = e.target.closest('[data-drop]'); if (!d) return; e.preventDefault(); d.classList.remove('on'); take(e.dataTransfer && e.dataTransfer.files); });
+    load();
+  }
+  /** hộp tải một file: tên (giữ như người tải đặt) · thư mục con trong thư mục đích · gợi ý theo file đề · trùng tên · tiến độ → Promise(file | null = bỏ qua | false = huỷ cả loạt) */
+  function tkUpDlg(cur, F, file) {
+    return new Promise(done => {
+      if (!file.size) { toast('“' + file.name + '” rỗng — bỏ qua', 'warn'); return done(null); }
+      if (file.size > F.max) { toast('“' + file.name + '” lớn quá (tối đa ' + fmtSize(F.max) + ')', 'warn'); return done(null); }
+      const st = { folder: '', path: [], kids: [], prep: null, dup: '', auto: true, seq: 0 };
+      let result = null, cancel = false;
+      const m = modal({ title: 'Tải tài liệu lên Drive · ' + cur.key, icon: 'bi-cloud-arrow-up', sticky: true, onClose: () => done(result || (cancel ? false : null)), body: '<div class="tk-up stack">' +
+          '<div class="tk-up-f"><i class="bi ' + tkFileIc(file.name) + '"></i><span><b>' + esc(file.name) + '</b><small>' + esc(fmtSize(file.size)) + '</small></span></div>' +
+          '<div class="fg"><label class="flabel">Tên file trên Drive</label><input class="inp" id="uN" value="' + esc(file.name.normalize('NFC')) + '"><small class="muted">Giữ đúng tên như bạn đặt — lời giải: “&lt;tên file đề&gt; (Lời giải).pdf”</small></div>' +
+          '<div class="fg"><label class="flabel">Lưu vào thư mục</label><div class="tk-up-path" id="uPath">' + miniLoader('Đang mở thư mục…') + '</div><div class="tk-up-kids" id="uKids"></div></div>' +
+          '<div id="uHint"></div><div id="uDup"></div>' +
+          '<div class="tk-up-own"><i class="bi bi-shield-check"></i><span>File thuộc quyền sở hữu của <b>' + esc(F.owner) + '</b>. Bạn (' + esc(D().me) + ') được ghi là người tải lên trong hoạt động của ' + esc(cur.key) + '.</span></div>' +
+          '<div class="tk-up-bar" id="uBar" hidden><i></i><span></span></div></div>',
+        foot: [{ t: 'Huỷ', cls: 'ghost', fn: () => { cancel = true; } }, { t: 'Tải lên', cls: 'pri', i: 'bi-cloud-arrow-up', fn: async () => {
+          const name = m.$('#uN').value.trim(); if (!name) { m.$('#uN').focus(); toast('Chưa có tên file', 'warn'); return false; }
+          const dp = st.prep && st.prep.dup || [];
+          if (dp.length && !st.dup) { toast('Đã có file cùng tên — chọn Thay bản cũ hoặc Giữ cả hai', 'warn'); return false; }
+          const bar = m.$('#uBar'), fill = $('i', bar), lab = $('span', bar), show = x => { bar.hidden = false; fill.style.width = Math.round(x * 100) + '%'; lab.textContent = x ? 'Đang tải ' + Math.round(x * 100) + '% · ' + fmtSize(file.size * x) + ' / ' + fmtSize(file.size) : 'Đang bắt đầu tải ' + fmtSize(file.size) + '…'; };
+          m.$('#uN').disabled = true; show(0);
+          try {
+            let off = 0, up = '', r;
+            for (;;) {
+              const data = await tkB64(file.slice(off, off + F.chunk)), pl = { id: cur.id, folder: st.folder, name: name, mime: file.type || '', size: file.size, off: off, data: data, up: up };
+              if (!up && st.dup === 'replace') { pl.dup = 'replace'; pl.replaceId = dp[0].id; }
+              for (let k = 0; ; k++) { try { r = await rpc('droUpload', pl, { quiet: true }); break; } catch (e) { if (k || e.srv) throw e; await new Promise(z => setTimeout(z, 1500)); } }      // rớt mạng → thử lại khúc đó một lần
+              if (r.done) break; up = r.up; off = r.next; show(off / file.size);
+            }
+            show(1); result = r.file; toast('Đã tải “' + r.file.name + '” lên Drive · đứng tên ' + r.owner, 'ok', 4000);
+          } catch (e) { m.$('#uN').disabled = false; bar.hidden = true; fail(e); return false; }
+        } }] });
+      const paintF = () => {
+        m.$('#uPath').innerHTML = st.path.map((x, i) => (i ? '<i class="bi bi-chevron-right"></i>' : '<i class="bi bi-folder2"></i>') + (i < st.path.length - 1 ? '<a data-go="' + esc(i ? x.id : '') + '">' + esc(x.name) + '</a>' : '<b>' + esc(x.name) + '</b>')).join('');
+        m.$('#uKids').innerHTML = st.kids.length ? st.kids.map(k => '<button type="button" class="tk-up-k" data-go="' + esc(k.id) + '"><i class="bi bi-folder"></i><span>' + esc(k.name) + '</span></button>').join('') : '<small class="muted">Không có thư mục con — file lưu ở thư mục này</small>';
+      };
+      const paintP = () => {
+        const P = st.prep; if (!P) return;
+        const mt = P.match || [], here = mt.find(x => (x.folderId || '') === st.folder);
+        m.$('#uHint').innerHTML = here ? '<div class="tk-up-hint ok"><i class="bi bi-check2-circle"></i><span>Đúng thư mục của file đề <b>' + esc(here.file) + '</b></span></div>'
+          : mt.length ? '<div class="tk-up-hint"><i class="bi bi-magic"></i><span>Tìm thấy file đề <b>' + esc(mt[0].file) + '</b> trong “' + esc(mt[0].folderName) + '”</span><button type="button" class="btn xs" data-go="' + esc(mt[0].folderId) + '">Lưu vào đó</button></div>' : '';
+        const dp = P.dup || [];
+        m.$('#uDup').innerHTML = !dp.length ? '' : '<div class="tk-up-dup"><div><i class="bi bi-exclamation-circle"></i> Thư mục này đã có <b>' + esc(dp[0].name) + '</b> (đứng tên ' + esc(dp[0].owner || '?') + (dp[0].at ? ', sửa ' + esc(ago(dp[0].at)) : '') + ')</div>' +
+          (dp[0].mine ? '<label class="ck"><input type="radio" name="uDp" value="replace"' + (st.dup === 'replace' ? ' checked' : '') + '> Thay bản cũ <small class="muted">(giữ nguyên link file)</small></label>' : '') +
+          '<label class="ck"><input type="radio" name="uDp" value="keep"' + (st.dup === 'keep' ? ' checked' : '') + '> Giữ cả hai <small class="muted">(thêm một file trùng tên)</small></label></div>';
+        if (dp.length && !st.dup) st.dup = dp[0].mine ? 'replace' : 'keep', paintP();
+      };
+      const prep = async () => { const q = ++st.seq; st.dup = '';
+        try { const P = await rpc('droPrep', { id: cur.id, folder: st.folder, name: m.$('#uN').value.trim() }, { quiet: true }); if (q !== st.seq || m.closed) return; st.prep = P; paintP();
+          const mt = (P.match || [])[0]; if (st.auto && mt && (mt.folderId || '') !== st.folder) { st.auto = false; go(mt.folderId); } }
+        catch (e) { if (!m.closed) m.$('#uHint').innerHTML = '<div class="tk-up-hint err"><i class="bi bi-x-circle"></i><span>' + esc(e.message) + '</span></div>'; } };
+      const go = async id => { try { const r = await rpc('droFolders', { id: cur.id, folder: id || '' }, { quiet: true }); if (m.closed) return; st.folder = r.at.path.length > 1 ? r.at.id : ''; st.path = r.at.path; st.kids = r.kids; paintF(); prep(); }
+        catch (e) { if (!m.closed) m.$('#uPath').innerHTML = '<span class="small" style="color:var(--danger)">' + esc(e.message) + '</span>'; } };
+      m.el.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g && !m.$('#uN').disabled) { st.auto = false; go(g.dataset.go); } });
+      m.el.addEventListener('change', e => { if (e.target.name === 'uDp') st.dup = e.target.value; });
+      let tn = 0; m.$('#uN').addEventListener('input', () => { clearTimeout(tn); st.auto = true; tn = setTimeout(prep, 500); });
+      go('');
+    });
+  }
+  /** đặt thư mục nhận tài liệu + tài khoản chủ RIÊNG cho Epic / Task (để trống = theo task cha / epic) */
+  function tkDocSet(cur, F) {
+    return new Promise(done => {
+      let out = null; const own = F.own || {}, r = F.root;
+      const inh = r && r.from ? 'Đang theo ' + r.from + ': “' + (r.name || 'thư mục Drive') + '”' : r && r.how === 'desc' && !own.f ? 'Đang dùng link thư mục trong mô tả' : '';
+      const accOpt = [['', 'Mặc định' + (F.def ? ' (' + F.def + ')' : '') + (F.ownFrom ? ' / theo ' + F.ownFrom : '')]].concat((F.accs || []).map(a => [a.email, a.email + (a.name ? ' · ' + a.name : '')]));
+      const m = modal({ title: 'Thư mục nhận tài liệu · ' + cur.key, icon: 'bi-folder2-open', onClose: () => done(out), body: '<div class="stack">' +
+          '<div class="fg"><label class="flabel">Link thư mục Google Drive</label><input class="inp" id="dsF" placeholder="https://drive.google.com/drive/folders/…" value="' + esc(own.f ? 'https://drive.google.com/drive/folders/' + own.f : '') + '">' +
+            '<small class="muted">' + (inh ? esc(inh) + ' — ' : '') + 'để trống = theo ' + (cur.type === 'epic' ? 'link thư mục trong mô tả' : 'task cha / epic') + '. Mọi task / sub-task bên trong dùng thư mục này (và thư mục con của nó).</small></div>' +
+          '<div class="fg"><label class="flabel">Tài liệu đứng tên (tài khoản chủ)</label><select class="sel" id="dsO">' + accOpt.map(o => '<option value="' + esc(o[0]) + '"' + (o[0] === (own.o || '') ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join('') + '</select>' +
+            '<small class="muted">' + (F.accs && F.accs.length ? 'Tài khoản này cần có quyền chỉnh sửa thư mục trên.' : 'Chưa có tài khoản chủ — Admin kết nối ở Quản trị › Hệ thống › Tài khoản chủ Drive.') + '</small></div></div>',
+        foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', cls: 'pri', i: 'bi-check2', fn: async () => { out = await rpc('droSet', { id: cur.id, folder: m.$('#dsF').value.trim(), owner: m.$('#dsO').value }, { quiet: true }); toast('Đã lưu thư mục nhận tài liệu của ' + cur.key); } }] });
+    });
+  }
   /* ── hộp tạo / sửa công việc ── */
   function taskDialog(t, init) {
     if (t && t.mir) { const o = tkById(t.mir.id); return o ? taskDialog(o, init) : tkMirView(t); }      // bản đồng bộ: chủ bảng / Admin mở task gốc để sửa · người khác xem
@@ -18115,6 +18297,7 @@ async function viewTasks(arg, v) {
         // CẤP CON thêm ngay trong hộp (giống nút “+” trên thẻ): Epic → Task · Task → Sub-task — gõ tên rồi Enter, hộp không đóng, danh sách cập nhật ngay
         (kt ? '<div class="tk-h">' + (kt === 'task' ? 'Task thuộc epic' : 'Sub-task') + ' · <span id="tKidN"></span><a class="tk-tpl" id="tKidAdd"><i class="bi bi-plus-lg"></i> Thêm ' + TK_LV[kt].toLowerCase() + '</a></div><div id="tKids"></div>' +
           '<div class="tk-kid-new tk-dkid">' + tkLvIc(kt) + '<input class="tk-sub-new" id="tKidNew" placeholder="Thêm ' + TK_LV[kt].toLowerCase() + ' vào ' + esc(cur.key) + ' — gõ tên rồi Enter" aria-label="Thêm vào ' + esc(cur.key) + '"></div>' : '') +
+        (isNew ? '' : '<div class="tk-h">Tài liệu · <span id="tDocN">…</span></div><div id="tDocs" class="tk-docs">' + miniLoader('Đang tải…') + '</div>') +      // TÀI LIỆU tải lên Drive đứng tên tài khoản chủ (1.35)
         (isNew ? '' : '<div class="tk-h">Bình luận & hoạt động</div><div id="tCm">' + miniLoader('Đang tải…') + '</div><div class="row" style="flex-wrap:nowrap;align-items:flex-end;margin-top:6px"><textarea class="ta" id="tCmT" style="min-height:44px;height:44px" placeholder="Viết bình luận… (gõ @ để nhắc tên)"></textarea><button class="btn pri sm" id="tCmS"><i class="bi bi-send"></i>Gửi</button></div>') + '</div>' +
       '<div class="tk-side"><div><label>Cấp</label><span class="tk-lvs tk-dlv" id="tLvB" role="group" aria-label="Cấp của mục này">' + ['epic', 'task', 'sub'].map(k => { const no = k === 'sub' && lv0 === 'task' && kids.length;
           return '<button type="button" data-dlv="' + k + '" aria-pressed="' + (lv0 === k) + '"' + (no ? ' disabled title="Task đang có sub-task nên không thành sub-task được"' : ' title="Đổi thành ' + TK_LV[k] + '"') + '>' + tkLvIc(k) + '<span>' + TK_LV[k] + '</span></button>'; }).join('') + '</span></div>' +
@@ -18224,7 +18407,9 @@ async function viewTasks(arg, v) {
     if (!isNew) {
       const cm = list => { m.$('#tCm').innerHTML = list.length ? list.map(c => '<div class="tk-cm' + (c.kind === 'a' ? ' a' : '') + '">' + (c.kind === 'a' ? '<i class="bi bi-dot muted"></i>' : '<span class="av sm">' + esc(initials(c.name)) + '</span>') +
         '<div class="b"><span class="h"><b>' + esc(c.name) + '</b>' + (c.kind === 'a' ? ' ' : ' · ' + esc(ago(c.at))) + '</span>' + (c.kind === 'a' ? '<span class="x">' + esc(c.text) + ' · ' + esc(ago(c.at)) + '</span>' : '<div class="x">' + esc(c.text) + '</div>') + '</div></div>').join('') : '<div class="small muted">Chưa có bình luận</div>'; };
-      tkSend('taskGet', { id: cur.id }, { quiet: true }).then(r => { if (!m.closed) cm(r.comments); }).catch(() => { if (!m.closed) m.$('#tCm').innerHTML = '<div class="small muted">Không tải được bình luận</div>'; });
+      const cmLoad = () => tkSend('taskGet', { id: cur.id }, { quiet: true }).then(r => { if (!m.closed) cm(r.comments); }).catch(() => { if (!m.closed) m.$('#tCm').innerHTML = '<div class="small muted">Không tải được bình luận</div>'; });
+      cmLoad();
+      tkDocs(m.$('#tDocs'), cur, m.$('#tDocN'), () => { if (!m.closed) cmLoad(); });      // tải xong / đổi thư mục → hoạt động hiện ngay dòng mới
       tkMention(m.$('#tCmT'));
       m.$('#tCmS').onclick = async () => { const ta = m.$('#tCmT'), text = ta.value.trim(); if (!text) return ta.focus();
         try { const r = await tkSend('taskComment', { id: cur.id, text: text }); ta.value = ''; cm(r.comments); const x = D().tasks.find(k => k.id === cur.id); if (x) { x.nc = r.comments.filter(c => c.kind !== 'a').length; paint(); } } catch (e) { fail(e); } };
