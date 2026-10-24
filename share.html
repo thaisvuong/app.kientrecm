@@ -4487,6 +4487,20 @@ async function start() {
   track();
   for (const d of V.docs) await load(d);       // lần lượt theo thứ tự, tài liệu đầu hiện ngay
 }
+/** TẢI NỘI DUNG THEO PHẦN (1.37.2 — máy chủ: contentPart_): phần 0 → biết n phần → các phần còn lại tải SONG SONG (3 luồng) rồi ghép base64.
+    Mỗi phần ~0,9 MB nên Google nén kịp, hết cảnh “mất kết nối” với PDF lớn. Máy chủ bản cũ (không có n) → dùng nguyên kết quả. */
+async function partsGet(call, fn, base) {
+  const p0 = await call(fn, Object.assign({ part: 0 }, base));
+  if (!p0 || p0.n === undefined) return p0;
+  if (!(p0.n > 1)) { const o = Object.assign({}, p0, p0.data !== undefined ? { b64: p0.data } : {}); delete o.data; return o; }
+  const parts = new Array(p0.n); parts[0] = p0.data; let next = 1;
+  const worker = async () => { while (next < p0.n) { const i = next++, r = await call(fn, Object.assign({ part: i }, base));
+    if (!r || r.part !== i || r.total !== p0.total) throw new Error('Dữ liệu tải về bị lệch — tải lại trang'); parts[i] = r.data; } };
+  await Promise.all([worker(), worker(), worker()]);
+  const out = Object.assign({}, p0, { b64: parts.join('') }); delete out.data;
+  if (out.b64.length !== p0.total) throw new Error('Dữ liệu tải về chưa đủ — tải lại trang');
+  return out;
+}
 function debounce(fn, ms) { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; }
 
 function load(d) {
@@ -4495,7 +4509,7 @@ function load(d) {
     d.state = 'load';
     const sec = $('#sec' + d.i), st = $('#st' + d.i);
     try {
-      const r = await rpc('shareFile', { t: TOKEN, id: d.f.id });
+      const r = await partsGet((fn, pl) => rpc(fn, pl), 'shareFile', { t: TOKEN, id: d.f.id });      // theo phần, song song (1.37.2)
       if (r.type !== 'pdf') throw Object.assign(new Error(r.type === 'big' ? 'Tài liệu quá lớn để xem trực tuyến (' + fmtSize(r.size) + ')' : 'Không xem được định dạng này'), { soft: 1 });
       const bytes = b64bytes(r.b64);
       if (V.L.download || V.L.pickDl) d.bytes = bytes.slice();

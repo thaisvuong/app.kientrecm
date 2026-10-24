@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T11:06:34.908Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T11:27:06.353Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7352,21 +7352,36 @@ async function directData(id) {
   console.info('[xem thẳng từ Google · ' + V.mode + ']', id, Math.round(buf.byteLength / 1024) + ' KB', Math.round(performance.now() - t0) + ' ms');
   return out;
 }
+/** TẢI NỘI DUNG THEO PHẦN (1.37.2 — máy chủ: contentPart_): phần 0 → biết n phần → các phần còn lại tải SONG SONG (3 luồng) rồi ghép base64.
+    Mỗi phần ~0,9 MB nên Google nén kịp, hết cảnh “mất kết nối” với PDF lớn. Máy chủ bản cũ (không có n) → dùng nguyên kết quả. */
+async function partsGet(call, fn, base) {
+  const p0 = await call(fn, Object.assign({ part: 0 }, base));
+  if (!p0 || p0.n === undefined) return p0;
+  if (!(p0.n > 1)) { const o = Object.assign({}, p0, p0.data !== undefined ? { b64: p0.data } : {}); delete o.data; return o; }
+  const parts = new Array(p0.n); parts[0] = p0.data; let next = 1;
+  const worker = async () => { while (next < p0.n) { const i = next++, r = await call(fn, Object.assign({ part: i }, base));
+    if (!r || r.part !== i || r.total !== p0.total) throw new Error('Dữ liệu tải về bị lệch — tải lại trang'); parts[i] = r.data; } };
+  await Promise.all([worker(), worker(), worker()]);
+  const out = Object.assign({}, p0, { b64: parts.join('') }); delete out.data;
+  if (out.b64.length !== p0.total) throw new Error('Dữ liệu tải về chưa đủ — tải lại trang');
+  return out;
+}
 /** tải nội dung tài liệu: chế độ xem nhanh → lấy thẳng từ Google; không thì đường HTTP nhanh (doPost); không được (mạng chặn, máy chủ bản cũ) → quay về google.script.run */
 async function fastData(id) {
   try { const dd = await directData(id); if (dd) return dd; } catch (e) { console.warn('xem thẳng từ Google không được → qua máy chủ', id, e); }
   const url = window.BASE_URL || (S.boot && S.boot.url) || '';
   if (/^https:\/\/script\.google\.com\/|^http:\/\/localhost:\d+\//.test(url) && window.fetch) {
-    let o = null;
-    try {
-      const tok = (S.token || '') + (S.as ? '#as=' + S.as + (S.asW ? '!w' : '') : '');
-      const r = await fetch(url.replace(/\?.*$/, ''), { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: 'fileData', p: { id: id, noLog: true }, t: tok }) });
-      o = await r.json();
-    } catch (e) { console.warn('fastData → google.script.run', e); }
-    if (o && o.ok) return o.data;
-    if (o && !o.ok && o.code && o.code !== 'PERM') { const e = new Error(o.error || 'Lỗi máy chủ'); e.code = o.code; e.srv = true; if (e.code === 'AUTH') showLogin(); throw e; }
+    const tok = (S.token || '') + (S.as ? '#as=' + S.as + (S.asW ? '!w' : '') : '');
+    // gọi thẳng doPost; rớt mạng / Google chuyển hướng (máy chủ chậm) → thử lại phần đó một lần
+    const post = async (fn, pl) => { for (let k = 0; ; k++) {
+      let o = null; try { const r = await fetch(url.replace(/\?.*$/, ''), { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, p: pl, t: tok }) }); o = await r.json(); }
+      catch (e) { if (k < 1) { await new Promise(z => setTimeout(z, 1200)); continue; } throw Object.assign(e, { net: 1 }); }
+      if (o && o.ok) return o.data;
+      const e = new Error((o && o.error) || 'Lỗi máy chủ'); e.code = o && o.code; e.srv = true; throw e; } };
+    try { return await partsGet(post, 'fileData', { id: id, noLog: true }); }      // theo phần, song song (1.37.2)
+    catch (e) { if (e.srv && e.code && e.code !== 'PERM') { if (e.code === 'AUTH') showLogin(); throw e; } console.warn('fastData → google.script.run', e); }
   }
-  return rpc('fileData', { id: id, noLog: true }, { quiet: true });
+  return partsGet((fn, pl) => rpc(fn, pl, { quiet: true }), 'fileData', { id: id, noLog: true });
 }
 /** ghi lượt xem riêng, chạy ngầm — không bắt người xem chờ ghi Sheet trước khi thấy tài liệu */
 function fileViewLog(id) { if (S.as) return; rpc('fileView', { id: id }, { quiet: true }).catch(() => {}); }
