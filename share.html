@@ -8,9 +8,11 @@
   <meta name="theme-color" content="#FFFFFF">
   <script>window.google = { script: { run: (function mk(ok, ko) { return new Proxy({}, { get: function (_, k) {
     if (k === "withSuccessHandler") return function (f) { return mk(f, ko); }; if (k === "withFailureHandler") return function (f) { return mk(ok, f); };
-    return function () { var a = [].slice.call(arguments); fetch("https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec", { method: "POST", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn: a[0], p: a[1] || {}, t: "" }) })
-      .then(function (r) { if (!r.ok) throw new Error("Máy chủ trả lỗi " + r.status + " — tải lại trang để thử lại"); return r.json(); })
-      .then(function (r) { if (ok) ok(r); }, function (e) { if (ko) ko(e && /fetch|network/i.test(e.message || "") ? new Error("Mất kết nối tới máy chủ — kiểm tra mạng rồi tải lại trang") : e); }); };
+    return function () { var a = [].slice.call(arguments), n = 0, go = function () { n++; fetch("https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec", { method: "POST", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn: a[0], p: a[1] || {}, t: "" }) })
+      .then(function (r) { if (!r.ok) throw Object.assign(new Error("Máy chủ trả lỗi " + r.status + " — tải lại trang để thử lại"), { again: r.status >= 500 }); return r.text().then(function (x) { try { return JSON.parse(x); } catch (er) { throw Object.assign(new Error("bad json"), { again: 1 }); } }); })
+      .then(function (r) { if (ok) ok(r); }, function (e) { var net = e && (e.again || /fetch|network|load failed/i.test(e.message || ""));
+        if (net && n < 3) { console.warn("máy chủ chậm / lỗi mạng → gửi lại lần " + (n + 1), a[0], e); return setTimeout(go, 1500 * n); }
+        if (ko) ko(net ? new Error("Máy chủ Google đang chậm hoặc mất mạng — bấm Thử lại") : e); }); }; go(); };
   } }); })(null, null) } };</script>
   
   <meta charset="UTF-8">

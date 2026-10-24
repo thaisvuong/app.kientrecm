@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T01:49:54.867Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T04:06:49.429Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -52,12 +52,21 @@
   window.STATIC = '1'; window.SHELL = '1'; window.SHELL_ORIGIN = location.origin; window.SHELL_URL_IN = location.origin + '/'; window.BASE_URL = EXEC;
 
   /* ── google.script.run: gọi máy chủ bằng fetch ── */
+  /* THỬ LẠI (1.35.2): Apps Script chạy lâu (~15 giây trở lên, VD lúc Google chậm) thì trả “chuyển hướng về /exec” thay cho kết quả → fetch báo lỗi CORS
+     (“Failed to fetch”) dù mạng vẫn tốt. Lệnh CHỈ ĐỌC tự gửi lại tối đa 3 lần; lệnh ghi không gửi lại (máy chủ có thể đã ghi xong → tránh ghi trùng) */
+  var READ = /^(bootstrap|index|ping|stats|taskBoot|taskGet|notifList|annList|infoGet|classList|classInbox|classChat|classTree|classLessons|reqList|listUsers|listSources|listLinks|getRoles|getSettings|accessList|activity|audit|tutorPermsGet|fileData|filePeek|thumbs|fulltext|shareOpen|shareFile|droFiles|droFolders|droPrep|droInfo)$/;
   var call = function (fn, args, ok, ko) {
     if (fn !== 'api') { if (ko) ko(new Error('Không hỗ trợ: ' + fn)); return; }
-    fetch(EXEC, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                  body: JSON.stringify({ fn: args[0], p: args[1] || {}, t: args[2] || '' }) })
-      .then(function (r) { if (!r.ok) throw new Error('Máy chủ trả lỗi ' + r.status + ' — thử lại'); return r.json(); })
-      .then(function (r) { if (ok) ok(r); }, function (e) { if (ko) ko(e && e.message && /fetch|network/i.test(e.message) ? new Error('Mất kết nối tới máy chủ — kiểm tra mạng rồi thử lại') : e); });
+    var n = 0, go = function () { n++;
+      fetch(EXEC, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ fn: args[0], p: args[1] || {}, t: args[2] || '' }) })
+        .then(function (r) { if (!r.ok) throw Object.assign(new Error('Máy chủ trả lỗi ' + r.status + ' — thử lại'), { again: r.status >= 500 }); return r.text().then(function (x) { try { return JSON.parse(x); } catch (er) { throw Object.assign(new Error('bad json'), { again: 1 }); } }); })
+        .then(function (r) { if (ok) ok(r); }, function (e) {
+          var net = e && (e.again || (e.message && /fetch|network|load failed/i.test(e.message)));
+          if (net && n < 3 && READ.test(String(args[0]))) { console.warn('máy chủ chậm / lỗi mạng → gửi lại lần ' + (n + 1), args[0], e); return setTimeout(go, 1500 * n); }
+          if (ko) ko(net ? new Error('Máy chủ Google đang chậm hoặc mất mạng — thử lại') : e); });
+    };
+    go();
   };
   var mk = function (ok, ko) {
     return new Proxy({}, { get: function (_, k) {
