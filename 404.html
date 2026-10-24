@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T04:06:49.429Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T05:39:19.517Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5573,6 +5573,7 @@ const NAV_DEF = [
   { r: 'programs', t: 'Chương trình', i: 'bi-mortarboard', g: 'lib', cap: ['programs.view', 'programs.manage', '@prog'] },
   { r: 'recent', t: 'Mới cập nhật', i: 'bi-stars', g: 'lib', cap: 'library.view' },
   { r: 'links', t: 'Link tạm', i: 'bi-link-45deg', g: 'lib', cap: 'links.manage' },
+  { r: 'upload', t: 'Upload file', i: 'bi-cloud-arrow-up', g: 'lib', cap: ['sources.manage', '@up'] },      // (1.36) thư mục nhận file — Upload.html
   /* Kiến Style: thanh bên sổ xuống theo MÔN (pg = tên nhóm, pgi = biểu tượng nhóm) — mỗi môn một mã phiếu riêng; Văn có thêm Syllabus */
   { r: 'compose', t: 'Soạn phiếu', i: 'bi-file-earmark-richtext', g: 'lib', cap: 'compose.use', pg: 'Toán', pgi: 'bi-calculator', m: /^compose$/ },
   { r: 'compose/van', t: 'Soạn phiếu', i: 'bi-file-earmark-richtext', g: 'lib', cap: 'compose.use', pg: 'Văn', pgi: 'bi-book-half', m: /^compose\/van/ },
@@ -5872,7 +5873,7 @@ async function calSyncBox(host) {
   paint();
 }
 /** '@pub' = có thư mục / tài liệu công khai → mọi người dùng vào được Thư viện (chỉ thấy phần công khai) · '@prog' = có chương trình được chia sẻ cho mình → tab Chương trình */
-function canAny(cap) { return !cap || [].concat(cap).some(c => c === '@pub' ? !!(S.boot && S.boot.pub && S.me) : c === '@prog' ? !!(S.boot && S.boot.prog && S.me) : can(c)); }
+function canAny(cap) { return !cap || [].concat(cap).some(c => c === '@pub' ? !!(S.boot && S.boot.pub && S.me) : c === '@prog' ? !!(S.boot && S.boot.prog && S.me) : c === '@up' ? !!(S.boot && S.boot.up && S.me) : can(c)); }
 /** Trang mở đầu theo quyền (học sinh không có thư viện → vào thẳng Chương trình). */
 function homeRoute() { const mh = S.mod && modHome(S.mod); if (mh && canAny((ROUTES[mh.split('/')[0]] || {}).cap)) return mh; return isTutor() ? 'today' : can('library.view') ? 'home' : canAny(['programs.view', 'programs.manage', '@prog']) ? 'programs' : canAny(['@pub']) ? 'library' : S.me && S.me.guest ? 'info' : 'settings'; }
 /** Bố cục thanh bên = mặc định (NAV_DEF) + tuỳ chỉnh của quản trị (Cài đặt › Menu & tab): thứ tự, nhóm, tên, biểu tượng, ẩn.
@@ -6169,6 +6170,7 @@ const ROUTES = {
   file:     { t: 'Xem tài liệu', i: 'bi-file-earmark-pdf', fn: (a, v) => viewFile(a, v), nav: 'library', nocache: 1, cls: 'vw-view', ix: 1 },
   classes:  { t: 'Lớp gia sư', i: 'bi-person-video3', fn: (a, v) => viewClasses(a, v), arg: 1, cls: 'cl-view', cap: ['classes.view', 'classes.manage'], ix: 1 },
   links:    { t: 'Link tạm', i: 'bi-link-45deg', fn: (a, v) => viewLinks(a, v), arg: 1, cls: 'lk-view', cap: 'links.manage', ix: 1 },
+  upload:   { t: 'Upload file', i: 'bi-cloud-arrow-up', fn: (a, v) => viewUpload(a, v), arg: 1, cap: ['sources.manage', '@up'] },
   compose:  { t: 'Soạn phiếu', i: 'bi-file-earmark-richtext', fn: (a, v) => viewCompose(a, v), arg: 1, cls: 'cp-view', cap: 'compose.use' },
   syllabus: { t: 'Syllabus', i: 'bi-signpost-split', fn: (a, v) => viewSyllabus(a, v), cls: 'sy-view', cap: 'compose.use' },
   guide:    { t: 'Hướng dẫn', i: 'bi-book', fn: (a, v) => viewGuide(a, v), arg: 1 },
@@ -10310,6 +10312,211 @@ document.addEventListener('contextmenu', e => {
   a.remove();
 });
 </script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   THƯ VIỆN › UPLOAD FILE (1.36) — máy chủ: UpFolders.gs (+ DriveOwner.gs)
+   Trái: thư mục nhận file mình được cấp (quản lý: thêm / sửa). Phải: thư mục đang mở — đường dẫn, thư mục con (tạo mới nếu được bật),
+   ô kéo thả nhiều file → HÀNG CHỜ: sửa tên, báo trùng tên (Thay bản cũ / Giữ cả hai), gợi ý thư mục của file đề, tiến độ từng file.
+   File đi từng khúc qua máy chủ, Drive ghi đứng tên TÀI KHOẢN CHỦ. Dưới: lịch sử upload (quản lý thấy của mọi người).
+   ══════════════════════════════════════════════════════════════ */
+const UPV = { d: null, cur: '', at: null, kids: [], canMk: 0, q: [], busy: 0 };
+const upIc = n => /\.pdf$/i.test(n) ? 'bi-file-earmark-pdf' : /\.(docx?|odt)$/i.test(n) ? 'bi-file-earmark-word' : /\.(xlsx?|csv)$/i.test(n) ? 'bi-file-earmark-spreadsheet' : /\.(pptx?|key)$/i.test(n) ? 'bi-file-earmark-slides' : /\.(png|jpe?g|gif|webp|heic)$/i.test(n) ? 'bi-file-earmark-image' : 'bi-file-earmark';
+const upB64 = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = () => rej(r.error || new Error('Không đọc được file')); r.readAsDataURL(blob); });
+
+async function viewUpload(arg, v) {
+  topBtns(v, '');
+  v.innerHTML = miniLoader('Đang tải thư mục nhận file…');
+  try { UPV.d = await rpc('upList', {}, { quiet: true }); } catch (e) { v.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
+  const D = UPV.d;
+  if (!UPV.cur || !D.folders.some(f => f.id === UPV.cur)) UPV.cur = (D.folders.find(f => f.id === arg) || D.folders.find(f => f.status === 'active') || D.folders[0] || {}).id || '';
+  const paint = () => {
+    const D = UPV.d, cur = D.folders.find(f => f.id === UPV.cur);
+    v.innerHTML = '<div class="up-lay"><aside class="card up-side"><div class="card-h"><h2><i class="bi bi-folder2-open"></i>Thư mục nhận file</h2>' + (D.man ? '<span class="sp"></span><button class="btn sm pri" id="upAdd"><i class="bi bi-plus-lg"></i>Thêm</button>' : '') + '</div>' +
+        '<div class="up-fl">' + (D.folders.length ? D.folders.map(f => '<button type="button" class="up-f' + (f.id === UPV.cur ? ' on' : '') + (f.status !== 'active' ? ' off' : '') + '" data-uf="' + esc(f.id) + '"><i class="bi bi-folder-fill"></i><span><b>' + esc(f.name) + '</b>' +
+            '<small>' + esc(f.status !== 'active' ? 'Tạm dừng' : 'Đứng tên ' + (f.owner || '—')) + (D.man ? ' · ' + (f.up.length ? f.up.length + ' người / vai trò' : 'chưa cấp ai') : '') + '</small></span>' + (f.sub ? '<i class="bi bi-folder-plus up-sb" title="Được tạo thư mục con"></i>' : '') + '</button>').join('')
+          : '<div class="empty small">' + (D.man ? 'Chưa có thư mục nhận file — bấm <b>Thêm</b> để tạo mới hoặc chọn thư mục có sẵn.' : 'Bạn chưa được cấp thư mục nào để upload — nhờ quản lý cấp quyền.') + '</div>') + '</div>' +
+        (D.man && !D.def ? '<div class="up-warn"><i class="bi bi-exclamation-triangle"></i>Chưa có tài khoản chủ Drive — kết nối ở <a data-go="settings/system">Quản trị › Hệ thống</a>.</div>' : '') + '</aside>' +
+      '<section class="up-main">' + (cur ? '<div class="card"><div class="card-h"><h2><i class="bi bi-cloud-arrow-up"></i>' + esc(cur.name) + '</h2><span class="sp"></span>' +
+          '<a class="btn sm ghost" target="_blank" rel="noopener" href="' + esc(UPV.at ? 'https://drive.google.com/drive/folders/' + UPV.at.id : cur.url) + '"><i class="bi bi-box-arrow-up-right"></i>Mở trên Drive</a>' +
+          (D.man ? '<button class="btn sm" id="upEdit"><i class="bi bi-gear"></i>Cài đặt</button>' : '') + '</div><div class="card-b stack">' +
+          (cur.note ? '<div class="small muted"><i class="bi bi-info-circle"></i> ' + esc(cur.note) + '</div>' : '') +
+          '<div class="up-path" id="upPath">' + miniLoader('Đang mở thư mục…') + '</div><div class="up-kids" id="upKids"></div>' +
+          '<label class="up-dz" id="upDz"><input type="file" multiple hidden id="upIn"><i class="bi bi-cloud-arrow-up"></i><span><b>Kéo thả file vào đây</b> hoặc bấm để chọn (nhiều file)<small>Lưu vào thư mục đang mở · đứng tên <b>' + esc(cur.owner || '—') + '</b>, không phải tài khoản của bạn</small></span></label>' +
+          '<div id="upQ"></div></div></div>' : '<div class="card"><div class="card-b empty">' + (D.folders.length ? 'Chọn một thư mục bên trái' : 'Chưa có thư mục để upload') + '</div></div>') +
+        '<div class="card"><div class="card-h"><h2><i class="bi bi-clock-history"></i>' + (D.man ? 'Lịch sử upload (mọi người)' : 'File bạn đã upload') + '</h2></div><div class="card-b" id="upHist"></div></div></section></div>';
+    paintHist(); paintQ();
+    if (cur) openDir(UPV.at && UPV.at.path[0] && UPV.at.path[0].id === cur.folderId ? UPV.at.id : '');
+    const dz = $('#upDz', v);
+    if (dz) {
+      $('#upIn', v).onchange = e => { const L = Array.from(e.target.files || []); e.target.value = ''; addFiles(L); };
+      dz.ondragover = e => { e.preventDefault(); dz.classList.add('on'); }; dz.ondragleave = () => dz.classList.remove('on');
+      dz.ondrop = e => { e.preventDefault(); dz.classList.remove('on'); addFiles(Array.from((e.dataTransfer && e.dataTransfer.files) || [])); };
+    }
+    const ad = $('#upAdd', v); if (ad) ad.onclick = () => upEditDlg(null);
+    const ed = $('#upEdit', v); if (ed) ed.onclick = () => upEditDlg(cur);
+  };
+  /* ── thư mục đang mở: đường dẫn + thư mục con ── */
+  const openDir = async id => {
+    const box = UPV.cur, P = $('#upPath', v); if (!P) return;
+    try { const r = await rpc('upKids', { id: box, folder: id || '' }, { quiet: true }); if (box !== UPV.cur) return; UPV.at = r.at; UPV.kids = r.kids; UPV.canMk = r.canMk; paintDir(); }
+    catch (e) { if (P.isConnected) P.innerHTML = '<span class="small" style="color:var(--danger)">' + esc(e.message) + '</span>'; }
+  };
+  const paintDir = () => {
+    const P = $('#upPath', v), K = $('#upKids', v); if (!P || !UPV.at) return;
+    const path = UPV.at.path;
+    P.innerHTML = path.map((x, i) => (i ? '<i class="bi bi-chevron-right"></i>' : '<i class="bi bi-folder2-open"></i>') + (i < path.length - 1 ? '<a data-dir="' + esc(i ? x.id : '') + '">' + esc(x.name) + '</a>' : '<b>' + esc(x.name) + '</b>')).join('') +
+      '<span class="sp"></span>' + (UPV.canMk ? '<button class="btn xs" id="upMk"><i class="bi bi-folder-plus"></i>Thư mục mới</button>' : '');
+    K.innerHTML = UPV.kids.length ? UPV.kids.map(k => '<button type="button" class="up-k" data-dir="' + esc(k.id) + '"><i class="bi bi-folder-fill"></i><span>' + esc(k.name) + '</span></button>').join('') : '<span class="small muted">Không có thư mục con — file lưu thẳng vào thư mục này</span>';
+    const mk = $('#upMk', v); if (mk) mk.onclick = mkDir;
+  };
+  const mkDir = () => {
+    const at = UPV.at; if (!at) return;
+    const m = modal({ title: 'Thư mục mới trong “' + at.name + '”', icon: 'bi-folder-plus', body: '<div class="stack"><div class="fg"><label class="flabel">Tên thư mục</label><input class="inp" id="mkN" placeholder="VD Topic 15T — Đa thức một biến" autofocus></div>' +
+        '<div class="small muted">Thư mục tạo trên Drive đứng tên <b>' + esc((UPV.d.folders.find(f => f.id === UPV.cur) || {}).owner || '') + '</b>. Trùng tên với thư mục có sẵn thì mở thư mục đó.</div></div>',
+      foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Tạo', cls: 'pri', i: 'bi-check2', fn: async () => { const n = m.$('#mkN').value.trim(); if (!n) { m.$('#mkN').focus(); return false; }
+        const r = await rpc('upMkdir', { id: UPV.cur, parent: at.id, name: n }, { quiet: true }); UPV.at = r.at; UPV.kids = r.kids; paintDir(); toast(r.made ? 'Đã tạo thư mục “' + r.at.name + '”' : 'Đã có thư mục “' + r.at.name + '” — mở thư mục đó', 'ok'); } }] });
+    m.$('#mkN').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); m.btns[1].click(); } };
+  };
+  /* ── hàng chờ upload ── */
+  const addFiles = L => {
+    const D = UPV.d; if (!UPV.at) return toast('Đợi mở xong thư mục rồi thả file', 'warn');
+    L.forEach(f => { if (!f.size) return toast('“' + f.name + '” rỗng — bỏ qua', 'warn'); if (f.size > D.max) return toast('“' + f.name + '” lớn quá (tối đa ' + fmtSize(D.max) + ')', 'warn');
+      const it = { k: Math.random().toString(36).slice(2), file: f, name: f.name.normalize('NFC'), box: UPV.cur, folder: UPV.at.path.length > 1 ? UPV.at.id : '', where: UPV.at.path.map(x => x.name).join(' / '), st: 'prep', dup: null, pick: '', match: null, pct: 0, err: '' };
+      UPV.q.push(it); prep(it); });
+    paintQ();
+  };
+  const prep = async it => {
+    it.st = 'prep'; it.err = ''; const seq = it.seq = (it.seq || 0) + 1; paintQ();
+    try { const r = await rpc('upPrep', { id: it.box, folder: it.folder, name: it.name }, { quiet: true }); if (seq !== it.seq) return;
+      it.dup = r.dup && r.dup.length ? r.dup[0] : null; it.pick = it.dup ? (it.dup.mine ? 'replace' : 'keep') : ''; it.lib = r.lib;
+      const mt = (r.match || [])[0]; it.match = mt && (mt.folderId || '') !== it.folder ? mt : null; it.here = mt && (mt.folderId || '') === it.folder ? mt : null;
+      if (it.match && !it.folder && !it.moved) { it.moved = 1; it.folder = it.match.folderId; it.where = r.at.path.map(x => x.name).concat(it.match.folderId ? [it.match.folderName] : []).join(' / '); return prep(it); }      // thả ở thư mục gốc → tự vào thư mục của file đề
+      it.st = 'ready'; }
+    catch (e) { if (seq === it.seq) { it.st = 'err'; it.err = e.message; } }
+    paintQ();
+  };
+  const paintQ = () => {
+    const Q = $('#upQ', v); if (!Q) return;
+    const mine = UPV.q.filter(it => it.box === UPV.cur), ready = mine.filter(it => it.st === 'ready').length;
+    Q.innerHTML = !mine.length ? '' : '<div class="up-q">' + mine.map(it => '<div class="up-qi ' + it.st + '" data-k="' + it.k + '"><i class="bi ' + upIc(it.name) + '"></i><div class="up-qb">' +
+        (it.st === 'ready' || it.st === 'err' ? '<input class="inp sm" data-qn value="' + esc(it.name) + '" aria-label="Tên file trên Drive">' : '<b>' + esc(it.name) + '</b>') +
+        '<small><i class="bi bi-folder2"></i> ' + esc(it.where) + ' · ' + esc(fmtSize(it.file.size)) + (it.lib === 0 && it.st === 'ready' ? ' · <span title="Thư mục chưa nằm trong nguồn Thư viện">chỉ lưu trên Drive</span>' : '') + '</small>' +
+        (it.here ? '<small class="up-ok"><i class="bi bi-check2-circle"></i> Đúng thư mục của file đề “' + esc(it.here.file) + '”</small>' : '') +
+        (it.match ? '<small class="up-hint"><i class="bi bi-magic"></i> Có file đề “' + esc(it.match.file) + '” ở “' + esc(it.match.folderName) + '” <a data-qm>Lưu vào đó</a></small>' : '') +
+        (it.dup && it.st === 'ready' ? '<small class="up-dup"><i class="bi bi-exclamation-circle"></i> Đã có file cùng tên (đứng tên ' + esc(it.dup.owner || '?') + ') · ' +
+          (it.dup.mine ? '<label><input type="radio" name="d' + it.k + '" value="replace"' + (it.pick === 'replace' ? ' checked' : '') + '> Thay bản cũ</label> ' : '') + '<label><input type="radio" name="d' + it.k + '" value="keep"' + (it.pick === 'keep' ? ' checked' : '') + '> Giữ cả hai</label></small>' : '') +
+        (it.st === 'up' ? '<div class="up-bar"><i style="width:' + Math.round(it.pct * 100) + '%"></i></div>' : '') +
+        (it.st === 'err' ? '<small style="color:var(--danger)"><i class="bi bi-x-circle"></i> ' + esc(it.err) + '</small>' : '') +
+        (it.st === 'done' ? '<small class="up-ok"><i class="bi bi-check2-circle"></i> Đã lưu' + (it.res && it.res.lib ? ' · đã vào Thư viện' : '') + ' · đứng tên ' + esc(it.res ? it.res.owner : '') + ' · <a target="_blank" rel="noopener" href="' + esc(it.res ? it.res.file.url : '#') + '">Mở</a></small>' : '') +
+        '</div><span class="up-qs">' + (it.st === 'prep' ? '<span class="spin"></span>' : it.st === 'up' ? Math.round(it.pct * 100) + '%' : it.st === 'err' ? '<button class="btn xs" data-qr>Thử lại</button>' : '') + '</span>' +
+        (it.st !== 'up' ? '<button class="ibtn" data-qx title="Bỏ khỏi hàng chờ" aria-label="Bỏ"><i class="bi bi-x-lg"></i></button>' : '') + '</div>').join('') + '</div>' +
+      (ready ? '<div class="row"><span class="sp"></span><button class="btn pri" id="upGo"' + (UPV.busy ? ' disabled' : '') + '><i class="bi bi-cloud-arrow-up"></i>Tải lên ' + ready + ' file</button></div>' : '');
+    const go = $('#upGo', v); if (go) go.onclick = runQ;
+  };
+  v.addEventListener('click', e => {
+    const f = e.target.closest('[data-uf]'); if (f) { if (f.dataset.uf !== UPV.cur) { UPV.cur = f.dataset.uf; UPV.at = null; paint(); } return; }
+    const d = e.target.closest('[data-dir]'); if (d && d.closest('#upPath, #upKids')) { e.preventDefault(); openDir(d.dataset.dir); return; }
+    const g = e.target.closest('[data-go]'); if (g) { go(g.dataset.go); return; }
+    const row = e.target.closest('[data-k]'), it = row && UPV.q.find(x => x.k === row.dataset.k); if (!it) return;
+    if (e.target.closest('[data-qx]')) { UPV.q = UPV.q.filter(x => x !== it); paintQ(); }
+    else if (e.target.closest('[data-qr]')) prep(it);
+    else if (e.target.closest('[data-qm]')) { it.where = (UPV.d.folders.find(x => x.id === it.box) || {}).name + (it.match.folderId ? ' / ' + it.match.folderName : ''); it.folder = it.match.folderId; it.moved = 1; prep(it); }
+  });
+  v.addEventListener('change', e => { const row = e.target.closest('[data-k]'), it = row && UPV.q.find(x => x.k === row.dataset.k); if (!it) return;
+    if (e.target.matches('[data-qn]')) { const n = e.target.value.trim(); if (n && n !== it.name) { it.name = n; it.moved = 0; prep(it); } }
+    else if (e.target.type === 'radio') it.pick = e.target.value; });
+  const runQ = async () => {
+    if (UPV.busy) return; UPV.busy = 1; let ok = 0, lib = 0;
+    for (const it of UPV.q.filter(x => x.box === UPV.cur && x.st === 'ready')) {
+      it.st = 'up'; it.pct = 0; paintQ();
+      try {
+        let off = 0, up = '', r; const ch = UPV.d.chunk;
+        for (;;) {
+          const pl = { id: it.box, folder: it.folder, name: it.name, mime: it.file.type || '', size: it.file.size, off: off, data: await upB64(it.file.slice(off, off + ch)), up: up };
+          if (!up && it.pick === 'replace' && it.dup) { pl.dup = 'replace'; pl.replaceId = it.dup.id; }
+          for (let k = 0; ; k++) { try { r = await rpc('upUpload', pl, { quiet: true }); break; } catch (er) { if (k || er.srv) throw er; await new Promise(z => setTimeout(z, 1500)); } }
+          if (r.done) break; up = r.up; off = r.next; it.pct = off / it.file.size; paintQ();
+        }
+        it.st = 'done'; it.res = r; ok++; if (r.lib) lib++; UPV.d.recent.unshift(r.file);
+      } catch (er) { it.st = 'err'; it.err = er.message; }
+      paintQ(); paintHist();
+    }
+    UPV.busy = 0; paintQ();
+    if (ok) { toast('Đã tải ' + ok + ' file lên Drive' + (lib ? ' · ' + lib + ' file đã vào Thư viện' : ''), 'ok', 4000); if (lib && typeof reloadIndex === 'function') reloadIndex().catch(() => {}); }
+  };
+  const paintHist = () => {
+    const H = $('#upHist', v); if (!H) return; const L = UPV.d.recent;
+    H.innerHTML = L.length ? '<div class="up-hl">' + L.map(x => '<a class="up-h" href="' + esc(x.url) + '" target="_blank" rel="noopener"><i class="bi ' + upIc(x.name) + '"></i><span class="t"><b>' + esc(x.name) + '</b><small>' +
+        esc(x.byName) + ' · ' + esc(ago(x.at)) + ' · ' + esc(fmtSize(x.size)) + ' · ' + esc(x.path || x.box) + (x.replaced ? ' · bản mới' : '') + '</small></span>' + (x.lib ? '<span class="tag ok" title="Đã vào chỉ mục Thư viện">Thư viện</span>' : '') +
+        '<span class="up-own" title="Chủ sở hữu trên Drive"><i class="bi bi-person-badge"></i>' + esc(x.owner) + '</span></a>').join('') + '</div>' : '<div class="small muted">Chưa có file nào</div>';
+  };
+  UPV.repaint = paint;
+  paint();
+}
+
+/** (quản lý) thêm / sửa thư mục nhận file */
+function upEditDlg(f) {
+  const D = UPV.d, isNew = !f;
+  const accOpt = [['', 'Mặc định' + (D.def ? ' (' + D.def + ')' : '')]].concat(D.accs.map(a => [a.email, a.email + (a.name ? ' · ' + a.name : '')]));
+  const m = modal({ title: isNew ? 'Thêm thư mục nhận file' : 'Cài đặt · ' + f.name, icon: 'bi-folder-plus', size: 'lg', body: '<div class="stack">' +
+      (isNew ? '<div class="seg" id="ueM"><button class="seg-b" data-m="new" aria-pressed="true"><i class="bi bi-folder-plus"></i>Tạo thư mục mới</button><button class="seg-b" data-m="link" aria-pressed="false"><i class="bi bi-link-45deg"></i>Dùng thư mục có sẵn</button></div>' : '') +
+      (isNew ? '<div class="fg" id="ueNW"><label class="flabel">Tên thư mục mới</label><input class="inp" id="ueN" placeholder="VD Đáp án Toán 7 - Nền tảng"></div>' +
+        '<div class="fg" id="uePW"><label class="flabel" id="uePL">Nằm trong thư mục (không bắt buộc)</label><input class="inp" id="ueP" placeholder="Dán link thư mục Drive, hoặc tìm trong nguồn Thư viện bên dưới"><div class="up-find"><input class="inp sm" id="ueQ" placeholder="Tìm thư mục trong các nguồn Thư viện… (VD Toán 7)"><div id="ueR"></div></div>' +
+          '<small class="muted" id="uePH">Trống = tạo ở Drive của tài khoản chủ. Nên chọn thư mục nằm trong một nguồn Thư viện để file upload hiện ngay trong Thư viện.</small></div>'
+        : '<div class="small muted"><i class="bi bi-folder2"></i> <a target="_blank" rel="noopener" href="' + esc(f.url) + '">Mở thư mục trên Drive</a>' + (f.src ? ' · trong nguồn <b>' + esc(f.src) + '</b>' : ' · chưa nằm trong nguồn Thư viện (file chỉ lưu trên Drive)') + '</div>' +
+          '<div class="fg"><label class="flabel">Tên hiển thị</label><input class="inp" id="ueN" value="' + esc(f.name) + '"></div>') +
+      '<div class="grid g2"><div class="fg"><label class="flabel">Tài liệu đứng tên (tài khoản chủ)</label><select class="sel" id="ueO">' + accOpt.map(o => '<option value="' + esc(o[0]) + '"' + (o[0] === ((f && f.ownSet) || '') ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join('') + '</select></div>' +
+        '<div class="fg"><label class="flabel">Ghi chú cho người upload</label><input class="inp" id="ueT" value="' + esc(f ? f.note : '') + '" placeholder="VD Tên file: <tên file đề> (Lời giải).pdf"></div></div>' +
+      '<div class="fg"><label class="flabel">Ai được upload vào thư mục này</label><div class="vchips" id="ueVC"></div><textarea class="ta" id="ueV" rows="2">' + esc(f ? f.up.join(', ') : '') + '</textarea>' +
+        '<small class="muted">Chọn vai trò (VD mọi Gia sư) và / hoặc từng người. Người quản lý nguồn luôn upload được.</small></div>' +
+      '<label class="ck"><input type="checkbox" id="ueS"' + (f && f.sub ? ' checked' : '') + '> Cho người được upload <b>tạo thư mục con</b> bên trong (VD từng Topic)</label>' +
+      (isNew ? '' : '<label class="ck"><input type="checkbox" id="ueX"' + (f.status === 'paused' ? ' checked' : '') + '> Tạm dừng nhận file</label>') + '</div>',
+    foot: (isNew ? [] : [{ t: 'Bỏ khỏi danh sách', cls: 'ghost', i: 'bi-trash', fn: async () => { if (!await ask('Bỏ “' + f.name + '” khỏi danh sách thư mục nhận file? Thư mục và file trên Drive vẫn giữ nguyên.', { ok: 'Bỏ', danger: true })) return false;
+        UPV.d = await rpc('upRemove', { id: f.id }, { quiet: true }); UPV.cur = ''; UPV.at = null; UPV.repaint && UPV.repaint(); toast('Đã bỏ ' + f.name); } }])
+      .concat([{ t: 'Huỷ', cls: 'ghost' }, { t: isNew ? 'Tạo' : 'Lưu', cls: 'pri', i: 'bi-check2', fn: async () => {
+        const pl = { id: f ? f.id : '', name: m.$('#ueN').value.trim(), owner: m.$('#ueO').value, up: m.$('#ueV').value.split(/[,;\s]+/).filter(Boolean), sub: m.$('#ueS').checked ? 1 : 0, note: m.$('#ueT').value.trim(), status: m.$('#ueX') && m.$('#ueX').checked ? 'paused' : 'active' };
+        if (isNew) { pl.mode = mode; if (mode === 'new') { if (!pl.name) { m.$('#ueN').focus(); toast('Nhập tên thư mục mới', 'warn'); return false; } pl.parent = m.$('#ueP').value.trim(); } else { pl.folder = m.$('#ueP').value.trim(); if (!pl.folder) { m.$('#ueP').focus(); toast('Dán link hoặc chọn thư mục có sẵn', 'warn'); return false; } } }
+        const r = await rpc('upSave', pl, { quiet: true }); UPV.d = r; if (r.saved) { UPV.cur = r.saved; UPV.at = null; } UPV.repaint && UPV.repaint();
+        toast(isNew ? (r.made ? 'Đã tạo thư mục trên Drive và thêm vào danh sách' : 'Đã thêm thư mục nhận file') : 'Đã lưu'); } }]) });
+  viewerChips(m.$('#ueVC'), m.$('#ueV'));
+  let mode = 'new';
+  if (isNew) {
+    const fix = () => { $$('#ueM [data-m]', m.el).forEach(b => b.setAttribute('aria-pressed', b.dataset.m === mode)); m.$('#ueNW').hidden = mode !== 'new';
+      m.$('#uePL').textContent = mode === 'new' ? 'Nằm trong thư mục (không bắt buộc)' : 'Thư mục có sẵn';
+      m.$('#uePH').textContent = mode === 'new' ? 'Trống = tạo ở Drive của tài khoản chủ. Nên chọn thư mục nằm trong một nguồn Thư viện để file upload hiện ngay trong Thư viện.' : 'Tài khoản chủ phải có quyền chỉnh sửa thư mục này.'; };
+    m.$('#ueM').onclick = e => { const b = e.target.closest('[data-m]'); if (b) { mode = b.dataset.m; fix(); } };
+    let tq = 0; m.$('#ueQ').oninput = () => { clearTimeout(tq); tq = setTimeout(async () => { const q = m.$('#ueQ').value.trim(); if (!q) { m.$('#ueR').innerHTML = ''; return; }
+      try { const r = await rpc('upFind', { q: q }, { quiet: true }); m.$('#ueR').innerHTML = r.items.length ? r.items.map(x => '<button type="button" class="up-fr" data-fid="' + esc(x.id) + '" data-fn="' + esc(x.name) + '"><i class="bi bi-folder"></i>' + esc(x.path) + '</button>').join('') : '<small class="muted">Không thấy thư mục nào</small>'; } catch (e) { m.$('#ueR').innerHTML = '<small style="color:var(--danger)">' + esc(e.message) + '</small>'; } }, 300); };
+    m.$('#ueR').onclick = e => { const b = e.target.closest('[data-fid]'); if (!b) return; m.$('#ueP').value = 'https://drive.google.com/drive/folders/' + b.dataset.fid; m.$('#ueR').innerHTML = '<small class="up-ok"><i class="bi bi-check2"></i> ' + esc(b.textContent) + '</small>'; };
+    fix(); setTimeout(() => m.$('#ueN').focus(), 60);
+  }
+}
+</script>
+<style>
+/* THƯ VIỆN › UPLOAD FILE (1.36) */
+.up-lay{ display:grid; grid-template-columns:minmax(240px, 300px) 1fr; gap:14px; align-items:start } .up-main{ display:flex; flex-direction:column; gap:14px; min-width:0 }
+@media (max-width:820px){ .up-lay{ grid-template-columns:1fr } }
+.up-fl{ display:flex; flex-direction:column; gap:4px; padding:6px } .up-f{ display:flex; align-items:center; gap:10px; padding:9px 10px; border:0; border-radius:10px; background:none; text-align:left; font:inherit; color:inherit; cursor:pointer }
+.up-f:hover{ background:var(--surface-2) } .up-f.on{ background:var(--brand-50); box-shadow:inset 3px 0 0 var(--brand-600) } .up-f.off{ opacity:.6 } .up-f > i{ color:#E3A008; font-size:18px } .up-f span{ flex:1; min-width:0; display:flex; flex-direction:column }
+.up-f b{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .up-f small{ color:var(--muted); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .up-sb{ color:var(--brand-600) }
+.up-warn{ margin:6px 10px 10px; padding:8px 10px; border-radius:10px; background:#FFF6E6; font-size:12.5px } .up-warn a{ cursor:pointer; color:var(--brand-600) }
+.up-path{ display:flex; flex-wrap:wrap; align-items:center; gap:5px; font-size:14px } .up-path a{ cursor:pointer; color:var(--brand-600) } .up-path .bi-chevron-right{ font-size:11px; color:var(--muted) }
+.up-kids > span{ grid-column:1 / -1 }
+.up-kids{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:6px } .up-k{ display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font:inherit; font-size:13.5px; color:inherit; cursor:pointer; text-align:left }
+.up-k:hover{ border-color:var(--brand-500); background:var(--brand-50) } .up-k i{ color:#E3A008 } .up-k span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.up-dz{ display:flex; align-items:center; gap:12px; padding:16px; border:1.5px dashed var(--border-strong); border-radius:12px; cursor:pointer; color:var(--ink-2) } .up-dz:hover, .up-dz.on{ background:var(--brand-50); border-color:var(--brand-500) }
+.up-dz > i{ font-size:26px; color:var(--brand-600) } .up-dz small{ display:block; color:var(--muted); font-size:12px; margin-top:2px }
+.up-q{ display:flex; flex-direction:column; border:1px solid var(--border); border-radius:12px; overflow:hidden } .up-qi{ display:flex; align-items:center; gap:10px; padding:9px 12px } .up-qi + .up-qi{ border-top:1px solid var(--border) }
+.up-qi > i{ font-size:20px; color:#C4262B } .up-qb{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px } .up-qb small{ color:var(--muted); font-size:12px } .up-qb .inp{ max-width:560px }
+.up-qi.done{ background:#F3FBF6 } .up-qi.err{ background:#FFF7F7 } .up-qs{ flex:none; font-size:12.5px; font-weight:600; min-width:40px; text-align:right }
+.up-ok{ color:#0F6B3D !important } .up-hint a, .up-ok a{ cursor:pointer; color:var(--brand-600); font-weight:600 } .up-dup{ color:#A96606 !important } .up-dup label{ cursor:pointer; margin-left:6px }
+.up-bar{ height:6px; border-radius:99px; background:var(--surface-3); overflow:hidden; max-width:560px } .up-bar > i{ display:block; height:100%; background:var(--brand-500); transition:width .3s }
+.up-hl{ display:flex; flex-direction:column; border:1px solid var(--border); border-radius:10px; overflow:hidden } .up-h{ display:flex; align-items:center; gap:10px; padding:8px 12px; color:inherit; text-decoration:none; font-size:13.5px } .up-h + .up-h{ border-top:1px solid var(--border) }
+.up-h:hover{ background:var(--surface-2) } .up-h > i{ font-size:18px; color:#C4262B } .up-h .t{ flex:1; min-width:0; display:flex; flex-direction:column } .up-h .t b{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .up-h small{ color:var(--muted); font-size:12px }
+.up-own{ flex:none; display:flex; align-items:center; gap:4px; font-size:11.5px; color:#0F6B3D; background:#E7F6EE; padding:2px 8px; border-radius:99px }
+.up-find{ display:flex; flex-direction:column; gap:4px; margin-top:6px } .up-find #ueR{ display:flex; flex-direction:column; max-height:180px; overflow:auto } .up-fr{ display:flex; gap:8px; align-items:center; padding:6px 8px; border:0; background:none; font:inherit; font-size:13px; text-align:left; cursor:pointer; color:inherit; border-radius:8px } .up-fr:hover{ background:var(--surface-2) } .up-fr i{ color:#E3A008 }
+</style>
 
 <script>
 /* ══════════════════════════════════════════════════════════════
