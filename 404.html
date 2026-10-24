@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T05:39:19.517Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T11:06:34.908Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -54,7 +54,7 @@
   /* ── google.script.run: gọi máy chủ bằng fetch ── */
   /* THỬ LẠI (1.35.2): Apps Script chạy lâu (~15 giây trở lên, VD lúc Google chậm) thì trả “chuyển hướng về /exec” thay cho kết quả → fetch báo lỗi CORS
      (“Failed to fetch”) dù mạng vẫn tốt. Lệnh CHỈ ĐỌC tự gửi lại tối đa 3 lần; lệnh ghi không gửi lại (máy chủ có thể đã ghi xong → tránh ghi trùng) */
-  var READ = /^(bootstrap|index|ping|stats|taskBoot|taskGet|notifList|annList|infoGet|classList|classInbox|classChat|classTree|classLessons|reqList|listUsers|listSources|listLinks|getRoles|getSettings|accessList|activity|audit|tutorPermsGet|fileData|filePeek|thumbs|fulltext|shareOpen|shareFile|droFiles|droFolders|droPrep|droInfo)$/;
+  var READ = /^(bootstrap|index|ping|stats|taskBoot|taskGet|notifList|annList|infoGet|classList|classInbox|classChat|classTree|classLessons|reqList|listUsers|listSources|listLinks|getRoles|getSettings|accessList|activity|audit|tutorPermsGet|fileData|filePeek|thumbs|fulltext|shareOpen|shareFile|droFiles|droFolders|droPrep|droInfo|viewToken|viewInfo|upList|upKids|upPrep|upFind)$/;
   var call = function (fn, args, ok, ko) {
     if (fn !== 'api') { if (ko) ko(new Error('Không hỗ trợ: ' + fn)); return; }
     var n = 0, go = function () { n++;
@@ -4102,6 +4102,10 @@ html.tk-noadd .tk-quick, html.tk-noadd .tk-qadd, html.tk-noadd #tkNew, html.tk-n
 .vw-thph{ display:block; width:min(380px, 80%); margin:0 auto 12px; border-radius:8px; box-shadow:0 8px 28px rgba(14,27,51,.12); opacity:.75; filter:saturate(.9) }
 /* Quản trị › Tài khoản gửi mail */
 .gmo-now{ display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; background:var(--surface-2); flex-wrap:wrap }
+.vw-modes{ display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:10px } .vw-m{ display:flex; gap:10px; align-items:flex-start; padding:12px 14px; border:1px solid var(--border); border-radius:12px; cursor:pointer; background:var(--surface) }
+.vw-m.on{ border-color:var(--brand-600); background:var(--brand-50); box-shadow:0 0 0 3px var(--accent-soft, rgba(37,99,235,.12)) } .vw-m input{ margin-top:3px } .vw-m > i{ font-size:18px; color:var(--brand-600); margin-top:1px } .vw-m span{ display:flex; flex-direction:column; gap:3px } .vw-m small{ color:var(--muted); font-size:12px; line-height:1.4 }
+.vw-m .vw-risk{ color:#9A5B00 } .vw-warn{ display:flex; gap:8px; padding:9px 12px; border-radius:10px; background:#FFF6E6; color:#7A4A00; font-size:13px } .vw-sec{ display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:12px; background:var(--surface-2) }
+.vw-sl{ display:flex; flex-direction:column; gap:6px } .vw-sl > div{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; background:var(--surface) } .vw-sl i{ color:var(--brand-600) } .vw-sl span{ flex:1; display:flex; flex-direction:column; min-width:0 } .vw-sl small{ color:var(--muted); font-size:12px }
 .dro-list{ display:flex; flex-direction:column; gap:8px } .dro-list .tag{ font-size:11px; vertical-align:1px }
 .dro-inv{ display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:12px; border:1px dashed var(--border-strong) } .dro-link{ display:flex; gap:8px } .dro-link .inp{ flex:1; min-width:0; font-size:12px }
 .dro-invl{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--muted) } .dro-invl > div{ display:flex; align-items:center; gap:8px } .dro-invl span{ flex:1 }
@@ -5604,7 +5608,7 @@ const GROUPS = { lib: 'Thư viện', team: 'Hỗ trợ', admin: 'Quản trị' }
    Web app chia thành các ứng dụng (danh mục ở máy chủ: MODULES trong Code.gs → S.boot.mods; người này được vào những ứng dụng nào: S.me.apps).
    Mỗi trang thuộc một ứng dụng; thanh bên chỉ hiện tab của ứng dụng đang mở + các tab dùng chung (Thông tin, Hướng dẫn, Cài đặt).
    Mở một trang của ứng dụng khác (link, thông báo…) → tự chuyển sang ứng dụng đó. Thêm ứng dụng: thêm vào MODULES + MOD_ROUTES. */
-const MOD_ROUTES = { tutor: ['today', 'classes', 'guide'], lib: ['home', 'library', 'programs', 'recent', 'links', 'sources'], redesign: ['compose', 'syllabus'], task: ['tasks'], sys: ['activity', 'users', 'xapps'] };      // Nguồn dữ liệu thuộc Thư viện: nạp nguồn ngay tại nơi dùng tài liệu
+const MOD_ROUTES = { tutor: ['today', 'classes', 'guide'], lib: ['home', 'library', 'programs', 'recent', 'links', 'upload', 'sources'], redesign: ['compose', 'syllabus'], task: ['tasks'], sys: ['activity', 'users', 'xapps'] };      // Nguồn dữ liệu thuộc Thư viện: nạp nguồn ngay tại nơi dùng tài liệu
 const MOD_LAST = lsGet('modLast', {});
 /* trang dùng chung giữa các ứng dụng: Chương trình có ở cả Kiến Chuyên môn (lớp gia sư học theo chương trình) lẫn Thư viện (nơi dựng chương trình từ tài liệu) —
    mở từ ứng dụng nào thì ở lại ứng dụng đó, cùng một dữ liệu */
@@ -7321,8 +7325,36 @@ function fdbTrim() {
       let tot = all.reduce((a, x) => a + x[1], 0); for (const x of all) { if (tot <= FDB.max) break; st.delete(x[0]); tot -= x[1]; } }; } catch (e) {} }, 3000);
 }
 const FLOAD = {};
-/** tải nội dung tài liệu qua đường HTTP nhanh (doPost); không được (mạng chặn, máy chủ bản cũ) → quay về google.script.run */
+/* ══ XEM NHANH — LẤY THẲNG TỪ GOOGLE (1.37) ══ Quản trị › Hệ thống › Chế độ xem tài liệu (bootstrap.view):
+   token = token CHỈ ĐỌC ~1 giờ của tài khoản xem (viewToken) · link = khoá API, file chia sẻ “ai có link”. Trình duyệt tải file thẳng từ Drive API
+   (không qua Apps Script, không base64 ở máy chủ) rồi vào đúng đường cũ: bộ đệm trên máy, trình vẽ PDF, in. Không được → quay về máy chủ. */
+const VTOK = { t: '', exp: 0, p: null };
+function viewTok(fresh) {
+  if (!fresh && VTOK.t && VTOK.exp - Date.now() > 120000) return Promise.resolve(VTOK.t);
+  return VTOK.p || (VTOK.p = rpc('viewToken', {}, { quiet: true }).then(r => { VTOK.t = r.token; VTOK.exp = r.exp; VTOK.p = null; return r.token; }, e => { VTOK.p = null; throw e; }));
+}
+function abB64(buf) { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); }
+const VIEW_G = 'https://www.googleapis.com/drive/v3/files/';
+async function directData(id) {
+  const V = S.boot && S.boot.view, f = IX.byId && IX.byId[id];
+  if (!V || (V.mode !== 'token' && V.mode !== 'link') || S.as || !f || !window.fetch) return null;
+  const gx = /^g(doc|sheet|slides|draw)$/.test(f.type); if (!(f.type === 'pdf' || f.type === 'img' || gx)) return null;      // Word / Excel… vẫn đổi sang PDF ở máy chủ
+  const go = async fresh => {
+    let url = VIEW_G + encodeURIComponent(id) + (gx ? '/export?mimeType=application%2Fpdf' : '?alt=media&supportsAllDrives=true'); const h = {};
+    if (V.mode === 'token') h.Authorization = 'Bearer ' + await viewTok(fresh); else url += '&key=' + encodeURIComponent(V.key || '');
+    return fetch(url, { headers: h });
+  };
+  const t0 = performance.now();
+  let r = await go(false); if (r.status === 401 && V.mode === 'token') r = await go(true);
+  if (!r.ok) throw new Error('Google trả ' + r.status);
+  const buf = await r.arrayBuffer(), out = { type: f.type === 'img' ? 'img' : 'pdf', b64: abB64(buf), direct: V.mode, converted: gx };
+  if (f.type === 'img') out.mime = (r.headers.get('content-type') || 'image/jpeg').split(';')[0];
+  console.info('[xem thẳng từ Google · ' + V.mode + ']', id, Math.round(buf.byteLength / 1024) + ' KB', Math.round(performance.now() - t0) + ' ms');
+  return out;
+}
+/** tải nội dung tài liệu: chế độ xem nhanh → lấy thẳng từ Google; không thì đường HTTP nhanh (doPost); không được (mạng chặn, máy chủ bản cũ) → quay về google.script.run */
 async function fastData(id) {
+  try { const dd = await directData(id); if (dd) return dd; } catch (e) { console.warn('xem thẳng từ Google không được → qua máy chủ', id, e); }
   const url = window.BASE_URL || (S.boot && S.boot.url) || '';
   if (/^https:\/\/script\.google\.com\/|^http:\/\/localhost:\d+\//.test(url) && window.fetch) {
     let o = null;
@@ -9237,12 +9269,12 @@ function setSystem(B, cfg, setCfg) {
       '<div class="row"><input class="inp" id="drH" type="email" placeholder="Email tài khoản chủ (VD admin@kitee.vn) — không bắt buộc" style="flex:1 1 260px"><button class="btn pri" id="drGo"' + (G.cid && G.hasSecret ? '' : ' disabled') + '><i class="bi bi-google"></i>' + (ok ? 'Kết nối thêm tài khoản…' : 'Kết nối tài khoản Google…') + '</button>' +
         '<button class="btn ghost" id="drR" title="Tải lại trạng thái sau khi cấp quyền"><i class="bi bi-arrow-clockwise"></i></button></div>' +
       // LINK CẤP QUYỀN: người giữ tài khoản chủ tự đăng nhập Google trên máy họ — không ai phải gửi mật khẩu / key
-      '<div class="dro-inv"><div class="small"><b><i class="bi bi-send"></i> Không giữ mật khẩu của tài khoản chủ?</b> Tạo link gửi cho người giữ tài khoản (ghi email ở ô trên để chỉ nhận đúng tài khoản đó). ' +
+      '<div class="dro-inv"><div class="small"><b><i class="bi bi-send"></i> Không giữ mật khẩu của tài khoản chủ?</b> Ghi email tài khoản chủ ở ô trên, tạo link rồi gửi cho người giữ tài khoản — link chỉ nhận đúng tài khoản đó. ' +
           'Họ mở link, đăng nhập Google và bấm Cho phép — không cần gửi mật khẩu hay key cho ai.</div>' +
         '<div class="row"><select class="sel" id="drIh" style="flex:0 0 auto;width:auto"><option value="24">Hạn 1 ngày</option><option value="72" selected>Hạn 3 ngày</option><option value="168">Hạn 7 ngày</option></select>' +
           '<button class="btn" id="drInv"' + (G.cid && G.hasSecret ? '' : ' disabled') + '><i class="bi bi-link-45deg"></i>Tạo link cấp quyền</button></div>' +
         (drLast ? '<div class="dro-link"><input class="inp mono" id="drL" readonly value="' + esc(drLast.link) + '"><button class="btn sm pri" id="drLc"><i class="bi bi-clipboard"></i>Chép link</button></div>' +
-          '<div class="small muted">Gửi link này cho người giữ <b>' + esc(drLast.email || 'tài khoản chủ') + '</b> (Zalo / mail). Dùng một lần, hết hạn ' + esc(fmtDT(new Date(drLast.exp).toISOString())) + '. Họ cấp quyền xong bạn nhận thông báo, tài khoản hiện ở danh sách trên.</div>' : '') +
+          '<div class="small muted">Gửi link này cho người giữ <b>' + esc(drLast.email) + '</b> (Zalo / mail). Dùng một lần, hết hạn ' + esc(fmtDT(new Date(drLast.exp).toISOString())) + '. Họ cấp quyền xong bạn nhận thông báo, tài khoản hiện ở danh sách trên.</div>' : '') +
         ((G.invites || []).length ? '<div class="dro-invl">' + G.invites.map(x => '<div><i class="bi bi-hourglass-split"></i><span>Link cho <b>' + esc(x.email || 'tài khoản bất kỳ') + '</b> · tạo ' + esc(ago(x.at)) + ' · hết hạn ' + esc(fmtDT(new Date(x.exp).toISOString())) + '</span>' +
           '<button class="btn xs ghost" data-dri="' + esc(x.id) + '"><i class="bi bi-x-circle"></i>Thu hồi</button></div>').join('') + '</div>' : '') + '</div>' +
       '<div class="small muted"><i class="bi bi-key"></i> OAuth client: ' + (G.own ? '<b>riêng cho Drive</b> <code>' + esc(G.cid) + '</code>' : G.cid ? 'dùng chung với <b>Tài khoản gửi mail</b> <code>' + esc(G.cid) + '</code>' : '<b style="color:var(--danger)">chưa có</b> — nhập ở Tài khoản gửi mail (bên trên) hoặc client riêng bên dưới') + '</div>' +
@@ -9261,7 +9293,7 @@ function setSystem(B, cfg, setCfg) {
     const start = async hint => { const w = window.open('', '_blank'); try { const r = await rpc('droStart', { hint: hint || '' }, { quiet: true }); if (w) w.location = r.url; else location.href = r.url; toast('Cấp quyền ở tab mới, xong quay lại đây', 'info', 5000); } catch (er) { if (w) w.close(); fail(er); } };
     $('#drGo', dc).onclick = () => start($('#drH', dc).value.trim());
     $('#drR', dc).onclick = () => drLoad();
-    $('#drInv', dc).onclick = async e => { const em = $('#drH', dc).value.trim(); if (!em && !await ask('Chưa ghi email — link sẽ nhận BẤT KỲ tài khoản Google nào bấm vào. Vẫn tạo?', { ok: 'Vẫn tạo' })) return;
+    $('#drInv', dc).onclick = async e => { const em = $('#drH', dc).value.trim(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { $('#drH', dc).focus(); return toast('Ghi email tài khoản chủ cần cấp quyền (VD admin@kitee.vn) ở ô bên trên', 'warn', 4000); }
       const stop = btnWait(e.currentTarget, 'Đang tạo…'); try { drPaint(await rpc('droInvite', { email: em, hours: Number($('#drIh', dc).value) }, { quiet: true })); toast('Đã tạo link cấp quyền — bấm Chép link rồi gửi đi', 'ok', 4000); } catch (er) { stop(); fail(er); } };
     { const lc = $('#drLc', dc); if (lc) lc.onclick = () => copyText(drLast.link, 'Đã chép link cấp quyền'); }
     dc.querySelectorAll('[data-dri]').forEach(b => { b.onclick = async () => { if (!await ask('Thu hồi link cấp quyền này? Người nhận mở link sẽ thấy “không còn dùng được”.', { ok: 'Thu hồi', danger: true })) return; try { drPaint(await rpc('droInviteRevoke', { id: b.dataset.dri }, { quiet: true })); toast('Đã thu hồi link'); } catch (er) { fail(er); } }; });
@@ -9275,6 +9307,48 @@ function setSystem(B, cfg, setCfg) {
   const drLoad = () => rpc('droInfo', {}, { quiet: true }).then(G => { if (dc.isConnected) drPaint(G); }).catch(e => { $('.card-b', dc).innerHTML = '<div class="empty small">' + esc(e.message) + '</div>'; });
   drLoad();
   window.addEventListener('focus', function drF() { if (!dc.isConnected) return window.removeEventListener('focus', drF); drLoad(); });
+  // ── chế độ xem tài liệu (1.37): qua máy chủ · token đọc tạm · ai có link — DriveOwner.gs (viewApi_) ──
+  const vc = document.createElement('div'); vc.className = 'card vw-card'; vc.style.marginTop = '12px'; B.appendChild(vc);
+  vc.innerHTML = '<div class="card-h"><h2><i class="bi bi-lightning-charge"></i>Chế độ xem tài liệu</h2></div><div class="card-b">' + miniLoader('Đang tải…') + '</div>';
+  let vwShare = null;
+  const vwPaint = G => {
+    const M = [['app', 'bi-shield-check', 'Qua máy chủ', 'An toàn nhất — app kiểm quyền xem từng tài liệu. Lần đầu mở 4–8 giây, mở lại gần như tức thì (bộ đệm 6 giờ, tới ~6 MB).', ''],
+      ['token', 'bi-key', 'Token đọc tạm', 'Nhanh như Drive — trình duyệt lấy file thẳng từ Google bằng token CHỈ ĐỌC (~1 giờ) của một tài khoản xem.', 'Người đăng nhập app có thể dùng token đó đọc mọi file tài khoản xem thấy (bỏ qua quyền xem theo thư mục của app) cho tới khi hết hạn.'],
+      ['link', 'bi-globe2', 'Ai có link', 'Nhanh như Drive — trình duyệt lấy thẳng file đã chia sẻ “Bất kỳ ai có đường liên kết” bằng khoá API.', 'Ai có mã file (kể cả người ngoài trung tâm) đều xem được file đó.']];
+    const a = G.acc;
+    vc.innerHTML = '<div class="card-h"><h2><i class="bi bi-lightning-charge"></i>Chế độ xem tài liệu</h2><span class="sp"></span><span class="tag ' + (G.eff === 'app' ? '' : 'ok') + '">Đang dùng: ' + esc((M.find(x => x[0] === G.eff) || M[0])[2]) + '</span></div><div class="card-b stack">' +
+      (G.mode !== G.eff ? '<div class="vw-warn"><i class="bi bi-exclamation-triangle-fill"></i>Đã chọn “' + esc((M.find(x => x[0] === G.mode) || M[0])[2]) + '” nhưng chưa cài đủ — app tạm dùng “Qua máy chủ”.</div>' : '') +
+      '<div class="vw-modes" role="radiogroup">' + M.map(m => '<label class="vw-m' + (G.mode === m[0] ? ' on' : '') + '"><input type="radio" name="vwM" value="' + m[0] + '"' + (G.mode === m[0] ? ' checked' : '') + '><i class="bi ' + m[1] + '"></i><span><b>' + esc(m[2]) + '</b><small>' + esc(m[3]) + '</small>' +
+          (m[4] ? '<small class="vw-risk"><i class="bi bi-exclamation-circle"></i>' + esc(m[4]) + '</small>' : '') + '</span></label>').join('') + '</div>' +
+      '<div class="vw-sec" data-for="token"><div class="flabel">Tài khoản xem (chỉ đọc)</div>' +
+        (a ? '<div class="gmo-now"><i class="bi ' + (a.err ? 'bi-exclamation-triangle" style="color:var(--danger)' : 'bi-eye') + '"></i><div><b>' + esc(a.email) + '</b><small>' + esc((a.name ? a.name + ' · ' : '') + 'kết nối ' + fmtDT(a.at)) + '</small>' + (a.err ? '<small style="color:var(--danger)">' + esc(a.err) + '</small>' : '') + '</div><button class="btn sm ghost" id="vwX"><i class="bi bi-plug"></i>Ngắt</button></div>'
+          : '<div class="small muted">Nên dùng một tài khoản riêng (VD xem.kientre@gmail.com) chỉ được chia sẻ quyền <b>Người xem</b> các thư mục thư viện. App chỉ nhận quyền đọc; tài khoản đã cấp quyền ghi cho app sẽ bị từ chối.</div>') +
+        '<div class="row"><input class="inp" id="vwH" type="email" placeholder="Email tài khoản xem — không bắt buộc" style="flex:1 1 240px"><button class="btn" id="vwGo"' + (G.cid ? '' : ' disabled') + '><i class="bi bi-google"></i>' + (a ? 'Kết nối tài khoản khác' : 'Kết nối tài khoản xem…') + '</button></div>' +
+        '<div class="small muted">Trên Google Cloud: thêm scope <code>…/auth/drive.readonly</code> ở Data access (cùng OAuth client với Tài khoản chủ Drive).</div></div>' +
+      '<div class="vw-sec" data-for="link"><div class="grid g2"><div class="fg"><label class="flabel">Khoá API (Google Cloud › Credentials › API key)</label><input class="inp mono" id="vwK" value="' + esc(G.key) + '" placeholder="AIza…"></div>' +
+        '<div class="small muted" style="align-self:end">Giới hạn khoá: <b>API restrictions</b> = Google Drive API · <b>Website restrictions</b> = <code>https://kientre-internal.click/*</code> và <code>https://*.googleusercontent.com/*</code>.</div></div>' +
+        '<div class="flabel" style="margin-top:6px">Chia sẻ theo link của các nguồn</div><div id="vwS">' + (vwShare ? vwShareHtml(vwShare) : '<button class="btn sm" id="vwSL"><i class="bi bi-search"></i>Kiểm tra chia sẻ ' + G.sources.length + ' nguồn</button>') + '</div></div>' +
+      '<div class="row"><button class="btn pri" id="vwSave"><i class="bi bi-check2"></i>Lưu chế độ xem</button><button class="btn ghost" id="vwR" title="Tải lại"><i class="bi bi-arrow-clockwise"></i></button><span class="small muted">Người dùng mở lại app (hoặc tải lại trang) là áp dụng.</span></div></div>';
+    const cur = () => (vc.querySelector('input[name=vwM]:checked') || {}).value || 'app';
+    const fix = () => { vc.querySelectorAll('.vw-m').forEach(l => l.classList.toggle('on', l.querySelector('input').checked)); vc.querySelectorAll('.vw-sec').forEach(s2 => { s2.hidden = s2.dataset.for !== cur(); }); };
+    vc.querySelectorAll('input[name=vwM]').forEach(x => { x.onchange = fix; }); fix();
+    $('#vwSave', vc).onclick = async e => { const m = cur();
+      if (m !== 'app' && !await ask(m === 'token' ? 'Bật “Token đọc tạm”? Người đăng nhập app sẽ nhận token chỉ đọc (~1 giờ) của tài khoản xem — có thể dùng nó đọc mọi file tài khoản đó thấy, bỏ qua quyền xem theo thư mục của app.' : 'Bật “Ai có link”? App sẽ lấy thẳng các file đã chia sẻ theo link — ai có mã file đều xem được file đó.', { ok: 'Bật' })) return;
+      const stop = btnWait(e.currentTarget, 'Đang lưu…'); try { vwPaint(await rpc('viewSave', { mode: m, key: $('#vwK', vc).value.trim() }, { quiet: true })); toast('Đã lưu chế độ xem tài liệu'); } catch (er) { stop(); fail(er); } };
+    $('#vwR', vc).onclick = () => vwLoad();
+    $('#vwGo', vc).onclick = async () => { const w = window.open('', '_blank'); try { const r = await rpc('viewStart', { hint: $('#vwH', vc).value.trim() }, { quiet: true }); if (w) w.location = r.url; else location.href = r.url; toast('Cấp quyền ở tab mới, xong quay lại đây', 'info', 5000); } catch (er) { if (w) w.close(); fail(er); } };
+    const x = $('#vwX', vc); if (x) x.onclick = async () => { if (!await ask('Ngắt tài khoản xem ' + a.email + '? Chế độ Token đọc tạm sẽ tắt (quay về Qua máy chủ).', { ok: 'Ngắt', danger: true })) return; try { vwPaint(await rpc('viewRemove', {}, { quiet: true })); toast('Đã ngắt tài khoản xem'); } catch (er) { fail(er); } };
+    const sl = $('#vwSL', vc); if (sl) sl.onclick = async e => { const stop = btnWait(e.currentTarget, 'Đang kiểm tra…'); try { vwShare = (await rpc('viewShare', {}, { quiet: true })).list; $('#vwS', vc).innerHTML = vwShareHtml(vwShare); } catch (er) { stop(); fail(er); } };
+    $('#vwS', vc).onclick = async e => { const b = e.target.closest('[data-vsh]'); if (!b) return; const on = b.dataset.on === '1', s = (vwShare || []).find(y => y.id === b.dataset.vsh);
+      if (!await ask(on ? 'Bật chia sẻ “Bất kỳ ai có đường liên kết · Người xem” cho thư mục gốc của nguồn “' + (s ? s.name : '') + '”? Mọi file bên trong kế thừa — ai có link đều xem được.' : 'Tắt chia sẻ theo link của nguồn “' + (s ? s.name : '') + '”?', { ok: on ? 'Bật' : 'Tắt', danger: on })) return;
+      const stop = btnWait(b, '…'); try { vwShare = (await rpc('viewShare', { id: b.dataset.vsh, on: on ? 1 : 0 }, { quiet: true })).list; $('#vwS', vc).innerHTML = vwShareHtml(vwShare); toast(on ? 'Đã bật chia sẻ theo link' : 'Đã tắt chia sẻ theo link'); } catch (er) { stop(); fail(er); } };
+  };
+  const vwShareHtml = L => L.length ? '<div class="vw-sl">' + L.map(s => { const pub = /ANYONE/.test(s.access), err = /^ERR/.test(s.access);
+      return '<div><i class="bi ' + (pub ? 'bi-globe2' : 'bi-lock') + '"></i><span><b>' + esc(s.name) + '</b><small>' + esc(err ? s.access : pub ? 'Ai có link đều xem được' : 'Chỉ người được chia sẻ') + '</small></span>' +
+        (err ? '' : '<button class="btn xs' + (pub ? ' ghost' : '') + '" data-vsh="' + esc(s.id) + '" data-on="' + (pub ? '0' : '1') + '">' + (pub ? 'Tắt chia sẻ link' : 'Bật chia sẻ link') + '</button>') + '</div>'; }).join('') + '</div>' : '<div class="small muted">Chưa có nguồn nào</div>';
+  const vwLoad = () => rpc('viewInfo', {}, { quiet: true }).then(G => { if (vc.isConnected) vwPaint(G); }).catch(e => { $('.card-b', vc).innerHTML = '<div class="empty small">' + esc(e.message) + '</div>'; });
+  vwLoad();
+  window.addEventListener('focus', function vwF() { if (!vc.isConnected) return window.removeEventListener('focus', vwF); vwLoad(); });
   // ── mail gửi đi: lượt còn lại hôm nay, đã gửi / bỏ qua theo loại, mức giữ lại cho mã đăng nhập ──
   const mc = document.createElement('div'); mc.className = 'card ml-card'; mc.style.marginTop = '12px'; B.appendChild(mc);
   mc.innerHTML = '<div class="card-h"><h2><i class="bi bi-envelope"></i>Mail gửi đi</h2></div><div class="card-b">' + miniLoader('Đang tải…') + '</div>';
@@ -10315,105 +10389,186 @@ document.addEventListener('contextmenu', e => {
 
 <script>
 /* ══════════════════════════════════════════════════════════════
-   THƯ VIỆN › UPLOAD FILE (1.36) — máy chủ: UpFolders.gs (+ DriveOwner.gs)
-   Trái: thư mục nhận file mình được cấp (quản lý: thêm / sửa). Phải: thư mục đang mở — đường dẫn, thư mục con (tạo mới nếu được bật),
-   ô kéo thả nhiều file → HÀNG CHỜ: sửa tên, báo trùng tên (Thay bản cũ / Giữ cả hai), gợi ý thư mục của file đề, tiến độ từng file.
-   File đi từng khúc qua máy chủ, Drive ghi đứng tên TÀI KHOẢN CHỦ. Dưới: lịch sử upload (quản lý thấy của mọi người).
+   THƯ VIỆN › UPLOAD FILE (1.36 · thiết kế lại 1.36.1) — máy chủ: UpFolders.gs (+ DriveOwner.gs)
+   Đầu trang → hàng thẻ THƯ MỤC NHẬN FILE (quản lý: thêm / cài đặt) → khung thư mục đang mở: đường dẫn, thư mục con kiểu Drive, ô KÉO THẢ lớn
+   (thả ở bất cứ đâu trên trang cũng được) → HÀNG CHỜ (tự tải ngay hoặc sửa tên trước) → lịch sử.
+   TẢI NHANH (driveSend): máy chủ mở phiên resumable bằng token tài khoản chủ, trình duyệt GỬI THẲNG nội dung lên Google (như tải lên Drive),
+   xong máy chủ kiểm lại + ghi lịch sử / chỉ mục. Google không cho gửi thẳng → tự chuyển sang gửi từng khúc qua máy chủ. Tải 3 file cùng lúc.
    ══════════════════════════════════════════════════════════════ */
-const UPV = { d: null, cur: '', at: null, kids: [], canMk: 0, q: [], busy: 0 };
-const upIc = n => /\.pdf$/i.test(n) ? 'bi-file-earmark-pdf' : /\.(docx?|odt)$/i.test(n) ? 'bi-file-earmark-word' : /\.(xlsx?|csv)$/i.test(n) ? 'bi-file-earmark-spreadsheet' : /\.(pptx?|key)$/i.test(n) ? 'bi-file-earmark-slides' : /\.(png|jpe?g|gif|webp|heic)$/i.test(n) ? 'bi-file-earmark-image' : 'bi-file-earmark';
+const UPV = { d: null, cur: '', at: null, kids: [], canMk: 0, q: [], run: 0, auto: lsGet('upAuto', 1) ? 1 : 0 };
+const UP_PAR = 3, UP_DIRECT = 16 * 1024 * 1024;      // 3 file cùng lúc · mỗi lần gửi thẳng 16 MB (bội của 256 KB)
+const upIc = n => /\.pdf$/i.test(n) ? ['bi-file-earmark-pdf-fill', '#D93025'] : /\.(docx?|odt)$/i.test(n) ? ['bi-file-earmark-word-fill', '#2B579A'] : /\.(xlsx?|csv)$/i.test(n) ? ['bi-file-earmark-spreadsheet-fill', '#1E7145']
+  : /\.(pptx?|key)$/i.test(n) ? ['bi-file-earmark-slides-fill', '#C43E1C'] : /\.(png|jpe?g|gif|webp|heic)$/i.test(n) ? ['bi-file-earmark-image-fill', '#7B1FA2'] : /\.(zip|rar|7z)$/i.test(n) ? ['bi-file-earmark-zip-fill', '#6B7280'] : ['bi-file-earmark-fill', '#64748B'];
+const upIco = n => { const x = upIc(n); return '<i class="bi ' + x[0] + '" style="color:' + x[1] + '"></i>'; };
 const upB64 = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = () => rej(r.error || new Error('Không đọc được file')); r.readAsDataURL(blob); });
+
+/** gửi một khúc thẳng lên phiên Google (XHR để có tiến độ) → { st, x } */
+function upXhr(uri, blob, start, total, onp) {
+  return new Promise((res, rej) => {
+    const x = new XMLHttpRequest(); x.open('PUT', uri);
+    x.setRequestHeader('Content-Range', 'bytes ' + start + '-' + (start + blob.size - 1) + '/' + total);
+    x.upload.onprogress = e => { if (onp && e.lengthComputable) onp((start + e.loaded) / total); };
+    x.onload = () => res({ st: x.status, x: x }); x.onerror = () => rej(Object.assign(new Error('Không gửi thẳng được lên Google'), { net: 1 })); x.ontimeout = x.onerror;
+    x.send(blob);
+  });
+}
+/** TẢI MỘT FILE LÊN DRIVE (dùng chung: Upload file · hộp task). o = { file, base: { id, folder, name, dup, replaceId }, api: { begin, finish, relay }, chunk, onProgress }
+    1) begin → phiên (máy chủ, token tài khoản chủ) · 2) gửi thẳng trình duyệt → Google · 3) finish → máy chủ kiểm + ghi. Không gửi thẳng được → relay qua máy chủ */
+async function driveSend(o) {
+  const f = o.file, onp = o.onProgress || (() => {}), base = Object.assign({}, o.base, { size: f.size, mime: f.type || '' });
+  const b = await rpc(o.api.begin, Object.assign({}, base, { origin: location.origin }), { quiet: true });
+  if (b.direct && b.uri) {
+    let meta = null;
+    try {
+      for (let off = 0; off < f.size;) {
+        const end = Math.min(f.size, off + UP_DIRECT), r = await upXhr(b.uri, f.slice(off, end), off, f.size, onp);
+        if (r.st === 308) { off = end; continue; }
+        if (r.st === 200 || r.st === 201) { meta = JSON.parse(r.x.responseText || '{}'); break; }
+        let m = ''; try { m = (JSON.parse(r.x.responseText).error || {}).message || ''; } catch (e) {}
+        throw Object.assign(new Error('Google từ chối (' + r.st + ')' + (m ? ': ' + m : '')), { final: /quota|storage|permission|insufficient/i.test(m) || r.st === 403 });
+      }
+    } catch (e) { if (e.final) throw e; console.warn('gửi thẳng không được → gửi qua máy chủ', e); meta = null; }
+    if (meta && meta.id) return rpc(o.api.finish, { up: b.up, fileId: meta.id }, { quiet: true });
+  }
+  // dự phòng: gửi từng khúc base64 qua máy chủ (phiên mới)
+  let off = 0, up = '', r; onp(0);
+  for (;;) {
+    const pl = Object.assign({}, base, { off: off, data: await upB64(f.slice(off, off + o.chunk)), up: up });
+    for (let k = 0; ; k++) { try { r = await rpc(o.api.relay, pl, { quiet: true }); break; } catch (er) { if (k || er.srv) throw er; await new Promise(z => setTimeout(z, 1500)); } }
+    if (r.done) return r; up = r.up; off = r.next; onp(off / f.size);
+  }
+}
 
 async function viewUpload(arg, v) {
   topBtns(v, '');
-  v.innerHTML = miniLoader('Đang tải thư mục nhận file…');
-  try { UPV.d = await rpc('upList', {}, { quiet: true }); } catch (e) { v.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; return; }
-  const D = UPV.d;
-  if (!UPV.cur || !D.folders.some(f => f.id === UPV.cur)) UPV.cur = (D.folders.find(f => f.id === arg) || D.folders.find(f => f.status === 'active') || D.folders[0] || {}).id || '';
+  v.innerHTML = '<div class="upx">' + miniLoader('Đang tải thư mục nhận file…') + '</div>';
+  try { UPV.d = await rpc('upList', {}, { quiet: true }); } catch (e) { v.innerHTML = '<div class="upx"><div class="card"><div class="card-b empty">' + esc(e.message) + '</div></div></div>'; return; }
+  if (!UPV.d.folders.some(f => f.id === UPV.cur)) { UPV.cur = (UPV.d.folders.find(f => f.id === arg) || UPV.d.folders.find(f => f.status === 'active') || UPV.d.folders[0] || {}).id || ''; UPV.at = null; }
+  const box = () => UPV.d.folders.find(f => f.id === UPV.cur);
   const paint = () => {
-    const D = UPV.d, cur = D.folders.find(f => f.id === UPV.cur);
-    v.innerHTML = '<div class="up-lay"><aside class="card up-side"><div class="card-h"><h2><i class="bi bi-folder2-open"></i>Thư mục nhận file</h2>' + (D.man ? '<span class="sp"></span><button class="btn sm pri" id="upAdd"><i class="bi bi-plus-lg"></i>Thêm</button>' : '') + '</div>' +
-        '<div class="up-fl">' + (D.folders.length ? D.folders.map(f => '<button type="button" class="up-f' + (f.id === UPV.cur ? ' on' : '') + (f.status !== 'active' ? ' off' : '') + '" data-uf="' + esc(f.id) + '"><i class="bi bi-folder-fill"></i><span><b>' + esc(f.name) + '</b>' +
-            '<small>' + esc(f.status !== 'active' ? 'Tạm dừng' : 'Đứng tên ' + (f.owner || '—')) + (D.man ? ' · ' + (f.up.length ? f.up.length + ' người / vai trò' : 'chưa cấp ai') : '') + '</small></span>' + (f.sub ? '<i class="bi bi-folder-plus up-sb" title="Được tạo thư mục con"></i>' : '') + '</button>').join('')
-          : '<div class="empty small">' + (D.man ? 'Chưa có thư mục nhận file — bấm <b>Thêm</b> để tạo mới hoặc chọn thư mục có sẵn.' : 'Bạn chưa được cấp thư mục nào để upload — nhờ quản lý cấp quyền.') + '</div>') + '</div>' +
-        (D.man && !D.def ? '<div class="up-warn"><i class="bi bi-exclamation-triangle"></i>Chưa có tài khoản chủ Drive — kết nối ở <a data-go="settings/system">Quản trị › Hệ thống</a>.</div>' : '') + '</aside>' +
-      '<section class="up-main">' + (cur ? '<div class="card"><div class="card-h"><h2><i class="bi bi-cloud-arrow-up"></i>' + esc(cur.name) + '</h2><span class="sp"></span>' +
-          '<a class="btn sm ghost" target="_blank" rel="noopener" href="' + esc(UPV.at ? 'https://drive.google.com/drive/folders/' + UPV.at.id : cur.url) + '"><i class="bi bi-box-arrow-up-right"></i>Mở trên Drive</a>' +
-          (D.man ? '<button class="btn sm" id="upEdit"><i class="bi bi-gear"></i>Cài đặt</button>' : '') + '</div><div class="card-b stack">' +
-          (cur.note ? '<div class="small muted"><i class="bi bi-info-circle"></i> ' + esc(cur.note) + '</div>' : '') +
-          '<div class="up-path" id="upPath">' + miniLoader('Đang mở thư mục…') + '</div><div class="up-kids" id="upKids"></div>' +
-          '<label class="up-dz" id="upDz"><input type="file" multiple hidden id="upIn"><i class="bi bi-cloud-arrow-up"></i><span><b>Kéo thả file vào đây</b> hoặc bấm để chọn (nhiều file)<small>Lưu vào thư mục đang mở · đứng tên <b>' + esc(cur.owner || '—') + '</b>, không phải tài khoản của bạn</small></span></label>' +
-          '<div id="upQ"></div></div></div>' : '<div class="card"><div class="card-b empty">' + (D.folders.length ? 'Chọn một thư mục bên trái' : 'Chưa có thư mục để upload') + '</div></div>') +
-        '<div class="card"><div class="card-h"><h2><i class="bi bi-clock-history"></i>' + (D.man ? 'Lịch sử upload (mọi người)' : 'File bạn đã upload') + '</h2></div><div class="card-b" id="upHist"></div></div></section></div>';
+    const D = UPV.d, cur = box();
+    v.innerHTML = '<div class="upx">' +
+      '<header class="upx-hero"><div class="upx-hi"><i class="bi bi-cloud-arrow-up-fill"></i></div><div class="upx-ht"><h1>Upload file</h1><p>Tài liệu lưu thẳng vào Drive của trung tâm — <b>đứng tên tài khoản chủ</b>, không đứng tên bạn. File trong nguồn Thư viện hiện ngay trong Thư viện.</p></div>' +
+        (D.man ? '<button class="btn pri" id="upAdd"><i class="bi bi-folder-plus"></i>Thư mục nhận file</button>' : '') + '</header>' +
+      (D.man && !D.def ? '<div class="upx-warn"><i class="bi bi-exclamation-triangle-fill"></i><span>Chưa có <b>tài khoản chủ Drive</b> nên chưa tạo thư mục / upload được — kết nối ở <a data-go="settings/system">Quản trị › Hệ thống › Tài khoản chủ Drive</a>.</span></div>' : '') +
+      (!D.folders.length ? '<div class="card upx-empty"><div class="upx-ei"><i class="bi bi-folder2-open"></i></div><b>' + (D.man ? 'Chưa có thư mục nhận file' : 'Bạn chưa được cấp thư mục nào') + '</b><span>' +
+          (D.man ? 'Tạo thư mục mới ngay trên webapp hoặc chọn thư mục có sẵn, rồi chọn ai được upload vào đó.' : 'Nhờ quản lý cấp quyền upload vào một thư mục.') + '</span>' + (D.man ? '<button class="btn pri" id="upAdd2"><i class="bi bi-folder-plus"></i>Thêm thư mục nhận file</button>' : '') + '</div>' :
+      '<nav class="upx-boxes" aria-label="Thư mục nhận file">' + D.folders.map(f => '<button type="button" class="upx-box' + (f.id === UPV.cur ? ' on' : '') + (f.status !== 'active' ? ' off' : '') + '" data-uf="' + esc(f.id) + '"' + (f.id === UPV.cur ? ' aria-current="true"' : '') + '>' +
+          '<i class="bi bi-folder-fill"></i><span><b>' + esc(f.name) + '</b><small>' + esc(f.status !== 'active' ? 'Tạm dừng nhận file' : f.owner || '—') + (D.man ? ' · ' + (f.up.length ? f.up.length + ' người / vai trò' : 'chưa cấp ai') : '') + '</small></span></button>').join('') + '</nav>' +
+      (cur ? '<section class="card upx-card">' +
+          '<div class="upx-bar"><div class="upx-path" id="upPath">' + miniLoader('Đang mở thư mục…') + '</div><span class="sp"></span>' +
+            '<button class="btn sm" id="upMk" hidden><i class="bi bi-folder-plus"></i>Thư mục mới</button>' +
+            '<a class="btn sm ghost" id="upDrv" target="_blank" rel="noopener" href="' + esc(cur.url) + '"><i class="bi bi-box-arrow-up-right"></i>Mở trên Drive</a>' +
+            (D.man ? '<button class="btn sm ghost" id="upEdit" title="Cài đặt thư mục nhận file"><i class="bi bi-gear"></i></button>' : '') + '</div>' +
+          (cur.note ? '<div class="upx-note"><i class="bi bi-info-circle-fill"></i>' + esc(cur.note) + '</div>' : '') +
+          '<div class="upx-kids" id="upKids"></div>' +
+          '<label class="upx-drop" id="upDz"><input type="file" multiple hidden id="upIn"><span class="upx-dpi"><i class="bi bi-cloud-arrow-up-fill"></i></span><b>Kéo thả file vào đây</b><span class="upx-or">hoặc</span><span class="btn pri upx-pick"><i class="bi bi-plus-lg"></i>Chọn file từ máy</span>' +
+            '<small id="upDst">Lưu vào thư mục đang mở · đứng tên <b>' + esc(cur.owner || '—') + '</b></small></label>' +
+          '<label class="upx-auto"><input type="checkbox" id="upAuto"' + (UPV.auto ? ' checked' : '') + '><span>Tự tải lên ngay khi thả file</span><small>tắt để sửa tên file trước khi tải</small></label>' +
+          '<div id="upQ"></div></section>' : '')) +
+      '<section class="card upx-hist"><div class="card-h"><h2><i class="bi bi-clock-history"></i>' + (D.man ? 'Lịch sử upload' : 'File bạn đã upload') + '</h2><span class="sp"></span><span class="small muted" id="upHn"></span></div><div id="upHist"></div></section>' +
+      '<div class="upx-ov" id="upOv"><div><i class="bi bi-cloud-arrow-down-fill"></i><b>Thả để tải lên</b><span id="upOvT"></span></div></div></div>';
     paintHist(); paintQ();
     if (cur) openDir(UPV.at && UPV.at.path[0] && UPV.at.path[0].id === cur.folderId ? UPV.at.id : '');
-    const dz = $('#upDz', v);
-    if (dz) {
-      $('#upIn', v).onchange = e => { const L = Array.from(e.target.files || []); e.target.value = ''; addFiles(L); };
-      dz.ondragover = e => { e.preventDefault(); dz.classList.add('on'); }; dz.ondragleave = () => dz.classList.remove('on');
-      dz.ondrop = e => { e.preventDefault(); dz.classList.remove('on'); addFiles(Array.from((e.dataTransfer && e.dataTransfer.files) || [])); };
-    }
-    const ad = $('#upAdd', v); if (ad) ad.onclick = () => upEditDlg(null);
-    const ed = $('#upEdit', v); if (ed) ed.onclick = () => upEditDlg(cur);
+    const on = (id, fn) => { const x = $(id, v); if (x) x.onclick = fn; };
+    on('#upAdd', () => upEditDlg(null)); on('#upAdd2', () => upEditDlg(null)); on('#upEdit', () => upEditDlg(box())); on('#upMk', mkDir);
+    const inp = $('#upIn', v); if (inp) inp.onchange = e => { const L = Array.from(e.target.files || []); e.target.value = ''; addFiles(L); };
+    const au = $('#upAuto', v); if (au) au.onchange = () => { UPV.auto = au.checked ? 1 : 0; lsSet('upAuto', UPV.auto); if (UPV.auto) runQ(); paintQ(); };
   };
   /* ── thư mục đang mở: đường dẫn + thư mục con ── */
   const openDir = async id => {
-    const box = UPV.cur, P = $('#upPath', v); if (!P) return;
-    try { const r = await rpc('upKids', { id: box, folder: id || '' }, { quiet: true }); if (box !== UPV.cur) return; UPV.at = r.at; UPV.kids = r.kids; UPV.canMk = r.canMk; paintDir(); }
-    catch (e) { if (P.isConnected) P.innerHTML = '<span class="small" style="color:var(--danger)">' + esc(e.message) + '</span>'; }
+    const bx = UPV.cur;
+    try { const r = await rpc('upKids', { id: bx, folder: id || '' }, { quiet: true }); if (bx !== UPV.cur) return; UPV.at = r.at; UPV.kids = r.kids; UPV.canMk = r.canMk; paintDir(); }
+    catch (e) { const P = $('#upPath', v); if (P) P.innerHTML = '<span class="small" style="color:var(--danger)">' + esc(e.message) + '</span>'; }
   };
+  const where = () => UPV.at ? UPV.at.path.map(x => x.name).join(' / ') : '';
   const paintDir = () => {
     const P = $('#upPath', v), K = $('#upKids', v); if (!P || !UPV.at) return;
     const path = UPV.at.path;
-    P.innerHTML = path.map((x, i) => (i ? '<i class="bi bi-chevron-right"></i>' : '<i class="bi bi-folder2-open"></i>') + (i < path.length - 1 ? '<a data-dir="' + esc(i ? x.id : '') + '">' + esc(x.name) + '</a>' : '<b>' + esc(x.name) + '</b>')).join('') +
-      '<span class="sp"></span>' + (UPV.canMk ? '<button class="btn xs" id="upMk"><i class="bi bi-folder-plus"></i>Thư mục mới</button>' : '');
-    K.innerHTML = UPV.kids.length ? UPV.kids.map(k => '<button type="button" class="up-k" data-dir="' + esc(k.id) + '"><i class="bi bi-folder-fill"></i><span>' + esc(k.name) + '</span></button>').join('') : '<span class="small muted">Không có thư mục con — file lưu thẳng vào thư mục này</span>';
-    const mk = $('#upMk', v); if (mk) mk.onclick = mkDir;
+    P.innerHTML = path.map((x, i) => (i ? '<i class="bi bi-chevron-right"></i>' : '') + (i < path.length - 1 ? '<a data-dir="' + esc(i ? x.id : '') + '">' + (i ? '' : '<i class="bi bi-hdd-network"></i>') + esc(x.name) + '</a>' : '<b>' + (i ? '' : '<i class="bi bi-hdd-network"></i>') + esc(x.name) + '</b>')).join('');
+    K.innerHTML = UPV.kids.length ? UPV.kids.map(k => '<button type="button" class="upx-k" data-dir="' + esc(k.id) + '"><i class="bi bi-folder-fill"></i><span>' + esc(k.name) + '</span></button>').join('') : '';
+    K.hidden = !UPV.kids.length;
+    const mk = $('#upMk', v); if (mk) mk.hidden = !UPV.canMk;
+    const dv = $('#upDrv', v); if (dv) dv.href = 'https://drive.google.com/drive/folders/' + UPV.at.id;
+    const ds = $('#upDst', v); if (ds) ds.innerHTML = 'Lưu vào <b>' + esc(where()) + '</b> · đứng tên <b>' + esc((box() || {}).owner || '—') + '</b>';
+    const ot = $('#upOvT', v); if (ot) ot.textContent = 'vào ' + where();
   };
   const mkDir = () => {
     const at = UPV.at; if (!at) return;
-    const m = modal({ title: 'Thư mục mới trong “' + at.name + '”', icon: 'bi-folder-plus', body: '<div class="stack"><div class="fg"><label class="flabel">Tên thư mục</label><input class="inp" id="mkN" placeholder="VD Topic 15T — Đa thức một biến" autofocus></div>' +
-        '<div class="small muted">Thư mục tạo trên Drive đứng tên <b>' + esc((UPV.d.folders.find(f => f.id === UPV.cur) || {}).owner || '') + '</b>. Trùng tên với thư mục có sẵn thì mở thư mục đó.</div></div>',
-      foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Tạo', cls: 'pri', i: 'bi-check2', fn: async () => { const n = m.$('#mkN').value.trim(); if (!n) { m.$('#mkN').focus(); return false; }
+    const m = modal({ title: 'Thư mục mới', icon: 'bi-folder-plus', body: '<div class="stack"><div class="fg"><label class="flabel">Tên thư mục</label><input class="inp" id="mkN" placeholder="VD Topic 15T — Đa thức một biến" autofocus></div>' +
+        '<div class="small muted">Tạo trong <b>' + esc(where()) + '</b>, đứng tên <b>' + esc((box() || {}).owner || '') + '</b>. Trùng tên với thư mục có sẵn thì mở thư mục đó.</div></div>',
+      foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Tạo thư mục', cls: 'pri', i: 'bi-check2', fn: async () => { const n = m.$('#mkN').value.trim(); if (!n) { m.$('#mkN').focus(); return false; }
         const r = await rpc('upMkdir', { id: UPV.cur, parent: at.id, name: n }, { quiet: true }); UPV.at = r.at; UPV.kids = r.kids; paintDir(); toast(r.made ? 'Đã tạo thư mục “' + r.at.name + '”' : 'Đã có thư mục “' + r.at.name + '” — mở thư mục đó', 'ok'); } }] });
     m.$('#mkN').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); m.btns[1].click(); } };
   };
-  /* ── hàng chờ upload ── */
+  /* ── hàng chờ ── */
   const addFiles = L => {
-    const D = UPV.d; if (!UPV.at) return toast('Đợi mở xong thư mục rồi thả file', 'warn');
+    const D = UPV.d; if (!box()) return; if (!UPV.at) return toast('Đợi mở xong thư mục rồi thả file', 'warn');
     L.forEach(f => { if (!f.size) return toast('“' + f.name + '” rỗng — bỏ qua', 'warn'); if (f.size > D.max) return toast('“' + f.name + '” lớn quá (tối đa ' + fmtSize(D.max) + ')', 'warn');
-      const it = { k: Math.random().toString(36).slice(2), file: f, name: f.name.normalize('NFC'), box: UPV.cur, folder: UPV.at.path.length > 1 ? UPV.at.id : '', where: UPV.at.path.map(x => x.name).join(' / '), st: 'prep', dup: null, pick: '', match: null, pct: 0, err: '' };
+      const it = { k: Math.random().toString(36).slice(2), file: f, name: f.name.normalize('NFC'), box: UPV.cur, folder: UPV.at.path.length > 1 ? UPV.at.id : '', where: where(), st: 'prep', dup: null, pick: '', match: null, pct: 0, err: '' };
       UPV.q.push(it); prep(it); });
     paintQ();
   };
   const prep = async it => {
     it.st = 'prep'; it.err = ''; const seq = it.seq = (it.seq || 0) + 1; paintQ();
     try { const r = await rpc('upPrep', { id: it.box, folder: it.folder, name: it.name }, { quiet: true }); if (seq !== it.seq) return;
-      it.dup = r.dup && r.dup.length ? r.dup[0] : null; it.pick = it.dup ? (it.dup.mine ? 'replace' : 'keep') : ''; it.lib = r.lib;
+      it.dup = r.dup && r.dup.length ? r.dup[0] : null; it.pick = ''; it.lib = r.lib;
       const mt = (r.match || [])[0]; it.match = mt && (mt.folderId || '') !== it.folder ? mt : null; it.here = mt && (mt.folderId || '') === it.folder ? mt : null;
       if (it.match && !it.folder && !it.moved) { it.moved = 1; it.folder = it.match.folderId; it.where = r.at.path.map(x => x.name).concat(it.match.folderId ? [it.match.folderName] : []).join(' / '); return prep(it); }      // thả ở thư mục gốc → tự vào thư mục của file đề
-      it.st = 'ready'; }
+      it.st = it.dup ? 'dup' : 'ready'; }
     catch (e) { if (seq === it.seq) { it.st = 'err'; it.err = e.message; } }
-    paintQ();
+    paintQ(); if (UPV.auto) runQ();
   };
+  const pill = it => it.st === 'prep' ? '<span class="upx-pl w"><span class="spin"></span>Đang kiểm tra</span>' : it.st === 'ready' ? '<span class="upx-pl">' + (UPV.auto ? 'Chờ tải' : 'Sẵn sàng') + '</span>'
+    : it.st === 'dup' ? '<span class="upx-pl warn">Trùng tên</span>' : it.st === 'up' ? '<span class="upx-pl b">' + Math.round(it.pct * 100) + '%</span>' : it.st === 'done' ? '<span class="upx-pl ok"><i class="bi bi-check-lg"></i>Xong</span>' : '<span class="upx-pl err">Lỗi</span>';
   const paintQ = () => {
     const Q = $('#upQ', v); if (!Q) return;
-    const mine = UPV.q.filter(it => it.box === UPV.cur), ready = mine.filter(it => it.st === 'ready').length;
-    Q.innerHTML = !mine.length ? '' : '<div class="up-q">' + mine.map(it => '<div class="up-qi ' + it.st + '" data-k="' + it.k + '"><i class="bi ' + upIc(it.name) + '"></i><div class="up-qb">' +
-        (it.st === 'ready' || it.st === 'err' ? '<input class="inp sm" data-qn value="' + esc(it.name) + '" aria-label="Tên file trên Drive">' : '<b>' + esc(it.name) + '</b>') +
-        '<small><i class="bi bi-folder2"></i> ' + esc(it.where) + ' · ' + esc(fmtSize(it.file.size)) + (it.lib === 0 && it.st === 'ready' ? ' · <span title="Thư mục chưa nằm trong nguồn Thư viện">chỉ lưu trên Drive</span>' : '') + '</small>' +
-        (it.here ? '<small class="up-ok"><i class="bi bi-check2-circle"></i> Đúng thư mục của file đề “' + esc(it.here.file) + '”</small>' : '') +
-        (it.match ? '<small class="up-hint"><i class="bi bi-magic"></i> Có file đề “' + esc(it.match.file) + '” ở “' + esc(it.match.folderName) + '” <a data-qm>Lưu vào đó</a></small>' : '') +
-        (it.dup && it.st === 'ready' ? '<small class="up-dup"><i class="bi bi-exclamation-circle"></i> Đã có file cùng tên (đứng tên ' + esc(it.dup.owner || '?') + ') · ' +
-          (it.dup.mine ? '<label><input type="radio" name="d' + it.k + '" value="replace"' + (it.pick === 'replace' ? ' checked' : '') + '> Thay bản cũ</label> ' : '') + '<label><input type="radio" name="d' + it.k + '" value="keep"' + (it.pick === 'keep' ? ' checked' : '') + '> Giữ cả hai</label></small>' : '') +
-        (it.st === 'up' ? '<div class="up-bar"><i style="width:' + Math.round(it.pct * 100) + '%"></i></div>' : '') +
-        (it.st === 'err' ? '<small style="color:var(--danger)"><i class="bi bi-x-circle"></i> ' + esc(it.err) + '</small>' : '') +
-        (it.st === 'done' ? '<small class="up-ok"><i class="bi bi-check2-circle"></i> Đã lưu' + (it.res && it.res.lib ? ' · đã vào Thư viện' : '') + ' · đứng tên ' + esc(it.res ? it.res.owner : '') + ' · <a target="_blank" rel="noopener" href="' + esc(it.res ? it.res.file.url : '#') + '">Mở</a></small>' : '') +
-        '</div><span class="up-qs">' + (it.st === 'prep' ? '<span class="spin"></span>' : it.st === 'up' ? Math.round(it.pct * 100) + '%' : it.st === 'err' ? '<button class="btn xs" data-qr>Thử lại</button>' : '') + '</span>' +
-        (it.st !== 'up' ? '<button class="ibtn" data-qx title="Bỏ khỏi hàng chờ" aria-label="Bỏ"><i class="bi bi-x-lg"></i></button>' : '') + '</div>').join('') + '</div>' +
-      (ready ? '<div class="row"><span class="sp"></span><button class="btn pri" id="upGo"' + (UPV.busy ? ' disabled' : '') + '><i class="bi bi-cloud-arrow-up"></i>Tải lên ' + ready + ' file</button></div>' : '');
-    const go = $('#upGo', v); if (go) go.onclick = runQ;
+    const L = UPV.q.filter(it => it.box === UPV.cur); if (!L.length) { Q.innerHTML = ''; return; }
+    const ready = L.filter(it => it.st === 'ready').length, done = L.filter(it => it.st === 'done').length, act = L.filter(it => it.st === 'up' || it.st === 'prep').length;
+    Q.innerHTML = '<div class="upx-q">' + L.map(it => '<div class="upx-qi ' + it.st + '" data-k="' + it.k + '"><span class="upx-qic">' + upIco(it.name) + '</span><div class="upx-qb">' +
+        ((it.st === 'ready' && !UPV.auto) || it.st === 'dup' || it.st === 'err' ? '<input class="upx-qn" data-qn value="' + esc(it.name) + '" aria-label="Tên file trên Drive" title="Bấm để sửa tên">' : '<b class="upx-qt">' + esc(it.name) + '</b>') +
+        '<small><i class="bi bi-folder2"></i>' + esc(it.where) + ' · ' + esc(fmtSize(it.file.size)) + (it.lib === 0 && it.st !== 'err' ? ' · chỉ lưu trên Drive' : '') + '</small>' +
+        (it.here ? '<small class="upx-ok"><i class="bi bi-check2-circle"></i>Đúng thư mục của file đề “' + esc(it.here.file) + '”</small>' : '') +
+        (it.match ? '<small class="upx-hint"><i class="bi bi-magic"></i>Có file đề “' + esc(it.match.file) + '” ở “' + esc(it.match.folderName) + '” · <a data-qm>Lưu vào đó</a></small>' : '') +
+        (it.st === 'dup' ? '<small class="upx-dup"><i class="bi bi-exclamation-circle-fill"></i>Đã có file cùng tên (đứng tên ' + esc(it.dup.owner || '?') + ')<span>' + (it.dup.mine ? '<button class="btn xs pri" data-qd="replace">Thay bản cũ</button>' : '') + '<button class="btn xs" data-qd="keep">Giữ cả hai</button></span></small>' : '') +
+        (it.st === 'err' ? '<small class="upx-err"><i class="bi bi-x-circle-fill"></i>' + esc(it.err) + ' · <a data-qr>Thử lại</a></small>' : '') +
+        (it.st === 'done' ? '<small class="upx-ok"><i class="bi bi-check2-circle"></i>Đã lưu' + (it.res && it.res.lib ? ' · đã vào Thư viện' : '') + ' · đứng tên ' + esc(it.res ? it.res.owner : '') + (it.secs ? ' · ' + it.secs + ' giây' : '') + ' · <a target="_blank" rel="noopener" href="' + esc(it.res ? it.res.file.url : '#') + '">Mở</a></small>' : '') +
+        '</div>' + pill(it) + (it.st !== 'up' ? '<button class="ibtn upx-x" data-qx title="Bỏ khỏi hàng chờ" aria-label="Bỏ"><i class="bi bi-x-lg"></i></button>' : '') +
+        (it.st === 'up' ? '<i class="upx-qp" style="width:' + Math.round(it.pct * 100) + '%"></i>' : '') + '</div>').join('') + '</div>' +
+      '<div class="upx-qf"><span class="small muted">' + L.length + ' file' + (act ? ' · đang xử lý ' + act : '') + (done ? ' · xong ' + done : '') + '</span><span class="sp"></span>' +
+        (done ? '<button class="btn sm ghost" id="upClr">Xoá dòng đã xong</button>' : '') + (ready && !UPV.auto ? '<button class="btn pri" id="upGo"><i class="bi bi-cloud-arrow-up"></i>Tải lên ' + ready + ' file</button>' : '') + '</div>';
+    const g = $('#upGo', v); if (g) g.onclick = () => runQ(true);
+    const c = $('#upClr', v); if (c) c.onclick = () => { UPV.q = UPV.q.filter(it => it.st !== 'done'); paintQ(); };
   };
+  /** chạy hàng chờ: tối đa UP_PAR file cùng lúc */
+  const runQ = force => {
+    if (!UPV.auto && !force) return;
+    if (force) UPV.q.forEach(it => { if (it.st === 'ready') it.go = 1; });
+    const want = UPV.q.filter(it => it.st === 'ready' && (UPV.auto || it.go));
+    while (UPV.run < UP_PAR && want.length) one(want.shift());
+  };
+  let libN = 0, okN = 0, tDone = 0;
+  const one = async it => {
+    UPV.run++; it.st = 'up'; it.pct = 0; const t0 = Date.now(); paintQ();
+    let last = 0;
+    try {
+      const r = await driveSend({ file: it.file, base: Object.assign({ id: it.box, folder: it.folder, name: it.name }, it.pick === 'replace' && it.dup ? { dup: 'replace', replaceId: it.dup.id } : {}), chunk: UPV.d.chunk,
+        api: { begin: 'upBegin', finish: 'upFinish', relay: 'upUpload' }, onProgress: x => { it.pct = x; if (Date.now() - last > 120) { last = Date.now(); paintQ(); } } });
+      it.st = 'done'; it.res = r; it.secs = Math.max(1, Math.round((Date.now() - t0) / 1000)); okN++; if (r.lib) libN++; UPV.d.recent.unshift(r.file);
+    } catch (er) { it.st = 'err'; it.err = er.message; }
+    UPV.run--; paintQ(); paintHist(); runQ();
+    if (!UPV.run && !UPV.q.some(x => x.st === 'up') && okN) { clearTimeout(tDone); tDone = setTimeout(() => { toast('Đã tải ' + okN + ' file lên Drive' + (libN ? ' · ' + libN + ' file đã vào Thư viện' : ''), 'ok', 4000); if (libN && typeof reloadIndex === 'function') reloadIndex().catch(() => {}); okN = libN = 0; }, 300); }
+  };
+  const paintHist = () => {
+    const H = $('#upHist', v); if (!H) return; const L = UPV.d.recent;
+    const n = $('#upHn', v); if (n) n.textContent = L.length ? L.length + ' file gần nhất' : '';
+    H.innerHTML = L.length ? '<div class="upx-hl">' + L.map(x => '<a class="upx-h" href="' + esc(x.url) + '" target="_blank" rel="noopener"><span class="upx-qic">' + upIco(x.name) + '</span><span class="t"><b>' + esc(x.name) + '</b><small>' +
+        esc(x.path || x.box) + (x.replaced ? ' · bản mới' : '') + '</small></span><span class="upx-hw"><span class="av sm">' + esc(initials(x.byName)) + '</span><span><b>' + esc(x.byName) + '</b><small>' + esc(ago(x.at)) + ' · ' + esc(fmtSize(x.size)) + '</small></span></span>' +
+        (x.lib ? '<span class="upx-tag" title="Đã vào chỉ mục Thư viện"><i class="bi bi-collection"></i>Thư viện</span>' : '<span class="upx-tag dim" title="Thư mục chưa nằm trong nguồn Thư viện">Drive</span>') +
+        '<span class="upx-own" title="Chủ sở hữu trên Drive"><i class="bi bi-person-badge"></i>' + esc(x.owner) + '</span></a>').join('') + '</div>'
+      : '<div class="upx-hempty"><i class="bi bi-inbox"></i>Chưa có file nào</div>';
+  };
+  /* ── sự kiện ── */
   v.addEventListener('click', e => {
     const f = e.target.closest('[data-uf]'); if (f) { if (f.dataset.uf !== UPV.cur) { UPV.cur = f.dataset.uf; UPV.at = null; paint(); } return; }
     const d = e.target.closest('[data-dir]'); if (d && d.closest('#upPath, #upKids')) { e.preventDefault(); openDir(d.dataset.dir); return; }
@@ -10421,36 +10576,18 @@ async function viewUpload(arg, v) {
     const row = e.target.closest('[data-k]'), it = row && UPV.q.find(x => x.k === row.dataset.k); if (!it) return;
     if (e.target.closest('[data-qx]')) { UPV.q = UPV.q.filter(x => x !== it); paintQ(); }
     else if (e.target.closest('[data-qr]')) prep(it);
-    else if (e.target.closest('[data-qm]')) { it.where = (UPV.d.folders.find(x => x.id === it.box) || {}).name + (it.match.folderId ? ' / ' + it.match.folderName : ''); it.folder = it.match.folderId; it.moved = 1; prep(it); }
+    else if (e.target.closest('[data-qm]')) { it.where = (box() || {}).name + (it.match.folderId ? ' / ' + it.match.folderName : ''); it.folder = it.match.folderId; it.moved = 1; prep(it); }
+    else { const q = e.target.closest('[data-qd]'); if (q) { it.pick = q.dataset.qd; it.st = 'ready'; it.go = 1; paintQ(); runQ(true); } }
   });
-  v.addEventListener('change', e => { const row = e.target.closest('[data-k]'), it = row && UPV.q.find(x => x.k === row.dataset.k); if (!it) return;
-    if (e.target.matches('[data-qn]')) { const n = e.target.value.trim(); if (n && n !== it.name) { it.name = n; it.moved = 0; prep(it); } }
-    else if (e.target.type === 'radio') it.pick = e.target.value; });
-  const runQ = async () => {
-    if (UPV.busy) return; UPV.busy = 1; let ok = 0, lib = 0;
-    for (const it of UPV.q.filter(x => x.box === UPV.cur && x.st === 'ready')) {
-      it.st = 'up'; it.pct = 0; paintQ();
-      try {
-        let off = 0, up = '', r; const ch = UPV.d.chunk;
-        for (;;) {
-          const pl = { id: it.box, folder: it.folder, name: it.name, mime: it.file.type || '', size: it.file.size, off: off, data: await upB64(it.file.slice(off, off + ch)), up: up };
-          if (!up && it.pick === 'replace' && it.dup) { pl.dup = 'replace'; pl.replaceId = it.dup.id; }
-          for (let k = 0; ; k++) { try { r = await rpc('upUpload', pl, { quiet: true }); break; } catch (er) { if (k || er.srv) throw er; await new Promise(z => setTimeout(z, 1500)); } }
-          if (r.done) break; up = r.up; off = r.next; it.pct = off / it.file.size; paintQ();
-        }
-        it.st = 'done'; it.res = r; ok++; if (r.lib) lib++; UPV.d.recent.unshift(r.file);
-      } catch (er) { it.st = 'err'; it.err = er.message; }
-      paintQ(); paintHist();
-    }
-    UPV.busy = 0; paintQ();
-    if (ok) { toast('Đã tải ' + ok + ' file lên Drive' + (lib ? ' · ' + lib + ' file đã vào Thư viện' : ''), 'ok', 4000); if (lib && typeof reloadIndex === 'function') reloadIndex().catch(() => {}); }
-  };
-  const paintHist = () => {
-    const H = $('#upHist', v); if (!H) return; const L = UPV.d.recent;
-    H.innerHTML = L.length ? '<div class="up-hl">' + L.map(x => '<a class="up-h" href="' + esc(x.url) + '" target="_blank" rel="noopener"><i class="bi ' + upIc(x.name) + '"></i><span class="t"><b>' + esc(x.name) + '</b><small>' +
-        esc(x.byName) + ' · ' + esc(ago(x.at)) + ' · ' + esc(fmtSize(x.size)) + ' · ' + esc(x.path || x.box) + (x.replaced ? ' · bản mới' : '') + '</small></span>' + (x.lib ? '<span class="tag ok" title="Đã vào chỉ mục Thư viện">Thư viện</span>' : '') +
-        '<span class="up-own" title="Chủ sở hữu trên Drive"><i class="bi bi-person-badge"></i>' + esc(x.owner) + '</span></a>').join('') + '</div>' : '<div class="small muted">Chưa có file nào</div>';
-  };
+  v.addEventListener('change', e => { const row = e.target.closest('[data-k]'), it = row && UPV.q.find(x => x.k === row.dataset.k); if (!it || !e.target.matches('[data-qn]')) return;
+    const n = e.target.value.trim(); if (n && n !== it.name) { it.name = n; it.moved = 0; prep(it); } });
+  // KÉO THẢ Ở BẤT CỨ ĐÂU trên trang: hiện lớp phủ “Thả để tải lên”
+  let dn = 0; const isF = e => e.dataTransfer && Array.from(e.dataTransfer.types || []).indexOf('Files') >= 0;
+  const ov = on => { const o = $('#upOv', v); if (o) o.classList.toggle('on', on); const z = $('#upDz', v); if (z) z.classList.toggle('on', on); };
+  v.addEventListener('dragenter', e => { if (!isF(e) || !box()) return; e.preventDefault(); dn++; ov(true); });
+  v.addEventListener('dragover', e => { if (!isF(e) || !box()) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+  v.addEventListener('dragleave', e => { if (!isF(e)) return; dn = Math.max(0, dn - 1); if (!dn) ov(false); });
+  v.addEventListener('drop', e => { if (!isF(e) || !box()) return; e.preventDefault(); dn = 0; ov(false); addFiles(Array.from(e.dataTransfer.files || [])); });
   UPV.repaint = paint;
   paint();
 }
@@ -10459,12 +10596,12 @@ async function viewUpload(arg, v) {
 function upEditDlg(f) {
   const D = UPV.d, isNew = !f;
   const accOpt = [['', 'Mặc định' + (D.def ? ' (' + D.def + ')' : '')]].concat(D.accs.map(a => [a.email, a.email + (a.name ? ' · ' + a.name : '')]));
-  const m = modal({ title: isNew ? 'Thêm thư mục nhận file' : 'Cài đặt · ' + f.name, icon: 'bi-folder-plus', size: 'lg', body: '<div class="stack">' +
-      (isNew ? '<div class="seg" id="ueM"><button class="seg-b" data-m="new" aria-pressed="true"><i class="bi bi-folder-plus"></i>Tạo thư mục mới</button><button class="seg-b" data-m="link" aria-pressed="false"><i class="bi bi-link-45deg"></i>Dùng thư mục có sẵn</button></div>' : '') +
+  const m = modal({ title: isNew ? 'Thêm thư mục nhận file' : 'Cài đặt · ' + f.name, icon: 'bi-folder-plus', size: 'lg', body: '<div class="stack upx-dlg">' +
+      (isNew ? '<div class="seg upx-seg" id="ueM"><button class="seg-b" data-m="new" aria-pressed="true"><i class="bi bi-folder-plus"></i>Tạo thư mục mới</button><button class="seg-b" data-m="link" aria-pressed="false"><i class="bi bi-link-45deg"></i>Dùng thư mục có sẵn</button></div>' : '') +
       (isNew ? '<div class="fg" id="ueNW"><label class="flabel">Tên thư mục mới</label><input class="inp" id="ueN" placeholder="VD Đáp án Toán 7 - Nền tảng"></div>' +
-        '<div class="fg" id="uePW"><label class="flabel" id="uePL">Nằm trong thư mục (không bắt buộc)</label><input class="inp" id="ueP" placeholder="Dán link thư mục Drive, hoặc tìm trong nguồn Thư viện bên dưới"><div class="up-find"><input class="inp sm" id="ueQ" placeholder="Tìm thư mục trong các nguồn Thư viện… (VD Toán 7)"><div id="ueR"></div></div>' +
-          '<small class="muted" id="uePH">Trống = tạo ở Drive của tài khoản chủ. Nên chọn thư mục nằm trong một nguồn Thư viện để file upload hiện ngay trong Thư viện.</small></div>'
-        : '<div class="small muted"><i class="bi bi-folder2"></i> <a target="_blank" rel="noopener" href="' + esc(f.url) + '">Mở thư mục trên Drive</a>' + (f.src ? ' · trong nguồn <b>' + esc(f.src) + '</b>' : ' · chưa nằm trong nguồn Thư viện (file chỉ lưu trên Drive)') + '</div>' +
+        '<div class="fg" id="uePW"><label class="flabel" id="uePL">Nằm trong thư mục (không bắt buộc)</label><input class="inp" id="ueP" placeholder="Dán link thư mục Drive — hoặc tìm trong nguồn Thư viện bên dưới"><div class="up-find"><div class="upx-srch"><i class="bi bi-search"></i><input class="inp sm" id="ueQ" placeholder="Tìm thư mục trong các nguồn Thư viện… (VD Toán 7)"></div><div id="ueR"></div></div>' +
+          '<small class="muted" id="uePH"></small></div>'
+        : '<div class="upx-note"><i class="bi bi-folder2"></i><span><a target="_blank" rel="noopener" href="' + esc(f.url) + '">Mở thư mục trên Drive</a>' + (f.src ? ' · trong nguồn <b>' + esc(f.src) + '</b>' : ' · chưa nằm trong nguồn Thư viện (file chỉ lưu trên Drive)') + '</span></div>' +
           '<div class="fg"><label class="flabel">Tên hiển thị</label><input class="inp" id="ueN" value="' + esc(f.name) + '"></div>') +
       '<div class="grid g2"><div class="fg"><label class="flabel">Tài liệu đứng tên (tài khoản chủ)</label><select class="sel" id="ueO">' + accOpt.map(o => '<option value="' + esc(o[0]) + '"' + (o[0] === ((f && f.ownSet) || '') ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join('') + '</select></div>' +
         '<div class="fg"><label class="flabel">Ghi chú cho người upload</label><input class="inp" id="ueT" value="' + esc(f ? f.note : '') + '" placeholder="VD Tên file: <tên file đề> (Lời giải).pdf"></div></div>' +
@@ -10484,38 +10621,64 @@ function upEditDlg(f) {
   if (isNew) {
     const fix = () => { $$('#ueM [data-m]', m.el).forEach(b => b.setAttribute('aria-pressed', b.dataset.m === mode)); m.$('#ueNW').hidden = mode !== 'new';
       m.$('#uePL').textContent = mode === 'new' ? 'Nằm trong thư mục (không bắt buộc)' : 'Thư mục có sẵn';
+      m.$('#ueP').placeholder = mode === 'new' ? 'Dán link thư mục cha — hoặc tìm trong nguồn Thư viện bên dưới' : 'Dán link thư mục Drive — hoặc tìm trong nguồn Thư viện bên dưới';
       m.$('#uePH').textContent = mode === 'new' ? 'Trống = tạo ở Drive của tài khoản chủ. Nên chọn thư mục nằm trong một nguồn Thư viện để file upload hiện ngay trong Thư viện.' : 'Tài khoản chủ phải có quyền chỉnh sửa thư mục này.'; };
     m.$('#ueM').onclick = e => { const b = e.target.closest('[data-m]'); if (b) { mode = b.dataset.m; fix(); } };
     let tq = 0; m.$('#ueQ').oninput = () => { clearTimeout(tq); tq = setTimeout(async () => { const q = m.$('#ueQ').value.trim(); if (!q) { m.$('#ueR').innerHTML = ''; return; }
-      try { const r = await rpc('upFind', { q: q }, { quiet: true }); m.$('#ueR').innerHTML = r.items.length ? r.items.map(x => '<button type="button" class="up-fr" data-fid="' + esc(x.id) + '" data-fn="' + esc(x.name) + '"><i class="bi bi-folder"></i>' + esc(x.path) + '</button>').join('') : '<small class="muted">Không thấy thư mục nào</small>'; } catch (e) { m.$('#ueR').innerHTML = '<small style="color:var(--danger)">' + esc(e.message) + '</small>'; } }, 300); };
-    m.$('#ueR').onclick = e => { const b = e.target.closest('[data-fid]'); if (!b) return; m.$('#ueP').value = 'https://drive.google.com/drive/folders/' + b.dataset.fid; m.$('#ueR').innerHTML = '<small class="up-ok"><i class="bi bi-check2"></i> ' + esc(b.textContent) + '</small>'; };
+      try { const r = await rpc('upFind', { q: q }, { quiet: true }); m.$('#ueR').innerHTML = r.items.length ? r.items.map(x => '<button type="button" class="up-fr" data-fid="' + esc(x.id) + '"><i class="bi bi-folder-fill"></i>' + esc(x.path) + '</button>').join('') : '<small class="muted">Không thấy thư mục nào</small>'; } catch (e) { m.$('#ueR').innerHTML = '<small style="color:var(--danger)">' + esc(e.message) + '</small>'; } }, 300); };
+    m.$('#ueR').onclick = e => { const b = e.target.closest('[data-fid]'); if (!b) return; m.$('#ueP').value = 'https://drive.google.com/drive/folders/' + b.dataset.fid; m.$('#ueR').innerHTML = '<small class="upx-ok"><i class="bi bi-check2-circle"></i> ' + esc(b.textContent) + '</small>'; };
     fix(); setTimeout(() => m.$('#ueN').focus(), 60);
   }
 }
 </script>
 <style>
-/* THƯ VIỆN › UPLOAD FILE (1.36) */
-.up-lay{ display:grid; grid-template-columns:minmax(240px, 300px) 1fr; gap:14px; align-items:start } .up-main{ display:flex; flex-direction:column; gap:14px; min-width:0 }
-@media (max-width:820px){ .up-lay{ grid-template-columns:1fr } }
-.up-fl{ display:flex; flex-direction:column; gap:4px; padding:6px } .up-f{ display:flex; align-items:center; gap:10px; padding:9px 10px; border:0; border-radius:10px; background:none; text-align:left; font:inherit; color:inherit; cursor:pointer }
-.up-f:hover{ background:var(--surface-2) } .up-f.on{ background:var(--brand-50); box-shadow:inset 3px 0 0 var(--brand-600) } .up-f.off{ opacity:.6 } .up-f > i{ color:#E3A008; font-size:18px } .up-f span{ flex:1; min-width:0; display:flex; flex-direction:column }
-.up-f b{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .up-f small{ color:var(--muted); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .up-sb{ color:var(--brand-600) }
-.up-warn{ margin:6px 10px 10px; padding:8px 10px; border-radius:10px; background:#FFF6E6; font-size:12.5px } .up-warn a{ cursor:pointer; color:var(--brand-600) }
-.up-path{ display:flex; flex-wrap:wrap; align-items:center; gap:5px; font-size:14px } .up-path a{ cursor:pointer; color:var(--brand-600) } .up-path .bi-chevron-right{ font-size:11px; color:var(--muted) }
-.up-kids > span{ grid-column:1 / -1 }
-.up-kids{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:6px } .up-k{ display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font:inherit; font-size:13.5px; color:inherit; cursor:pointer; text-align:left }
-.up-k:hover{ border-color:var(--brand-500); background:var(--brand-50) } .up-k i{ color:#E3A008 } .up-k span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-.up-dz{ display:flex; align-items:center; gap:12px; padding:16px; border:1.5px dashed var(--border-strong); border-radius:12px; cursor:pointer; color:var(--ink-2) } .up-dz:hover, .up-dz.on{ background:var(--brand-50); border-color:var(--brand-500) }
-.up-dz > i{ font-size:26px; color:var(--brand-600) } .up-dz small{ display:block; color:var(--muted); font-size:12px; margin-top:2px }
-.up-q{ display:flex; flex-direction:column; border:1px solid var(--border); border-radius:12px; overflow:hidden } .up-qi{ display:flex; align-items:center; gap:10px; padding:9px 12px } .up-qi + .up-qi{ border-top:1px solid var(--border) }
-.up-qi > i{ font-size:20px; color:#C4262B } .up-qb{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px } .up-qb small{ color:var(--muted); font-size:12px } .up-qb .inp{ max-width:560px }
-.up-qi.done{ background:#F3FBF6 } .up-qi.err{ background:#FFF7F7 } .up-qs{ flex:none; font-size:12.5px; font-weight:600; min-width:40px; text-align:right }
-.up-ok{ color:#0F6B3D !important } .up-hint a, .up-ok a{ cursor:pointer; color:var(--brand-600); font-weight:600 } .up-dup{ color:#A96606 !important } .up-dup label{ cursor:pointer; margin-left:6px }
-.up-bar{ height:6px; border-radius:99px; background:var(--surface-3); overflow:hidden; max-width:560px } .up-bar > i{ display:block; height:100%; background:var(--brand-500); transition:width .3s }
-.up-hl{ display:flex; flex-direction:column; border:1px solid var(--border); border-radius:10px; overflow:hidden } .up-h{ display:flex; align-items:center; gap:10px; padding:8px 12px; color:inherit; text-decoration:none; font-size:13.5px } .up-h + .up-h{ border-top:1px solid var(--border) }
-.up-h:hover{ background:var(--surface-2) } .up-h > i{ font-size:18px; color:#C4262B } .up-h .t{ flex:1; min-width:0; display:flex; flex-direction:column } .up-h .t b{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .up-h small{ color:var(--muted); font-size:12px }
-.up-own{ flex:none; display:flex; align-items:center; gap:4px; font-size:11.5px; color:#0F6B3D; background:#E7F6EE; padding:2px 8px; border-radius:99px }
-.up-find{ display:flex; flex-direction:column; gap:4px; margin-top:6px } .up-find #ueR{ display:flex; flex-direction:column; max-height:180px; overflow:auto } .up-fr{ display:flex; gap:8px; align-items:center; padding:6px 8px; border:0; background:none; font:inherit; font-size:13px; text-align:left; cursor:pointer; color:inherit; border-radius:8px } .up-fr:hover{ background:var(--surface-2) } .up-fr i{ color:#E3A008 }
+/* THƯ VIỆN › UPLOAD FILE (1.36.1) */
+.upx{ position:relative; max-width:1120px; margin:0 auto; display:flex; flex-direction:column; gap:16px }
+.upx-hero{ display:flex; align-items:center; gap:16px; padding:4px 2px }
+.upx-hi{ flex:none; width:52px; height:52px; border-radius:16px; display:grid; place-items:center; background:linear-gradient(135deg, var(--brand-500), var(--brand-700)); color:#fff; font-size:24px; box-shadow:var(--sh-2) }
+.upx-ht{ flex:1; min-width:0 } .upx-ht h1{ margin:0; font-size:21px; font-weight:700; letter-spacing:-.01em } .upx-ht p{ margin:3px 0 0; color:var(--muted); font-size:13.5px; line-height:1.45 } .upx-ht b{ color:var(--ink-2) }
+.upx-warn{ display:flex; gap:10px; align-items:flex-start; padding:12px 14px; border-radius:12px; background:#FFF6E6; color:#7A4A00; font-size:13.5px } .upx-warn > i{ color:#D97706; margin-top:1px } .upx-warn a{ color:var(--brand-700); font-weight:600; cursor:pointer }
+.upx-empty{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; padding:44px 20px } .upx-empty span{ color:var(--muted); max-width:440px; font-size:13.5px } .upx-empty .btn{ margin-top:8px }
+.upx-ei{ width:64px; height:64px; border-radius:20px; display:grid; place-items:center; background:var(--brand-50); color:var(--brand-600); font-size:28px; margin-bottom:4px }
+.upx-boxes{ display:flex; gap:10px; overflow-x:auto; padding:2px; scrollbar-width:thin }
+.upx-box{ flex:0 0 auto; display:flex; align-items:center; gap:10px; min-width:200px; max-width:300px; padding:11px 14px; border:1px solid var(--border); border-radius:14px; background:var(--surface); font:inherit; color:inherit; text-align:left; cursor:pointer; transition:border-color .15s, box-shadow .15s, background .15s }
+.upx-box:hover{ border-color:var(--brand-400); box-shadow:var(--sh-1) } .upx-box.on{ border-color:var(--brand-600); background:var(--brand-50); box-shadow:0 0 0 3px var(--accent-soft, rgba(37,99,235,.12)) } .upx-box.off{ opacity:.6 }
+.upx-box > i{ font-size:22px; color:#F4B400 } .upx-box span{ display:flex; flex-direction:column; min-width:0 } .upx-box b{ font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .upx-box small{ color:var(--muted); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.upx-card{ padding:16px 18px 18px; display:flex; flex-direction:column; gap:14px }
+.upx-bar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap } .upx-bar > .sp, .upx-qf > .sp, .upx-hist .card-h > .sp{ flex:1 } .upx-path{ display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:15px; min-width:0 }
+.upx-path a, .upx-path b{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:8px } .upx-path a{ cursor:pointer; color:var(--ink-2) } .upx-path a:hover{ background:var(--surface-2) } .upx-path b{ font-weight:600 } .upx-path > .bi-chevron-right{ color:var(--muted); font-size:12px } .upx-path .bi-hdd-network{ color:var(--brand-600) }
+.upx-note{ display:flex; gap:8px; align-items:flex-start; padding:9px 12px; border-radius:10px; background:var(--brand-50); color:var(--ink-2); font-size:13px } .upx-note > i{ color:var(--brand-600); margin-top:1px } .upx-note a{ color:var(--brand-700); font-weight:600 }
+.upx-kids{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:8px }
+.upx-k{ display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font:inherit; font-size:13.5px; font-weight:500; color:inherit; text-align:left; cursor:pointer; transition:background .12s, border-color .12s }
+.upx-k:hover{ background:var(--surface-2); border-color:var(--border-strong) } .upx-k > i{ color:#F4B400; font-size:17px } .upx-k span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.upx-drop{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:30px 20px 24px; border:2px dashed var(--border-strong); border-radius:16px; background:var(--surface-2); cursor:pointer; text-align:center; transition:background .15s, border-color .15s, transform .15s }
+.upx-drop:hover, .upx-drop.on{ border-color:var(--brand-500); background:var(--brand-50) } .upx-drop.on{ transform:scale(1.01) }
+.upx-dpi{ width:60px; height:60px; border-radius:50%; display:grid; place-items:center; background:var(--surface); color:var(--brand-600); font-size:28px; box-shadow:var(--sh-1); margin-bottom:4px }
+.upx-drop > b{ font-size:16px } .upx-or{ color:var(--muted); font-size:12.5px } .upx-pick{ pointer-events:none } .upx-drop small{ color:var(--muted); font-size:12.5px; margin-top:6px } .upx-drop small b{ color:var(--ink-2) }
+.upx-auto{ display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; align-self:flex-start } .upx-auto small{ color:var(--muted) }
+.upx-q{ display:flex; flex-direction:column; border:1px solid var(--border); border-radius:12px; overflow:hidden }
+.upx-qi{ position:relative; display:flex; align-items:center; gap:12px; padding:10px 12px } .upx-qi + .upx-qi{ border-top:1px solid var(--border) } .upx-qi.done{ background:#F4FBF7 } .upx-qi.err{ background:#FFF7F7 } .upx-qi.dup{ background:#FFFBF2 }
+.upx-qic{ flex:none; width:34px; height:34px; border-radius:9px; display:grid; place-items:center; background:var(--surface-2); font-size:18px }
+.upx-qb{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px } .upx-qb small{ display:flex; align-items:center; gap:5px; flex-wrap:wrap; color:var(--muted); font-size:12px } .upx-qt{ font-weight:600; font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.upx-qn{ font:inherit; font-weight:600; font-size:13.5px; border:1px solid transparent; border-radius:7px; padding:3px 6px; margin-left:-7px; background:transparent; color:inherit; max-width:620px } .upx-qn:hover{ border-color:var(--border) } .upx-qn:focus{ outline:none; border-color:var(--brand-500); background:var(--surface) }
+.upx-ok{ color:#0F6B3D !important } .upx-ok a, .upx-hint a, .upx-err a{ cursor:pointer; color:var(--brand-700); font-weight:600 } .upx-err{ color:#B42318 !important } .upx-dup{ color:#9A5B00 !important } .upx-dup span{ display:inline-flex; gap:6px; margin-left:4px }
+.upx-pl{ flex:none; display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:99px; font-size:12px; font-weight:600; background:var(--surface-3); color:var(--ink-2) }
+.upx-pl.w{ background:var(--surface-2); color:var(--muted) } .upx-pl.b{ background:var(--brand-50); color:var(--brand-700); min-width:48px; justify-content:center } .upx-pl.ok{ background:#E7F6EE; color:#0F6B3D } .upx-pl.err{ background:#FDECEC; color:#B42318 } .upx-pl.warn{ background:#FFF1D6; color:#9A5B00 } .upx-pl .spin{ width:11px; height:11px }
+.upx-x{ flex:none } .upx-qp{ position:absolute; left:0; bottom:0; height:3px; background:var(--brand-500); transition:width .25s }
+.upx-qf{ display:flex; align-items:center; gap:8px; margin-top:-4px }
+.upx-hist{ overflow:hidden } .upx-hl{ display:flex; flex-direction:column } .upx-h{ display:flex; align-items:center; gap:12px; padding:10px 18px; color:inherit; text-decoration:none; font-size:13.5px; border-top:1px solid var(--border) } .upx-h:hover{ background:var(--surface-2) }
+.upx-h .t{ flex:1; min-width:0; display:flex; flex-direction:column } .upx-h .t b{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .upx-h small{ color:var(--muted); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.upx-hw{ flex:0 0 190px; display:flex; align-items:center; gap:8px; min-width:0 } .upx-hw > span:last-child{ display:flex; flex-direction:column; min-width:0 } .upx-hw b{ font-weight:500; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.upx-tag{ flex:none; display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600; padding:2px 8px; border-radius:99px; background:var(--brand-50); color:var(--brand-700) } .upx-tag.dim{ background:var(--surface-3); color:var(--muted) }
+.upx-own{ flex:none; display:inline-flex; align-items:center; gap:4px; font-size:11.5px; color:#0F6B3D; background:#E7F6EE; padding:2px 8px; border-radius:99px }
+.upx-hempty{ display:flex; align-items:center; justify-content:center; gap:8px; padding:26px; color:var(--muted); font-size:13.5px; border-top:1px solid var(--border) }
+.upx-ov{ position:fixed; inset:0; z-index:60; display:grid; place-items:center; background:rgba(15,31,61,.35); backdrop-filter:blur(2px); opacity:0; pointer-events:none; transition:opacity .15s }
+.upx-ov.on{ opacity:1 } .upx-ov > div{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:34px 48px; border-radius:20px; background:var(--surface); border:2px dashed var(--brand-500); box-shadow:var(--sh-3); text-align:center }
+.upx-ov i{ font-size:40px; color:var(--brand-600) } .upx-ov b{ font-size:18px } .upx-ov span{ color:var(--muted); font-size:13px }
+.upx-seg{ align-self:flex-start; width:auto } .upx-dlg .up-find{ display:flex; flex-direction:column; gap:4px; margin-top:6px }
+.upx-srch{ position:relative } .upx-srch > i{ position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px } .upx-srch .inp{ padding-left:32px }
+.upx-dlg #ueR{ display:flex; flex-direction:column; max-height:190px; overflow:auto } .up-fr{ display:flex; gap:8px; align-items:center; padding:7px 9px; border:0; background:none; font:inherit; font-size:13px; text-align:left; cursor:pointer; color:inherit; border-radius:8px } .up-fr:hover{ background:var(--surface-2) } .up-fr i{ color:#F4B400 }
+@media (max-width:720px){ .upx-hero{ flex-wrap:wrap } .upx-hw{ display:none } .upx-box{ min-width:170px } .upx-drop{ padding:22px 14px } }
 </style>
 
 <script>
@@ -18432,13 +18595,8 @@ async function viewTasks(arg, v) {
           const bar = m.$('#uBar'), fill = $('i', bar), lab = $('span', bar), show = x => { bar.hidden = false; fill.style.width = Math.round(x * 100) + '%'; lab.textContent = x ? 'Đang tải ' + Math.round(x * 100) + '% · ' + fmtSize(file.size * x) + ' / ' + fmtSize(file.size) : 'Đang bắt đầu tải ' + fmtSize(file.size) + '…'; };
           m.$('#uN').disabled = true; show(0);
           try {
-            let off = 0, up = '', r;
-            for (;;) {
-              const data = await tkB64(file.slice(off, off + F.chunk)), pl = { id: cur.id, folder: st.folder, name: name, mime: file.type || '', size: file.size, off: off, data: data, up: up };
-              if (!up && st.dup === 'replace') { pl.dup = 'replace'; pl.replaceId = dp[0].id; }
-              for (let k = 0; ; k++) { try { r = await rpc('droUpload', pl, { quiet: true }); break; } catch (e) { if (k || e.srv) throw e; await new Promise(z => setTimeout(z, 1500)); } }      // rớt mạng → thử lại khúc đó một lần
-              if (r.done) break; up = r.up; off = r.next; show(off / file.size);
-            }
+            const r = await driveSend({ file: file, base: Object.assign({ id: cur.id, folder: st.folder, name: name }, st.dup === 'replace' && dp[0] ? { dup: 'replace', replaceId: dp[0].id } : {}), chunk: F.chunk,
+              api: { begin: 'droBegin', finish: 'droFinish', relay: 'droUpload' }, onProgress: show });      // gửi thẳng lên Google (nhanh) · không được thì qua máy chủ — Upload.html
             show(1); result = r.file; toast('Đã tải “' + r.file.name + '” lên Drive · đứng tên ' + r.owner, 'ok', 4000);
           } catch (e) { m.$('#uN').disabled = false; bar.hidden = true; fail(e); return false; }
         } }] });
