@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T12:56:30.765Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T14:37:40.939Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5618,13 +5618,13 @@ function modOf(route, forMod) { const k = String(route || '').split('/')[0], cur
   if (MOD_SHARED[k] && MOD_SHARED[k].indexOf(cur) >= 0) return cur;
   if (k === 'library' && (cur === 'tutor' || !cur) && S.me && isTutor() && myMods().some(m => m.id === 'tutor')) return 'tutor';      // gia sư: Thư viện là một tab của Kiến Chuyên môn (không phải đổi ứng dụng)
   return Object.keys(MOD_ROUTES).find(m => MOD_ROUTES[m].indexOf(k) >= 0) || ''; }
-/** các ứng dụng người này vào được (có thư mục công khai / được chia sẻ → vào được Thư viện dù vai trò không có quyền Thư viện) */
-function myMods() { const a = (S.me && S.me.apps) || []; return ((S.boot && S.boot.mods) || []).filter(m => a.indexOf(m.id) >= 0 || (m.id === 'lib' && (S.boot.pub || S.boot.prog) && S.me)); }
+/** các ứng dụng người này vào được (có thư mục công khai / được chia sẻ / được cấp thư mục nhận file (1.38.2) → vào được Thư viện dù vai trò không có quyền Thư viện) */
+function myMods() { const a = (S.me && S.me.apps) || []; return ((S.boot && S.boot.mods) || []).filter(m => a.indexOf(m.id) >= 0 || (m.id === 'lib' && (S.boot.pub || S.boot.prog || S.boot.up) && S.me)); }
 function modInfo(id) { return ((S.boot && S.boot.mods) || []).find(m => m.id === id) || null; }
 /** trang mở đầu của một ứng dụng theo quyền */
 function modHome(id) {
   if (id === 'tutor') return 'today';
-  if (id === 'lib') return can('library.view') ? 'home' : canAny(['programs.view', 'programs.manage', '@prog']) ? 'programs' : 'library';
+  if (id === 'lib') return can('library.view') ? 'home' : canAny(['programs.view', 'programs.manage', '@prog']) ? 'programs' : !canAny(['@pub']) && canAny(['@up']) ? 'upload' : 'library';
   if (id === 'redesign') return 'compose';
   if (id === 'task') return 'tasks';
   if (id === 'sys') return can('users.manage') ? 'users' : can('activity.view') ? 'activity' : 'settings';
@@ -5880,7 +5880,7 @@ async function calSyncBox(host) {
 /** '@pub' = có thư mục / tài liệu công khai → mọi người dùng vào được Thư viện (chỉ thấy phần công khai) · '@prog' = có chương trình được chia sẻ cho mình → tab Chương trình */
 function canAny(cap) { return !cap || [].concat(cap).some(c => c === '@pub' ? !!(S.boot && S.boot.pub && S.me) : c === '@prog' ? !!(S.boot && S.boot.prog && S.me) : c === '@up' ? !!(S.boot && S.boot.up && S.me) : can(c)); }
 /** Trang mở đầu theo quyền (học sinh không có thư viện → vào thẳng Chương trình). */
-function homeRoute() { const mh = S.mod && modHome(S.mod); if (mh && canAny((ROUTES[mh.split('/')[0]] || {}).cap)) return mh; return isTutor() ? 'today' : can('library.view') ? 'home' : canAny(['programs.view', 'programs.manage', '@prog']) ? 'programs' : canAny(['@pub']) ? 'library' : S.me && S.me.guest ? 'info' : 'settings'; }
+function homeRoute() { const mh = S.mod && modHome(S.mod); if (mh && canAny((ROUTES[mh.split('/')[0]] || {}).cap)) return mh; return isTutor() ? 'today' : can('library.view') ? 'home' : canAny(['programs.view', 'programs.manage', '@prog']) ? 'programs' : canAny(['@pub']) ? 'library' : canAny(['@up']) ? 'upload' : S.me && S.me.guest ? 'info' : 'settings'; }
 /** Bố cục thanh bên = mặc định (NAV_DEF) + tuỳ chỉnh của quản trị (Cài đặt › Menu & tab): thứ tự, nhóm, tên, biểu tượng, ẩn.
     Chỉ đổi cách hiển thị — quyền vào trang vẫn theo vai trò. Tab mới ra ở bản sau tự nối vào nhóm mặc định của nó. */
 function navLayout(L) {
