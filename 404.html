@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T11:27:06.353Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T11:40:00.477Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7352,20 +7352,27 @@ async function directData(id) {
   console.info('[xem thẳng từ Google · ' + V.mode + ']', id, Math.round(buf.byteLength / 1024) + ' KB', Math.round(performance.now() - t0) + ' ms');
   return out;
 }
-/** TẢI NỘI DUNG THEO PHẦN (1.37.2 — máy chủ: contentPart_): phần 0 → biết n phần → các phần còn lại tải SONG SONG (3 luồng) rồi ghép base64.
-    Mỗi phần ~0,9 MB nên Google nén kịp, hết cảnh “mất kết nối” với PDF lớn. Máy chủ bản cũ (không có n) → dùng nguyên kết quả. */
-async function partsGet(call, fn, base) {
-  const p0 = await call(fn, Object.assign({ part: 0 }, base));
+/** TẢI NỘI DUNG THEO PHẦN (1.37.2 · 1.37.3 — máy chủ: contentPart_): mỗi phần ~0,9 MB nên Google nén kịp, hết cảnh “mất kết nối” với PDF lớn.
+    guess = số ký tự base64 đoán trước từ dung lượng file (PDF: 4·⌈byte/3⌉) → gửi ngay từ đầu (không chờ phần 0) tối đa 4 phần — file 2–4 phần (đa số) gửi hết một lượt.
+    Đoán thiếu → tải bù các phần còn lại (3 luồng); đoán thừa → bỏ qua phần thừa; phần trả về lệch → lấy lại một lần. Máy chủ bản cũ (không có n) → dùng nguyên kết quả. */
+async function partsGet(call, fn, base, guess) {
+  const CH = 900000, g = guess > CH ? Math.ceil(guess / CH) : 1, ask = i => call(fn, Object.assign({ part: i }, base)), early = {};
+  for (let i = 1; i < Math.min(g, 4); i++) early[i] = ask(i).catch(e => ({ _err: e }));      // gửi sớm tối đa 4 phần / tài liệu (Apps Script giới hạn ~30 lượt chạy cùng lúc cho cả web app)
+  const p0 = await ask(0);
   if (!p0 || p0.n === undefined) return p0;
   if (!(p0.n > 1)) { const o = Object.assign({}, p0, p0.data !== undefined ? { b64: p0.data } : {}); delete o.data; return o; }
-  const parts = new Array(p0.n); parts[0] = p0.data; let next = 1;
-  const worker = async () => { while (next < p0.n) { const i = next++, r = await call(fn, Object.assign({ part: i }, base));
-    if (!r || r.part !== i || r.total !== p0.total) throw new Error('Dữ liệu tải về bị lệch — tải lại trang'); parts[i] = r.data; } };
-  await Promise.all([worker(), worker(), worker()]);
+  const parts = new Array(p0.n); parts[0] = p0.data;
+  const fit = (r, i) => r && !r._err && r.part === i && r.total === p0.total;
+  const get = async i => { let r = early[i] ? await early[i] : null; if (!fit(r, i)) r = await ask(i); if (!fit(r, i)) throw new Error('Dữ liệu tải về bị lệch — tải lại trang'); parts[i] = r.data; };
+  const sent = [], rest = []; for (let i = 1; i < p0.n; i++) (early[i] ? sent : rest).push(i);
+  let k = 0; const worker = async () => { while (k < rest.length) await get(rest[k++]); };
+  await Promise.all(sent.map(get).concat([worker(), worker(), worker()]));
   const out = Object.assign({}, p0, { b64: parts.join('') }); delete out.data;
   if (out.b64.length !== p0.total) throw new Error('Dữ liệu tải về chưa đủ — tải lại trang');
   return out;
 }
+/** số ký tự base64 đoán trước của một PDF theo dung lượng (0 = không đoán) */
+function partsGuess(type, size) { return type === 'pdf' && Number(size) > 0 ? Math.ceil(Number(size) / 3) * 4 : 0; }
 /** tải nội dung tài liệu: chế độ xem nhanh → lấy thẳng từ Google; không thì đường HTTP nhanh (doPost); không được (mạng chặn, máy chủ bản cũ) → quay về google.script.run */
 async function fastData(id) {
   try { const dd = await directData(id); if (dd) return dd; } catch (e) { console.warn('xem thẳng từ Google không được → qua máy chủ', id, e); }
@@ -7378,10 +7385,10 @@ async function fastData(id) {
       catch (e) { if (k < 1) { await new Promise(z => setTimeout(z, 1200)); continue; } throw Object.assign(e, { net: 1 }); }
       if (o && o.ok) return o.data;
       const e = new Error((o && o.error) || 'Lỗi máy chủ'); e.code = o && o.code; e.srv = true; throw e; } };
-    try { return await partsGet(post, 'fileData', { id: id, noLog: true }); }      // theo phần, song song (1.37.2)
+    try { return await partsGet(post, 'fileData', { id: id, noLog: true }, (IX.byId && IX.byId[id]) ? partsGuess(IX.byId[id].type, IX.byId[id].size) : 0); }      // theo phần, song song (1.37.2)
     catch (e) { if (e.srv && e.code && e.code !== 'PERM') { if (e.code === 'AUTH') showLogin(); throw e; } console.warn('fastData → google.script.run', e); }
   }
-  return partsGet((fn, pl) => rpc(fn, pl, { quiet: true }), 'fileData', { id: id, noLog: true });
+  return partsGet((fn, pl) => rpc(fn, pl, { quiet: true }), 'fileData', { id: id, noLog: true }, (IX.byId && IX.byId[id]) ? partsGuess(IX.byId[id].type, IX.byId[id].size) : 0);
 }
 /** ghi lượt xem riêng, chạy ngầm — không bắt người xem chờ ghi Sheet trước khi thấy tài liệu */
 function fileViewLog(id) { if (S.as) return; rpc('fileView', { id: id }, { quiet: true }).catch(() => {}); }

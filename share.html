@@ -4485,22 +4485,29 @@ async function start() {
   addEventListener('resize', debounce(() => setZoom(V.zoom, true), 150));
   addEventListener('keydown', e => { if (e.target.closest('input')) return; if (e.key === '+' || e.key === '=') stepZoom(1); if (e.key === '-') stepZoom(-1); if (e.key === '0') setZoom(1); });
   track();
-  for (const d of V.docs) await load(d);       // lần lượt theo thứ tự, tài liệu đầu hiện ngay
+  { const Q = V.docs.slice(), run = async () => { while (Q.length) await load(Q.shift()); }; await Promise.all([run(), run()]); }      // 2 tài liệu cùng lúc, theo thứ tự (1.37.3) — tài liệu đầu vẫn hiện trước
 }
-/** TẢI NỘI DUNG THEO PHẦN (1.37.2 — máy chủ: contentPart_): phần 0 → biết n phần → các phần còn lại tải SONG SONG (3 luồng) rồi ghép base64.
-    Mỗi phần ~0,9 MB nên Google nén kịp, hết cảnh “mất kết nối” với PDF lớn. Máy chủ bản cũ (không có n) → dùng nguyên kết quả. */
-async function partsGet(call, fn, base) {
-  const p0 = await call(fn, Object.assign({ part: 0 }, base));
+/** TẢI NỘI DUNG THEO PHẦN (1.37.2 · 1.37.3 — máy chủ: contentPart_): mỗi phần ~0,9 MB nên Google nén kịp, hết cảnh “mất kết nối” với PDF lớn.
+    guess = số ký tự base64 đoán trước từ dung lượng file (PDF: 4·⌈byte/3⌉) → gửi ngay từ đầu (không chờ phần 0) tối đa 4 phần — file 2–4 phần (đa số) gửi hết một lượt.
+    Đoán thiếu → tải bù các phần còn lại (3 luồng); đoán thừa → bỏ qua phần thừa; phần trả về lệch → lấy lại một lần. Máy chủ bản cũ (không có n) → dùng nguyên kết quả. */
+async function partsGet(call, fn, base, guess) {
+  const CH = 900000, g = guess > CH ? Math.ceil(guess / CH) : 1, ask = i => call(fn, Object.assign({ part: i }, base)), early = {};
+  for (let i = 1; i < Math.min(g, 4); i++) early[i] = ask(i).catch(e => ({ _err: e }));      // gửi sớm tối đa 4 phần / tài liệu (Apps Script giới hạn ~30 lượt chạy cùng lúc cho cả web app)
+  const p0 = await ask(0);
   if (!p0 || p0.n === undefined) return p0;
   if (!(p0.n > 1)) { const o = Object.assign({}, p0, p0.data !== undefined ? { b64: p0.data } : {}); delete o.data; return o; }
-  const parts = new Array(p0.n); parts[0] = p0.data; let next = 1;
-  const worker = async () => { while (next < p0.n) { const i = next++, r = await call(fn, Object.assign({ part: i }, base));
-    if (!r || r.part !== i || r.total !== p0.total) throw new Error('Dữ liệu tải về bị lệch — tải lại trang'); parts[i] = r.data; } };
-  await Promise.all([worker(), worker(), worker()]);
+  const parts = new Array(p0.n); parts[0] = p0.data;
+  const fit = (r, i) => r && !r._err && r.part === i && r.total === p0.total;
+  const get = async i => { let r = early[i] ? await early[i] : null; if (!fit(r, i)) r = await ask(i); if (!fit(r, i)) throw new Error('Dữ liệu tải về bị lệch — tải lại trang'); parts[i] = r.data; };
+  const sent = [], rest = []; for (let i = 1; i < p0.n; i++) (early[i] ? sent : rest).push(i);
+  let k = 0; const worker = async () => { while (k < rest.length) await get(rest[k++]); };
+  await Promise.all(sent.map(get).concat([worker(), worker(), worker()]));
   const out = Object.assign({}, p0, { b64: parts.join('') }); delete out.data;
   if (out.b64.length !== p0.total) throw new Error('Dữ liệu tải về chưa đủ — tải lại trang');
   return out;
 }
+/** số ký tự base64 đoán trước của một PDF theo dung lượng (0 = không đoán) */
+function partsGuess(type, size) { return type === 'pdf' && Number(size) > 0 ? Math.ceil(Number(size) / 3) * 4 : 0; }
 function debounce(fn, ms) { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; }
 
 function load(d) {
@@ -4509,7 +4516,7 @@ function load(d) {
     d.state = 'load';
     const sec = $('#sec' + d.i), st = $('#st' + d.i);
     try {
-      const r = await partsGet((fn, pl) => rpc(fn, pl), 'shareFile', { t: TOKEN, id: d.f.id });      // theo phần, song song (1.37.2)
+      const r = await partsGet((fn, pl) => rpc(fn, pl), 'shareFile', { t: TOKEN, id: d.f.id }, partsGuess(d.f.t, d.f.s));      // theo phần, gửi mọi phần ngay từ đầu (1.37.3)
       if (r.type !== 'pdf') throw Object.assign(new Error(r.type === 'big' ? 'Tài liệu quá lớn để xem trực tuyến (' + fmtSize(r.size) + ')' : 'Không xem được định dạng này'), { soft: 1 });
       const bytes = b64bytes(r.b64);
       if (V.L.download || V.L.pickDl) d.bytes = bytes.slice();
