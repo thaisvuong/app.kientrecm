@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T15:37:15.395Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T15:51:55.431Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -10594,9 +10594,9 @@ async function viewUpload(arg, v) {
         (D.man ? '<button class="btn pri" id="upAdd"><i class="bi bi-folder-plus"></i>Thư mục nhận file</button>' : '') + '</header>' +
       (D.man && !D.def ? '<div class="upx-warn"><i class="bi bi-exclamation-triangle-fill"></i><span>Chưa có <b>tài khoản chủ Drive</b> nên chưa tạo thư mục / upload được — kết nối ở <a data-go="settings/system">Quản trị › Hệ thống › Tài khoản chủ Drive</a>.</span></div>' : '') +
       (!D.folders.length ? '<div class="card upx-empty"><div class="upx-ei"><i class="bi bi-folder2-open"></i></div><b>' + (D.man ? 'Chưa có thư mục nhận file' : 'Bạn chưa được cấp thư mục nào') + '</b><span>' +
-          (D.man ? 'Tạo thư mục mới ngay trên webapp hoặc chọn thư mục có sẵn, rồi chọn ai được upload vào đó.' : 'Nhờ quản lý cấp quyền upload vào một thư mục.') + '</span>' + (D.man ? '<button class="btn pri" id="upAdd2"><i class="bi bi-folder-plus"></i>Thêm thư mục nhận file</button>' : '') + '</div>' :
+          (D.man ? 'Tạo thư mục mới ngay trên webapp hoặc chọn thư mục có sẵn, rồi chọn ai được upload vào đó.' : 'Nhờ quản lý cấp quyền upload vào một thư mục. Thư mục trong Thư viện mà bạn có quyền chỉnh sửa trên Drive cũng tự hiện ở đây.') + '</span>' + (D.man ? '<button class="btn pri" id="upAdd2"><i class="bi bi-folder-plus"></i>Thêm thư mục nhận file</button>' : '') + '</div>' :
       '<nav class="upx-boxes" aria-label="Thư mục nhận file">' + D.folders.map(f => '<button type="button" class="upx-box' + (f.id === UPV.cur ? ' on' : '') + (f.status !== 'active' ? ' off' : '') + '" data-uf="' + esc(f.id) + '"' + (f.id === UPV.cur ? ' aria-current="true"' : '') + '>' +
-          '<i class="bi bi-folder-fill"></i><span><b>' + esc(f.name) + '</b><small>' + esc(f.status !== 'active' ? 'Tạm dừng nhận file' : f.owner || '—') + (D.man ? ' · ' + (f.up.length ? f.up.length + ' người / vai trò' : 'chưa cấp ai') : '') + '</small></span></button>').join('') + '</nav>' +
+          '<i class="bi bi-folder-fill"></i><span><b>' + esc(f.name) + '</b><small>' + (f.auto ? '<i class="bi bi-magic"></i> Tự cấp · bạn sửa được trên Drive' : esc(f.status !== 'active' ? 'Tạm dừng nhận file' : f.owner || '—')) + (D.man ? ' · ' + (f.up.length ? f.up.length + ' người / vai trò' : 'chưa cấp ai') : '') + '</small></span></button>').join('') + '</nav>' +
       (cur ? '<section class="card upx-card">' +
           '<div class="upx-bar"><div class="upx-path" id="upPath">' + miniLoader('Đang mở thư mục…') + '</div><span class="sp"></span><div class="upx-acts">' +
             '<div class="seg upx-vw" id="upVw" role="group" aria-label="Kiểu xem thư mục">' + UP_VIEWS.map(x => '<button type="button" class="seg-b" data-uv="' + x[0] + '" title="' + x[1] + '" aria-label="' + x[1] + '" aria-pressed="' + (UPV.view === x[0]) + '"><i class="bi ' + x[2] + '"></i></button>').join('') + '</div>' +
@@ -10604,6 +10604,7 @@ async function viewUpload(arg, v) {
             '<a class="btn sm ghost" id="upDrv" target="_blank" rel="noopener" href="' + esc(cur.url) + '"><i class="bi bi-box-arrow-up-right"></i>Mở trên Drive</a>' +
             (D.man ? '<button class="btn sm ghost" id="upEdit" title="Cài đặt thư mục nhận file"><i class="bi bi-gear"></i></button>' : '') + '</div></div>' +
           (cur.note ? '<div class="upx-note"><i class="bi bi-info-circle-fill"></i>' + esc(cur.note) + '</div>' : '') +
+          (cur.auto ? '<div class="upx-note"><i class="bi bi-magic"></i>Tự cấp vì bạn có quyền chỉnh sửa thư mục này trên Google Drive — không cần quản lý thêm vào danh sách.</div>' : '') +
           '<div class="upx-kids" id="upKids"></div>' +
           '<label class="upx-drop" id="upDz"><input type="file" multiple hidden id="upIn"><span class="upx-dpi"><i class="bi bi-cloud-arrow-up-fill"></i></span><b>Kéo thả file vào đây</b><span class="upx-or">hoặc</span><span class="btn pri upx-pick"><i class="bi bi-plus-lg"></i>Chọn file từ máy</span>' +
             '<small id="upDst">Lưu vào thư mục đang mở · đứng tên <b>' + esc(cur.owner || '—') + '</b></small></label>' +
