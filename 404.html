@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T12:37:59.159Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T17:08:45.255Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -1238,6 +1238,12 @@ html[data-glass] .lib-bar{ border-radius:20px 20px 0 0 }
 .rh b{ font-size:12px; color:var(--rc) } .rh small{ font-size:10.5px; font-weight:600; color:var(--muted) } .rh a{ color:var(--danger); cursor:pointer }
 .rh-in{ width:96px; height:26px; text-align:center; border:1px solid var(--border); border-radius:999px; font-weight:800; font-size:12px; color:var(--rc); background:var(--surface) }
 .rtbl tr.rg td{ background:var(--surface-2); font-size:10px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:var(--muted); padding:6px 12px }
+/* ma trận chung (1.43): hàng ứng dụng đậm, nhóm con của Kiến Task nhỏ, quyền của ứng dụng vai trò chưa bật thì mờ */
+.rtbl tr.r-app td{ font-size:12px; letter-spacing:.4px; color:var(--ink) }
+.rtbl tr.r-app td .bi{ margin-right:4px }
+.rtbl .rcell.rapp .bi{ font-size:18px }
+.rtbl tr.r-sub td{ font-size:11.5px; font-weight:700; color:var(--muted); padding:8px 12px 4px 22px }
+.rtbl td.r-off .rcell{ opacity:.3 }
 .rcell{ width:34px; height:34px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--border-strong); cursor:pointer; font-size:15px; display:inline-grid; place-items:center; transition:var(--t-fast) }
 .rcell.on{ background:var(--rc); border-color:var(--rc); color:#fff }
 .rcell:hover:not(:disabled){ transform:scale(1.08) } .rcell:disabled{ cursor:default; opacity:.85 }
@@ -5628,7 +5634,7 @@ function applyTheme(t) {
 /* tut = chỉ gia sư (xem lớp mình dạy, không quản lý): Lớp gia sư tách thành 3 tab nhỏ Lớp học · Buổi học · Yêu cầu
    m = các trang con thuộc tab đó (để tô đúng tab đang mở) */
 /* Kiến Task: các tab con của route tasks (quyền xem riêng từng tab). Link không được xem (VD gửi qua mail) → về tab đầu tiên được xem, giữ việc đang mở. */
-const TASK_TABS = ['tasks.tab.board', 'tasks.tab.backlog', 'tasks.tab.mine', 'tasks.tab.time', 'tasks.tab.cal', 'tasks.tab.sum', 'tasks.tab.perf', 'tasks.boards', 'tasks.roles'];
+const TASK_TABS = ['tasks.tab.board', 'tasks.tab.backlog', 'tasks.tab.mine', 'tasks.tab.time', 'tasks.tab.cal', 'tasks.tab.sum', 'tasks.tab.perf', 'tasks.boards', 'tasks.roles', 'tasks.remind', 'tasks.manage'];
 function taskAllow(route) {
   const tabs = NAV_DEF.filter(n => /^tasks/.test(n.r)), def = tabs.find(n => n.m.test(route));
   if (!def || can(def.cap)) return route;
@@ -5669,14 +5675,13 @@ const NAV_DEF = [
   { r: 'tasks/cal', t: 'Lịch', i: 'bi-calendar3', g: 'lib', cap: 'tasks.tab.cal', m: /^tasks\/cal/ },
   { r: 'tasks/sum', t: 'Báo cáo', i: 'bi-bar-chart', g: 'lib', cap: 'tasks.tab.sum', m: /^tasks\/sum/ },
   { r: 'tasks/perf', t: 'Hiệu suất', i: 'bi-graph-up-arrow', g: 'lib', cap: 'tasks.tab.perf', m: /^tasks\/perf/ },
-  { r: 'tasks/boards', t: 'Thống kê bảng', i: 'bi-clipboard-data', g: 'lib', cap: 'tasks.boards', m: /^tasks\/boards/ },
-  { r: 'tasks/roles', t: 'Phân quyền', i: 'bi-shield-check', g: 'lib', cap: 'tasks.roles', m: /^tasks\/roles/ },
+  /* Quản trị Kiến Task (1.43): một tab gom Phân quyền · Thống kê bảng · Cài đặt (nhắc việc, dữ liệu mẫu) — mục con hiện theo quyền */
+  { r: 'tasks/admin', t: 'Quản trị', i: 'bi-shield-check', g: 'lib', cap: ['tasks.roles', 'tasks.boards', 'tasks.remind', 'tasks.manage'], m: /^tasks\/(admin|roles|boards)/ },
   { r: 'guide', t: 'Hướng dẫn', i: 'bi-book', g: 'team' },
   { r: 'activity', t: 'Hoạt động', i: 'bi-activity', g: 'admin', cap: 'activity.view' },
   { r: 'sources', t: 'Nguồn dữ liệu', i: 'bi-hdd-network', g: 'lib', cap: 'sources.manage' },
-  { r: 'users', t: 'Người dùng', i: 'bi-people', g: 'admin', cap: 'users.manage', m: /^users$/ },
+  { r: 'users', t: 'Người dùng', i: 'bi-people', g: 'admin', cap: 'users.manage', m: /^users(\/apps)?$/ },      // (1.43) giới hạn ứng dụng từng người là một tab trong Người dùng, không còn mục riêng trên thanh bên
   { r: 'users/roles', t: 'Vai trò & quyền', i: 'bi-shield-lock', g: 'admin', cap: 'users.manage', m: /^users\/roles/ },
-  { r: 'users/apps', t: 'Phân quyền ứng dụng', i: 'bi-grid-3x3-gap', g: 'admin', cap: 'users.manage', m: /^users\/apps/ },
   { r: 'users/invites', t: 'Lời mời', i: 'bi-envelope-paper-heart', g: 'admin', cap: 'users.manage', m: /^users\/invites/ },
   { r: 'xapps', t: 'Quản lý ứng dụng', i: 'bi-window-plus', g: 'admin', cap: 'settings.manage' },
   { r: 'settings', t: 'Cài đặt', i: 'bi-gear', g: 'admin' },
@@ -8590,7 +8595,7 @@ async function viewUsers(arg, v) {
   const top = topBtns(v, '<span id="uTop"></span>');
   const head = () => '<div class="row"><div class="seg" id="uTab"><button class="seg-b" data-t="list" aria-pressed="' + (tab === 'list') + '"><i class="bi bi-people"></i>Người dùng</button>' +
     '<button class="seg-b" data-t="roles" aria-pressed="' + (tab === 'roles') + '"><i class="bi bi-shield-lock"></i>Vai trò & quyền</button>' +
-    '<button class="seg-b" data-t="apps" aria-pressed="' + (tab === 'apps') + '"><i class="bi bi-grid-3x3-gap"></i>Ứng dụng</button>' +
+    '<button class="seg-b" data-t="apps" aria-pressed="' + (tab === 'apps') + '"><i class="bi bi-person-gear"></i>Giới hạn từng người</button>' +
     '<button class="seg-b" data-t="invites" aria-pressed="' + (tab === 'invites') + '"><i class="bi bi-envelope-paper-heart"></i>Lời mời</button></div><span class="sp"></span></div>';
   const paintTop = () => {
     $('#uTop', top).innerHTML = tab === 'list' ? '<button class="btn sm" id="uBulk"><i class="bi bi-people"></i><span class="bl">Thêm nhiều người</span></button><button class="btn pri sm" id="uAdd"><i class="bi bi-person-plus"></i><span class="bl">Thêm người dùng</span></button>'
@@ -8654,8 +8659,8 @@ async function viewUsers(arg, v) {
       const RH = rhDraft || R.roleHome || {};
       const rolesOf = u => String(u.role || '').split(',').filter(Boolean).map(r => (r === 'viewer' ? 'giasu' : r));
       const isAd = u => rolesOf(u).indexOf('admin') >= 0;
-      const roleMods = r => M.filter(m => r.id === 'admin' || r.caps.some(c => (m.caps || []).indexOf(c) >= 0));
-      const byRole = u => M.filter(m => isAd(u) || rolesOf(u).some(r => rmap[r] && rmap[r].caps.some(c => (m.caps || []).indexOf(c) >= 0))).map(m => m.id);
+      const roleMods = r => M.filter(m => r.id === 'admin' || (r.apps || []).indexOf(m.id) >= 0);      // ứng dụng vai trò bật (Vai trò & quyền)
+      const byRole = u => M.filter(m => isAd(u) || rolesOf(u).some(r => rmap[r] && (rmap[r].apps || []).indexOf(m.id) >= 0)).map(m => m.id);
       const dv = (u, k) => (aDraft[u.email] && k in aDraft[u.email] ? aDraft[u.email][k] : (u[k] || ''));
       const cur = u => { const max = byRole(u), a = String(dv(u, 'apps')).split(',').filter(Boolean); return a.length ? max.filter(id => a.indexOf(id) >= 0) : max; };
       const roleHomeOf = u => rolesOf(u).map(r => RH[r]).find(id => id && cur(u).indexOf(id) >= 0) || '';
@@ -8671,11 +8676,11 @@ async function viewUsers(arg, v) {
         rows.map(u => { const max = byRole(u), on = cur(u), ad = isAd(u), lim = on.length < max.length, home = dv(u, 'home'), rh = roleHomeOf(u);
           return '<tr data-e="' + esc(u.email) + '" class="' + (aDraft[u.email] ? 'a-dirty' : '') + (ad ? ' a-ad' : '') + '"><td><div class="row" style="flex-wrap:nowrap"><span class="av">' + esc(initials(u.name || u.email)) + '</span><div style="min-width:0"><div class="t-title">' + esc(u.name || '') + '</div><div class="t-sub">' + rolesOf(u).map(r => esc((rmap[r] || { label: r }).label)).join(', ') + ' · ' + esc(u.email) + '</div></div></div></td>' +
             M.map(m => { const can2 = max.indexOf(m.id) >= 0, isOn = on.indexOf(m.id) >= 0;
-              return '<td class="rc' + (can2 || ad ? '' : ' a-no') + '" data-l="' + esc(m.t) + '"><button class="rcell' + (isOn ? ' on' : '') + '" data-app="' + m.id + '"' + (ad || !can2 ? ' disabled' : '') + ' aria-pressed="' + isOn + '" title="' + esc(ad ? 'Quản trị luôn vào được mọi ứng dụng' : !can2 ? 'Vai trò của người này chưa có quyền nào của ' + m.t + ' — cấp ở Vai trò & quyền' : (isOn ? 'Đang được vào ' : 'Đang bị chặn ') + m.t) + '"><i class="bi ' + (isOn ? 'bi-check-lg' : can2 ? 'bi-x' : 'bi-dash') + '"></i></button></td>'; }).join('') +
+              return '<td class="rc' + (can2 || ad ? '' : ' a-no') + '" data-l="' + esc(m.t) + '"><button class="rcell' + (isOn ? ' on' : '') + '" data-app="' + m.id + '"' + (ad || !can2 ? ' disabled' : '') + ' aria-pressed="' + isOn + '" title="' + esc(ad ? 'Quản trị luôn vào được mọi ứng dụng' : !can2 ? 'Vai trò của người này chưa bật ' + m.t + ' — bật ở Vai trò & quyền' : (isOn ? 'Đang được vào ' : 'Đang bị chặn ') + m.t) + '"><i class="bi ' + (isOn ? 'bi-check-lg' : can2 ? 'bi-x' : 'bi-dash') + '"></i></button></td>'; }).join('') +
             '<td class="a-hc' + (on.length > 1 ? '' : ' a-one') + '"><span class="a-hl">Mở app vào</span><select class="sel a-home" data-home aria-label="Vào thẳng"><option value="">' + esc(rh ? 'Theo vai trò · ' + mName(rh) : on.length === 1 ? 'Chỉ một · ' + mName(on[0]) : 'Màn chọn ứng dụng') + '</option>' + on.map(id => '<option value="' + id + '"' + (home === id ? ' selected' : '') + '>' + esc(mName(id)) + '</option>').join('') + '</select></td>' +
             '<td class="t-sub a-st' + (ad || lim ? ' on' : '') + '" style="white-space:nowrap">' + (ad ? 'Tất cả ứng dụng' : lim ? '<span class="tag warn">Giới hạn</span> <a class="a-reset" data-a="reset">bỏ</a>' : 'Theo vai trò') + '</td></tr>'; }).join('') +
         (rows.length ? '' : '<tr><td colspan="' + (M.length + 3) + '"><div class="empty">Không có người dùng</div></td></tr>') + '</tbody></table></div>' +
-        '<div class="card-b small muted a-how"><b>Cách hoạt động:</b> vai trò quyết định một người <i>có thể</i> dùng ứng dụng nào (ô gạch ngang = vai trò chưa có quyền của ứng dụng đó — cấp ở tab Vai trò & quyền). ' +
+        '<div class="card-b small muted a-how"><b>Cách hoạt động:</b> vai trò quyết định một người <i>có thể</i> dùng ứng dụng nào (ô gạch ngang = vai trò chưa bật ứng dụng đó — bật ở tab Vai trò & quyền). ' +
         'Bỏ tích một ứng dụng → người đó không thấy ứng dụng và máy chủ cũng chặn mọi thao tác của nó. <b>Vào thẳng</b>: mở app là vào ngay ứng dụng đã chọn; người chỉ có một ứng dụng luôn vào thẳng và không thấy nút đổi ứng dụng. Áp dụng ở lần tải trang kế tiếp của họ.</div></div>';
       const setD = (u, k, val) => { const d = Object.assign({}, aDraft[u.email]); if (val === String(u[k] || '')) delete d[k]; else d[k] = val; if (Object.keys(d).length) aDraft[u.email] = d; else delete aDraft[u.email]; };
       v._appsToggle = (email, id) => {
@@ -8697,18 +8702,34 @@ async function viewUsers(arg, v) {
       qi.oninput = debounce(() => { aQ = qi.value; const pp = qi.selectionStart; paint().then(() => { const n = $('#aQ', v); n.focus(); n.setSelectionRange(pp, pp); }); }, 180);
     } else {
       if (!R) { v.innerHTML = head() + miniLoader('Đang tải vai trò…'); R = await rpc('getRoles', {}, { quiet: true }); }
-      const groups = {};
-      Object.keys(R.caps).forEach(c => { const g = R.caps[c][1]; (groups[g] = groups[g] || []).push(c); });
+      // MỘT ma trận (1.43): mỗi ứng dụng một khối — hàng “Dùng ứng dụng” (bật = vai trò thấy ứng dụng) rồi tới quyền của ứng dụng đó
+      // (Kiến Task chia theo nhóm: tab, dữ liệu, thao tác… + chấm công theo giờ). Ứng dụng chưa bật → quyền của nó mờ, không tính.
+      const ALL = R.caps, MODS = R.mods || [], inMod = {}, n = R.roles.length;
+      MODS.forEach(m => m.caps.forEach(c => { inMod[c] = 1; }));
       const locked = r => r.locked || !S.me.isAdmin;
-      v.innerHTML = head() + '<div class="card"><div class="card-h"><h2><i class="bi bi-shield-lock"></i>Ma trận quyền</h2><span class="sp"></span>' +
-        (S.me.isAdmin ? '<span class="small muted">Bấm ô để cấp / gỡ quyền, rồi Lưu quyền</span>' : '<span class="small muted">Chỉ quản trị viên được sửa</span>') + '</div>' +
-        '<div class="tbl-wrap"><table class="tbl rtbl"><thead><tr><th>Quyền</th>' + R.roles.map((r, i) => '<th class="rc"><div class="rh" style="--rc:' + r.color + '">' +
+      const onApp = (r, id) => !!r.locked || (r.apps || []).indexOf(id) >= 0;
+      const cell = (r, i, c, mid) => { const has = !!r.locked || r.caps.indexOf(c) >= 0, off = !!mid && !onApp(r, mid);
+        return '<td class="rc' + (off ? ' r-off' : '') + '"><button class="rcell' + (has ? ' on' : '') + '" data-ri="' + i + '" data-cap="' + c + '"' + (locked(r) || off ? ' disabled' : '') + ' style="--rc:' + r.color + '" aria-pressed="' + has + '" aria-label="' + esc(r.label + ': ' + ALL[c][0]) + '"' + (off ? ' title="Vai trò chưa bật ứng dụng này"' : '') + '><i class="bi ' + (has ? 'bi-check-lg' : 'bi-dash') + '"></i></button></td>'; };
+      const capRow = (c, mid) => '<tr><td><b>' + esc(ALL[c][0]) + '</b><div class="t-sub mono">' + c + '</div></td>' + R.roles.map((r, i) => cell(r, i, c, mid)).join('') + '</tr>';
+      const sub = t => '<tr class="r-sub"><td colspan="' + (n + 1) + '">' + esc(t) + '</td></tr>';
+      const appRow = m => '<tr class="rg r-app"><td><i class="bi ' + esc(m.i) + '"></i> ' + esc(m.t) + '</td>' + R.roles.map((r, i) => { const o = onApp(r, m.id);
+        return '<td class="rc"><button class="rcell rapp' + (o ? ' on' : '') + '" data-ri="' + i + '" data-app="' + m.id + '"' + (locked(r) ? ' disabled' : '') + ' style="--rc:' + r.color + '" aria-pressed="' + o + '" title="' + esc((o ? 'Đang bật ' : 'Đang tắt ') + m.t + ' cho ' + r.label) + '"><i class="bi ' + (o ? 'bi-toggle-on' : 'bi-toggle-off') + '"></i></button></td>'; }).join('') + '</tr>';
+      const block = m => { const caps = m.caps.filter(c => ALL[c] && c !== 'tasks.use');      // tasks.use = hàng “Dùng ứng dụng” của Kiến Task
+        if (m.id !== 'task') return appRow(m) + caps.map(c => capRow(c, m.id)).join('');
+        const gs = []; caps.forEach(c => { if (gs.indexOf(ALL[c][1]) < 0) gs.push(ALL[c][1]); });
+        return appRow(m) + gs.map(g => sub(g) + caps.filter(c => ALL[c][1] === g).map(c => capRow(c, m.id)).join('')).join('') + sub('Chấm công') +
+          '<tr><td><b>Chấm công theo giờ</b><div class="t-sub">Có ô “Thời gian thực hiện” trong Task / Sub-task, phải ghi khi việc sang Hoàn thành</div></td>' + R.roles.map((r, i) => { const has = !r.locked && !!r.hourly, off = !onApp(r, 'task');
+            return '<td class="rc' + (off ? ' r-off' : '') + '"><button class="rcell' + (has ? ' on' : '') + '" data-ri="' + i + '" data-hourly="1"' + (locked(r) || off ? ' disabled' : '') + ' style="--rc:' + r.color + '" aria-pressed="' + has + '"><i class="bi ' + (has ? 'bi-check-lg' : 'bi-dash') + '"></i></button></td>'; }).join('') + '</tr>'; };
+      const other = Object.keys(ALL).filter(c => !inMod[c]);
+      v.innerHTML = head() + '<div class="card"><div class="card-h"><h2><i class="bi bi-shield-lock"></i>Vai trò × ứng dụng × quyền</h2><span class="sp"></span>' +
+        (S.me.isAdmin ? '<span class="small muted">Bật ứng dụng cho vai trò, tick quyền trong ứng dụng, rồi Lưu quyền</span>' : '<span class="small muted">Chỉ quản trị viên được sửa</span>') + '</div>' +
+        '<div class="tbl-wrap"><table class="tbl rtbl"><thead><tr><th>Ứng dụng · quyền</th>' + R.roles.map((r, i) => '<th class="rc"><div class="rh" style="--rc:' + r.color + '">' +
           (r.custom && S.me.isAdmin ? '<input class="rh-in" data-rl="' + i + '" value="' + esc(r.label) + '">' : '<b>' + esc(r.label) + '</b>') +
           '<small>' + r.users + ' người' + (r.custom && S.me.isAdmin ? ' · <a data-rdel="' + i + '">xoá</a>' : '') + '</small></div></th>').join('') + '</tr></thead><tbody>' +
-        Object.keys(groups).map(g => '<tr class="rg"><td colspan="' + (R.roles.length + 1) + '">' + esc(g) + '</td></tr>' + groups[g].map(c => '<tr><td><b>' + esc(R.caps[c][0]) + '</b><div class="t-sub mono">' + c + '</div></td>' +
-          R.roles.map((r, i) => { const on = r.caps.indexOf(c) >= 0; return '<td class="rc"><button class="rcell' + (on ? ' on' : '') + '" data-ri="' + i + '" data-cap="' + c + '"' + (locked(r) ? ' disabled' : '') + ' style="--rc:' + r.color + '" aria-pressed="' + on + '" aria-label="' + esc(r.label + ': ' + R.caps[c][0]) + '"><i class="bi ' + (on ? 'bi-check-lg' : 'bi-dash') + '"></i></button></td>'; }).join('') + '</tr>').join('')).join('') +
-        '</tbody></table></div><div class="card-b small muted"><b>Gợi ý:</b> Học sinh chỉ cần “Xem chương trình được chia sẻ” — rồi chia sẻ chương trình cho email học sinh hoặc cho cả vai trò (gõ <span class="mono">role:hocsinh</span> ở mục Chia sẻ của chương trình). ' +
-        'Người không có “Xem thư viện” chỉ thấy trang Chương trình. Quyền “Tải về” chỉ ẩn nút tải / mở Drive — nội dung xem trong app vẫn hiển thị.</div></div>';
+        MODS.map(block).join('') + (other.length ? '<tr class="rg"><td colspan="' + (n + 1) + '">Khác</td></tr>' + other.map(c => capRow(c, '')).join('') : '') +
+        '</tbody></table></div><div class="card-b small muted"><b>Cách hoạt động:</b> mỗi người có một hoặc nhiều vai trò; ứng dụng hiện với họ là ứng dụng mà ít nhất một vai trò bật, quyền là hợp quyền các vai trò. ' +
+        'Vai trò Kiến Task (Asst, Leader, Giáo viên, CTV…) là vai trò chung như mọi vai trò khác — người có quyền Phân quyền Kiến Task sửa phần Kiến Task ở Kiến Task › Quản trị. ' +
+        'Học sinh chỉ cần “Xem chương trình được chia sẻ” — rồi chia sẻ chương trình cho email học sinh hoặc cả vai trò (<span class="mono">role:hocsinh</span>).</div></div>';
     }
   };
   const addRole = () => modal({ title: 'Thêm vai trò', icon: 'bi-shield-plus', body: '<div class="stack"><div class="fg"><label class="flabel">Tên vai trò</label><input class="inp" id="nrL" autofocus placeholder="VD: Trợ giảng, Phụ huynh"></div>' +
@@ -8717,8 +8738,8 @@ async function viewUsers(arg, v) {
       const label = mm.$('#nrL').value.trim(); if (!label) return false;
       const id = fold(label).replace(/[^a-z0-9]+/g, '').slice(0, 24) || 'role' + Date.now();
       if (R.roles.some(r => r.id === id)) { toast('Đã có vai trò này', 'warn'); return false; }
-      R.roles.push({ id: id, label: label, color: (mm.$('#nrC [aria-pressed="true"]') || {}).dataset ? mm.$('#nrC [aria-pressed="true"]').dataset.c : '#475569', caps: ['programs.view'], users: 0, custom: 1 });
-      paint(); toast('Đã thêm “' + label + '” — chọn quyền rồi bấm Lưu quyền', 'info');
+      R.roles.push({ id: id, label: label, color: (mm.$('#nrC [aria-pressed="true"]') || {}).dataset ? mm.$('#nrC [aria-pressed="true"]').dataset.c : '#475569', caps: ['programs.view'], apps: ['lib'], hourly: 0, users: 0, custom: 1 });
+      paint(); toast('Đã thêm “' + label + '” — bật ứng dụng, chọn quyền rồi bấm Lưu quyền', 'info');
     } }] });
   const saveApps = async () => {
     const items = Object.keys(aDraft).map(e => Object.assign({ email: e }, aDraft[e])); if (!items.length && !rhDraft) return;
@@ -8727,7 +8748,7 @@ async function viewUsers(arg, v) {
     paint(); toast('Đã lưu — áp dụng ở lần tải trang kế tiếp của từng người');
   };
   const saveRoles = async () => {
-    R = await rpc('saveRoles', { roles: R.roles.filter(r => !r.locked).map(r => ({ id: r.id, label: r.label, color: r.color, caps: r.caps })) });
+    R = await rpc('saveRoles', { roles: R.roles.filter(r => !r.locked).map(r => ({ id: r.id, label: r.label, color: r.color, caps: r.caps, apps: r.apps || [], hourly: r.hourly ? 1 : 0 })) });
     S.boot.roles = R.roles.map(r => ({ id: r.id, label: r.label, color: r.color }));
     paint(); toast('Đã lưu vai trò & quyền — người dùng áp dụng ở lần tải trang kế tiếp');
   };
@@ -8749,7 +8770,7 @@ async function viewUsers(arg, v) {
         toast('Đã lưu');
       } }]) });
     const bl = m.$('[data-bulk]'); if (bl) bl.onclick = () => { m.close(); setTimeout(bulk, 120); };
-    const pr = () => { m.$('#dR').innerHTML = R.roles.map(r => { const on = roles.indexOf(r.id) >= 0, dis = r.id === 'admin' && !S.me.isAdmin;
+    const pr = () => { m.$('#dR').innerHTML = R.roles.map(r => { const on = roles.indexOf(r.id) >= 0, dis = (r.id === 'admin' || r.top) && !S.me.isAdmin;
       return '<button type="button" class="rp' + (on ? ' on' : '') + '" data-r="' + r.id + '" style="--rc:' + r.color + '"' + (dis ? ' disabled title="Chỉ quản trị viên cấp được"' : '') + '><i class="bi ' + (on ? 'bi-check-circle-fill' : 'bi-circle') + '"></i><b>' + esc(r.label) + '</b></button>'; }).join(''); };      // chỉ tên vai trò — chi tiết quyền xem ở tab Vai trò & quyền
     m.$('#dR').onclick = e => { const b = e.target.closest('[data-r]'); if (!b || b.disabled) return; const id = b.dataset.r; roles = roles.indexOf(id) >= 0 ? roles.filter(x => x !== id) : roles.concat([id]); pr(); };
     let st = u.status || 'active';
@@ -8765,13 +8786,13 @@ async function viewUsers(arg, v) {
       '<div class="fg"><label class="flabel">Vai trò (đăng ký: ' + esc(roleOf(role).label) + ' — có thể đổi)</label><div class="rpick" id="apR"></div></div></div>',
       foot: [{ t: 'Từ chối', i: 'bi-x-lg', cls: 'red', fn: async () => { if (!await ask('Từ chối và ngưng tài khoản ' + u.email + '?', { danger: true, ok: 'Từ chối' })) return false; uq('approveUser', { email: u.email, reject: 1 }, 'Từ chối · ' + u.email, () => { u.status = 'inactive'; }); toast('Đã từ chối'); } },
              { t: 'Huỷ', cls: 'ghost' }, { t: 'Duyệt & kích hoạt', i: 'bi-check2', cls: 'pri', fn: async () => { uq('approveUser', { email: u.email, role: role }, 'Duyệt · ' + u.email, () => { u.status = 'active'; u.role = role; }); toast('Đã duyệt ' + (u.name || u.email) + ' — ' + roleOf(role).label); } }] });
-    const pr = () => { m.$('#apR').innerHTML = R.roles.map(r => { const on = role === r.id, dis = r.id === 'admin' && !S.me.isAdmin; return '<button type="button" class="rp' + (on ? ' on' : '') + '" data-r="' + r.id + '" style="--rc:' + r.color + '"' + (dis ? ' disabled' : '') + '><i class="bi ' + (on ? 'bi-check-circle-fill' : 'bi-circle') + '"></i><span><b>' + esc(r.label) + '</b><small>' + r.caps.map(c => (R.caps[c] || [c])[0]).slice(0, 3).join(' · ') + '</small></span></button>'; }).join(''); };
+    const pr = () => { m.$('#apR').innerHTML = R.roles.map(r => { const on = role === r.id, dis = (r.id === 'admin' || r.top) && !S.me.isAdmin; return '<button type="button" class="rp' + (on ? ' on' : '') + '" data-r="' + r.id + '" style="--rc:' + r.color + '"' + (dis ? ' disabled' : '') + '><i class="bi ' + (on ? 'bi-check-circle-fill' : 'bi-circle') + '"></i><span><b>' + esc(r.label) + '</b><small>' + r.caps.map(c => (R.caps[c] || [c])[0]).slice(0, 3).join(' · ') + '</small></span></button>'; }).join(''); };
     m.$('#apR').onclick = e => { const b = e.target.closest('[data-r]'); if (b && !b.disabled) { role = b.dataset.r; pr(); } };
     pr();
   };
   const bulk = () => modal({ title: 'Thêm nhiều người dùng', icon: 'bi-people', body:
     '<div class="stack"><div class="fg"><label class="flabel">Mỗi dòng một người — “email” hoặc “Tên, email” (dán thẳng từ Excel được)</label><textarea class="ta" id="bT" rows="8" autofocus placeholder="Nguyễn Văn A, gva@gmail.com&#10;hsb@gmail.com"></textarea></div>' +
-    '<div class="fg"><label class="flabel">Vai trò cho cả danh sách</label><select class="sel" id="bR">' + R.roles.filter(r => r.id !== 'admin').map(r => '<option value="' + r.id + '"' + (r.id === 'giasu' ? ' selected' : '') + '>' + esc(r.label) + '</option>').join('') + '</select><div class="small muted">Email đã có sẽ bỏ qua.</div></div></div>',
+    '<div class="fg"><label class="flabel">Vai trò cho cả danh sách</label><select class="sel" id="bR">' + R.roles.filter(r => r.id !== 'admin' && !r.top).map(r => '<option value="' + r.id + '"' + (r.id === 'giasu' ? ' selected' : '') + '>' + esc(r.label) + '</option>').join('') + '</select><div class="small muted">Email đã có sẽ bỏ qua.</div></div></div>',
     foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Thêm', cls: 'pri', i: 'bi-plus', fn: async mm => { const r = await rpc('saveUsersBulk', { text: mm.$('#bT').value, role: mm.$('#bR').value }); list = r.users; paint(); toast('Đã thêm ' + r.added + ' người'); } }] });
   v.onclick = async e => {
     const t = e.target.closest('#uTab [data-t]'); if (t) { tab = t.dataset.t; go(tab === 'roles' ? 'users/roles' : tab === 'apps' ? 'users/apps' : tab === 'invites' ? 'users/invites' : 'users'); return; }
@@ -8779,7 +8800,10 @@ async function viewUsers(arg, v) {
     const ac = e.target.closest('[data-app]') || (tc && tc.querySelector('[data-app]:not(:disabled)')); if (ac && tab === 'apps') { v._appsToggle(ac.closest('tr').dataset.e, ac.dataset.app); return; }
     if (tab === 'apps') { const rs = e.target.closest('.a-reset'); if (rs) v._appsReset(rs.closest('tr').dataset.e); return; }
     const f = e.target.closest('[data-rf]'); if (f) { rf = f.dataset.rf; return paint(); }
-    const c = e.target.closest('.rcell'); if (c && !c.disabled) { const r = R.roles[Number(c.dataset.ri)], cap = c.dataset.cap; r.caps = r.caps.indexOf(cap) >= 0 ? r.caps.filter(x => x !== cap) : r.caps.concat([cap]); return paint(); }
+    const c = e.target.closest('.rcell'); if (c && !c.disabled) { const r = R.roles[Number(c.dataset.ri)], cap = c.dataset.cap, ap = c.dataset.app;
+      if (ap) { const A = r.apps || []; r.apps = A.indexOf(ap) >= 0 ? A.filter(x => x !== ap) : A.concat([ap]); return paint(); }      // bật / tắt ứng dụng cho vai trò
+      if (c.dataset.hourly) { r.hourly = r.hourly ? 0 : 1; return paint(); }
+      r.caps = r.caps.indexOf(cap) >= 0 ? r.caps.filter(x => x !== cap) : r.caps.concat([cap]); return paint(); }
     const d = e.target.closest('[data-rdel]'); if (d) { const r = R.roles[Number(d.dataset.rdel)]; if (r.users && !await ask('Vai trò “' + r.label + '” đang có ' + r.users + ' người. Xoá vai trò thì những người này mất quyền của vai trò đó. Tiếp tục?', { danger: true, ok: 'Xoá' })) return; R.roles.splice(Number(d.dataset.rdel), 1); return paint(); }
     const a = e.target.closest('[data-a]');
     if (!a) { const tr = tab === 'list' && matchMedia('(max-width:820px)').matches && e.target.closest('.utbl tr[data-e]'); if (tr) { const u0 = list.find(x => x.email === tr.dataset.e); if (u0) { if (u0.status === 'pending') approve(u0); else dialog(u0); } } return; }      // điện thoại: chạm cả dòng để sửa
@@ -8870,14 +8894,14 @@ async function invPaint(box, scope, fresh) {
     invPaint(box, scope);
   };
 }
-/** hộp gửi lời mời. scope task: chỉ chọn vai trò Kiến Task. scope all: chọn phạm vi (toàn app / chỉ Kiến Task), vai trò, ứng dụng, vào thẳng, vai trò Kiến Task. */
+/** hộp gửi lời mời. scope task: chỉ chọn một vai trò có bật Kiến Task. scope all: chọn phạm vi (toàn app / chỉ Kiến Task), vai trò (chung, gồm cả vai trò Kiến Task), ứng dụng, vào thẳng. */
 function invDialog(scope, done) {
   const D = INV[scope]; if (!D) return;
   let sc = scope === 'task' ? 'task' : 'all', roles = ['giasu'], apps = [], home = '', md = 'link';      // md: link = link mời (không cần email) · email = mời theo email
   const tRole = ((D.taskRoles.find(r => r.id === 'teacher') || D.taskRoles.find(r => r.id !== 'admin') || D.taskRoles[0] || {}).id || '');      // mặc định Giáo viên — không bao giờ mặc định Admin
-  const rpick = () => D.roles.filter(r => r.id !== 'tasker').map(r => { const on = roles.indexOf(r.id) >= 0, dis = r.id === 'admin' && !D.canAdmin;
+  const rpick = () => D.roles.map(r => { const on = roles.indexOf(r.id) >= 0, dis = (r.id === 'admin' || r.id === 'asst') && !D.canAdmin;
     return '<button type="button" class="rp' + (on ? ' on' : '') + '" data-r="' + esc(r.id) + '" style="--rc:' + esc(r.color) + '"' + (dis ? ' disabled title="Chỉ quản trị viên mời được vai trò này"' : '') + '><i class="bi ' + (on ? 'bi-check-circle-fill' : 'bi-circle') + '"></i><b>' + esc(r.label) + '</b></button>'; }).join('');
-  const tOpts = (sel, def) => (def ? '<option value=""' + (!sel ? ' selected' : '') + '>Theo vai trò Kiến CM (mặc định)</option>' : '') + D.taskRoles.map(r => '<option value="' + esc(r.id) + '"' + (sel === r.id ? ' selected' : '') + '>' + esc(r.label) + '</option>').join('');
+  const tOpts = sel => D.taskRoles.map(r => '<option value="' + esc(r.id) + '"' + (sel === r.id ? ' selected' : '') + '>' + esc(r.label) + '</option>').join('');
   const body = () => '<div class="stack">' +
     '<div class="fg"><label class="flabel">Cách mời</label><div class="seg fill" id="ivMd"><button type="button" class="seg-b" data-md="link" aria-pressed="true"><i class="bi bi-link-45deg"></i>Link mời — không cần email</button><button type="button" class="seg-b" data-md="email" aria-pressed="false"><i class="bi bi-envelope"></i>Theo email</button></div></div>' +
     '<div class="fg" id="ivEm" hidden><label class="flabel">Email người được mời — mỗi dòng một người (“Tên, email” hoặc chỉ email)</label><textarea class="ta" id="ivT" rows="4" placeholder="Nguyễn Văn A, gva@gmail.com&#10;hsb@gmail.com"></textarea></div>' +
@@ -8886,13 +8910,12 @@ function invDialog(scope, done) {
       '<div class="small muted" style="grid-column:1/-1"><i class="bi bi-info-circle"></i> Ai mở link và đăng nhập (Google hoặc email bất kỳ) trong hạn, còn lượt là vào được ngay với quyền bên dưới. Link không cấp được vai trò Admin.</div></div>' +
     (scope === 'task' ? '' : '<div class="fg"><label class="flabel">Được vào</label><div class="seg fill" id="ivSc"><button type="button" class="seg-b" data-sc="all" aria-pressed="' + (sc === 'all') + '"><i class="bi bi-grid-3x3-gap"></i>Theo vai trò & ứng dụng</button><button type="button" class="seg-b" data-sc="task" aria-pressed="' + (sc === 'task') + '"><i class="bi bi-kanban"></i>Chỉ Kiến Task</button></div></div>') +
     '<div id="ivAll"' + (sc === 'task' ? ' hidden' : '') + ' class="stack">' +
-      '<div class="fg"><label class="flabel">Vai trò Kiến CM (chọn một hoặc nhiều)</label><div class="rpick" id="ivR">' + rpick() + '</div></div>' +
+      '<div class="fg"><label class="flabel">Vai trò (chọn một hoặc nhiều)</label><div class="rpick" id="ivR">' + rpick() + '</div></div>' +
       '<div class="fg"><label class="flabel">Ứng dụng được vào <span class="small muted" style="text-transform:none;letter-spacing:0;font-weight:500">— không chọn = mọi ứng dụng vai trò cho phép</span></label><div class="iv-apps" id="ivA">' +
         D.mods.map(m => '<button type="button" class="iv-app' + (apps.indexOf(m.id) >= 0 ? ' on' : '') + '" data-app2="' + esc(m.id) + '"><i class="bi ' + esc(m.i) + '"></i>' + esc(m.t) + '</button>').join('') + '</div></div>' +
-      '<div class="grid g2"><div class="fg"><label class="flabel">Mở app thì vào thẳng</label><select class="sel" id="ivH"><option value="">Màn chọn ứng dụng / theo vai trò</option>' + D.mods.map(m => '<option value="' + esc(m.id) + '">' + esc(m.t) + '</option>').join('') + '</select></div>' +
-      '<div class="fg"><label class="flabel">Vai trò trong Kiến Task</label><select class="sel" id="ivTR2">' + tOpts('', 1) + '</select></div></div></div>' +
-    '<div id="ivTask"' + (sc === 'task' ? '' : ' hidden') + ' class="fg"><label class="flabel">Vai trò Kiến Task</label><select class="sel" id="ivTR">' + tOpts(tRole, 0) + '</select>' +
-      '<div class="small muted" style="margin-top:6px"><i class="bi bi-info-circle"></i> Người mới chỉ thấy Kiến Task. Quyền của từng vai trò xem ở Kiến Task › Phân quyền › Vai trò & quyền.</div></div>' +
+      '<div class="fg"><label class="flabel">Mở app thì vào thẳng</label><select class="sel" id="ivH"><option value="">Màn chọn ứng dụng / theo vai trò</option>' + D.mods.map(m => '<option value="' + esc(m.id) + '">' + esc(m.t) + '</option>').join('') + '</select></div></div>' +
+    '<div id="ivTask"' + (sc === 'task' ? '' : ' hidden') + ' class="fg"><label class="flabel">Vai trò Kiến Task</label><select class="sel" id="ivTR">' + tOpts(tRole) + '</select>' +
+      '<div class="small muted" style="margin-top:6px"><i class="bi bi-info-circle"></i> Người mới chỉ thấy Kiến Task. Quyền của từng vai trò xem ở Vai trò & quyền (Quản trị hoặc Kiến Task › Quản trị).</div></div>' +
     '<div class="grid g2"><div class="fg"><label class="flabel">Lời mời có hiệu lực</label><select class="sel" id="ivD">' + D.days.map(d => '<option value="' + d + '"' + (d === 14 ? ' selected' : '') + '>' + d + ' ngày</option>').join('') + '</select></div>' +
       '<div class="fg" id="ivNf" hidden><label class="flabel">Lời nhắn trong mail (không bắt buộc)</label><input class="inp" id="ivN" maxlength="300" placeholder="VD: Chào mừng bạn vào nhóm chuyên môn Toán 5"></div></div>' +
     '<label class="row" id="ivMf" hidden style="gap:10px"><span class="sw"><input type="checkbox" id="ivM" checked><span></span></span><span><b>Gửi email mời</b><br><span class="small muted">Tắt = chỉ tạo lời mời, tự chép link gửi qua Zalo. ' + (D.mailLeft != null ? 'Hôm nay còn khoảng ' + D.mailLeft + ' lượt gửi mail.' : '') + '</span></span></label></div>';
@@ -8903,7 +8926,7 @@ function invDialog(scope, done) {
       const pl = md === 'link' ? { mode: 'link', label: mm.$('#ivL').value, maxUses: Number(mm.$('#ivX').value), days: Number(mm.$('#ivD').value) }
         : { text: text, days: Number(mm.$('#ivD').value), note: mm.$('#ivN').value, send: mm.$('#ivM').checked };
       if (sc === 'task') pl.taskRole = mm.$('#ivTR').value;
-      else { if (!roles.length) { toast('Chọn ít nhất một vai trò', 'warn'); return false; } Object.assign(pl, { role: roles.join(','), apps: apps.join(','), home: mm.$('#ivH').value, taskRole: mm.$('#ivTR2').value }); }
+      else { if (!roles.length) { toast('Chọn ít nhất một vai trò', 'warn'); return false; } Object.assign(pl, { role: roles.join(','), apps: apps.join(','), home: mm.$('#ivH').value }); }
       const r = await rpc('inviteCreate', Object.assign(pl, { scope: scope === 'task' ? 'task' : sc }));
       INV[scope] = r; if (scope !== 'task' && INV.task) INV.task = null;
       if (done) done();
@@ -17550,6 +17573,27 @@ button.tk-loose{ margin-top:16px; padding:5px 8px 5px 4px; border:0; border-radi
 .tk-up-own{ display:flex; gap:8px; align-items:flex-start; font-size:12.5px; color:var(--muted) } .tk-up-own i{ color:#0F7B45; font-size:15px } .tk-up-own b{ color:var(--ink-2) }
 .tk-up-bar{ position:relative; height:26px; border-radius:8px; background:var(--surface-3); overflow:hidden } .tk-up-bar > i{ position:absolute; inset:0 auto 0 0; width:0; background:var(--brand-500); transition:width .3s }
 .tk-up-bar > span{ position:relative; display:block; text-align:center; line-height:26px; font-size:12.5px; font-weight:600; color:var(--ink); mix-blend-mode:normal }
+/* MẪU CHUỖI VIỆC (1.42): danh sách mẫu · tạo từ mẫu (xem trước, sửa hạn) · sửa mẫu (cây việc, hạn tương đối, ★ người được chọn) · lặp tuần / tháng */
+.tpl-list{ display:flex; flex-direction:column; gap:6px }
+.tpl-it{ display:flex; align-items:flex-start; gap:12px; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface) }
+.tpl-ic{ padding-top:1px } .tpl-tx{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px } .tpl-tx b{ font-weight:600 } .tpl-tx small{ color:var(--muted); font-size:12px } .tpl-tx small i{ margin-right:4px }
+.tpl-tx .tpl-rec{ color:var(--primary) } .tpl-tx .tpl-err{ color:var(--danger) }
+.tpl-act{ display:flex; gap:4px; align-items:center; flex:none }
+.tpl-f{ display:grid; grid-template-columns:minmax(0, 1fr) 220px; gap:10px 12px } .tpl-f .tpl-pic{ grid-column:1 / -1 } .tpl-pic .bi-star-fill, .tpl-star{ color:#D97706 }
+.tpl-pv, .tpl-ed{ display:flex; flex-direction:column; gap:2px; max-height:46vh; overflow:auto; border:1px solid var(--border); border-radius:10px; padding:4px }
+.tpl-r, .tpl-er{ flex:none; display:flex; align-items:center; gap:8px; padding:3px 6px; border-radius:8px; min-height:38px } .tpl-r:hover, .tpl-er:hover{ background:var(--surface-2) }
+.tpl-r .t{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .tpl-r.lv-epic .t, .tpl-er.lv-epic .tpl-et{ font-weight:600 }
+.tpl-star{ font-size:12px } .tpl-off{ flex:none; width:64px; text-align:right; color:var(--muted); font-size:12px }
+.tpl-due{ flex:0 0 148px; width:148px; height:32px; padding:4px 8px } .tpl-due.hand{ border-color:var(--orange); background:#FFF8F1 }
+.tpl-er .tpl-et{ flex:1; min-width:140px; height:32px } .tpl-eo{ flex:none; display:flex; align-items:center; gap:4px } .tpl-eo input{ width:66px; height:32px; padding:4px 8px } .tpl-eo small{ color:var(--muted); font-size:12px }
+.tpl-er select{ flex:none; width:auto; max-width:180px; height:32px; padding-top:4px; padding-bottom:4px } .tpl-sp{ flex:0 0 32px; width:32px }
+.tpl-ed-h{ display:flex; gap:8px; padding:0 6px 2px; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted) }
+.tpl-hint{ margin:-2px 0 8px } .tpl-f small.muted, .tpl-recf small.muted{ display:block; margin-top:4px; font-size:12px }
+.tpl-recf{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px 12px; margin-top:8px } .tpl-recf .full{ grid-column:1 / -1 } .tpl-recf[hidden]{ display:none }
+@media (max-width:820px){ .tpl-f, .tpl-recf{ grid-template-columns:minmax(0, 1fr) } .tpl-r{ flex-wrap:wrap; padding-top:6px; padding-bottom:6px; border-bottom:1px solid var(--border); border-radius:0 } .tpl-r .t{ flex:1 1 calc(100% - 110px); white-space:normal }
+  .tpl-off{ margin-left:26px; text-align:left } .tpl-due{ flex:1 1 140px }
+  .tpl-pv, .tpl-ed{ max-height:none } .tpl-er{ flex-wrap:wrap; padding:8px 6px; border-bottom:1px solid var(--border); border-radius:0 } .tpl-er .tpl-et{ flex-basis:70% } .tpl-ed-h{ display:none }
+  .tpl-it{ flex-wrap:wrap } .tpl-act{ width:100%; justify-content:flex-end } }
 </style>
 <script>
 /* ══════════════════════════════════════════════════════════════
@@ -17576,13 +17620,21 @@ function tkAv(e) { return e ? '<span class="av sm" title="' + esc(tkUser(e)) + '
 /** người phụ trách (PIC) của một việc — có thể nhiều người */
 function tkWho(t) { return t.assignees || String(t.assignee || '').split(',').filter(Boolean); }
 /** NGƯỜI GIAO ĐƯỢC ở bảng p: thành viên bảng (bảng không giới hạn / bảng riêng = mọi người dùng Kiến Task) · keep = người đang phụ trách (giữ dù đã thôi dùng Kiến Task).
-    Bảng chung giới hạn thành viên mà người giao là trưởng bảng / có quyền “Giao việc” → thêm mọi người dùng Kiến Task khác (out = ngoài bảng; giao là máy chủ tự thêm vào thành viên bảng). */
-function tkAsgPool(p, keep) {
+    Bảng chung giới hạn thành viên mà người giao là trưởng bảng / có quyền “Giao việc” / người giữ Epic chứa việc t → thêm mọi người dùng Kiến Task khác
+    (out = ngoài bảng; giao là máy chủ tự thêm vào thành viên bảng). */
+function tkAsgPool(p, keep, t) {
   const d = TK.d, k = keep || [], ok = u => u.task || k.indexOf(u.email) >= 0;
   if (!p || p.scope === 'personal' || !p.members.length) return d.users.filter(ok);
   const inB = u => p.members.indexOf(u.email) >= 0 || u.email === p.createdBy || k.indexOf(u.email) >= 0, L = d.users.filter(u => inB(u) && ok(u));
-  if (p.createdBy !== d.me && !(d.can || {}).assign) return L;
+  if (p.createdBy !== d.me && !(d.can || {}).assign && !tkEpLead(t)) return L;
   return L.concat(d.users.filter(u => u.task && !inB(u)).map(u => Object.assign({}, u, { out: 1 })));
+}
+/** người giữ Epic (1.43): người tạo / phụ trách epic chứa việc t (t là epic: chính nó; epic mới chưa lưu: người tạo) — giao được việc trong epic cho người khác */
+function tkEpLead(t) {
+  if (!t || !TK.d) return false;
+  const me = TK.d.me, ep = t.type === 'epic' ? t : tkById(t.epicId);
+  if (t.type === 'epic' && !t.id) return true;
+  return !!ep && ep.type === 'epic' && (ep.reporter === me || tkWho(ep).indexOf(me) >= 0);
 }
 /** giao cho người ngoài bảng → máy chủ đã thêm họ vào thành viên bảng; làm theo trên máy cho lần chọn sau */
 function tkJoinLocal(p, emails) { if (!p || p.scope === 'personal' || !p.members.length) return; (emails || []).forEach(e => { if (e && e !== p.createdBy && p.members.indexOf(e) < 0) p.members.push(e); }); }
@@ -18156,7 +18208,8 @@ async function viewTasks(arg, v) {
   let mode = 'board', openId = '';
   const parse = a => {
     a = String(a || ''); openId = '';
-    mode = /^mine/.test(a) ? 'mine' : /^list/.test(a) ? 'list' : /^backlog/.test(a) ? 'backlog' : /^cal/.test(a) ? 'cal' : /^time/.test(a) ? 'time' : /^sum/.test(a) ? 'sum' : /^perf/.test(a) ? 'perf' : /^roles/.test(a) ? 'roles' : /^boards/.test(a) ? 'boards' : 'board';
+    const adm = /^admin\/(roles|boards|settings)/.exec(a);      // Quản trị (1.43): tab riêng gom Phân quyền · Thống kê bảng · Cài đặt
+    mode = adm ? adm[1] : /^admin/.test(a) ? (can('tasks.roles') ? 'roles' : can('tasks.boards') ? 'boards' : 'settings') : /^mine/.test(a) ? 'mine' : /^list/.test(a) ? 'list' : /^backlog/.test(a) ? 'backlog' : /^cal/.test(a) ? 'cal' : /^time/.test(a) ? 'time' : /^sum/.test(a) ? 'sum' : /^perf/.test(a) ? 'perf' : /^roles/.test(a) ? 'roles' : /^boards/.test(a) ? 'boards' : 'board';
     const m = /^p\/(.+)$/.exec(a); if (m) { TK.proj = m[1]; lsSet('tkProj', TK.proj); }
     const t = /(?:^|\/)t\/([\w-]+)$/.exec(a); if (t) openId = t[1];      // …/t/<mã việc> mở thẳng một việc (ở tab nào cũng được)
   };
@@ -18208,6 +18261,7 @@ async function viewTasks(arg, v) {
   const top = topBtns(v, '<span id="tkTop"></span>');
   const paintTop = () => {
     $('#tkTop', top).innerHTML = (C().remind ? '<button class="ibtn" id="tkRem" title="Nhắc việc qua mail"><i class="bi bi-envelope-check"></i></button>' : '') + '<button class="ibtn" id="tkNewP" title="Bảng: tạo bảng riêng / bảng chung, sửa bảng"><i class="bi bi-folder-plus"></i></button>' +
+      (projs().length && tplCan() ? '<button class="ibtn" id="tkTpl" title="Mẫu chuỗi việc — tạo cả chuỗi task từ mẫu, lặp định kỳ" aria-label="Mẫu chuỗi việc"><i class="bi bi-journal-bookmark"></i></button>' : '') +
       (projs().length ? '<button class="btn sm" id="tkNewE" title="Tạo epic — một mảng việc lớn, gom nhiều task"><i class="bi bi-lightning-charge"></i><span class="bl">Epic</span></button>' +
         '<button class="btn pri sm" id="tkNew"><i class="bi bi-plus-lg"></i><span class="bl">Tạo task</span></button>' : '');
     // điện thoại: không có nút Epic riêng (đỡ rối) — nút “+” tạo đúng cấp Kanban đang xem (đang xem Epic → tạo epic)
@@ -18218,6 +18272,7 @@ async function viewTasks(arg, v) {
         .concat(C().team ? [{ t: 'Tạo bảng chung cho team', i: 'bi-people', d: 'Mọi thành viên cùng thấy và cập nhật', fn: () => projDialog(null, 'team') }] : [])
         .concat(canEdit(cp) ? [{ t: 'Sửa “' + cp.name + '”', i: 'bi-pencil', d: 'Tên, thành viên, cột trạng thái', fn: () => projDialog(cp) }] : [])); };
     const r = $('#tkRem', top); if (r) r.onclick = () => go('settings/tasks');
+    const tp = $('#tkTpl', top); if (tp) tp.onclick = () => tplListDlg();
   };
   /* thanh công cụ MỘT dòng: chọn bảng · tìm · nút Bộ lọc (bấm mới hiện các lựa chọn, số trên nút = số bộ lọc đang bật) · Kanban / Bảng dữ liệu */
   const ktree = () => mode === 'board' && !!TK.tree && TK.lv !== 'epic';      // Kanban PHÂN CẤP: Task chia làn theo Epic · Sub-task chia làn theo Task cha (dùng chung công tắc Phân cấp / Phẳng với Bảng dữ liệu)
@@ -18461,7 +18516,7 @@ async function viewTasks(arg, v) {
     catch (e) { Object.keys(t).forEach(k => { delete t[k]; }); Object.assign(t, was); paint(); fail(e); }
   };
   const dbPicMenu = btn => { const t = D().tasks.find(x => x.id === btn.closest('tr').dataset.row), p = t && tkProj(t.projectId); if (!t || !p || t.mir) return;
-    const cur = tkWho(t), M = tkAsgPool(p, cur);
+    const cur = tkWho(t), M = tkAsgPool(p, cur, t);
     openMenu(btn, M.map(u => ({ t: u.name + (u.email === D().me ? ' (tôi)' : '') + (u.out ? ' · ngoài bảng' : ''), i: cur.indexOf(u.email) >= 0 ? 'bi-check-circle-fill' : 'bi-circle', fn: async () => { const nx = cur.indexOf(u.email) >= 0 ? cur.filter(e => e !== u.email) : cur.concat([u.email]);
       await dbSave(t, { assignees: nx }, btn); tkJoinLocal(p, nx); const b = $('tr[data-row="' + t.id + '"] [data-f="pic"]', v); if (b) b.innerHTML = dbPic(t); } }))
       .concat(cur.length ? ['-', { t: 'Bỏ giao', i: 'bi-person-dash', fn: async () => { await dbSave(t, { assignees: [] }, btn); const b = $('tr[data-row="' + t.id + '"] [data-f="pic"]', v); if (b) b.innerHTML = dbPic(t); } }] : [])); };
@@ -18715,43 +18770,48 @@ async function viewTasks(arg, v) {
         hrBox + (all && rows.length ? box('w6', 'Bảng số liệu', table, 'bấm một dòng để xem riêng người đó') : '') + '</div>';
     setTitle(who ? 'Hiệu suất · ' + nm(who) : 'Hiệu suất nhóm', 'bi-graph-up-arrow', [{ t: 'Kiến Task', r: 'tasks' }, { t: one ? one.name : allName(), r: 'tasks/perf' }], v);
   };
-  /* ══════════ PHÂN QUYỀN KIẾN TASK (tasks/roles) ══════════
-     Chỉ người được dùng Kiến Task (cấp ở Kiến CM › Người dùng). Mỗi người MỘT vai trò Kiến Task; quyền của vai trò sửa trong ma trận.
-     Đổi vai trò một người: hiện ngay, lưu ngầm (lỗi → trả lại). Ma trận: chỉnh nhiều ô rồi bấm Lưu một lần. */
+  /* ══════════ PHÂN QUYỀN KIẾN TASK (tasks/admin/roles) ══════════
+     Từ 1.43 sửa thẳng VAI TRÒ CHUNG (cùng dữ liệu với Quản trị › Vai trò & quyền): ma trận = vai trò có bật Kiến Task × quyền Kiến Task.
+     Người dùng: ô chọn = vai trò chỉ bật Kiến Task của người đó (vai trò khác giữ nguyên). Đổi: hiện ngay, lưu ngầm (lỗi → trả lại). */
+  /* thanh con của tab Quản trị: chỉ hiện mục người dùng được quyền */
+  const adminBar = sub => { const ok = { roles: can('tasks.roles'), boards: can('tasks.boards'), settings: can('tasks.remind') || can('tasks.manage') };
+    return '<div class="tk-bar"><div class="seg tk-pmt">' + [['roles', 'Phân quyền', 'bi-shield-check'], ['boards', 'Thống kê bảng', 'bi-clipboard-data'], ['settings', 'Cài đặt', 'bi-sliders']].filter(x => ok[x[0]]).map(x => '<button class="seg-b" data-adm="' + x[0] + '" aria-pressed="' + (sub === x[0]) + '"><i class="bi ' + x[2] + '"></i><span>' + x[1] + '</span></button>').join('') + '</div></div>'; };
+  const paintSettings = () => {
+    setTitle('Cài đặt Kiến Task', 'bi-sliders', [{ t: 'Kiến Task', r: 'tasks' }], v);
+    v.innerHTML = adminBar('settings') + '<div class="card"><div class="card-h"><h2><i class="bi bi-sliders"></i>Cài đặt Kiến Task</h2></div><div class="card-b stack"><div class="small muted">Nhắc việc qua mail và dữ liệu mẫu của Kiến Task.</div><div class="row">' +
+      (can('tasks.remind') ? '<button class="btn sm" data-go-set="tasks"><i class="bi bi-envelope-check"></i>Nhắc việc</button>' : '') +
+      (can('tasks.manage') ? '<button class="btn sm" data-go-set="taskdemo"><i class="bi bi-magic"></i>Dữ liệu mẫu</button>' : '') + '</div></div></div>'; };
   const paintRoles = async () => {
     const R = TK.perm, tab = TK.permTab || 'users';
-    const shell = inner => '<div class="tk-bar"><div class="seg tk-pmt">' + [['users', 'Người dùng', 'bi-people'], ['matrix', 'Vai trò & quyền', 'bi-grid-3x3'], ['map', 'Vai trò mặc định', 'bi-diagram-3'], ['invites', 'Lời mời', 'bi-envelope-paper-heart']].map(x => '<button class="seg-b" data-pmt="' + x[0] + '" aria-pressed="' + (tab === x[0]) + '"><i class="bi ' + x[2] + '"></i><span>' + x[1] + '</span></button>').join('') + '</div>' +
+    const shell = inner => adminBar('roles') + '<div class="tk-bar"><div class="seg tk-pmt">' + [['users', 'Người dùng', 'bi-people'], ['matrix', 'Vai trò & quyền', 'bi-grid-3x3'], ['invites', 'Lời mời', 'bi-envelope-paper-heart']].map(x => '<button class="seg-b" data-pmt="' + x[0] + '" aria-pressed="' + (tab === x[0]) + '"><i class="bi ' + x[2] + '"></i><span>' + x[1] + '</span></button>').join('') + '</div>' +
       (tab === 'users' ? '<div class="search tk-find"><i class="bi bi-search"></i><input class="inp" id="pmQ" placeholder="Tìm người…" value="' + esc(TK.pmQ || '') + '"></div>' : '') + '</div>' + inner;
     setTitle('Phân quyền Kiến Task', 'bi-shield-check', [{ t: 'Kiến Task', r: 'tasks' }], v);
     if (!R) { v.innerHTML = shell(miniLoader('Đang tải phân quyền…')); try { TK.perm = await rpc('taskPerm', {}); } catch (e) { v.innerHTML = shell('<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'); return; } if (mode === 'roles' && v.isConnected) paintRoles(); return; }
     const rl = id => R.roles.find(r => r.id === id) || { label: id, color: '#475569' }, chip = id => '<span class="pm-chip" style="--rc:' + esc(rl(id).color) + '">' + esc(rl(id).label) + '</span>';
-    const roleOpts = (sel, def) => '<option value=""' + (!sel ? ' selected' : '') + '>Theo mặc định' + (def ? ' — ' + esc(rl(def).label) : '') + '</option>' + R.roles.map(r => '<option value="' + esc(r.id) + '"' + (sel === r.id ? ' selected' : '') + '>' + esc(r.label) + '</option>').join('');
+    const roleOpts = u => (u.role ? '' : '<option value="" selected disabled>Qua vai trò ' + esc(u.via || '—') + '</option>') + R.roles.filter(r => r.only && (!r.top || R.canTop || r.id === u.role)).map(r => '<option value="' + esc(r.id) + '"' + (u.role === r.id ? ' selected' : '') + '>' + esc(r.label) + '</option>').join('');
     let inner = '';
     if (tab === 'users') {
       const q = fold(TK.pmQ || ''), U = R.users.filter(u => !q || fold(u.name + ' ' + u.email).indexOf(q) >= 0), cnt = {}; R.users.forEach(u => { cnt[u.role] = (cnt[u.role] || 0) + 1; });
-      inner = '<div class="pm-note"><i class="bi bi-info-circle"></i><span>Chỉ hiện <b>' + R.users.length + ' người được dùng Kiến Task</b>. Mời người mới: tab <a data-pmt="invites">Lời mời</a> (họ chỉ vào được Kiến Task). Bớt người: Kiến CM › Người dùng › Ứng dụng' + (R.canUsers ? ' (<a data-go="users">mở Người dùng</a>)' : '') + '. ' +
-        'Vai trò “Theo mặc định” đi theo vai trò Kiến CM của họ (tab Vai trò mặc định).</span></div>' +
+      inner = '<div class="pm-note"><i class="bi bi-info-circle"></i><span>Chỉ hiện <b>' + R.users.length + ' người được dùng Kiến Task</b>. Mời người mới: tab <a data-pmt="invites">Lời mời</a> (họ chỉ vào được Kiến Task). Đổi vai trò ở các ứng dụng khác: Quản trị › Người dùng' + (R.canUsers ? ' (<a data-go="users">mở Người dùng</a>)' : '') + '. ' +
+        'Vai trò ở đây là vai trò chung — cùng một danh sách với Quản trị › Vai trò & quyền.</span></div>' +
         '<div class="pm-sum">' + R.roles.map(r => '<span class="pm-chip" style="--rc:' + esc(r.color) + '">' + esc(r.label) + ' <b>' + (cnt[r.id] || 0) + '</b></span>').join('') + '</div>' +
-        '<div class="card"><div class="tbl-wrap"><table class="tbl pm-tbl"><thead><tr><th>Người dùng</th><th>Vai trò Kiến CM</th><th>Vai trò Kiến Task</th></tr></thead><tbody>' +
+        '<div class="card"><div class="tbl-wrap"><table class="tbl pm-tbl"><thead><tr><th>Người dùng</th><th>Vai trò khác</th><th>Vai trò Kiến Task</th></tr></thead><tbody>' +
         (U.map(u => '<tr data-em="' + esc(u.email) + '"><td><div class="pm-u">' + tkAv(u.email) + '<span><b>' + esc(u.name) + '</b><small>' + esc(u.email) + '</small></span></div></td><td class="small muted">' + esc(u.core.join(', ') || '—') + '</td><td>' +
-          (u.coreAdmin ? chip('admin') + ' <span class="small muted">quản trị Kiến CM</span>' : '<select class="sel pm-sel" data-urole aria-label="Vai trò Kiến Task của ' + esc(u.name) + '">' + roleOpts(u.set ? u.role : '', u.set ? '' : u.role) + '</select>') + '</td></tr>').join('') ||
+          (u.coreAdmin ? '<span class="pm-chip" style="--rc:#C2410C">Quản trị</span> <span class="small muted">mọi quyền</span>' : '<select class="sel pm-sel" data-urole aria-label="Vai trò Kiến Task của ' + esc(u.name) + '"' + (u.role && rl(u.role).top && !R.canTop ? ' disabled' : '') + '>' + roleOpts(u) + '</select>' + (u.more ? ' <span class="small muted">+ vai trò Kiến Task khác</span>' : '')) + '</td></tr>').join('') ||
           '<tr><td colspan="3" class="small muted">Không có ai khớp</td></tr>') + '</tbody></table></div></div>';
     } else if (tab === 'matrix') {
       const M = TK.permDraft || (TK.permDraft = JSON.parse(JSON.stringify(R.roles))), groups = [...new Set(R.caps.map(c => c.g))];
-      inner = '<div class="pm-note"><i class="bi bi-info-circle"></i><span>Tick quyền cho từng vai trò rồi bấm <b>Lưu</b>. Admin luôn có mọi quyền. Bảng riêng của ai thì người đó toàn quyền trong bảng ấy. Máy chủ kiểm lại quyền ở mọi thao tác. Bấm <i class="bi bi-eye"></i> để xem Kiến Task như vai trò đó.</span></div>' +
-        '<div class="card"><div class="tbl-wrap pm-mx-w"><table class="tbl pm-mx"><thead><tr><th>Quyền</th>' + M.map((r, i) => '<th class="rc"><div class="pm-rh"><span class="pm-dot" style="background:' + esc(r.color) + '"></span><button type="button" class="pm-rn" data-rn="' + i + '" title="' + (r.locked ? 'Admin — luôn có mọi quyền' : 'Đổi tên vai trò') + '"' + (r.locked ? ' disabled' : '') + '>' + esc(r.label) + '</button></div>' +
-          '<div class="pm-ra">' + (r.locked ? '' : '<button type="button" class="ibtn xs" data-rpv="' + esc(r.id) + '" title="Xem thử Kiến Task như vai trò này"><i class="bi bi-eye"></i></button>') + (r.custom ? '<button type="button" class="ibtn xs" data-rdel="' + i + '" title="Xoá vai trò"><i class="bi bi-trash"></i></button>' : '') + '</div></th>').join('') +
+      M.forEach(r => { r.locked = !!r.top && !R.canTop; });
+      inner = '<div class="pm-note"><i class="bi bi-info-circle"></i><span>Tick quyền cho từng vai trò rồi bấm <b>Lưu</b>. Vai trò có thêm ứng dụng khác (ghi “+ ứng dụng khác”) chỉ sửa phần Kiến Task ở đây. Quản trị luôn có mọi quyền. Bảng riêng của ai thì người đó toàn quyền trong bảng ấy. Máy chủ kiểm lại quyền ở mọi thao tác. Bấm <i class="bi bi-eye"></i> để xem Kiến Task như vai trò đó.</span></div>' +
+        '<div class="card"><div class="tbl-wrap pm-mx-w"><table class="tbl pm-mx"><thead><tr><th>Quyền</th>' + M.map((r, i) => '<th class="rc"><div class="pm-rh"><span class="pm-dot" style="background:' + esc(r.color) + '"></span><button type="button" class="pm-rn" data-rn="' + i + '" title="' + (r.locked ? 'Chỉ Quản trị sửa được vai trò này' : !r.only ? 'Đổi tên ở Quản trị › Vai trò & quyền' : 'Đổi tên vai trò') + '"' + (r.locked || !r.only ? ' disabled' : '') + '>' + esc(r.label) + '</button></div>' + (r.only ? '' : '<small class="muted">+ ứng dụng khác</small>') +
+          '<div class="pm-ra">' + (r.locked ? '' : '<button type="button" class="ibtn xs" data-rpv="' + esc(r.id) + '" title="Xem thử Kiến Task như vai trò này"><i class="bi bi-eye"></i></button>') + (r.custom && r.only && !r.locked ? '<button type="button" class="ibtn xs" data-rdel="' + i + '" title="Xoá vai trò"><i class="bi bi-trash"></i></button>' : '') + '</div></th>').join('') +
           '<th class="rc"><button type="button" class="btn sm" data-radd><i class="bi bi-plus-lg"></i>Vai trò</button></th></tr></thead><tbody>' +
-          groups.map(g => '<tr class="pm-g"><td colspan="' + (M.length + 2) + '">' + esc(g) + '</td></tr>' + R.caps.filter(c => c.g === g).map(c => '<tr><td>' + esc(c.t) + '</td>' + M.map((r, i) => '<td class="rc"><input type="checkbox" class="pm-ck" data-ri="' + i + '" data-cap="' + esc(c.k) + '"' + (r.locked || r.caps.indexOf(c.k) >= 0 ? ' checked' : '') + (r.locked ? ' disabled' : '') + ' aria-label="' + esc(r.label + ' · ' + c.t) + '"></td>').join('') + '<td></td></tr>').join('')).join('') +
+          groups.map(g => '<tr class="pm-g"><td colspan="' + (M.length + 2) + '">' + esc(g) + '</td></tr>' + R.caps.filter(c => c.g === g).map(c => '<tr><td>' + esc(c.t) + '</td>' + M.map((r, i) => '<td class="rc"><input type="checkbox" class="pm-ck" data-ri="' + i + '" data-cap="' + esc(c.k) + '"' + (r.caps.indexOf(c.k) >= 0 ? ' checked' : '') + (r.locked ? ' disabled' : '') + ' aria-label="' + esc(r.label + ' · ' + c.t) + '"></td>').join('') + '<td></td></tr>').join('')).join('') +
           '<tr class="pm-g"><td colspan="' + (M.length + 2) + '">Chấm công</td></tr><tr><td>Chấm công theo giờ <i class="bi bi-info-circle muted" title="Người thuộc vai trò này có ô “Thời gian thực hiện” trong Task / Sub-task và phải ghi khi việc sang Hoàn thành (gõ giờ hoặc phút, quy về giờ). Xem ở Báo cáo · Hiệu suất."></i></td>' +
-          M.map((r, i) => '<td class="rc"><input type="checkbox" class="pm-ck" data-ri="' + i + '" data-cap="__hourly"' + (!r.locked && r.hourly ? ' checked' : '') + (r.locked ? ' disabled' : '') + ' aria-label="' + esc(r.label + ' · Chấm công theo giờ') + '"></td>').join('') + '<td></td></tr>' +
+          M.map((r, i) => '<td class="rc"><input type="checkbox" class="pm-ck" data-ri="' + i + '" data-cap="__hourly"' + (r.hourly ? ' checked' : '') + (r.locked ? ' disabled' : '') + ' aria-label="' + esc(r.label + ' · Chấm công theo giờ') + '"></td>').join('') + '<td></td></tr>' +
         '</tbody></table></div><div class="pm-foot"><span class="small muted" id="pmDirty">' + (TK.permDirty ? 'Có thay đổi chưa lưu' : 'Chưa có thay đổi') + '</span><button class="btn" data-rreset' + (TK.permDirty ? '' : ' disabled') + '>Bỏ thay đổi</button><button class="btn pri" data-rsave' + (TK.permDirty ? '' : ' disabled') + '><i class="bi bi-check2"></i>Lưu</button></div></div>';
     } else if (tab === 'invites') {
       inner = '<div id="ivBoxT"></div>';
-    } else {
-      inner = '<div class="pm-note"><i class="bi bi-info-circle"></i><span>Người chưa được đặt vai trò riêng sẽ nhận vai trò Kiến Task theo vai trò của họ bên Kiến CM. Quản trị Kiến CM luôn là Admin Kiến Task.</span></div>' +
-        '<div class="card"><div class="card-b stack pm-map">' + R.coreRoles.filter(r => r.id !== 'admin').map(r => '<label class="pm-kv"><span><span class="pm-chip" style="--rc:' + esc(r.color) + '">' + esc(r.label) + '</span></span><select class="sel" data-map="' + esc(r.id) + '">' + R.roles.map(x => '<option value="' + esc(x.id) + '"' + ((R.map[r.id] || R.map._) === x.id ? ' selected' : '') + '>' + esc(x.label) + '</option>').join('') + '</select></label>').join('') +
-        '<label class="pm-kv"><span><b>Vai trò khác</b> <span class="small muted">(vai trò Kiến CM tự thêm)</span></span><select class="sel" data-map="_">' + R.roles.map(x => '<option value="' + esc(x.id) + '"' + (R.map._ === x.id ? ' selected' : '') + '>' + esc(x.label) + '</option>').join('') + '</select></label></div></div>';
     }
     v.innerHTML = shell(inner);
     if (tab === 'invites') invPaint($('#ivBoxT', v), 'task', true);
@@ -18774,7 +18834,7 @@ async function viewTasks(arg, v) {
     const team = R.boards.filter(b => b.scope === 'team'), ppl = {}; R.boards.forEach(b => { ppl[b.owner] = 1; b.members.forEach(e => { ppl[e] = 1; }); b.people.forEach(x => { ppl[x[0]] = 1; }); });
     const kpi = (cls, n, l, sub) => '<div class="tk-kpi ' + cls + '"><b>' + n + '</b><small>' + l + '</small>' + (sub ? '<span>' + sub + '</span>' : '') + '</div>';
     const th = (k, t, c) => '<th' + (c ? ' class="' + c + '"' : '') + ' data-bss="' + k + '"' + (sk.k === k ? ' aria-sort="' + (sk.d > 0 ? 'ascending' : 'descending') + '"' : '') + '>' + t + (sk.k === k ? '<i class="bi bi-arrow-' + (sk.d > 0 ? 'up' : 'down') + '"></i>' : '') + '</th>';
-    v.innerHTML = '<div class="tk-bar"><div class="seg">' + [['all', 'Tất cả'], ['team', 'Bảng chung'], ['personal', 'Bảng riêng']].filter(x => x[0] !== 'personal' || R.boards.some(b => b.scope === 'personal')).map(x => '<button class="seg-b" data-bsf="' + x[0] + '" aria-pressed="' + (f === x[0]) + '">' + x[1] + '</button>').join('') + '</div>' +
+    v.innerHTML = adminBar('boards') + '<div class="tk-bar"><div class="seg">' + [['all', 'Tất cả'], ['team', 'Bảng chung'], ['personal', 'Bảng riêng']].filter(x => x[0] !== 'personal' || R.boards.some(b => b.scope === 'personal')).map(x => '<button class="seg-b" data-bsf="' + x[0] + '" aria-pressed="' + (f === x[0]) + '">' + x[1] + '</button>').join('') + '</div>' +
         '<span class="tk-sp"></span><div class="search tk-find' + (TK.bsQ ? ' has' : '') + '"><i class="bi bi-search"></i><input class="inp" id="bsQ" placeholder="Tìm bảng, chủ bảng, thành viên…" value="' + esc(TK.bsQ || '') + '"></div><button class="ibtn" data-bsr title="Làm mới"><i class="bi bi-arrow-clockwise"></i></button></div>' +
       '<div class="tk-kpis k6">' + kpi('ink', team.length, 'Bảng chung', R.boards.length - team.length ? '+ ' + (R.boards.length - team.length) + ' bảng riêng' : '') + kpi('', Object.keys(ppl).filter(Boolean).length, 'Người tham gia', 'chủ bảng · thành viên · được giao') +
         kpi('', R.boards.reduce((a, b) => a + b.open, 0), 'Việc đang mở', R.boards.reduce((a, b) => a + b.done, 0) + ' đã xong') + kpi(R.boards.some(b => b.late) ? 'hot' : '', R.boards.reduce((a, b) => a + b.late, 0), 'Việc quá hạn', '') +
@@ -18817,20 +18877,19 @@ async function viewTasks(arg, v) {
     setTimeout(() => { const i = $('#pmN'); if (i) { i.focus(); i.select(); } }, 60); });
   /* sự kiện của tab Phân quyền (gắn một lần) */
   v.addEventListener('change', async e => {
+    const adm = e.target.closest('[data-adm]'); if (adm) return go('tasks/admin/' + adm.dataset.adm);      // thanh con Quản trị
+    const gs = e.target.closest('[data-go-set]'); if (gs) return go('settings/' + gs.dataset.goSet);      // Cài đặt Kiến Task → mục Cài đặt tương ứng
     const ps = mode === 'perf' && e.target.closest('[data-pfsel]'); if (ps) { TK.pfWho = ps.value; return paint(); }
     if (mode !== 'roles' || !TK.perm) return;
     const us = e.target.closest('[data-urole]');
-    if (us) { const em = us.closest('tr').dataset.em, u = TK.perm.users.find(x => x.email === em); if (!u) return; const was = { role: u.role, set: u.set }, val = us.value;
-      u.set = val ? 1 : 0; if (val) u.role = val; us.disabled = true;      // hiện ngay, lưu ngầm
+    if (us) { const em = us.closest('tr').dataset.em, u = TK.perm.users.find(x => x.email === em); if (!u || !us.value) return; const was = { role: u.role }, val = us.value;
+      u.role = val; us.disabled = true;      // hiện ngay, lưu ngầm
       try { await rpc('taskUserRole', { email: em, role: val }, { quiet: true }); toast('Đã đổi vai trò Kiến Task của ' + u.name, 'ok', 1800); TK.perm = await rpc('taskPerm', {}, { quiet: true }); }
       catch (er) { Object.assign(u, was); fail(er); }
       if (mode === 'roles') paintRoles(); return; }
     const ck = e.target.closest('.pm-ck');
     if (ck) { const r = TK.permDraft[Number(ck.dataset.ri)], c = ck.dataset.cap; if (c === '__hourly') r.hourly = ck.checked ? 1 : 0; else r.caps = ck.checked ? r.caps.concat(r.caps.indexOf(c) < 0 ? [c] : []) : r.caps.filter(x => x !== c);
       TK.permDirty = true; $('#pmDirty', v).textContent = 'Có thay đổi chưa lưu'; $$('[data-rsave], [data-rreset]', v).forEach(b => { b.disabled = false; }); return; }
-    const mp = e.target.closest('[data-map]');
-    if (mp) { const m = Object.assign({}, TK.perm.map, { [mp.dataset.map]: mp.value });
-      try { TK.perm = await rpc('taskRoleMapSave', { map: m }); toast('Đã lưu vai trò mặc định', 'ok', 1600); } catch (er) { fail(er); } paintRoles(); }
   });
   v.addEventListener('click', async e => {
     if (mode !== 'roles') return;
@@ -18839,13 +18898,13 @@ async function viewTasks(arg, v) {
     const M = TK.permDraft, dirty = () => { TK.permDirty = true; paintRoles(); };
     if (e.target.closest('[data-radd]')) { const n = await askName('Tên vai trò mới', ''); const name = typeof n === 'string' ? n.trim() : ''; if (!name) return;
       const id = fold(name).replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 24) || 'role'; let k = id, i = 2; while (M.some(r => r.id === k)) k = id + '_' + i++;
-      M.push({ id: k, label: name.slice(0, 40), color: CH_BLUE[M.length % CH_BLUE.length], caps: ['tasks.tab.board', 'tasks.tab.mine'], custom: 1 }); return dirty(); }
+      M.push({ id: k, label: name.slice(0, 40), color: CH_BLUE[M.length % CH_BLUE.length], caps: ['tasks.tab.board', 'tasks.tab.mine'], custom: 1, only: 1, users: 0 }); return dirty(); }
     const rn = e.target.closest('[data-rn]'); if (rn && !rn.disabled) { const r = M[Number(rn.dataset.rn)], n = await askName('Đổi tên vai trò', r.label); if (typeof n === 'string' && n.trim()) { r.label = n.trim().slice(0, 40); dirty(); } return; }
-    const rd = e.target.closest('[data-rdel]'); if (rd) { const r = M[Number(rd.dataset.rdel)]; if (TK.perm.users.some(u => u.set && u.role === r.id)) return toast('Vai trò “' + r.label + '” còn người dùng — đổi vai trò của họ trước', 'warn', 4000); M.splice(Number(rd.dataset.rdel), 1); return dirty(); }
+    const rd = e.target.closest('[data-rdel]'); if (rd) { const r = M[Number(rd.dataset.rdel)]; if (r.users) return toast('Vai trò “' + r.label + '” còn người dùng — đổi vai trò của họ trước', 'warn', 4000); M.splice(Number(rd.dataset.rdel), 1); return dirty(); }
     const pv = e.target.closest('[data-rpv]'); if (pv) { if (TK.permDirty) return toast('Lưu thay đổi trước khi xem thử', 'warn'); return pvRestart('task:' + pv.dataset.rpv); }
     if (e.target.closest('[data-rreset]')) { TK.permDraft = null; TK.permDirty = false; return paintRoles(); }
     const sv = e.target.closest('[data-rsave]'); if (sv) { sv.disabled = true;
-      try { TK.perm = await rpc('taskRolesSave', { roles: M }); TK.permDraft = null; TK.permDirty = false; toast('Đã lưu vai trò & quyền — có hiệu lực ở lần mở / tải lại tiếp theo của mỗi người', 'ok', 3500); } catch (er) { fail(er); sv.disabled = false; return; }
+      try { TK.perm = await rpc('taskRolesSave', { roles: M.map(r => ({ id: r.id, label: r.label, color: r.color, caps: r.caps, hourly: r.hourly })) }); TK.permDraft = null; TK.permDirty = false; toast('Đã lưu vai trò & quyền — có hiệu lực ở lần mở / tải lại tiếp theo của mỗi người', 'ok', 3500); } catch (er) { fail(er); sv.disabled = false; return; }
       paintRoles(); }
   });
   const paint = () => {
@@ -18855,7 +18914,7 @@ async function viewTasks(arg, v) {
     document.documentElement.classList.toggle('tk-noadd', isAll() ? !C().create && !shown().some(lead) : !canAdd(curProj()));
     paintTop();
     const keep = $$('.tk-board, .tk-tlw', v).map(x => x.scrollLeft), tops = $$('.tk-col-b', v).map(x => x.scrollTop);
-    ({ mine: paintMine, list: paintList, backlog: paintBacklog, cal: paintCal, sum: paintSum, time: paintTime, perf: paintPerf, roles: paintRoles, boards: paintBoards }[mode] || paintBoard)();
+    ({ mine: paintMine, list: paintList, backlog: paintBacklog, cal: paintCal, sum: paintSum, time: paintTime, perf: paintPerf, roles: paintRoles, boards: paintBoards, settings: paintSettings }[mode] || paintBoard)();
     $$('.tk-board, .tk-tlw', v).forEach((x, i) => { if (keep[i]) x.scrollLeft = keep[i]; }); $$('.tk-col-b', v).forEach((x, i) => { x.scrollTop = tops[i] || 0; });
     if (paint.seen === mode + TK.proj) $$('.tk-card', v).forEach(c => { c.style.animation = 'none'; }); paint.seen = mode + TK.proj;      // chỉ trồi lên ở lần vẽ đầu của mỗi màn
     const f = $('#tkFirst', v); if (f) f.onclick = () => projDialog(null, 'team');
@@ -19218,7 +19277,7 @@ async function viewTasks(arg, v) {
     if (isNew && !init.draft && mode === 'board' && activeSp(p0)) cur.sprintId = activeSp(p0).id;
     if (isNew && tkPar(cur.parentId)) { const pa = tkPar(cur.parentId); cur.epicId = pa.epicId || ''; if (!init.draft) cur.sprintId = pa.sprintId || ''; }      // sub-task mới: theo epic, đợt của task cha
     const opt = (list, val) => list.map(o => '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(val) ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join('');
-    const members = p => tkAsgPool(p);      // người giao được: thành viên bảng (+ người dùng Kiến Task ngoài bảng nếu mình giao được cho người khác)
+    const members = p => tkAsgPool(p, null, cur);      // người giao được: thành viên bảng (+ người dùng Kiến Task ngoài bảng nếu mình giao được cho người khác / giữ epic chứa việc này)
     const spOpts = p => [['', 'Việc chờ (chưa xếp đợt)']].concat(sprints(p).filter(s => s.status !== 'done' || s.id === cur.sprintId).map(s => [s.id, s.name + (s.status === 'active' ? ' · đang chạy' : '')]));
     const epOpts = p => [['', 'Không']].concat(D().tasks.filter(x => x.projectId === p.id && x.type === 'epic' && x.id !== cur.id).map(x => [x.id, x.title]));
     const lv0 = isNew ? (cur.type === 'epic' ? 'epic' : tkPar(cur.parentId) ? 'sub' : 'task') : tkLv(cur);
@@ -19263,6 +19322,7 @@ async function viewTasks(arg, v) {
           : { t: delOk ? 'Xoá' : 'Yêu cầu xoá', cls: 'ghost', i: 'bi-trash', fn: async () => { const x = D().tasks.find(k => k.id === cur.id); if (!x || !await delTasks([x])) return false; } },
           { t: 'Chép link', cls: 'ghost', i: 'bi-link-45deg', fn: () => { copyText(linkOf('tasks/t/' + cur.id), 'Đã chép link ' + cur.key); return false; } },
           { t: 'Nhân bản', cls: 'ghost', i: 'bi-copy', fn: () => { const a = tkAdd(tkProj(cur.projectId) || p0, { title: cur.title + ' (bản sao)', desc: cur.desc, priority: cur.priority, type: cur.type, labels: cur.labels, sprintId: cur.sprintId, epicId: cur.epicId, parentId: cur.parentId, points: cur.points }); if (!a) return false; paint(); reveal(a.t.id); a.pr.then(r => toast('Đã tạo ' + r.key), e => toast('Chưa nhân bản được ' + cur.key + ' — ' + e.message, 'err', 8000)); } }])
+        .concat(!isNew && lv0 !== 'sub' && (C().tpl || lead(p0)) ? [{ t: 'Lưu làm mẫu', cls: 'ghost', i: 'bi-bookmark-plus', fn: () => { tplSaveDlg(cur); return false; } }] : [])      // MẪU CHUỖI VIỆC (1.42): Task kèm sub-task · Epic kèm task + sub-task
         .concat([{ t: 'Đóng', cls: 'ghost' }, { t: isNew ? 'Tạo ' + TK_LV[lv0].toLowerCase() : 'Lưu', cls: 'pri', i: 'bi-check2', fn: async mm => {
           const title = mm.$('#tT').value.trim(); if (!title) { mm.$('#tT').focus(); toast('Chưa nhập tên công việc', 'warn'); return false; }
           const lvN = mm.$('#tLv').value, paV = lvN === 'sub' ? mm.$('#tPa').value : '', ty = tyNow();
@@ -19602,6 +19662,155 @@ async function viewTasks(arg, v) {
     const at = D().projects.indexOf(p); D().projects = D().projects.filter(x => x !== p); if (TK.proj === p.id) TK.proj = ''; paint(); toast('Đã xoá bảng “' + p.name + '”');
     queueRpc('taskProjectDelete', { id: p.id }, { label: 'Xoá bảng “' + p.name.slice(0, 60) + '”' })
       .catch(() => { if (TK.d && !TK.d.projects.some(x => x.id === p.id)) { TK.d.projects.splice(Math.max(0, at), 0, p); if (TK.ui) TK.ui.paint(); } });
+  }
+
+  /* ══ MẪU CHUỖI VIỆC (1.42) ══ hộp Task / Epic › “Lưu làm mẫu” · nút Mẫu trên thanh trên → danh sách mẫu: Tạo từ mẫu (bảng đích, ngày bắt đầu, người phụ trách ★,
+     xem trước + sửa hạn, tạo cả chuỗi một lệnh) · Sửa (cây việc, hạn tương đối, người phụ trách mặc định, ai được dùng, lặp tuần / tháng) · Xoá. Máy chủ: TaskApi.gs › tpl*_ */
+  const TPL = { d: null };
+  const tplCan = () => !!(C().tpl || C().tplAll || C().create || projs().some(lead));
+  const tplLoad = () => rpc('taskTplList', {}, { quiet: true }).then(d => (TPL.d = d));
+  const TPL_DOW = ['', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ nhật'];
+  const tplRecTxt = x => (x.rec.ev === 'month' ? 'Ngày ' + x.rec.dom + ' hằng tháng' : TPL_DOW[x.rec.dow] + ' hằng tuần') + ' → ' + ((tkProj(x.rec.pid) || {}).name || 'bảng bạn không thấy');
+  const tplCnt = x => { const n = { epic: 0, task: 0, sub: 0 }; x.items.forEach(i => { n[i.lv]++; }); return ['epic', 'task', 'sub'].filter(k => n[k]).map(k => n[k] + ' ' + TK_LV[k].toLowerCase()).join(' · '); };
+  const tplAdd = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return tkYmd(x); };
+  const tplDepth = (x, i) => (i.lv === 'epic' ? 0 : i.lv === 'task' ? (x.kind === 'epic' ? 1 : 0) : x.kind === 'epic' ? 2 : 1);
+  /** bảng tạo được việc: bảng riêng của mình · bảng chung mình là trưởng bảng / có quyền tạo việc */
+  const tplBoards = () => projs().filter(p => p.status === 'active' && !p.pend && (p.scope === 'personal' ? own(p) : canAdd(p)));
+  const tplShare = (U, roles) => { const one = U.length === 1 ? U[0] : U.length ? '@keep' : '', L = [['', 'Chỉ mình tôi (và Admin)'], ['*', 'Mọi người dùng Kiến Task']].concat((roles || []).map(r => ['role:' + r.id, 'Vai trò ' + r.label]));
+    if (one && !L.some(o => o[0] === one)) L.push(['@keep', 'Giữ như hiện tại: ' + U.map(u => /^role:/.test(u) ? u.slice(5) : tkUser(u)).join(', ')]);
+    return L.map(o => '<option value="' + esc(o[0]) + '"' + (o[0] === one ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join(''); };
+  const tplBoardOpts = (B, sel) => B.map(p => '<option value="' + p.id + '"' + (p.id === sel ? ' selected' : '') + '>' + esc(p.name) + (p.scope === 'personal' ? ' (bảng riêng)' : '') + '</option>').join('');
+
+  async function tplSaveDlg(t) {
+    if (!TPL.d) { try { await tplLoad(); } catch (e) {} }
+    const kids = t.type === 'epic' ? D().tasks.filter(x => x.epicId === t.id && x.type !== 'epic') : D().tasks.filter(x => x.parentId === t.id);
+    const base = [t.createdAt ? tkYmd(new Date(t.createdAt)) : ''].concat([t].concat(kids).map(x => x.due)).filter(Boolean).sort()[0] || tkToday();
+    modal({ title: 'Lưu làm mẫu · ' + t.key, icon: 'bi-bookmark-plus', body: '<div class="stack">' +
+      '<p class="small muted" style="margin:0">Lưu <b>' + esc(t.title) + '</b>' + (kids.length ? ' cùng ' + kids.length + ' ' + (t.type === 'epic' ? 'task / sub-task' : 'sub-task') + ' bên trong' : '') + ' thành mẫu — dùng lại cho quy trình lặp, onboarding… Hạn đổi thành “số ngày kể từ ngày bắt đầu”; tên, mô tả, ưu tiên, nhãn, thứ tự giữ nguyên.</p>' +
+      '<div class="fg"><label class="flabel">Tên mẫu</label><input class="inp" id="mpN" maxlength="120" value="' + esc(t.title) + '" autofocus></div>' +
+      '<div class="fg"><label class="flabel">Ghi chú (không bắt buộc)</label><input class="inp" id="mpD" maxlength="1000" placeholder="VD: Dùng khi có nhân sự mới"></div>' +
+      '<div class="fg"><label class="flabel">Ngày gốc để tính hạn tương đối</label><input class="inp" type="date" id="mpB" value="' + esc(base) + '"><small class="muted">Việc có hạn đúng ngày này = +0 ngày. Mặc định: ngày tạo việc hoặc hạn sớm nhất.</small></div>' +
+      '<label class="tk-pk"><input type="checkbox" id="mpP" checked><i class="bi bi-star-fill tpl-star"></i><span><b>Giao cho người được chọn khi tạo</b><small>Mỗi lần dùng mẫu chọn người phụ trách (VD nhân sự mới). Bỏ tick: giữ người phụ trách hiện tại</small></span></label>' +
+      '<div class="fg"><label class="flabel">Ai được dùng mẫu</label><select class="sel" id="mpU">' + tplShare([], TPL.d && TPL.d.roles) + '</select></div></div>',
+      foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu mẫu', cls: 'pri', i: 'bi-check2', fn: async mm => {
+        const name = mm.$('#mpN').value.trim(); if (!name) { mm.$('#mpN').focus(); toast('Đặt tên cho mẫu', 'warn'); return false; }
+        const u = mm.$('#mpU').value, r = await rpc('taskTplSave', { src: t.id, name: name, desc: mm.$('#mpD').value, base: mm.$('#mpB').value, pic: mm.$('#mpP').checked ? 1 : 0, users: u ? [u] : [] });
+        TPL.d = null; toast('Đã lưu mẫu “' + r.name + '” · ' + r.items.length + ' việc', 'ok', 6000, null, { t: 'Sửa mẫu', fn: () => tplEdit(r) });
+      } }] });
+  }
+
+  async function tplListDlg() {
+    const m = modal({ title: 'Mẫu chuỗi việc', icon: 'bi-journal-bookmark', size: 'lg', body: '<div id="tplL">' + miniLoader('Đang tải mẫu…') + '</div>', foot: [{ t: 'Đóng', cls: 'ghost' }] });
+    const draw = () => { const L = TPL.d.list;
+      m.$('#tplL').innerHTML = L.length ? '<div class="tpl-list">' + L.map(x => '<div class="tpl-it" data-tpl="' + esc(x.id) + '"><span class="tpl-ic">' + tkLvIc(x.kind) + '</span><span class="tpl-tx"><b>' + esc(x.name) + '</b>' +
+          '<small>' + esc([tplCnt(x), x.owner !== D().me ? 'của ' + x.ownerName : '', x.runs ? 'đã dùng ' + x.runs + ' lần' : ''].filter(Boolean).join(' · ')) + '</small>' + (x.desc ? '<small>' + esc(x.desc) + '</small>' : '') +
+          (x.rec.on ? '<small class="tpl-rec"><i class="bi bi-arrow-repeat"></i>' + esc(tplRecTxt(x)) + (x.next ? ' · lần tới ' + esc(tkDmy(x.next)) : '') + '</small>' : '') +
+          (x.lastErr ? '<small class="tpl-err"><i class="bi bi-exclamation-triangle"></i>Lần tự tạo gần nhất lỗi: ' + esc(x.lastErr) + '</small>' : '') + '</span>' +
+          '<span class="tpl-act"><button type="button" class="btn sm pri" data-tu><i class="bi bi-play-fill"></i>Tạo từ mẫu</button>' + (x.edit ? '<button type="button" class="ibtn" data-te title="Sửa mẫu · lặp định kỳ" aria-label="Sửa mẫu ' + esc(x.name) + '"><i class="bi bi-pencil"></i></button><button type="button" class="ibtn" data-td title="Xoá mẫu" aria-label="Xoá mẫu ' + esc(x.name) + '"><i class="bi bi-trash"></i></button>' : '') + '</span></div>').join('') + '</div>'
+        : '<div class="empty"><i class="bi bi-journal-bookmark"></i><b>Chưa có mẫu nào</b><span>Mở một Task hoặc Epic (kèm việc bên trong) → <b>Lưu làm mẫu</b>. Lần sau chỉ cần “Tạo từ mẫu”: chọn bảng, ngày bắt đầu, người phụ trách là có cả chuỗi việc với hạn tính sẵn.</span></div>'; };
+    try { await tplLoad(); } catch (e) { if (!m.closed) m.$('#tplL').innerHTML = '<div class="empty"><i class="bi bi-wifi-off"></i><b>Chưa tải được danh sách mẫu</b><span>' + esc(e.message) + '</span></div>'; return; }
+    if (m.closed) return; draw();
+    m.$('#tplL').onclick = async e => { const it = e.target.closest('[data-tpl]'), x = it && TPL.d.list.find(y => y.id === it.dataset.tpl); if (!x) return;
+      if (e.target.closest('[data-tu]')) { m.close(); tplUse(x); }
+      else if (e.target.closest('[data-te]')) { m.close(); tplEdit(x); }
+      else if (e.target.closest('[data-td]')) {
+        if (!await ask('Xoá mẫu “' + x.name + '”?' + (x.rec.on ? '\nMẫu đang lặp định kỳ — sẽ thôi tự tạo việc.' : '') + '\nCác việc đã tạo từ mẫu vẫn giữ nguyên.', { title: 'Xoá mẫu', ok: 'Xoá mẫu', danger: true })) return;
+        try { await rpc('taskTplDelete', { id: x.id }); TPL.d.list = TPL.d.list.filter(y => y !== x); if (!m.closed) draw(); toast('Đã xoá mẫu “' + x.name + '”'); } catch (er) { fail(er); } } };
+  }
+
+  /** TẠO TỪ MẪU: bảng đích · ngày bắt đầu · người phụ trách cho việc ★ → xem trước (hạn tính sẵn, sửa được) → một lệnh tạo cả chuỗi */
+  function tplUse(x) {
+    const B = tplBoards(); if (!B.length) return toast('Bạn chưa có bảng nào tạo việc được', 'warn');
+    const cp = isAll() ? null : curProj(), b0 = cp && B.indexOf(cp) >= 0 ? cp : B[0], hasPic = x.items.some(i => i.pic), hand = {};
+    let pic = [];
+    const dueOf = (i, st) => (hand[i.k] !== undefined ? hand[i.k] : i.off === '' || !st ? '' : tplAdd(st, i.off));
+    const asOf = (i, p) => (p && p.scope === 'personal' ? [p.createdBy] : i.pic && pic.length ? pic : i.as.filter(e => D().users.some(u => u.email === e && u.task)));
+    const m = modal({ title: 'Tạo từ mẫu · ' + x.name, icon: 'bi-play-circle', size: 'lg', sticky: true, body: '<div class="tpl-f">' +
+        '<div class="fg"><label class="flabel">Bảng đích</label><select class="sel" id="tuB">' + tplBoardOpts(B, b0.id) + '</select></div>' +
+        '<div class="fg"><label class="flabel">Ngày bắt đầu</label><input class="inp" type="date" id="tuS" value="' + tkToday() + '"></div>' +
+        (hasPic ? '<div class="fg tpl-pic"><label class="flabel"><i class="bi bi-star-fill"></i> Người phụ trách</label><div id="tuP"></div><small class="muted">Cho các việc đánh dấu ★ — để trống: theo người phụ trách mặc định của mẫu</small></div>' : '') + '</div>' +
+      '<div class="tk-h">Xem trước · <span id="tuN"></span></div><p class="small muted tpl-hint">Hạn đã tính từ ngày bắt đầu — sửa ngay trong danh sách (ô viền cam = đã sửa tay).</p><div class="tpl-pv" id="tuV"></div>',
+      foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Tạo ' + x.items.length + ' việc', cls: 'pri', i: 'bi-check2', fn: async mm => {
+        const pid = mm.$('#tuB').value, st = mm.$('#tuS').value; if (!st) { mm.$('#tuS').focus(); toast('Chọn ngày bắt đầu', 'warn'); return false; }
+        const due = {}; x.items.forEach(i => { due[i.k] = dueOf(i, st); });
+        const r = await rpc('taskTplUse', { id: x.id, projectId: pid, start: st, pic: pic, due: due });
+        r.tasks.forEach(t => { if (!D().tasks.some(y => y.id === t.id)) D().tasks.push(t); });
+        const pj = tkProj(pid), root = r.tasks[0]; tkJoinLocal(pj, [].concat.apply([], r.tasks.map(tkWho)));
+        TK.proj = pid; lsSet('tkProj', pid);
+        const to = showAt(root.type, !!root.parentId); if (to) { TK.flash = root.id; go(to); } else { paint(); reveal(root.id, true); }
+        toast('Đã tạo ' + r.tasks.length + ' việc từ mẫu “' + x.name + '” · ' + root.key + (r.tasks.length > 1 ? ' … ' + r.tasks[r.tasks.length - 1].key : ''), 'ok', 6000);
+        tkRefresh().catch(() => {});
+      } }] });
+    const draw = () => { const p = tkProj(m.$('#tuB').value), st = m.$('#tuS').value;
+      m.$('#tuN').textContent = x.items.length + ' việc';
+      m.$('#tuV').innerHTML = x.items.map(i => { const as = asOf(i, p);
+        return '<div class="tpl-r lv-' + i.lv + '" style="padding-left:' + (6 + tplDepth(x, i) * 22) + 'px">' + tkLvIc(i.lv) + '<span class="t" title="' + esc(i.t) + '">' + esc(i.t) + '</span>' + (i.pic ? '<i class="bi bi-star-fill tpl-star" title="Giao cho người được chọn khi tạo"></i>' : '') +
+          (as.length ? tkAvs({ assignees: as }) : tkAv('')) + '<span class="tpl-off">' + (i.off === '' ? 'không hạn' : '+' + i.off + ' ngày') + '</span>' +
+          '<input class="inp tpl-due' + (hand[i.k] !== undefined ? ' hand' : '') + '" type="date" data-k="' + esc(i.k) + '" value="' + esc(dueOf(i, st)) + '" aria-label="Hạn của ' + esc(i.t) + '"></div>'; }).join(''); };
+    const pk = hasPic ? tkPick(m.$('#tuP'), { sel: [], pool: () => tkAsgPool(tkProj(m.$('#tuB').value), null, { type: x.kind }), onChange: s => { pic = s; draw(); }, ph: 'Chọn người phụ trách (VD nhân sự mới)…' }) : null;
+    m.$('#tuB').onchange = () => { draw(); if (pk) pk.refresh(); };
+    m.$('#tuS').oninput = draw;
+    m.$('#tuV').onchange = e => { const i = e.target.closest('.tpl-due'); if (!i) return; hand[i.dataset.k] = i.value; i.classList.add('hand'); };
+    draw();
+  }
+
+  /** SỬA MẪU: tên · ai được dùng · cây việc (tên, hạn +n ngày, ưu tiên, người phụ trách mặc định / ★, thêm / bỏ việc) · lặp định kỳ */
+  async function tplEdit(x0) {
+    if (!TPL.d) { try { await tplLoad(); } catch (e) {} }
+    const x = JSON.parse(JSON.stringify(x0)), items = x.items, B = tplBoards(), rec = Object.assign({ on: 0, ev: 'week', dow: 1, dom: 1, pid: '', pic: [] }, x.rec);
+    if (!rec.pid || !B.some(p => p.id === rec.pid)) { const cp = isAll() ? null : curProj(); if (!rec.on) rec.pid = (cp && B.indexOf(cp) >= 0 ? cp : B[0] || {}).id || ''; }
+    const ppl = D().users.filter(u => u.task), kidOf = (i, k) => { for (let p = i; p; p = items.find(y => y.k === p.pk)) if (p.pk === k) return true; return false; };
+    const asSel = i => i.pic ? '@pic' : i.as.length > 1 ? '@keep' : i.as[0] || '';
+    const asOpts = i => { const v = asSel(i), L = [['@pic', '★ Người được chọn khi tạo'], ['', 'Không giao']].concat(i.as.length > 1 ? [['@keep', i.as.map(tkUser).join(', ')]] : [])
+        .concat(ppl.map(u => [u.email, u.name])).concat(i.as.length === 1 && !ppl.some(u => u.email === i.as[0]) ? [[i.as[0], tkUser(i.as[0]) + ' (không còn dùng Kiến Task)']] : []);
+      return L.map(o => '<option value="' + esc(o[0]) + '"' + (o[0] === v ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join(''); };
+    const row = i => '<div class="tpl-er lv-' + i.lv + '" data-k="' + esc(i.k) + '" style="padding-left:' + (6 + tplDepth(x, i) * 22) + 'px">' + tkLvIc(i.lv) +
+      '<input class="inp tpl-et" data-f="t" maxlength="200" value="' + esc(i.t) + '" placeholder="Tên ' + TK_LV[i.lv].toLowerCase() + '" aria-label="Tên việc">' +
+      '<span class="tpl-eo"><input class="inp" type="number" min="0" max="3650" data-f="off" value="' + esc(i.off) + '" placeholder="—" title="Hạn: số ngày kể từ ngày bắt đầu — để trống = không đặt hạn" aria-label="Hạn (số ngày)"><small>ngày</small></span>' +
+      '<select class="sel" data-f="pr" aria-label="Ưu tiên">' + Object.keys(TK_PRI).map(k => '<option value="' + k + '"' + (k === i.pr ? ' selected' : '') + '>' + TK_PRI[k][0] + '</option>').join('') + '</select>' +
+      '<select class="sel" data-f="as" aria-label="Người phụ trách">' + asOpts(i) + '</select>' +
+      (TK_KID[i.lv] ? '<button type="button" class="ibtn" data-ea title="Thêm ' + TK_LV[TK_KID[i.lv]].toLowerCase() + ' vào đây" aria-label="Thêm ' + TK_LV[TK_KID[i.lv]].toLowerCase() + '"><i class="bi bi-plus-lg"></i></button>' : '<span class="tpl-sp"></span>') +
+      (i.pk ? '<button type="button" class="ibtn" data-ex title="Bỏ khỏi mẫu (kèm việc bên trong)" aria-label="Bỏ khỏi mẫu"><i class="bi bi-x-lg"></i></button>' : '<span class="tpl-sp"></span>') + '</div>';
+    const m = modal({ title: 'Sửa mẫu · ' + x.name, icon: 'bi-journal-bookmark', size: 'lg', sticky: true, body: '<div class="tpl-f">' +
+        '<div class="fg"><label class="flabel">Tên mẫu</label><input class="inp" id="teN" maxlength="120" value="' + esc(x.name) + '"></div>' +
+        '<div class="fg"><label class="flabel">Ai được dùng</label><select class="sel" id="teU">' + tplShare(x.users, TPL.d && TPL.d.roles) + '</select></div>' +
+        '<div class="fg tpl-pic"><label class="flabel">Ghi chú</label><input class="inp" id="teD" maxlength="1000" value="' + esc(x.desc) + '" placeholder="VD: Dùng khi có nhân sự mới"></div></div>' +
+      '<div class="tk-h">Chuỗi việc · <span id="teC"></span></div><div class="tpl-ed-h"><span style="flex:1">Tên việc</span><span>Hạn = ngày bắt đầu + n</span></div><div class="tpl-ed" id="teL"></div>' +
+      '<div class="tk-h">Lặp định kỳ</div><label class="tk-pk"><input type="checkbox" id="teR"' + (rec.on ? ' checked' : '') + '><i class="bi bi-arrow-repeat"></i><span><b>Tự tạo chuỗi việc mới theo lịch</b><small id="teRn"></small></span></label>' +
+      '<div class="tpl-recf" id="teRf"' + (rec.on ? '' : ' hidden') + '><div class="fg"><label class="flabel">Lặp</label><select class="sel" id="teE"><option value="week"' + (rec.ev === 'week' ? ' selected' : '') + '>Hằng tuần</option><option value="month"' + (rec.ev === 'month' ? ' selected' : '') + '>Hằng tháng</option></select></div>' +
+        '<div class="fg" id="teWw"><label class="flabel">Vào</label><select class="sel" id="teW">' + TPL_DOW.slice(1).map((d, i) => '<option value="' + (i + 1) + '"' + (rec.dow === i + 1 ? ' selected' : '') + '>' + d + '</option>').join('') + '</select></div>' +
+        '<div class="fg" id="teMw"><label class="flabel">Ngày trong tháng</label><input class="inp" type="number" min="1" max="31" id="teM" value="' + esc(rec.dom) + '" title="Tháng ít ngày hơn → ngày cuối tháng"></div>' +
+        '<div class="fg"><label class="flabel">Bảng đích</label><select class="sel" id="teB">' + tplBoardOpts(B, rec.pid) + (rec.pid && !B.some(p => p.id === rec.pid) ? '<option value="' + esc(rec.pid) + '" selected>(bảng hiện tại của mẫu)</option>' : '') + '</select></div>' +
+        '<div class="fg full"><label class="flabel"><i class="bi bi-star-fill tpl-star"></i> Người phụ trách các việc ★</label><div id="teP"></div><small class="muted">Để trống: theo người phụ trách mặc định của mẫu</small></div></div>',
+      foot: [{ t: 'Huỷ', cls: 'ghost', fn: () => { tplListDlg(); } }, { t: 'Lưu mẫu', cls: 'pri', i: 'bi-check2', fn: async mm => {
+        const name = mm.$('#teN').value.trim(); if (!name) { mm.$('#teN').focus(); toast('Đặt tên cho mẫu', 'warn'); return false; }
+        const bad = items.find(i => !String(i.t).trim()); if (bad) { const el = mm.$('.tpl-er[data-k="' + CSS.escape(bad.k) + '"] .tpl-et'); if (el) el.focus(); toast('Việc trong mẫu chưa có tên', 'warn'); return false; }
+        const u = mm.$('#teU').value, on = mm.$('#teR').checked;
+        if (on && !mm.$('#teB').value) { toast('Chọn bảng đích cho lần tự tạo', 'warn'); return false; }
+        const pl = { id: x.id, name: name, desc: mm.$('#teD').value, items: items, rec: { on: on ? 1 : 0, ev: mm.$('#teE').value, dow: Number(mm.$('#teW').value), dom: Number(mm.$('#teM').value) || 1, pid: mm.$('#teB').value, pic: rec.pic } };
+        if (u !== '@keep') pl.users = u ? [u] : [];
+        const r = await rpc('taskTplSave', pl); TPL.d = null;
+        toast('Đã lưu mẫu “' + r.name + '”' + (r.rec.on && r.next ? ' · tự tạo lần tới ' + tkDmy(r.next) : ''), 'ok', 5000); tplListDlg();
+      } }] });
+    const draw = () => { m.$('#teL').innerHTML = items.map(row).join(''); m.$('#teC').textContent = tplCnt(x); };
+    const recUi = () => { const on = m.$('#teR').checked, mo = m.$('#teE').value === 'month'; m.$('#teRf').hidden = !on; m.$('#teWw').hidden = mo; m.$('#teMw').hidden = !mo;
+      const same = on && rec.on && x0.rec.ev === m.$('#teE').value && String(x0.rec.dow) === m.$('#teW').value && String(x0.rec.dom) === m.$('#teM').value && x0.rec.pid === m.$('#teB').value;
+      m.$('#teRn').textContent = !on ? 'Mỗi sáng hệ thống xem mẫu nào tới lịch thì tạo chuỗi việc mới (đứng tên người tạo mẫu) — mỗi kỳ chỉ một lần' : same && x0.next ? 'Lần tạo tới: ' + tkDmy(x0.next) + (x0.lastErr ? ' · lần trước lỗi: ' + x0.lastErr : '') : 'Lưu để xem ngày tạo tới — nếu ngày của kỳ này đã qua thì bắt đầu từ kỳ sau'; };
+    tkPick(m.$('#teP'), { sel: rec.pic, pool: () => tkAsgPool(tkProj(m.$('#teB').value), null, { type: x.kind }), onChange: s => { rec.pic = s; }, ph: 'Chọn người phụ trách…' });
+    m.$('#teL').addEventListener('input', e => { const r = e.target.closest('.tpl-er'), f = e.target.dataset.f, i = r && items.find(y => y.k === r.dataset.k); if (!i || !f) return;
+      if (f === 't') i.t = e.target.value; else if (f === 'off') i.off = e.target.value === '' ? '' : Math.max(0, Math.round(Number(e.target.value)) || 0); });
+    m.$('#teL').addEventListener('change', e => { const r = e.target.closest('.tpl-er'), f = e.target.dataset.f, i = r && items.find(y => y.k === r.dataset.k); if (!i || !f) return;
+      if (f === 'pr') i.pr = e.target.value;
+      else if (f === 'as') { const v = e.target.value; i.pic = v === '@pic' ? 1 : 0; if (v !== '@pic' && v !== '@keep') i.as = v ? [v] : []; } });
+    m.$('#teL').addEventListener('click', e => { const r = e.target.closest('.tpl-er'), i = r && items.find(y => y.k === r.dataset.k); if (!i) return;
+      if (e.target.closest('[data-ex]')) { for (let j = items.length - 1; j >= 0; j--) if (items[j] === i || kidOf(items[j], i.k)) items.splice(j, 1); draw(); }
+      else if (e.target.closest('[data-ea]')) { let at = items.indexOf(i) + 1; while (at < items.length && kidOf(items[at], i.k)) at++;
+        const k = 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), lv = TK_KID[i.lv];
+        items.splice(at, 0, { k: k, pk: i.k, lv: lv, t: '', d: '', pr: 'med', ty: 'task', lb: [], as: [], pic: items.some(y => y.pic) ? 1 : 0, off: i.off });
+        if (items.length > 80) { items.splice(at, 1); return toast('Mẫu tối đa 80 việc', 'warn'); }
+        draw(); const el = m.$('.tpl-er[data-k="' + k + '"] .tpl-et'); if (el) el.focus(); } });
+    ['#teR', '#teE', '#teW', '#teM', '#teB'].forEach(s => { m.$(s).addEventListener('change', recUi); });
+    draw(); recUi();
   }
 
   // thông báo bình luận của task đồng bộ trỏ tới mã gốc → tìm cả bản đồng bộ ('m' + mã)
