@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T18:29:18.942Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T18:42:43.182Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -770,6 +770,11 @@ html[data-theme="graphite"]{ --brand-950:#0B0F17; --brand-900:#111827; --brand-8
 .ucap-r span{ flex:1 } .ucap-r small{ color:var(--muted); font-size:11px } .ucap-r em{ font-style:normal; font-size:11px; font-weight:700; color:#7C3AED }
 .ucap-r.own{ background:color-mix(in srgb, #7C3AED 8%, transparent) }
 .ucap-q{ margin:2px 0 6px } .card-h .search.rq{ max-width:260px; margin-left:12px }
+/* người trên bảng chung (1.43.7): avatar chồng nhau, viền xanh = đang mở bảng */
+.tk-ppl{ display:inline-flex; align-items:center; margin-left:10px; cursor:pointer; padding-left:6px } .tk-ppl:empty{ display:none }
+.tk-ppl .av{ margin-left:-6px; box-shadow:0 0 0 2px var(--surface); font-size:10px } .tk-ppl .av.live{ box-shadow:0 0 0 2px var(--surface), 0 0 0 4px #22C55E }
+.tk-ppl .av.more{ background:var(--surface-3); color:var(--ink-2) }
+@media (max-width:820px){ .tk-ppl .av:nth-child(n+4):not(.more){ display:none } }
 .le-ext{ gap:6px; margin-top:6px; align-items:center }
 .mn-gh .mn-mt{ font-size:13.5px; color:var(--ink) }
 .tree-i .fi.grpic{ color:var(--brand-600) }
@@ -4661,7 +4666,8 @@ addEventListener('storage', e => { if (e.key === 'ktcm.outbox' && !OB.run) { OB.
 const PRES = { t: 0, soon: 0, on: false };
 function presData() {
   const t = $('#pageTitle') ? $('#pageTitle').textContent : '', cr = $$('#crumb a').map(a => a.textContent).slice(1).join(' › ');
-  return { route: S.route || '', app: S.route === 'apps' ? '' : (S.mod || ''), title: (cr ? cr + ' › ' : '') + t, vis: !document.hidden, q: OB.q.length, fail: OB.fail.length,
+  const bd = /^tasks/.test(S.route || '') && typeof TK !== 'undefined' && TK.proj && TK.proj !== '*' && !/^g:/.test(TK.proj) ? TK.proj : '';      // bảng Kiến Task đang mở → ai đang mở cùng bảng (1.43.7)
+  return { route: S.route || '', app: S.route === 'apps' ? '' : (S.mod || ''), title: (cr ? cr + ' › ' : '') + t, vis: !document.hidden, q: OB.q.length, fail: OB.fail.length, bd: bd,
     dev: (matchMedia('(display-mode: standalone)').matches ? 'App · ' : '') + (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Điện thoại' : 'Máy tính') };
 }
 async function presPing() {
@@ -4669,6 +4675,9 @@ async function presPing() {
   try {
     const t0 = Date.now(), r = await rpc('ping', presData(), { quiet: true });
     if (r && r.nu != null && !S.as && !(NT.rdAt > t0)) { const nu = ntAdj(r.nu), more = ntSet.ready && ntCount(nu) > NT.unread; ntSet(nu); if (more) ntFresh(); }      // đếm bắt đầu trước lúc ghi “đã đọc” xong → bỏ, chờ nhịp sau
+    if (r && r.here && typeof TK !== 'undefined') { const bd = presData().bd, L = r.here.filter(e => e !== S.me.email).sort(), was = TK.here;
+      TK.here = { bd: bd, L: L };
+      if (!was || was.bd !== bd || was.L.join() !== L.join()) { const el = bd && $('.tk-ppl[data-ppl="' + bd + '"]'); if (el && typeof tkPeople === 'function') el.outerHTML = tkPeople(tkProj(bd)); } }      // chỉ vẽ lại cụm avatar
     if (r && r.cmd === 'sync') { toast('Quản trị yêu cầu đồng bộ — đang lưu các thay đổi', 'info'); OB.q.forEach(x => { x.tries = 0; }); OB.hold = false; obFlush(); }
   } catch (e) {}
 }
@@ -5611,7 +5620,8 @@ function pvUI(me) {
 }
 async function pvPick() {
   const roles = (S.boot.roles || []).filter(r => r.id !== 'admin');
-  let role = (S.as.match(/^role:(.+)$/) || [])[1] || (roles.find(r => r.id === 'giasu') || roles[0] || {}).id, who = (S.as.match(/^user:(.+)$/) || [])[1] || '', users = PV_USERS, q = '', touched = 0;
+  // mặc định “Tất cả vai trò” (1.43.7)
+  let role = (S.as.match(/^role:(.+)$/) || [])[1] || '*', who = (S.as.match(/^user:(.+)$/) || [])[1] || '', users = PV_USERS, q = '', touched = 0;
   if (who && users) { const u = users.find(x => String(x.email).toLowerCase() === who); if (u) role = String(u.role || '').split(',')[0].trim() || role; }
   // khung (vai trò + ô tìm) hiện ngay — vừa tải danh sách vừa gõ tìm được; danh sách nhớ lại cho lần mở sau
   const m = modal({ title: 'Xem thử vai trò', icon: 'bi-eye', size: 'lg', body: '<div class="stack"><div class="small muted cl-hint"><i class="bi bi-shield-lock"></i><span>Xem app đúng như người dùng đó thấy: menu, quyền, dữ liệu. <b>Chỉ xem</b> — mọi thao tác lưu bị chặn, quyền admin của bạn không đổi. Thoát bằng nút trên dải vàng hoặc đóng tab.</span></div>' +
@@ -5619,13 +5629,17 @@ async function pvPick() {
       '<div class="fg"><label class="flabel">Xem như</label><div class="search"><i class="bi bi-search"></i><input class="inp" id="pvQ" placeholder="Tìm người theo tên hoặc email…" autocomplete="off"></div><div class="pv-list" id="pvL"></div></div></div>',
     foot: [{ t: 'Huỷ', cls: 'ghost' }].concat(S.as ? [{ t: 'Thoát xem thử', i: 'bi-x-lg', fn: () => { pvRestart(''); } }] : []).concat([{ t: 'Xem thử', i: 'bi-eye', cls: 'pri', fn: () => {
       if (!who && role === '*') { toast('Chọn một người ở danh sách “Xem như”', 'warn'); return false; } pvRestart(who ? 'user:' + who : 'role:' + role); } }]) });
+  // đang ở Kiến Task: chỉ người được dùng Kiến Task (vai trò bật Kiến Task, không bị chặn ứng dụng; hoặc có quyền riêng của Kiến Task)
+  const pvTask = u => { const R = String(u.role || '').split(',').map(x => x.trim()).filter(Boolean), ap = String(u.apps || '').split(',').filter(Boolean);
+    if (R.indexOf('admin') >= 0) return true; if (ap.length && ap.indexOf('task') < 0) return false;
+    return R.some(id => ((S.boot.roles || []).find(r => r.id === (id === 'viewer' ? 'giasu' : id)) || {}).apps?.indexOf('task') >= 0) || /tasks\./.test(u.capsPlus || ''); };
   // “Tất cả vai trò” (1.43.3): danh sách Xem như gồm mọi người — tìm theo tên rồi xem thử như người đó
   const paintR = () => { m.$('#pvR').innerHTML = [{ id: '*', label: 'Tất cả vai trò', color: '#64748B' }].concat(roles).map(r => '<button type="button" class="pv-r' + (r.id === role ? ' on' : '') + '" data-role="' + esc(r.id) + '"><span class="pv-dot" style="background:' + esc(r.color || 'var(--brand-600)') + '"></span>' + esc(r.label) + '</button>').join(''); };
   const paintL = () => {
     const w = fold(q).split(/\s+/).filter(Boolean);
     const one = role === '*' ? '' : '<label class="pv-u' + (!who ? ' on' : '') + '"><input type="radio" name="pvw" value=""' + (!who ? ' checked' : '') + '><span class="av sm"><i class="bi bi-person-badge"></i></span><span><b>Chỉ vai trò này</b><small>Quyền & menu của vai trò, dữ liệu theo tài khoản của bạn (VD gia sư: chưa có lớp nào)</small></span></label>';
     if (!users) { m.$('#pvL').innerHTML = one + '<div class="pv-ld">' + [0, 1, 2].map(() => '<div class="pv-u sk-row"><span class="av sm sk"></span><span style="flex:1"><i class="sk" style="display:block;height:11px;width:42%;border-radius:6px"></i><i class="sk" style="display:block;height:9px;width:64%;border-radius:6px;margin-top:6px"></i></span></div>').join('') + '<div class="small muted" style="padding:4px 8px"><i class="bi bi-arrow-repeat spin-i"></i> Đang tải người dùng' + (q ? ' — sẽ lọc theo “' + esc(q) + '” khi tải xong' : '') + '…</div></div>'; return; }
-    const list = users.filter(u => String(u.status || 'active') === 'active' && (role === '*' || String(u.role || '').split(',').map(x => x.trim()).indexOf(role) >= 0) && w.every(z => fold(u.name + ' ' + u.email).indexOf(z) >= 0));
+    const list = users.filter(u => String(u.status || 'active') === 'active' && (S.mod !== 'task' || pvTask(u)) && (role === '*' || String(u.role || '').split(',').map(x => x.trim()).indexOf(role) >= 0) && w.every(z => fold(u.name + ' ' + u.email).indexOf(z) >= 0));
     m.$('#pvL').innerHTML = one + list.map(u => { const e = String(u.email).toLowerCase(); return '<label class="pv-u' + (who === e ? ' on' : '') + '"><input type="radio" name="pvw" value="' + esc(e) + '"' + (who === e ? ' checked' : '') + '><span class="av sm">' + esc(initials(u.name || e)) + '</span><span><b>' + (w.length ? hl(u.name || e, w) : esc(u.name || e)) + '</b><small>' + esc(e) + (role === '*' ? ' · ' + esc([...new Set(String(u.role || '').split(',').map(x => x.trim()).filter(Boolean).map(x => roleOf(x === 'viewer' ? 'giasu' : x).label))].join(', ')) : '') + (u.lastSeenAt ? ' · truy cập ' + ago(u.lastSeenAt) : '') + '</small></span></label>'; }).join('') +
       (list.length ? '' : '<div class="small muted" style="padding:8px">' + (w.length ? 'Không có ai khớp “' + esc(q) + '”' + (role === '*' ? '.' : ' trong vai trò này.') : 'Chưa có người dùng nào thuộc vai trò này.') + '</div>');
   };
@@ -17742,7 +17756,7 @@ button.tk-loose{ margin-top:16px; padding:5px 8px 5px 4px; border:0; border-radi
 .tpl-star{ font-size:12px } .tpl-off{ flex:none; width:64px; text-align:right; color:var(--muted); font-size:12px }
 .tpl-due{ flex:0 0 148px; width:148px; height:32px; padding:4px 8px } .tpl-due.hand{ border-color:var(--orange); background:#FFF8F1 }
 .tpl-er .tpl-et{ flex:1; min-width:140px; height:32px } .tpl-eo{ flex:none; display:flex; align-items:center; gap:4px } .tpl-eo input{ width:66px; height:32px; padding:4px 8px } .tpl-eo small{ color:var(--muted); font-size:12px }
-.tpl-er select{ flex:none; width:auto; max-width:180px; height:32px; padding-top:4px; padding-bottom:4px } .tpl-sp{ flex:0 0 32px; width:32px }
+.tpl-er select{ flex:none; width:auto; max-width:180px; height:32px; padding-top:4px; padding-bottom:4px; font-size:12.5px } .tpl-er select[data-f="as"]{ width:150px } .tpl-er .tpl-et{ font-size:13px }      /* chữ gọn để thấy hết (1.43.7) */ .tpl-sp{ flex:0 0 32px; width:32px }
 .tpl-ed-h{ display:flex; gap:8px; padding:0 6px 2px; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted) }
 .tpl-hint{ margin:-2px 0 8px } .tpl-f small.muted, .tpl-recf small.muted{ display:block; margin-top:4px; font-size:12px }
 .tpl-recf{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px 12px; margin-top:8px } .tpl-recf .full{ grid-column:1 / -1 } .tpl-recf[hidden]{ display:none }
@@ -17791,6 +17805,29 @@ function tkEpLead(t) {
   const me = TK.d.me, ep = t.type === 'epic' ? t : tkById(t.epicId);
   if (t.type === 'epic' && !t.id) return true;
   return !!ep && ep.type === 'epic' && (ep.reporter === me || tkWho(ep).indexOf(me) >= 0);
+}
+/** NGƯỜI TRÊN BẢNG CHUNG (1.43.7): tối đa 5 avatar người hay tương tác nhất (phụ trách / tạo việc trong bảng — tính từ dữ liệu đã tải, không gọi thêm máy chủ), còn lại “+N”;
+    viền xanh = đang mở bảng này (TK.here, nhận theo nhịp ping sẵn có của app) */
+function tkPeople(p) {
+  const d = TK.d; if (!d || !p) return '';
+  const sc = {}, add = (e, n) => { e = String(e || '').toLowerCase(); if (e) sc[e] = (sc[e] || 0) + n; };
+  d.tasks.forEach(t => { if (t.projectId !== p.id) return; tkWho(t).forEach(e => add(e, 2)); add(t.reporter, 1); });
+  (p.members || []).forEach(e => add(e, 0)); add(p.createdBy, 0.5);
+  const here = TK.here && TK.here.bd === p.id ? TK.here.L : [], live = e => here.indexOf(e) >= 0;
+  here.forEach(e => add(e, 0));      // đang mở bảng mà chưa có việc ở đây vẫn hiện
+  const all = Object.keys(sc).filter(e => d.users.some(u => u.email === e && u.task)).sort((a, b) => live(b) - live(a) || sc[b] - sc[a]);
+  if (!all.length) return '<span class="tk-ppl" data-ppl="' + esc(p.id) + '"></span>';
+  const top = all.slice(0, 5), more = all.length - top.length, nl = all.filter(live).length;
+  return '<span class="tk-ppl" data-ppl="' + esc(p.id) + '" title="' + esc(all.length + ' người trên bảng' + (nl ? ' · ' + nl + ' đang mở' : '') + ' — bấm để xem') + '">' + top.map(e => '<span class="av sm' + (live(e) ? ' live' : '') + '">' + esc(initials(tkUser(e))) + '</span>').join('') +
+    (more ? '<span class="av sm more">+' + more + '</span>' : '') + '</span>';
+}
+function tkPeopleMenu(btn) {
+  const p = tkProj(btn.dataset.ppl), d = TK.d; if (!p || !d) return;
+  const here = TK.here && TK.here.bd === p.id ? TK.here.L : [], sc = {};
+  d.tasks.forEach(t => { if (t.projectId === p.id) tkWho(t).forEach(e => { sc[e] = (sc[e] || 0) + 1; }); });
+  const L = [...new Set([].concat(p.members || [], [p.createdBy], Object.keys(sc), here).map(e => String(e || '').toLowerCase()).filter(e => e && d.users.some(u => u.email === e && u.task)))]
+    .sort((a, b) => (here.indexOf(b) >= 0) - (here.indexOf(a) >= 0) || (sc[b] || 0) - (sc[a] || 0));
+  openMenu(btn, L.map(e => ({ t: tkUser(e) + (e === d.me ? ' (tôi)' : ''), d: (here.indexOf(e) >= 0 ? '● đang mở bảng · ' : '') + (sc[e] ? sc[e] + ' việc phụ trách' : e === String(p.createdBy).toLowerCase() ? 'chủ bảng' : 'thành viên'), i: 'bi-person' })));
 }
 /** giao cho người ngoài bảng → máy chủ đã thêm họ vào thành viên bảng; làm theo trên máy cho lần chọn sau */
 function tkJoinLocal(p, emails) { if (!p || p.scope === 'personal' || !p.members.length) return; (emails || []).forEach(e => { if (e && e !== p.createdBy && p.members.indexOf(e) < 0) p.members.push(e); }); }
@@ -18444,7 +18481,7 @@ async function viewTasks(arg, v) {
     const views = o.views ? '<div class="seg tk-vw"><button class="seg-b" data-v="tasks" aria-pressed="' + (mode === 'board') + '" title="Kanban"><i class="bi bi-kanban"></i><span>Kanban</span></button><button class="seg-b" data-v="tasks/list" aria-pressed="' + (mode === 'list') + '" title="Bảng dữ liệu — sửa thẳng trong ô"><i class="bi bi-table"></i><span>Bảng dữ liệu</span></button></div>' : '';
     // ĐIỆN THOẠI: các nút kiểu xem (Kanban / Bảng dữ liệu · Phân cấp / Phẳng · Tách / Gộp · Chọn) gom vào MỘT nút “Xem” (bảng chọn trượt lên); nút cấp thành hàng riêng (row2)
     const mv = o.views ? '<button type="button" class="tk-mv" data-mview aria-haspopup="menu" aria-label="Kiểu xem: ' + (mode === 'list' ? 'Bảng dữ liệu' : 'Kanban') + '"><i class="bi ' + (mode === 'list' ? 'bi-table' : 'bi-kanban') + '"></i><span>Xem</span><i class="bi bi-chevron-down"></i></button>' : '';
-    return '<div class="tk-bar"><button class="tk-pill pick" data-pick aria-haspopup="menu" title="Chọn bảng"><i class="bi ' + ic + '"></i><b>' + esc(curP ? curP.name : g ? g.name : 'Tất cả bảng') + '</b><span class="n">' + open + '</span><i class="bi bi-chevron-down"></i></button>' + (curP && curP.pend ? '<span class="tk-pend" title="Bảng đã dùng được ngay — app đang lưu, đừng tắt trang"><i class="bi bi-cloud-arrow-up"></i>Đang lưu</span>' : '') + '<span class="tk-sp"></span>' +
+    return '<div class="tk-bar"><button class="tk-pill pick" data-pick aria-haspopup="menu" title="Chọn bảng"><i class="bi ' + ic + '"></i><b>' + esc(curP ? curP.name : g ? g.name : 'Tất cả bảng') + '</b><span class="n">' + open + '</span><i class="bi bi-chevron-down"></i></button>' + (curP && curP.scope === 'team' ? tkPeople(curP) : '') + (curP && curP.pend ? '<span class="tk-pend" title="Bảng đã dùng được ngay — app đang lưu, đừng tắt trang"><i class="bi bi-cloud-arrow-up"></i>Đang lưu</span>' : '') + '<span class="tk-sp"></span>' +
       (o.noFilter ? '' : '<div class="search tk-find' + (TK.q ? ' has' : '') + '"><i class="bi bi-search"></i><input class="inp" id="tkQ" placeholder="Tìm việc…" aria-label="Tìm việc" value="' + esc(TK.q) + '"></div>' +
         '<button type="button" class="tk-fbtn' + (n ? ' on' : '') + '" data-filter aria-haspopup="menu" title="Bộ lọc" aria-label="Bộ lọc' + (n ? ' · đang bật ' + n : '') + '"><i class="bi bi-funnel' + (n ? '-fill' : '') + '"></i>' + (n ? '<em>' + n + '</em>' : '') + '</button>') +
       (o.views ? '<span class="tk-dx">' + (o.extra || '') + views + '</span>' + mv : (o.extra || '')) + '</div>' + (o.row2 ? '<div class="tk-bar2">' + o.row2 + '</div>' : '');
@@ -19154,6 +19191,7 @@ async function viewTasks(arg, v) {
     const so = e.target.closest('[data-spop]'); if (so) return sprintOp(so.dataset.spop, so.dataset.sp, so);
     if (e.target.closest('[data-newp]')) return projDialog(null, 'personal');
     const pk = e.target.closest('[data-pick]'); if (pk) return boardMenu(pk);
+    const ppl = e.target.closest('[data-ppl]'); if (ppl) return tkPeopleMenu(ppl);      // ai trên bảng chung
     if (e.target.closest('[data-mview]')) return viewMenu();
     const bn = mode === 'boards' && e.target.closest('.tk-bsn'); if (bn) { TK.proj = bn.dataset.p; TK.epic = ''; lsSet('tkProj', TK.proj); return go('tasks'); }      // Thống kê bảng → mở bảng đó
     const pb = e.target.closest('[data-p]'); if (pb) { TK.proj = pb.dataset.p; TK.epic = ''; lsSet('tkProj', TK.proj); return paint(); }
@@ -19920,7 +19958,7 @@ async function viewTasks(arg, v) {
     if (!rec.pid || !B.some(p => p.id === rec.pid)) { const cp = isAll() ? null : curProj(); if (!rec.on) rec.pid = (cp && B.indexOf(cp) >= 0 ? cp : B[0] || {}).id || ''; }
     const ppl = D().users.filter(u => u.task), kidOf = (i, k) => { for (let p = i; p; p = items.find(y => y.k === p.pk)) if (p.pk === k) return true; return false; };
     const asSel = i => i.pic ? '@pic' : i.as.length > 1 ? '@keep' : i.as[0] || '';
-    const asOpts = i => { const v = asSel(i), L = [['@pic', '★ Người được chọn khi tạo'], ['', 'Không giao']].concat(i.as.length > 1 ? [['@keep', i.as.map(tkUser).join(', ')]] : [])
+    const asOpts = i => { const v = asSel(i), L = [['@pic', '★ Chọn lúc tạo'], ['', 'Không giao']].concat(i.as.length > 1 ? [['@keep', i.as.map(tkUser).join(', ')]] : [])
         .concat(ppl.map(u => [u.email, u.name])).concat(i.as.length === 1 && !ppl.some(u => u.email === i.as[0]) ? [[i.as[0], tkUser(i.as[0]) + ' (không còn dùng Kiến Task)']] : []);
       return L.map(o => '<option value="' + esc(o[0]) + '"' + (o[0] === v ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join(''); };
     const row = i => '<div class="tpl-er lv-' + i.lv + '" data-k="' + esc(i.k) + '" style="padding-left:' + (6 + tplDepth(x, i) * 22) + 'px">' + tkLvIc(i.lv) +
