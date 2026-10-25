@@ -11,7 +11,7 @@
     return function () { var a = [].slice.call(arguments), n = 0, go = function () { n++; fetch("https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec", { method: "POST", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn: a[0], p: a[1] || {}, t: "" }) })
       .then(function (r) { if (!r.ok) throw Object.assign(new Error("Máy chủ trả lỗi " + r.status + " — tải lại trang để thử lại"), { again: r.status >= 500 }); return r.text().then(function (x) { try { return JSON.parse(x); } catch (er) { throw Object.assign(new Error("bad json"), { again: 1 }); } }); })
       .then(function (r) { if (ok) ok(r); }, function (e) { var net = e && (e.again || /fetch|network|load failed/i.test(e.message || ""));
-        if (net && n < 3) { console.warn("máy chủ chậm / lỗi mạng → gửi lại lần " + (n + 1), a[0], e); return setTimeout(go, 1500 * n); }
+        if (net && n < 3 && a[0] !== "sharePrint") { console.warn("máy chủ chậm / lỗi mạng → gửi lại lần " + (n + 1), a[0], e); return setTimeout(go, 1500 * n); }
         if (ko) ko(net ? new Error("Máy chủ Google đang chậm hoặc mất mạng — bấm Thử lại") : e); }); }; go(); };
   } }); })(null, null) } };</script>
   
@@ -4442,7 +4442,8 @@ async function start() {
   document.title = L.name + ' · ' + (L.app || 'Kiến Chuyên môn');
   $('#app').textContent = L.app || 'Kiến Chuyên môn';
   $('#ttl').textContent = L.name;
-  const meta = () => { $('#meta').textContent = L.files.length + ' tài liệu · hiệu lực đến ' + fmtDT(L.expiresAt) + ' (' + left(L.expiresAt) + ')'; };
+  const meta = () => { $('#meta').textContent = L.files.length + ' tài liệu · hiệu lực đến ' + fmtDT(L.expiresAt) + ' (' + left(L.expiresAt) + ')' + (L.maxPrints ? ' · còn ' + Math.max(0, L.maxPrints - L.prints) + '/' + L.maxPrints + ' lần in' : ''); };
+  V.meta = meta;
   meta(); setInterval(meta, 60000);
   $('#acts').hidden = false;
   $('#dl').hidden = !L.download;
@@ -4633,9 +4634,12 @@ async function printAll(list) {
   const btn = $('#pr'); if (btn.disabled) return;
   btn.disabled = true; btn.classList.add('busy');
   let area = $('#printArea');
+  let pass = null;
   try {
-    toast('Đang chuẩn bị bản in ' + docs.length + ' tài liệu…', 'info');
     await Promise.all(docs.map(load));
+    if (V.L.maxPrints) pass = await printPass();      // in có kiểm soát: xin lượt in trước (hết lượt / huỷ → dừng)
+    if (V.L.maxPrints && !pass) return;
+    toast('Đang chuẩn bị bản in ' + docs.length + ' tài liệu…', 'info');
     if (area) area.remove();
     area = document.createElement('div'); area.id = 'printArea'; document.body.appendChild(area);
     const sizes = {}, css = [];
@@ -4648,6 +4652,7 @@ async function printAll(list) {
       const cv = document.createElement('canvas'); cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
       await p.page.render({ canvasContext: cv.getContext('2d', { alpha: false }), viewport: vp }).promise;
       PNK.stamp(cv, V.box, pnText(d, p.i));
+      if (pass) stampPrint(cv, pass);
       const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.9));
       const box = document.createElement('div'); box.className = 'pp';
       box.style.cssText = 'page:' + sizes[key] + ';width:' + W + 'pt;height:' + (H - 0.6) + 'pt';   // thấp hơn 0,6pt để làm tròn không đẩy sang tờ mới
@@ -4663,6 +4668,24 @@ async function printAll(list) {
     window.print();
   } catch (e) { toast(e.message || String(e), 'err', 6000); }
   finally { download.run = false; btn.disabled = false; btn.classList.remove('busy'); }
+}
+
+/* ── IN CÓ KIỂM SOÁT (link có giới hạn số lần in): hỏi lại, xin lượt in ở máy chủ (đếm cả khi chọn “Lưu thành PDF” trong hộp in —
+   trang web không phân biệt được máy in thật với máy in PDF), đóng dấu tên link + lần in lên từng trang ── */
+async function printPass() {
+  const L = V.L, rest = Math.max(0, L.maxPrints - L.prints);
+  if (!rest) { toast('Link này đã in đủ ' + L.maxPrints + ' lần — liên hệ người gửi nếu cần in thêm', 'err', 6000); return null; }
+  if (!confirm('Link này chỉ in được ' + L.maxPrints + ' lần (còn ' + rest + ' lần).\nMỗi lần mở hộp in đều tính một lần — kể cả khi huỷ hoặc chọn “Lưu thành PDF”.\n\nIn ngay?')) return null;
+  try { const r = await rpc('sharePrint', { t: TOKEN, ua: navigator.userAgent }); L.prints = r.n; V.meta(); return { n: r.n, max: r.max || L.maxPrints, at: fmtDT(Date.now()) }; }
+  catch (e) { if (e.code === 'FULL') { L.prints = L.maxPrints; V.meta(); } toast(e.message, 'err', 6000); return null; }
+}
+function stampPrint(cv, pass) {
+  const g = cv.getContext('2d'), fs = Math.max(10, Math.round(cv.width / 95)), txt = 'Bản in ' + pass.n + '/' + pass.max + ' · ' + V.L.name + ' · ' + pass.at + ' · không sao chép, phát tán';
+  g.save(); g.font = fs + 'px ui-sans-serif, system-ui, -apple-system, Helvetica, Arial, sans-serif'; g.textBaseline = 'bottom';
+  const t = g.measureText(txt).width > cv.width * 0.94 ? txt.slice(0, Math.floor(txt.length * cv.width * 0.94 / g.measureText(txt).width) - 1) + '…' : txt;
+  const w = g.measureText(t).width, x = (cv.width - w) / 2, y = cv.height - Math.round(fs * 0.6);
+  g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(x - fs * 0.4, y - fs * 1.25, w + fs * 0.8, fs * 1.45);
+  g.fillStyle = 'rgba(70,80,95,.9)'; g.fillText(t, x, y); g.restore();
 }
 
 /* ── Ghép file in: tích tệp cần in (bỏ tích = chỉ xem), kéo / bấm mũi tên để đổi thứ tự in; nhớ lựa chọn trên máy này ── */

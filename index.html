@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-24T19:17:13.518Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T12:37:59.159Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -9632,13 +9632,20 @@ async function viewXApps(arg, v) {
    ══════════════════════════════════════════════════════════════ */
 const LINKABLE = { pdf: 1, gdoc: 1, gslides: 1, gsheet: 1, gdraw: 1, docx: 1, doc: 1, pptx: 1, ppt: 1, xlsx: 1, xls: 1 };
 const LK = { pk: new Set(), vw: lsGet('lkView', 'grid'), data: null, groups: [], sel: [], editId: '', sub: lsGet('lkSub', false), q: '', fq: '', fop: lsGet('lkFop', 'has'), open: lsGet('lkOpen', {}), fo: {}, step: 1,
-             form: { name: '', days: 0, at: '', mode: null, pnum: null, maxViews: '', note: '' }, filt: 'all', tq: '' };
+             form: { name: '', days: 0, at: '', mode: null, pnum: null, maxViews: '', maxPrints: '', note: '' }, filt: 'all', tq: '' };
 const LK_DAYS = [1, 3, 7, 14, 30];
 /* quyền người xem link: chỉ xem · xem & in (không tải được file) · xem, in & tải PDF */
 const LK_MODES = [['view', 'Chỉ xem', 'bi-eye', 'Không in, không tải'], ['print', 'Xem & in', 'bi-printer', 'In được, không tải file'], ['dl', 'Xem, in & tải', 'bi-download', 'Tải bản PDF đã ghép']];
 function lkMode(o) { return o.download ? 'dl' : o.print ? 'print' : 'view'; }
 function lkModeOf(m) { return { print: m !== 'view', download: m === 'dl' }; }
 const LK_RANK = { view: 0, print: 1, dl: 2 };
+/** IN CÓ KIỂM SOÁT (chỉ ở “Xem & in”): giới hạn số lần in — người mở link không tải được PDF, mỗi lần mở hộp in trừ một lượt (lưu PDF trong hộp in cũng tính), trang in có dấu tên link + lần in */
+function lkPmaxBox(id, v, mode) {
+  return '<div class="fg" id="' + id + '"' + (mode === 'print' ? '' : ' hidden') + '><label class="flabel"><i class="bi bi-shield-lock"></i> Giới hạn số lần in (để trống = không giới hạn)</label>' +
+    '<input class="inp" type="number" min="0" max="99" inputmode="numeric" value="' + esc(v || '') + '" placeholder="VD: 1 — gửi phụ huynh">' +
+    '<span class="small muted">Đặt số → không có nút tải PDF · mỗi lần mở hộp in trừ một lượt (kể cả chọn “Lưu thành PDF”) · trang in có dòng “Bản in k/N · tên link · giờ in”.</span></div>';
+}
+function lkPmaxShow(el, mode) { if (el) el.hidden = mode !== 'print'; }
 /** max: quyền cao nhất người tạo được chọn (gia sư theo cài đặt của quản trị) — các mức cao hơn bị khoá */
 function lkModeClamp(m, max) { return max && LK_RANK[m] > LK_RANK[max] ? max : m; }
 function lkModeSeg(id, cur, max) {
@@ -9817,7 +9824,7 @@ function lkPnumDesigner(pn0, files, onApply, opt) {
   paint();
 }
 function lkPnumTag(pn) { return !pn || pn.pos === 'none' ? '' : '<span title="Đánh số trang"><i class="bi bi-123"></i>' + (pn.pos === 'custom' ? 'box tự đặt' : PN_POS[pn.pos]) + (pn.bg ? ' · có nền' : '') + '</span>'; }
-function lkModeTag(L) { const m = LK_MODES.find(x => x[0] === lkMode(L)); return '<i class="bi ' + m[2] + '"></i>' + m[1]; }
+function lkModeTag(L) { const m = LK_MODES.find(x => x[0] === lkMode(L)); return '<i class="bi ' + m[2] + '"></i>' + m[1] + (L.maxPrints && lkMode(L) === 'print' ? ' · đã in ' + (L.prints || 0) + '/' + L.maxPrints : ''); }
 const LK_STATE = { active: ['Còn hạn', 'ok', 'bi-check-circle-fill'], soon: ['Sắp hết hạn', 'warn', 'bi-hourglass-split'], expired: ['Hết hạn', 'gray', 'bi-hourglass-bottom'],
                    revoked: ['Đã thu hồi', 'red', 'bi-slash-circle'], full: ['Hết lượt xem', 'gray', 'bi-eye-slash'] };
 function lkState(L) { return L.state === 'active' && new Date(L.expiresAt) - Date.now() < 86400000 ? 'soon' : L.state; }
@@ -9865,7 +9872,7 @@ function lkCreateLocal(payload, cfg, files) {
   let t = payload.expiresAt ? new Date(payload.expiresAt).getTime() : Date.now() + Number(payload.days || cfg.days) * 864e5;
   t = Math.max(Date.now() + 36e5, Math.min(t, Date.now() + cfg.maxDays * 864e5));
   const L = { id: newId, token: token, name: payload.name, note: payload.note || '', files: files, createdBy: S.me.email, createdAt: new Date().toISOString(), expiresAt: new Date(t).toISOString(),
-              status: 'active', state: 'active', download: !!payload.download, print: !!(payload.print || payload.download), pnum: payload.pnum || cfg.pnum, maxViews: Number(payload.maxViews) || 0, views: 0, lastViewAt: '', pending: true };
+              status: 'active', state: 'active', download: !!payload.download, print: !!(payload.print || payload.download), pnum: payload.pnum || cfg.pnum, maxViews: Number(payload.maxViews) || 0, maxPrints: payload.print && !payload.download ? Number(payload.maxPrints) || 0 : 0, prints: 0, views: 0, lastViewAt: '', pending: true };
   LK.pend = LK.pend || {}; LK.pend[token] = L;
   if (LK.data) LK.data.links.unshift(L);
   queueRpc('saveLink', Object.assign({}, payload, { token: token, newId: newId }), { label: 'Tạo link “' + payload.name + '”' })
@@ -10016,6 +10023,7 @@ function lkBuilder(B, v, toTrack) {
         (F.at ? '<input class="inp" type="datetime-local" id="lkAt" value="' + esc(F.at) + '" min="' + dtLocal(Date.now() + 3600000) + '" max="' + dtLocal(Date.now() + cfg.maxDays * 86400000) + '">' : '') +
         '<div class="small muted" id="lkExp"></div></div>' +
       '<div class="fg"><label class="flabel">Người xem được</label>' + lkModeSeg('lkMode', F.mode = lkModeClamp(F.mode, LK.data.cfg.maxMode), LK.data.cfg.maxMode) + '</div>' +
+      lkPmaxBox('lkPmx', F.maxPrints, F.mode) +
       '<div class="fg"><label class="flabel">Đánh số trang trên bản ghép — bấm chọn vị trí</label>' + lkPnumBox('lkPn', F.pnum) + '</div>' +
       '<details class="adv"' + (F.maxViews || F.note ? ' open' : '') + '><summary><i class="bi bi-chevron-right"></i> Tuỳ chọn thêm</summary><div class="stack" style="padding-top:8px">' +
         '<div class="fg"><label class="flabel">Giới hạn lượt mở (để trống = không giới hạn)</label><input class="inp" id="lkMax" type="number" min="0" inputmode="numeric" value="' + esc(F.maxViews) + '" placeholder="VD: 30"></div>' +
@@ -10030,7 +10038,8 @@ function lkBuilder(B, v, toTrack) {
     $('#lkName', B).oninput = e => { F.name = e.target.value; };
     $('#lkDays', B).onclick = e => { const b = e.target.closest('[data-d]'); if (!b) return; if (b.dataset.d === 'custom') { F.at = F.at || dtLocal(Date.now() + F.days * 86400000); } else { F.days = Number(b.dataset.d); F.at = ''; } F.touched = true; paintForm(); };
     const at = $('#lkAt', B); if (at) at.onchange = e => { F.at = e.target.value; F.touched = true; exp(); };
-    lkModeBind($('#lkMode', B), m => { F.mode = m; });
+    lkModeBind($('#lkMode', B), m => { F.mode = m; lkPmaxShow($('#lkPmx', B), m); });
+    $('#lkPmx input', B).oninput = e => { F.maxPrints = e.target.value; };
     lkPnumBind($('#lkPn', B), F.pnum, pn => { F.pnum = pn; }, () => LK.sel.filter(f => !f.x).map(f => ({ id: f.id, n: f.n })));
     $('#lkMax', B).oninput = e => { F.maxViews = e.target.value; };
     $('#lkNote', B).oninput = e => { F.note = e.target.value; };
@@ -10046,7 +10055,7 @@ function lkBuilder(B, v, toTrack) {
       const name = (F.name || '').trim() || auto();
       btn.classList.add('busy'); btn.disabled = true;
       try {
-        const payload = { id: LK.editId || '', name: name, note: F.note, pnum: F.pnum, print: lkModeOf(F.mode).print, download: lkModeOf(F.mode).download, maxViews: F.maxViews, files: LK.sel.map(f => ({ id: f.id, d: f.dp ? f.dp : f.d, p: f.pg })) };
+        const payload = { id: LK.editId || '', name: name, note: F.note, pnum: F.pnum, print: lkModeOf(F.mode).print, download: lkModeOf(F.mode).download, maxViews: F.maxViews, maxPrints: F.mode === 'print' ? F.maxPrints : 0, files: LK.sel.map(f => ({ id: f.id, d: f.dp ? f.dp : f.d, p: f.pg })) };
         if (!LK.editId || F.touched !== false) { if (F.at) payload.expiresAt = new Date(F.at).toISOString(); else payload.days = F.days; }
         const wasEdit = !!LK.editId;
         const L = wasEdit ? await rpc('saveLink', payload) : lkCreateLocal(payload, cfg, LK.sel.map(f => ({ id: f.id, n: f.n, t: f.t, d: payload.files.find(x => x.id === f.id).d, p: f.pg })));
@@ -10198,12 +10207,12 @@ function lkMergeView(focus, onDone) {
   (async () => { for (const d of docs) await openDoc(d); })();
   if (focus >= 0) setTimeout(() => { const el = m.$('#mvd' + focus); if (el) el.scrollIntoView({ block: 'start' }); }, 50);
 }
-function lkResetBuilder() { LK.sel = []; LK.editId = ''; LK.form = { name: '', days: LK.data.cfg.days, at: '', mode: lkMode(LK.data.cfg), pnum: Object.assign({}, LK.data.cfg.pnum), maxViews: '', note: '' }; }
+function lkResetBuilder() { LK.sel = []; LK.editId = ''; LK.form = { name: '', days: LK.data.cfg.days, at: '', mode: lkMode(LK.data.cfg), pnum: Object.assign({}, LK.data.cfg.pnum), maxViews: '', maxPrints: '', note: '' }; }
 /** Nạp một link có sẵn vào trình tạo để thêm / bớt / đổi thứ tự tài liệu. */
 function lkEditContent(L) {
   LK.editId = L.id; LK.step = 3;
   LK.sel = L.files.map(f => ({ id: f.id, n: f.n, t: f.t, s: f.s, d: String(f.d || '').split(' / ').pop(), dp: f.d, x: !IX.byId[f.id], pg: f.p && f.p.length ? f.p : undefined }));
-  LK.form = { name: L.name, days: 0, at: dtLocal(L.expiresAt), mode: lkMode(L), pnum: Object.assign({}, L.pnum), maxViews: L.maxViews || '', note: L.note || '', touched: false };
+  LK.form = { name: L.name, days: 0, at: dtLocal(L.expiresAt), mode: lkMode(L), pnum: Object.assign({}, L.pnum), maxViews: L.maxViews || '', maxPrints: L.maxPrints || '', note: L.note || '', touched: false };
   go('links'); const rec = VIEWS.links; if (rec && rec.el._onArg) rec.el._onArg('');
 }
 function lkDone(L, wasEdit, toTrack) {
@@ -10302,6 +10311,7 @@ function lkTrack(B, v) {
     else if (a === 'restore') Object.assign(L, { status: 'active', state: 'active' });
     else if (a === 'extend') { const base = Math.max(Date.now(), new Date(L.expiresAt).getTime() || 0); Object.assign(L, { expiresAt: new Date(base + Number((extra && extra.days) || LK.data.cfg.days) * 864e5).toISOString(), status: 'active', state: 'active' }); }
     else if (a === 'reset') L.views = 0;
+    else if (a === 'resetPrints') L.prints = 0;
     paint(); $('#lkN') && ($('#lkN').textContent = LK.data.links.filter(x => x.state === 'active').length || '');
     queueRpc('linkAction', Object.assign({ id: L.id, act: a }, extra || {}), { label: 'Link · ' + L.name }).then(r => { if (r && !r.deleted) { Object.assign(L, r); if (B.isConnected) paint(); } }).catch(() => {});
   };
@@ -10329,6 +10339,7 @@ function lkTrack(B, v) {
       { t: 'Gia hạn thêm 30 ngày', i: 'bi-plus-circle', fn: () => act(L, 'extend', { days: 30 }).catch(fail), hidden: LK.data.cfg.maxDays < 30 },
       { t: 'Lượt mở gần đây', i: 'bi-graph-up', fn: () => lkViews(L) },
       { t: 'Đếm lại lượt mở từ 0', i: 'bi-arrow-counterclockwise', fn: () => act(L, 'reset').catch(fail), hidden: !L.maxViews },
+      { t: 'Cho in lại từ đầu (đếm lượt in từ 0)', i: 'bi-printer', fn: () => act(L, 'resetPrints').catch(fail), hidden: !(L.maxPrints && L.prints) },
       { t: 'Nhân bản thành link mới', i: 'bi-copy', fn: () => { lkEditContent(L); LK.editId = ''; LK.form.name = L.name + ' (bản sao)'; LK.form.at = ''; LK.form.days = LK.data.cfg.days; delete LK.form.touched; const rec = VIEWS.links; rec && rec.el._onArg && rec.el._onArg(''); } },
       '-',
       L.state === 'revoked' ? { t: 'Mở lại link', i: 'bi-unlock', fn: () => act(L, 'restore').catch(fail) } : { t: 'Thu hồi ngay', d: 'Link khoá lập tức, giữ lại để mở lại sau', i: 'bi-slash-circle', danger: true, fn: () => act(L, 'revoke').catch(fail) },
@@ -10348,19 +10359,20 @@ function lkEdit(L, done) {
     '<div class="stack"><div class="fg"><label class="flabel">Tên link</label><input class="inp" id="leN" value="' + esc(L.name) + '"></div>' +
     '<div class="fg"><label class="flabel">Hết hạn lúc</label><input class="inp" type="datetime-local" id="leA" value="' + dtLocal(L.expiresAt) + '" max="' + dtLocal(Date.now() + cfg.maxDays * 86400000) + '"><span class="small muted">Tối đa ' + cfg.maxDays + ' ngày kể từ bây giờ.</span></div>' +
     '<div class="fg"><label class="flabel">Người xem được</label>' + lkModeSeg('leMode', lkMode(L), LK.data.cfg.maxMode) + '</div>' +
+    lkPmaxBox('lePmx', L.maxPrints, lkModeClamp(lkMode(L), LK.data.cfg.maxMode)) +
     '<div class="fg"><label class="flabel">Đánh số trang</label>' + lkPnumBox('lePn', L.pnum) + '</div>' +
     '<div class="grid g2"><div class="fg"><label class="flabel">Giới hạn lượt mở</label><input class="inp" id="leM" type="number" min="0" value="' + (L.maxViews || '') + '" placeholder="Không giới hạn"></div>' +
     '</div><div class="fg"><label class="flabel"><i class="bi bi-sticky"></i> Ghi chú — phần cần chú ý</label><textarea class="ta" id="leO" rows="3" maxlength="1500">' + esc(L.note || '') + '</textarea></div></div>',
     foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', i: 'bi-check2', cls: 'pri', fn: async mm => {
       const at = mm.$('#leA').value;
-      const pl = { id: L.id, name: mm.$('#leN').value.trim() || L.name, note: mm.$('#leO').value, print: lkModeOf(mode).print, download: lkModeOf(mode).download, pnum: pn, maxViews: mm.$('#leM').value,
+      const pl = { id: L.id, name: mm.$('#leN').value.trim() || L.name, note: mm.$('#leO').value, print: lkModeOf(mode).print, download: lkModeOf(mode).download, pnum: pn, maxViews: mm.$('#leM').value, maxPrints: mode === 'print' ? mm.$('#lePmx input').value : 0,
         expiresAt: at && dtLocal(L.expiresAt) !== at ? new Date(at).toISOString() : '' };
-      Object.assign(L, { name: pl.name, note: pl.note, print: !!(pl.print || pl.download), download: !!pl.download, pnum: pn, maxViews: Number(pl.maxViews) || 0 }, pl.expiresAt ? { expiresAt: pl.expiresAt } : {});
+      Object.assign(L, { name: pl.name, note: pl.note, print: !!(pl.print || pl.download), download: !!pl.download, pnum: pn, maxViews: Number(pl.maxViews) || 0, maxPrints: Number(pl.maxPrints) || 0 }, pl.expiresAt ? { expiresAt: pl.expiresAt } : {});
       toast('Đã lưu link'); done();
       queueRpc('saveLink', pl, { key: 'lk:' + L.id, label: 'Sửa link · ' + pl.name, merge: (a, b) => b }).then(r => { if (r) Object.assign(L, r); }).catch(() => {});
     } }] });
   let mode = lkModeClamp(lkMode(L), LK.data.cfg.maxMode), pn = Object.assign({}, L.pnum);
-  lkModeBind(m.$('#leMode'), x => { mode = x; });
+  lkModeBind(m.$('#leMode'), x => { mode = x; lkPmaxShow(m.$('#lePmx'), x); });
   lkPnumBind(m.$('#lePn'), pn, x => { pn = x; }, () => L.files.filter(f => IX.byId[f.id]).map(f => ({ id: f.id, n: f.n })));
 }
 async function lkViews(L) {
@@ -17563,6 +17575,17 @@ function tkEpic(id) { return tkById(id); }
 function tkAv(e) { return e ? '<span class="av sm" title="' + esc(tkUser(e)) + '">' + esc(initials(tkUser(e))) + '</span>' : '<span class="tk-noav" title="Chưa giao"><i class="bi bi-person"></i></span>'; }
 /** người phụ trách (PIC) của một việc — có thể nhiều người */
 function tkWho(t) { return t.assignees || String(t.assignee || '').split(',').filter(Boolean); }
+/** NGƯỜI GIAO ĐƯỢC ở bảng p: thành viên bảng (bảng không giới hạn / bảng riêng = mọi người dùng Kiến Task) · keep = người đang phụ trách (giữ dù đã thôi dùng Kiến Task).
+    Bảng chung giới hạn thành viên mà người giao là trưởng bảng / có quyền “Giao việc” → thêm mọi người dùng Kiến Task khác (out = ngoài bảng; giao là máy chủ tự thêm vào thành viên bảng). */
+function tkAsgPool(p, keep) {
+  const d = TK.d, k = keep || [], ok = u => u.task || k.indexOf(u.email) >= 0;
+  if (!p || p.scope === 'personal' || !p.members.length) return d.users.filter(ok);
+  const inB = u => p.members.indexOf(u.email) >= 0 || u.email === p.createdBy || k.indexOf(u.email) >= 0, L = d.users.filter(u => inB(u) && ok(u));
+  if (p.createdBy !== d.me && !(d.can || {}).assign) return L;
+  return L.concat(d.users.filter(u => u.task && !inB(u)).map(u => Object.assign({}, u, { out: 1 })));
+}
+/** giao cho người ngoài bảng → máy chủ đã thêm họ vào thành viên bảng; làm theo trên máy cho lần chọn sau */
+function tkJoinLocal(p, emails) { if (!p || p.scope === 'personal' || !p.members.length) return; (emails || []).forEach(e => { if (e && e !== p.createdBy && p.members.indexOf(e) < 0) p.members.push(e); }); }
 function tkAvs(t) { const a = tkWho(t); return a.length ? '<span class="tk-avs" title="' + esc(a.map(tkUser).join(', ')) + '">' + a.slice(0, 3).map(e => '<span class="av sm">' + esc(initials(tkUser(e))) + '</span>').join('') + (a.length > 3 ? '<span class="av sm more">+' + (a.length - 3) + '</span>' : '') + '</span>' : tkAv(''); }
 function tkDue(t) {
   if (!t.due) return '';
@@ -17781,10 +17804,10 @@ function tkPick(root, o) {
     q.placeholder = sel.length ? (o.phMore || '+ Thêm…') : (o.ph || 'Tìm tên hoặc email…'); };
   const changed = () => { sync(); if (o.onChange) o.onChange(sel.slice()); };
   const list = () => { const w = fold(q.value).trim(), v = q.value.trim().toLowerCase(), P = o.pool();
-    L = P.filter(u => sel.indexOf(u.email) < 0 && (!w || fold(u.name + ' ' + u.email).indexOf(w) >= 0)).sort((a, b) => (b.email === me) - (a.email === me)).slice(0, 50);
+    L = P.filter(u => sel.indexOf(u.email) < 0 && (!w || fold(u.name + ' ' + u.email).indexOf(w) >= 0)).sort((a, b) => (b.email === me) - (a.email === me) || (a.out ? 1 : 0) - (b.out ? 1 : 0)).slice(0, 50);
     if (o.typed && /^[^@\s,;]+@[^@\s,;]+\.[^@\s,;]+$/.test(v) && !P.some(u => u.email === v) && sel.indexOf(v) < 0) L = L.concat([{ email: v, name: v, typed: 1 }]);
     hi = Math.min(hi, Math.max(0, L.length - 1));
-    dd.innerHTML = L.length ? L.map((u, i) => '<div class="tk-mp-o' + (i === hi ? ' on' : '') + '" role="option" data-mi="' + i + '">' + tkAv(u.email) + '<span><b>' + esc(u.typed ? 'Thêm ' + u.email : u.name + (u.email === me ? ' (tôi)' : '')) + '</b><small>' + esc(u.typed ? 'Email chưa có trong danh sách người dùng' : u.email) + '</small></span></div>').join('')
+    dd.innerHTML = L.length ? L.map((u, i) => '<div class="tk-mp-o' + (i === hi ? ' on' : '') + '" role="option" data-mi="' + i + '">' + tkAv(u.email) + '<span><b>' + esc(u.typed ? 'Thêm ' + u.email : u.name + (u.email === me ? ' (tôi)' : '')) + '</b><small>' + esc(u.typed ? 'Email chưa có trong danh sách người dùng' : u.email + (u.out ? ' · ngoài bảng — giao là thêm vào bảng' : '')) + '</small></span></div>').join('')
       : '<div class="tk-mp-none">' + (q.value.trim() ? 'Không tìm thấy “' + esc(q.value.trim()) + '”' : 'Không còn ai để chọn') + '</div>';
     dd.hidden = false; q.setAttribute('aria-expanded', 'true');
     const on = $('.tk-mp-o.on', dd); if (on) on.scrollIntoView({ block: 'nearest' }); };
@@ -18056,7 +18079,7 @@ function tkAdd(p, payload) {
   const pl = Object.assign({}, payload, { projectId: p.id, newId: tkNewId(), order: (TK.ord = Math.max(Date.now(), TK.ord + 1)) });
   if (p.scope === 'personal' && !(pl.assignees || []).length) pl.assignees = [p.createdBy];      // bảng riêng: việc mới tự giao cho chủ bảng
   const t = tkMk(p, pl, TK.d.me), snap = Object.assign({}, t), a = TK.add[t.id] = { t: t, at: 0 };
-  TK.d.tasks.push(t);
+  TK.d.tasks.push(t); tkJoinLocal(p, pl.assignees);
   // vào HÀNG ĐỢI GHI NGẦM chung (localStorage): tắt tab / mất mạng vẫn còn, mở lại tự gửi tiếp; nhiều việc liên tiếp đi chung một lần gọi
   a.pr = queueRpc('taskSave', pl, { label: 'Tạo việc “' + String(pl.title || '').slice(0, 60) + '”' }).then(r => {
     a.at = Date.now(); delete t.pend; tkMerge(t, snap, r);
@@ -18438,9 +18461,9 @@ async function viewTasks(arg, v) {
     catch (e) { Object.keys(t).forEach(k => { delete t[k]; }); Object.assign(t, was); paint(); fail(e); }
   };
   const dbPicMenu = btn => { const t = D().tasks.find(x => x.id === btn.closest('tr').dataset.row), p = t && tkProj(t.projectId); if (!t || !p || t.mir) return;
-    const cur = tkWho(t), M = (p.members.length ? D().users.filter(u => p.members.indexOf(u.email) >= 0 || cur.indexOf(u.email) >= 0 || u.email === p.createdBy) : D().users).filter(u => u.task || cur.indexOf(u.email) >= 0);
-    openMenu(btn, M.map(u => ({ t: u.name + (u.email === D().me ? ' (tôi)' : ''), i: cur.indexOf(u.email) >= 0 ? 'bi-check-circle-fill' : 'bi-circle', fn: async () => { const nx = cur.indexOf(u.email) >= 0 ? cur.filter(e => e !== u.email) : cur.concat([u.email]);
-      await dbSave(t, { assignees: nx }, btn); const b = $('tr[data-row="' + t.id + '"] [data-f="pic"]', v); if (b) b.innerHTML = dbPic(t); } }))
+    const cur = tkWho(t), M = tkAsgPool(p, cur);
+    openMenu(btn, M.map(u => ({ t: u.name + (u.email === D().me ? ' (tôi)' : '') + (u.out ? ' · ngoài bảng' : ''), i: cur.indexOf(u.email) >= 0 ? 'bi-check-circle-fill' : 'bi-circle', fn: async () => { const nx = cur.indexOf(u.email) >= 0 ? cur.filter(e => e !== u.email) : cur.concat([u.email]);
+      await dbSave(t, { assignees: nx }, btn); tkJoinLocal(p, nx); const b = $('tr[data-row="' + t.id + '"] [data-f="pic"]', v); if (b) b.innerHTML = dbPic(t); } }))
       .concat(cur.length ? ['-', { t: 'Bỏ giao', i: 'bi-person-dash', fn: async () => { await dbSave(t, { assignees: [] }, btn); const b = $('tr[data-row="' + t.id + '"] [data-f="pic"]', v); if (b) b.innerHTML = dbPic(t); } }] : [])); };
   const paintBacklog = () => {
     const p0 = curProj(); if (!p0) { v.innerHTML = empty(); return; }
@@ -19195,7 +19218,7 @@ async function viewTasks(arg, v) {
     if (isNew && !init.draft && mode === 'board' && activeSp(p0)) cur.sprintId = activeSp(p0).id;
     if (isNew && tkPar(cur.parentId)) { const pa = tkPar(cur.parentId); cur.epicId = pa.epicId || ''; if (!init.draft) cur.sprintId = pa.sprintId || ''; }      // sub-task mới: theo epic, đợt của task cha
     const opt = (list, val) => list.map(o => '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(val) ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join('');
-    const members = p => (p.members.length ? D().users.filter(u => p.members.indexOf(u.email) >= 0 || u.email === p.createdBy) : D().users).filter(u => u.task);      // người giao được: thành viên bảng (bảng không giới hạn = mọi người dùng Kiến Task)
+    const members = p => tkAsgPool(p);      // người giao được: thành viên bảng (+ người dùng Kiến Task ngoài bảng nếu mình giao được cho người khác)
     const spOpts = p => [['', 'Việc chờ (chưa xếp đợt)']].concat(sprints(p).filter(s => s.status !== 'done' || s.id === cur.sprintId).map(s => [s.id, s.name + (s.status === 'active' ? ' · đang chạy' : '')]));
     const epOpts = p => [['', 'Không']].concat(D().tasks.filter(x => x.projectId === p.id && x.type === 'epic' && x.id !== cur.id).map(x => [x.id, x.title]));
     const lv0 = isNew ? (cur.type === 'epic' ? 'epic' : tkPar(cur.parentId) ? 'sub' : 'task') : tkLv(cur);
@@ -19273,7 +19296,7 @@ async function viewTasks(arg, v) {
           else { const x = D().tasks.find(k => k.id === cur.id) || cur, was = Object.assign({}, x), pj = tkProj(x.projectId), now = new Date().toISOString(); pl.id = cur.id;
             Object.assign(x, pl, { assignee: pl.assignees.join(','), assignees: pl.assignees.slice(), points: pl.points === '' || isNaN(Number(pl.points)) ? '' : Number(pl.points), updatedAt: now,
               doneAt: pj && pj.cols.some(c => c.id === pl.status && c.done) ? x.doneAt || now : '' });
-            if (hrsNew) x.hrs = hrsNew; else if ('hrs' in pl) x.hrs = was.hrs; delete x.hrsOk;
+            if (hrsNew) x.hrs = hrsNew; else if ('hrs' in pl) x.hrs = was.hrs; delete x.hrsOk; tkJoinLocal(pj, pl.assignees);
             D().tasks.forEach(k => { if (k.id === x.id) return;      // đổi cấp / đổi epic: cấp dưới đi theo như máy chủ làm
               if (was.type === 'epic' && pl.type !== 'epic' && k.epicId === x.id) k.epicId = '';
               if (k.parentId === x.id) { if (pl.type === 'epic') { k.parentId = ''; k.epicId = x.id; } else k.epicId = pl.epicId; } });
