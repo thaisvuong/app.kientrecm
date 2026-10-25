@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T17:24:14.917Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T17:59:09.345Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -759,6 +759,8 @@ html[data-theme="graphite"]{ --brand-950:#0B0F17; --brand-900:#111827; --brand-8
 .tree-i.root{ font-weight:800; color:var(--ink) }
 /* nhóm nguồn trên cây Thư viện (1.43.1) */
 .tree-grp > .tree-kids{ margin-top:2px } .tree-grp .tree-src{ margin-bottom:2px }
+.xa-mv{ display:flex; flex-direction:column; gap:0; margin-right:2px } .xa-mv .ibtn{ height:18px; min-height:0 }
+.mn-gh .mn-mt{ font-size:13.5px; color:var(--ink) }
 .tree-i .fi.grpic{ color:var(--brand-600) }
 .tree-i.in{ background:color-mix(in srgb, var(--brand-50) 60%, transparent) }
 .lib-bar{ position:sticky; top:0; z-index:20; display:flex; flex-direction:column; gap:10px; padding:12px var(--sp-4); background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--border) }
@@ -1237,6 +1239,7 @@ html[data-glass] .lib-bar{ border-radius:20px 20px 0 0 }
 /* dãy vai trò dài → ô chọn có tìm kiếm (roleSelect): chọn nhiều thì vai trò đã chọn là chip bấm để bỏ, ô chọn nối sau */
 .rsel-on{ display:flex !important; flex-direction:row !important; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:6px }
 .rsel-on > .csel{ flex:1 1 220px; min-width:200px; max-width:360px } .rsel-on:not(.rsel-multi) > .csel{ max-width:none }
+.rsel-none{ font-size:12px; color:var(--muted); font-style:italic; margin-right:2px }
 .rsel-multi > button.on::after{ content:'\00d7'; margin-left:6px; font-weight:800; opacity:.8 }
 .ucard-h{ flex-wrap:wrap; gap:10px }
 .rpick{ display:flex; flex-direction:column; gap:6px }
@@ -5695,6 +5698,11 @@ const NAV_DEF = [
   { r: 'users/roles', t: 'Vai trò & quyền', i: 'bi-shield-lock', g: 'admin', cap: 'users.manage', m: /^users\/roles/ },
   { r: 'users/invites', t: 'Lời mời', i: 'bi-envelope-paper-heart', g: 'admin', cap: 'users.manage', m: /^users\/invites/ },
   { r: 'xapps', t: 'Quản lý ứng dụng', i: 'bi-window-plus', g: 'admin', cap: 'settings.manage' },
+  /* (1.43.2) cài đặt của Quản trị đưa ra thanh bên — không còn nằm trong Cài đặt */
+  { r: 'admin/general', t: 'Chung & truy cập', i: 'bi-sliders', g: 'admin', cap: 'settings.manage', m: /^admin\/general/ },
+  { r: 'admin/menu', t: 'Menu & tab', i: 'bi-layout-sidebar', g: 'admin', cap: 'settings.manage', m: /^admin\/menu/ },
+  { r: 'admin/system', t: 'Hệ thống', i: 'bi-cpu', g: 'admin', cap: 'settings.manage', m: /^admin\/system/ },
+  { r: 'admin/audit', t: 'Nhật ký', i: 'bi-journal-text', g: 'admin', cap: 'audit.view', m: /^admin\/audit/ },
   { r: 'settings', t: 'Cài đặt', i: 'bi-gear', g: 'admin' },
   { r: 'apps', t: 'Apps', i: 'bi-grid-3x3-gap', g: 'admin', multi: 1 }      // cuối thanh bên: mở trang chọn ứng dụng (đổi nhanh: bấm tên ứng dụng dưới logo)
 ];
@@ -5703,7 +5711,7 @@ const GROUPS = { lib: 'Thư viện', team: 'Hỗ trợ', admin: 'Quản trị' }
    Web app chia thành các ứng dụng (danh mục ở máy chủ: MODULES trong Code.gs → S.boot.mods; người này được vào những ứng dụng nào: S.me.apps).
    Mỗi trang thuộc một ứng dụng; thanh bên chỉ hiện tab của ứng dụng đang mở + các tab dùng chung (Thông tin, Hướng dẫn, Cài đặt).
    Mở một trang của ứng dụng khác (link, thông báo…) → tự chuyển sang ứng dụng đó. Thêm ứng dụng: thêm vào MODULES + MOD_ROUTES. */
-const MOD_ROUTES = { tutor: ['today', 'classes', 'guide'], lib: ['home', 'library', 'programs', 'recent', 'links', 'upload', 'sources'], redesign: ['compose', 'syllabus'], task: ['tasks'], sys: ['activity', 'users', 'xapps'] };      // Nguồn dữ liệu thuộc Thư viện: nạp nguồn ngay tại nơi dùng tài liệu
+const MOD_ROUTES = { tutor: ['today', 'classes', 'guide'], lib: ['home', 'library', 'programs', 'recent', 'links', 'upload', 'sources'], redesign: ['compose', 'syllabus'], task: ['tasks'], sys: ['activity', 'users', 'xapps', 'admin'] };      // Nguồn dữ liệu thuộc Thư viện: nạp nguồn ngay tại nơi dùng tài liệu
 const MOD_LAST = lsGet('modLast', {});
 /* trang dùng chung giữa các ứng dụng: Chương trình có ở cả Kiến Chuyên môn (lớp gia sư học theo chương trình) lẫn Thư viện (nơi dựng chương trình từ tài liệu) —
    mở từ ứng dụng nào thì ở lại ứng dụng đó, cùng một dữ liệu */
@@ -5926,7 +5934,7 @@ const ROLE_CHIPS = 6;
 function roleSelect(host, o) {
   if (!host) return; o = o || {};
   const run = () => {
-    host.querySelectorAll(':scope > .rsel, :scope > .rsel + .csel').forEach(x => x.remove());
+    host.querySelectorAll(':scope > .rsel, :scope > .rsel + .csel, :scope > .rsel-none').forEach(x => x.remove());
     const B = $$('button[data-r], button[data-role]', host), many = B.length > ROLE_CHIPS;
     host.classList.toggle('rsel-on', many); host.classList.toggle('rsel-multi', many && !!o.multi);
     if (!many) { B.forEach(b => { b.hidden = false; }); return; }
@@ -5934,9 +5942,10 @@ function roleSelect(host, o) {
     const lab = b => ((b.querySelector('b') || b).textContent || '').trim();
     const cur = B.find(isOn), opts = o.multi ? B.filter(b => !isOn(b) && !b.disabled) : B;
     B.forEach(b => { b.hidden = !o.multi || !isOn(b); });
+    if (o.multi && !cur && o.none !== false) host.insertAdjacentHTML('beforeend', '<span class="rsel-none">Chưa chọn vai trò nào</span>');      // chọn nhiều mà chưa chọn gì: nói rõ, khỏi tưởng ô chọn là giá trị
     if (!opts.length) return;
     const s = document.createElement('select'); s.className = 'sel rsel';
-    s.innerHTML = (o.multi || !cur ? '<option value="">' + esc(o.ph || (o.multi ? '+ Thêm vai trò… (gõ để tìm)' : 'Chọn vai trò… (gõ để tìm)')) + '</option>' : '') +
+    s.innerHTML = (o.multi || !cur ? '<option value="">' + esc(o.ph || (o.multi ? (cur ? 'Thêm vai trò khác…' : 'Bấm để chọn vai trò — gõ tên để tìm') : 'Chọn vai trò — gõ tên để tìm')) + '</option>' : '') +
       opts.map((b, i) => '<option value="' + i + '"' + (!o.multi && b === cur ? ' selected' : '') + (b.disabled ? ' disabled' : '') + '>' + esc(lab(b)) + '</option>').join('');
     s.onchange = e => { e.stopPropagation(); const b = opts[Number(s.value)]; if (s.value !== '' && b && !b.disabled) b.click(); };
     host.appendChild(s); selSearch(s, 0);
@@ -6309,6 +6318,7 @@ const ROUTES = {
   xapps:    { t: 'Quản lý ứng dụng', i: 'bi-window-plus', fn: (a, v) => viewXApps(a, v), cap: 'settings.manage' },
   x:        { t: 'Ứng dụng', i: 'bi-window', fn: (a, v) => viewExt(a, v), arg: 1 },
   settings: { t: 'Cài đặt', i: 'bi-gear', fn: (a, v) => viewSettings(a, v), arg: 1 },
+  admin:    { t: 'Cài đặt quản trị', i: 'bi-sliders', fn: (a, v) => viewSettings(a, v, true), arg: 1, cap: ['settings.manage', 'audit.view'] },      // (1.43.2) Chung & truy cập · Menu & tab · Hệ thống · Nhật ký — tab riêng của Quản trị
   tasks:    { t: 'Kiến Task', i: 'bi-kanban', fn: (a, v) => viewTasks(a, v), arg: 1, cls: 'tk-view', cap: TASK_TABS },
   apps:     { t: 'Apps', i: 'bi-grid-3x3-gap', fn: (a, v) => viewApps(a, v) },
   today:    { t: 'Tổng quan', i: 'bi-grid-1x2', fn: (a, v) => viewHome(a, v), cap: ['classes.view', 'classes.manage'], ix: 1 }      // tổng quan của Kiến Chuyên môn (lịch tuần, việc cần làm, trao đổi) — 'home' là tổng quan của Thư viện
@@ -6355,6 +6365,7 @@ async function go(route, opt) {
   const seq = ++NAV;
   bnShow();
   route = String(route || 'home').replace(/^\/+|\/+$/g, '') || 'home';
+  route = route.replace(/^settings\/(general|menu|system|audit)(?=\/|$)/, 'admin/$1');      // (1.43.2) cài đặt của Quản trị đã ra thanh bên — đường dẫn / thông báo cũ
   let key = route.split('/')[0];
   if (!ROUTES[key]) { key = 'home'; route = 'home'; }
   if (!canAny(ROUTES[key].cap)) { if (key !== 'home') toast('Bạn không có quyền vào trang này', 'warn'); route = homeRoute(); key = route; }
@@ -6372,7 +6383,7 @@ async function go(route, opt) {
   $$('.sheet-bg').forEach(x => x.remove()); if (menuEl && menuEl._close) menuEl = null;      // đổi trang → đóng bảng “Thêm” / bảng tác vụ còn mở
   const arg = route.split('/').slice(1).join('/');
   const prev = S.route;
-  if (window.NAV_DRAFT && route !== 'settings/menu') { window.NAV_DRAFT = false; S.route = route; buildNav(); toast('Bố cục menu chưa lưu — đã trả về bố cục đang dùng', 'info'); }   // rời trang Menu & tab khi chưa lưu
+  if (window.NAV_DRAFT && route !== 'settings/menu' && route !== 'admin/menu') { window.NAV_DRAFT = false; S.route = route; buildNav(); toast('Bố cục menu chưa lưu — đã trả về bố cục đang dùng', 'info'); }   // rời trang Menu & tab khi chưa lưu
   S.route = route;
   tabMark(route, opt);
   if (prev !== route) ntSeen(route);
@@ -9040,28 +9051,33 @@ const ICONS = ['bi-journal-text', 'bi-house-door', 'bi-plus-square', 'bi-check2-
   'bi-flag', 'bi-bookmark', 'bi-card-checklist', 'bi-list-check', 'bi-question-circle', 'bi-award', 'bi-mortarboard', 'bi-collection', 'bi-file-earmark-ruled', 'bi-images',
   'bi-key', 'bi-stopwatch'];
 
-async function viewSettings(arg, v) {
+/* Cài đặt của Quản trị (Chung & truy cập · Menu & tab · Hệ thống · Nhật ký — mod sys) là các tab riêng trên thanh bên của Quản trị (route admin/<mục>, 1.43.2);
+   Cài đặt (nút dưới thanh bên) chỉ còn mục của người dùng và của ứng dụng đang mở. solo = vẽ một mục, không có cột mục bên trái. */
+const SET_SYS = k => { const t = SET_TABS.find(x => x.k === k); return !!t && !!t.mod && t.mod.join() === 'sys'; };
+async function viewSettings(arg, v, solo) {
   topBtns(v, '', true);
-  const tabs = SET_TABS.filter(t => (!t.cap || can(t.cap)) && (!t.mod || !S.mod || t.mod.indexOf(S.mod) >= 0) && (!t.auth || (S.me && S.me.email && !S.me.guest)));
-  let cur = tabs.find(t => t.k === arg) ? arg : 'me';
+  const ok = t => (!t.cap || can(t.cap)) && (!t.auth || (S.me && S.me.email && !S.me.guest));
+  const tabs = solo ? SET_TABS.filter(t => SET_SYS(t.k) && ok(t)) : SET_TABS.filter(t => !SET_SYS(t.k) && ok(t) && (!t.mod || !S.mod || t.mod.indexOf(S.mod) >= 0));
+  if (!tabs.length) { v.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-shield-lock"></i><b>Bạn chưa có quyền mục này</b></div></div>'; return; }
+  let cur = tabs.find(t => t.k === arg) ? arg : tabs[0].k;
   let cfg = null;
   // điện thoại: hiện 2 mục đầu + mục đang mở, các mục còn lại trong nút ⋯ (không cắt / đè chữ)
-  v.innerHTML = '<div class="set-lay"><nav class="card set-nav" id="stN">' + tabs.map(t => '<button data-k="' + t.k + '"><i class="bi ' + t.i + '"></i><span>' + esc(t.t) + '</span></button>').join('') +
+  v.innerHTML = solo ? '<div class="set-solo" id="stB"></div>' : '<div class="set-lay"><nav class="card set-nav" id="stN">' + tabs.map(t => '<button data-k="' + t.k + '"><i class="bi ' + t.i + '"></i><span>' + esc(t.t) + '</span></button>').join('') +
     '<button class="set-mo" id="stMo" aria-label="Thêm mục cài đặt" title="Thêm"><i class="bi bi-three-dots"></i></button></nav><div id="stB"></div></div>';
   const B = $('#stB', v);
   const draw = async () => {
-    $$('#stN button[data-k]', v).forEach((b, i) => { if (b.dataset.k === cur) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); b.classList.toggle('set-x', i >= 2 && b.dataset.k !== cur); });
-    const mo = $('#stMo', v); if (mo) mo.hidden = tabs.length <= 3;
+    if (!solo) { $$('#stN button[data-k]', v).forEach((b, i) => { if (b.dataset.k === cur) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); b.classList.toggle('set-x', i >= 2 && b.dataset.k !== cur); });
+      const mo = $('#stMo', v); if (mo) mo.hidden = tabs.length <= 3; }
     const T = tabs.find(t => t.k === cur);
-    setTitle(T.t, T.i, [{ t: (modInfo(S.mod) || {}).t || S.boot.app, r: homeRoute() }, { t: 'Cài đặt', r: 'settings' }], v);
+    setTitle(T.t, T.i, solo ? [] : [{ t: (modInfo(S.mod) || {}).t || S.boot.app, r: homeRoute() }, { t: 'Cài đặt', r: 'settings' }], v);
     if ((T.k === 'general' || T.k === 'rules' || T.k === 'system') && !cfg) { B.innerHTML = miniLoader('Đang tải cài đặt…'); cfg = can('settings.manage') ? await rpc('getSettings', {}, { quiet: true }) : { values: { kindRules: IX.kinds }, defaults: { kindRules: IX.kinds } }; }
     if (cur === 'rules' && !IX.loaded) { B.innerHTML = miniLoader('Đang tải danh mục tài liệu…'); await needIndex(); }
     ({ tasks: setTasks, taskdemo: setTaskDemo, me: setMe, notify: setNotify, cal: B => calSyncBox(B), theme: setTheme, access: setAccess, menu: setMenu, general: setGeneral, rules: setRules, system: setSystem, audit: setAudit })[cur](B, cfg, c => { cfg = c; });
   };
-  $('#stN', v).onclick = e => {
+  if (!solo) $('#stN', v).onclick = e => {
     const m = e.target.closest('#stMo'); if (m) return openMenu(m, tabs.filter((t, i) => i >= 2 && t.k !== cur).map(t => ({ t: t.t, i: t.i, fn: () => go('settings/' + t.k) })));
     const b = e.target.closest('[data-k]'); if (b && b.dataset.k !== cur) go('settings/' + b.dataset.k); };
-  v._onArg = a => { cur = tabs.find(t => t.k === a) ? a : 'me'; draw(); };
+  v._onArg = a => { cur = tabs.find(t => t.k === a) ? a : tabs[0].k; draw(); };      // settings/<mục quản trị> cũ được go() đổi sang admin/<mục>
   await draw();
 }
 
@@ -9195,29 +9211,32 @@ function setMenu(B) {
   let dirty = false, drag = null;
   const draft = () => ({ groups: G, items: I });
   const preview = () => buildNav(draft());
+  /* (1.43.2) chia theo ỨNG DỤNG: thanh bên chỉ hiện tab của ứng dụng đang mở, nên trang này xếp tab theo ứng dụng (tên ứng dụng hiện tại — VD Soạn phiếu thuộc Kiến Style);
+     đổi thứ tự trong cùng ứng dụng. Tab dùng chung (Thông tin, Cài đặt, Apps…) ở khối cuối. Nhóm cũ (groups) vẫn lưu nhưng không còn hiện. */
+  const modR = r => Object.keys(MOD_ROUTES).find(k => MOD_ROUTES[k].indexOf(r.split('/')[0]) >= 0) || '';
+  const MODS = (S.boot.mods || []).map(m => ({ id: m.id, t: m.t, i: m.i })).concat([{ id: '', t: 'Dùng chung — ở mọi ứng dụng', i: 'bi-grid-3x3-gap' }]);
   const row = x => {
     const d = def[x.r];
     return '<div class="mn-i' + (x.hide ? ' off' : '') + '" draggable="true" data-r="' + x.r + '"><i class="bi bi-grip-vertical mn-h" title="Kéo để đổi chỗ / sang nhóm khác"></i>' +
       '<button class="ibtn sm mn-ic" data-ic="' + x.r + '" title="Đổi biểu tượng"><i class="bi ' + esc(x.i || d.i) + '"></i></button>' +
       '<input class="inp sm" data-t="' + x.r + '" value="' + esc(x.t) + '" placeholder="' + esc(d.t) + '">' +
-      '<select class="inp sm mn-g" data-g="' + x.r + '">' + G.map(g => '<option value="' + esc(g.id) + '"' + (g.id === x.g ? ' selected' : '') + '>' + esc(g.t) + '</option>').join('') + '</select>' +
+      (MOD_SHARED[x.r.split('/')[0]] ? '<span class="mn-cap" title="Tab dùng chung giữa các ứng dụng">cũng ở ' + esc(MOD_SHARED[x.r.split('/')[0]].filter(id => id !== modR(x.r)).map(id => (MODS.find(m => m.id === id) || { t: id }).t).join(', ')) + '</span>' : '') +
       '<span class="mn-cap" title="Ai thấy tab này">' + esc(d.cap ? [].concat(d.cap).map(c => (S.boot.caps[c] || [c])[1] || c).filter((v, i, a) => a.indexOf(v) === i).join(', ') : 'Mọi người') + '</span>' +
       '<button class="ibtn sm" data-mv="' + x.r + '" data-d="-1" title="Lên"><i class="bi bi-arrow-up"></i></button><button class="ibtn sm" data-mv="' + x.r + '" data-d="1" title="Xuống"><i class="bi bi-arrow-down"></i></button>' +
       (x.r === 'settings' ? '<span class="mn-lock" title="Không ẩn được để luôn vào được Cài đặt"><i class="bi bi-lock"></i></span>' : '<label class="sw sm" title="Hiện / ẩn trên thanh bên"><input type="checkbox" data-hd="' + x.r + '"' + (x.hide ? '' : ' checked') + '><span></span></label>') + '</div>';
   };
   const paint = () => {
     B.innerHTML = '<div class="card"><div class="card-h"><h2><i class="bi bi-layout-sidebar"></i>Menu & tab trên thanh bên</h2><span class="sp"></span>' +
-      '<button class="btn sm" id="mnAddG"><i class="bi bi-folder-plus"></i>Thêm nhóm</button><button class="btn sm ghost" id="mnReset"><i class="bi bi-arrow-counterclockwise"></i>Về mặc định</button>' +
+      '<button class="btn sm ghost" id="mnReset"><i class="bi bi-arrow-counterclockwise"></i>Về mặc định</button>' +
       '<button class="btn sm pri" id="mnSave"' + (dirty ? '' : ' disabled') + '><i class="bi bi-check2"></i>Lưu cho mọi người</button></div>' +
-      '<div class="card-b"><div class="small muted cl-hint" style="margin-bottom:12px"><i class="bi bi-info-circle"></i><span>Kéo tab để đổi thứ tự hoặc thả sang nhóm khác. Đổi tên, biểu tượng, ẩn tab. Thanh bên bên trái <b>xem trước ngay</b>; bấm <b>Lưu</b> để áp dụng cho mọi người. Bố cục chỉ đổi cách hiển thị — ai được vào trang nào vẫn theo <a data-go="users/roles">Vai trò & quyền</a> (cột phải).</span></div>' +
-      G.map((g, gi) => { const L = I.filter(x => x.g === g.id);
-        return '<div class="mn-g-card" data-gid="' + esc(g.id) + '"><div class="mn-gh"><i class="bi bi-folder2-open"></i><input class="inp sm mn-gt" data-gt="' + esc(g.id) + '" value="' + esc(g.t) + '" placeholder="Tên nhóm"><small>' + L.length + ' tab</small><span class="sp"></span>' +
-          '<button class="ibtn sm" data-gmv="' + gi + '" data-d="-1" title="Nhóm lên"' + (gi ? '' : ' disabled') + '><i class="bi bi-chevron-up"></i></button><button class="ibtn sm" data-gmv="' + gi + '" data-d="1" title="Nhóm xuống"' + (gi < G.length - 1 ? '' : ' disabled') + '><i class="bi bi-chevron-down"></i></button>' +
-          '<button class="ibtn sm" data-gdel="' + gi + '" title="Xoá nhóm (tab chuyển sang nhóm đầu)"' + (G.length > 1 ? '' : ' disabled') + '><i class="bi bi-trash"></i></button></div>' +
-          '<div class="mn-list" data-drop="' + esc(g.id) + '">' + (L.length ? L.map(row).join('') : '<div class="mn-empty">Kéo tab vào đây</div>') + '</div></div>'; }).join('') + '</div></div>';
+      '<div class="card-b"><div class="small muted cl-hint" style="margin-bottom:12px"><i class="bi bi-info-circle"></i><span>Mỗi ứng dụng một khối — đúng các tab hiện trên thanh bên khi mở ứng dụng đó. Kéo hoặc bấm ↑ ↓ để đổi thứ tự trong ứng dụng; đổi tên, biểu tượng, ẩn tab. ' +
+      'Thanh bên bên trái <b>xem trước ngay</b>; bấm <b>Lưu</b> để áp dụng cho mọi người. Ai được vào trang nào vẫn theo <a data-go="users/roles">Vai trò & quyền</a> (cột phải).</span></div>' +
+      MODS.map(m => { const L = I.filter(x => modR(x.r) === m.id); if (!L.length) return '';
+        return '<div class="mn-g-card" data-mod="' + esc(m.id) + '"><div class="mn-gh"><i class="bi ' + esc(m.i || 'bi-app') + '"></i><b class="mn-mt">' + esc(m.t) + '</b><small>' + L.length + ' tab</small></div>' +
+          '<div class="mn-list" data-drop="' + esc(m.id) + '">' + L.map(row).join('') + '</div></div>'; }).join('') + '</div></div>';
   };
   const change = (rePaint) => { dirty = true; window.NAV_DRAFT = true; preview(); if (rePaint !== false) paint(); else { const b = $('#mnSave', B); if (b) b.disabled = false; } };
-  const move = (r, d) => { const i = I.findIndex(x => x.r === r), g = I[i].g; let j = i + d; while (j >= 0 && j < I.length && I[j].g !== g) j += d; if (j < 0 || j >= I.length) return; const t = I[i]; I[i] = I[j]; I[j] = t; change(); };
+  const move = (r, d) => { const i = I.findIndex(x => x.r === r), g = modR(I[i].r); let j = i + d; while (j >= 0 && j < I.length && modR(I[j].r) !== g) j += d; if (j < 0 || j >= I.length) return; const t = I[i]; I[i] = I[j]; I[j] = t; change(); };
   B.oninput = e => {
     const t = e.target;
     if (t.dataset.t) { I.find(x => x.r === t.dataset.t).t = t.value.trim(); change(false); }
@@ -9225,7 +9244,6 @@ function setMenu(B) {
   };
   B.onchange = e => {
     const t = e.target;
-    if (t.dataset.g) { const x = I.find(z => z.r === t.dataset.g), i = I.indexOf(x); I.splice(i, 1); x.g = t.value; I.push(x); change(); }
     if (t.dataset.hd) { I.find(x => x.r === t.dataset.hd).hide = !t.checked; change(); }
     if (t.dataset.gt) paint();
   };
@@ -9269,9 +9287,10 @@ function setMenu(B) {
     if (!drag) return; e.preventDefault();
     const over = e.target.closest('.mn-i'), list = e.target.closest('.mn-list'); if (!list) return;
     const x = I.find(z => z.r === drag); if (!x || (over && over.dataset.r === drag)) return;
-    I.splice(I.indexOf(x), 1); x.g = list.dataset.drop;
+    if (modR(x.r) !== list.dataset.drop) { drag = null; return toast('Tab chỉ đổi chỗ trong ứng dụng của nó', 'warn'); }      // tab thuộc ứng dụng nào thì ở thanh bên của ứng dụng đó
+    I.splice(I.indexOf(x), 1);
     if (over) I.splice(I.findIndex(z => z.r === over.dataset.r), 0, x);
-    else { let k = -1; I.forEach((z, j) => { if (z.g === x.g) k = j; }); I.splice(k + 1, 0, x); }
+    else { let k = -1; I.forEach((z, j) => { if (modR(z.r) === list.dataset.drop) k = j; }); I.splice(k + 1, 0, x); }
     drag = null; change();
   });
   paint();
@@ -9617,8 +9636,8 @@ async function viewXApps(arg, v) {
   const sync = () => { S.boot.ext = D.apps.slice(); Object.keys(VIEWS).filter(k => k === 'apps' || /^x(\/|$)/.test(k)).forEach(k => { VIEWS[k].el.remove(); delete VIEWS[k]; }); };      // trang Apps vẽ lại theo danh sách mới
   const paint = () => {
     setTitle('Quản lý ứng dụng', 'bi-window-plus', [{ t: 'Quản trị', r: 'users' }], v);
-    v.innerHTML = '<div class="card"><div class="card-h"><h2><i class="bi bi-grid"></i>Ứng dụng trong app</h2><span class="sp"></span><span class="small muted">Đổi tên, mô tả, biểu tượng</span></div><div class="xa-l">' +
-        (S.boot.mods || []).map(m => '<div class="xa-i" data-mid="' + esc(m.id) + '"><span class="md-orb"><i class="bi ' + esc(m.i) + '"></i></span><div class="xa-t"><b>' + esc(m.t) + '</b><small>' + esc(m.d) + '</small></div><button class="ibtn" data-ed title="Sửa" aria-label="Sửa ' + esc(m.t) + '"><i class="bi bi-pencil"></i></button></div>').join('') + '</div></div>' +
+    v.innerHTML = '<div class="card"><div class="card-h"><h2><i class="bi bi-grid"></i>Ứng dụng trong app</h2><span class="sp"></span><span class="small muted">Đổi tên, mô tả, biểu tượng · ↑ ↓ đổi thứ tự hiện ở trang Apps</span></div><div class="xa-l">' +
+        (S.boot.mods || []).map((m, k, A) => '<div class="xa-i" data-mid="' + esc(m.id) + '"><span class="xa-mv"><button class="ibtn sm" data-mmv="-1" title="Lên"' + (k ? '' : ' disabled') + ' aria-label="Đưa ' + esc(m.t) + ' lên"><i class="bi bi-arrow-up"></i></button><button class="ibtn sm" data-mmv="1" title="Xuống"' + (k < A.length - 1 ? '' : ' disabled') + ' aria-label="Đưa ' + esc(m.t) + ' xuống"><i class="bi bi-arrow-down"></i></button></span><span class="md-orb"><i class="bi ' + esc(m.i) + '"></i></span><div class="xa-t"><b>' + esc(m.t) + '</b><small>' + esc(m.d) + '</small></div><button class="ibtn" data-ed title="Sửa" aria-label="Sửa ' + esc(m.t) + '"><i class="bi bi-pencil"></i></button></div>').join('') + '</div></div>' +
       '<div class="card"><div class="card-h"><h2><i class="bi bi-window-plus"></i>Ứng dụng ngoài</h2><span class="sp"></span><span class="small muted">Liên kết tới trang khác — mở ngay trong app hoặc ở thẻ mới</span></div>' +
       (D.apps.length ? '<div class="xa-l">' + D.apps.map(a => '<div class="xa-i" data-id="' + esc(a.id) + '">' + extOrb(a) + '<div class="xa-t"><b>' + esc(a.t) + '</b><small>' + esc(a.url) + '</small></div>' +
         '<span class="tag">' + (a.mode === 'in' ? 'Mở trong app' : 'Mở thẻ mới') + '</span><span class="xa-r">' + (a.roles.length ? esc(a.roles.map(rl).join(', ')) : 'Mọi người') + '</span>' +
@@ -9669,6 +9688,7 @@ async function viewXApps(arg, v) {
     m.$('#xKB').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) { cur.i = b.dataset.i; return kb(); } if (e.target.closest('#xLX')) { cur.logo = ''; kb(); } });
     m.$('#xKB').addEventListener('change', async e => { if (e.target.id === 'xF' && e.target.files[0]) { try { cur.logo = await shrink(e.target.files[0]); kb(); } catch (er) { fail(er); } }
       if (e.target.id === 'xLU') { const u = e.target.value.trim(); if (!u || /^https:\/\/\S+/.test(u)) { cur.logo = u; pv(); } else toast('Link ảnh phải bắt đầu bằng https://', 'warn'); } });
+    roleSelect(m.$('#xR'), { multi: 1 });
     m.$('#xR').onclick = e => { const b = e.target.closest('[data-r]'); if (!b) return; const id = b.dataset.r; cur.roles = cur.roles.indexOf(id) >= 0 ? cur.roles.filter(x => x !== id) : cur.roles.concat([id]); b.classList.toggle('on'); hints(); };
     m.$('#xM').onchange = () => { hints(); check(); }; m.$('#xU').onchange = () => { pv(); check(); };
     kb(); hints(); if (a) check();
@@ -9691,6 +9711,11 @@ async function viewXApps(arg, v) {
   };
   v.onclick = async e => {
     if (e.target.closest('[data-new]')) return dlg(null);
+    const mm = e.target.closest('[data-mmv]'); if (mm && !mm.disabled) {      // đổi thứ tự ứng dụng
+      const ids = (S.boot.mods || []).map(x => x.id), i = ids.indexOf(mm.closest('[data-mid]').dataset.mid), j = i + Number(mm.dataset.mmv); if (i < 0 || j < 0 || j >= ids.length) return;
+      ids.splice(j, 0, ids.splice(i, 1)[0]); S.boot.mods = ids.map(id => S.boot.mods.find(x => x.id === id)); paint(); sync();
+      try { const r = await rpc('modOrder', { ids: ids }, { quiet: true }); S.boot.mods = r.mods; sync(); paint(); toast('Đã đổi thứ tự ứng dụng', 'ok', 1500); } catch (er) { fail(er); }
+      return; }
     const mi = e.target.closest('.xa-i[data-mid]'); if (mi) { const mo = (S.boot.mods || []).find(x => x.id === mi.dataset.mid); if (mo && (e.target.closest('[data-ed]') || e.target.closest('.xa-t'))) modDlg(mo); return; }
     const it = e.target.closest('.xa-i'); if (!it) return; const a = D.apps.find(x => x.id === it.dataset.id); if (!a) return;
     if (e.target.closest('[data-del]')) { if (!await ask('Gỡ “' + a.t + '” khỏi trang Apps?', { ok: 'Gỡ', danger: true })) return; try { D = await rpc('extDelete', { id: a.id }); sync(); paint(); toast('Đã gỡ ' + a.t); } catch (er) { fail(er); } return; }
@@ -14181,7 +14206,7 @@ function annEdit(x, after) {
   m.$('#anA').onclick = e => { const b = e.target.closest('.rchip'); if (!b) return;
     if (b.hasAttribute('data-all')) { m.$$('#anA .rchip').forEach(z => z.classList.toggle('on', z === b)); return sum(); }
     b.classList.toggle('on'); const any = m.$$('#anA [data-role].on').length; m.$('#anA [data-all]').classList.toggle('on', !any); sum(); };
-  roleSelect(m.$('#anA'), { multi: 1, ph: '+ Thêm người nhận theo vai trò… (gõ để tìm)' });
+  roleSelect(m.$('#anA'), { multi: 1, none: false, ph: 'Chọn vai trò nhận tin — gõ tên để tìm' });
   m.el.addEventListener('change', e => { if (e.target.closest('.anx-opt')) sum(); });
   // dán ảnh (Ctrl/⌘ + V) vào ô nội dung cũng thêm được
   B.addEventListener('paste', e => { const fs = [...(e.clipboardData && e.clipboardData.files || [])].filter(f => /^image\//.test(f.type)); if (!fs.length) return; e.preventDefault(); const dt = new DataTransfer(); fs.forEach(f => dt.items.add(f)); const fi = m.$('#anF'); fi.files = dt.files; fi.dispatchEvent(new Event('change')); });
@@ -18316,7 +18341,7 @@ async function viewTasks(arg, v) {
   const top = topBtns(v, '<span id="tkTop"></span>');
   const paintTop = () => {
     $('#tkTop', top).innerHTML = (C().remind ? '<button class="ibtn" id="tkRem" title="Nhắc việc qua mail"><i class="bi bi-envelope-check"></i></button>' : '') + '<button class="ibtn" id="tkNewP" title="Bảng: tạo bảng riêng / bảng chung, sửa bảng"><i class="bi bi-folder-plus"></i></button>' +
-      (projs().length && tplCan() ? '<button class="ibtn" id="tkTpl" title="Mẫu chuỗi việc — tạo cả chuỗi task từ mẫu, lặp định kỳ" aria-label="Mẫu chuỗi việc"><i class="bi bi-journal-bookmark"></i></button>' : '') +
+      (projs().length && tplCan() ? '<button class="ibtn" id="tkTpl" title="Mẫu (template) — tạo nhanh nhiều task từ mẫu, lặp định kỳ" aria-label="Mẫu"><i class="bi bi-journal-bookmark"></i></button>' : '') +
       (projs().length ? '<button class="btn sm" id="tkNewE" title="Tạo epic — một mảng việc lớn, gom nhiều task"><i class="bi bi-lightning-charge"></i><span class="bl">Epic</span></button>' +
         '<button class="btn pri sm" id="tkNew"><i class="bi bi-plus-lg"></i><span class="bl">Tạo task</span></button>' : '');
     // điện thoại: không có nút Epic riêng (đỡ rối) — nút “+” tạo đúng cấp Kanban đang xem (đang xem Epic → tạo epic)
@@ -18423,7 +18448,7 @@ async function viewTasks(arg, v) {
         tlanes.filter(ln => ln.items.length || (!flt && ln.id)).map(ln => laneHead(ln) + (TK.laneFold[p.id + ':' + ln.id] ? '' : board(ln.items, false, ln.items, ln))).join('') +
           (!tlanes.some(ln => ln.items.length || (!flt && ln.id)) ? board([], false, null) : '') :
        lanes.length ? lanes.map(l => (grp ? '<div class="tk-lane">' + (grp === 'who' ? tkAv(l[0]) : '<i class="bi bi-' + (grp === 'epic' ? 'lightning-charge' : grp === 'parent' ? 'arrow-return-right' : 'flag') + '"></i>') + esc(l[1]) + '<span class="n">' + l[2].length + '</span></div>' : '') + board(l[2], !!grp, null)).join('') : board([], false, null)) +
-      (lv !== 'task' && !L.length ? '<div class="tk-none">' + (fltN() || TK.q ? 'Không có ' + TK_LV[lv].toLowerCase() + ' nào khớp bộ lọc.' : lv === 'epic' ? 'Bảng này chưa có epic — gõ vào “+ Thêm epic” ở một cột.' : 'Chưa có sub-task — ở cấp Task, bấm “+” trên một thẻ để chia task thành các sub-task.') + '</div>' : '');
+      (lv !== 'task' && !L.length ? '<div class="tk-none">' + (fltN() || TK.q ? 'Không có ' + TK_LV[lv].toLowerCase() + ' nào khớp bộ lọc.' : lv === 'epic' ? (n => n ? 'Bảng này chưa có epic nhưng có <b>' + n + ' task</b> — đang xem theo cấp Epic nên chưa thấy. <a data-blv="task">Xem theo Task</a>' : 'Bảng này chưa có epic — gõ vào “+ Thêm epic” ở một cột.')(lvItems(p, sp, 'task').length) : 'Chưa có sub-task — ở cấp Task, bấm “+” trên một thẻ để chia task thành các sub-task.') + '</div>' : '');
   };
   /* GỘP CHUNG: mọi bảng đang xem chung MỘT bộ 4 cột; thẻ ghi tên bảng (và tên cột gốc nếu khác). Kéo thẻ sang bước khác = đổi sang cột tương ứng của bảng đó. */
   const mergedBoard = () => {
@@ -19755,17 +19780,20 @@ async function viewTasks(arg, v) {
   }
 
   async function tplListDlg() {
-    const m = modal({ title: 'Mẫu chuỗi việc', icon: 'bi-journal-bookmark', size: 'lg', body: '<div id="tplL">' + miniLoader('Đang tải mẫu…') + '</div>', foot: [{ t: 'Đóng', cls: 'ghost' }] });
+    const m = modal({ title: 'Mẫu', icon: 'bi-journal-bookmark', size: 'lg', body: '<div id="tplL">' + miniLoader('Đang tải mẫu…') + '</div>', foot: [{ t: 'Đóng', cls: 'ghost' }] });
     const draw = () => { const L = TPL.d.list;
       m.$('#tplL').innerHTML = L.length ? '<div class="tpl-list">' + L.map(x => '<div class="tpl-it" data-tpl="' + esc(x.id) + '"><span class="tpl-ic">' + tkLvIc(x.kind) + '</span><span class="tpl-tx"><b>' + esc(x.name) + '</b>' +
           '<small>' + esc([tplCnt(x), x.owner !== D().me ? 'của ' + x.ownerName : '', x.runs ? 'đã dùng ' + x.runs + ' lần' : ''].filter(Boolean).join(' · ')) + '</small>' + (x.desc ? '<small>' + esc(x.desc) + '</small>' : '') +
           (x.rec.on ? '<small class="tpl-rec"><i class="bi bi-arrow-repeat"></i>' + esc(tplRecTxt(x)) + (x.next ? ' · lần tới ' + esc(tkDmy(x.next)) : '') + '</small>' : '') +
           (x.lastErr ? '<small class="tpl-err"><i class="bi bi-exclamation-triangle"></i>Lần tự tạo gần nhất lỗi: ' + esc(x.lastErr) + '</small>' : '') + '</span>' +
           '<span class="tpl-act"><button type="button" class="btn sm pri" data-tu><i class="bi bi-play-fill"></i>Tạo từ mẫu</button>' + (x.edit ? '<button type="button" class="ibtn" data-te title="Sửa mẫu · lặp định kỳ" aria-label="Sửa mẫu ' + esc(x.name) + '"><i class="bi bi-pencil"></i></button><button type="button" class="ibtn" data-td title="Xoá mẫu" aria-label="Xoá mẫu ' + esc(x.name) + '"><i class="bi bi-trash"></i></button>' : '') + '</span></div>').join('') + '</div>'
-        : '<div class="empty"><i class="bi bi-journal-bookmark"></i><b>Chưa có mẫu nào</b><span>Mở một Task hoặc Epic (kèm việc bên trong) → <b>Lưu làm mẫu</b>. Lần sau chỉ cần “Tạo từ mẫu”: chọn bảng, ngày bắt đầu, người phụ trách là có cả chuỗi việc với hạn tính sẵn.</span></div>'; };
+        : '<div class="empty"><i class="bi bi-journal-bookmark"></i><b>Chưa có mẫu nào</b><span>Mở một Task hoặc Epic (kèm việc bên trong) → <b>Lưu làm mẫu</b>. Lần sau chỉ cần “Tạo từ mẫu”: chọn bảng, ngày bắt đầu, người phụ trách là có đủ các việc với hạn tính sẵn.</span>' +
+          (C().tpl ? '<button type="button" class="btn sm" data-tsmp style="margin-top:10px"><i class="bi bi-stars"></i>Thêm vài mẫu ví dụ</button>' : '') + '</div>'; };
     try { await tplLoad(); } catch (e) { if (!m.closed) m.$('#tplL').innerHTML = '<div class="empty"><i class="bi bi-wifi-off"></i><b>Chưa tải được danh sách mẫu</b><span>' + esc(e.message) + '</span></div>'; return; }
     if (m.closed) return; draw();
-    m.$('#tplL').onclick = async e => { const it = e.target.closest('[data-tpl]'), x = it && TPL.d.list.find(y => y.id === it.dataset.tpl); if (!x) return;
+    m.$('#tplL').onclick = async e => {
+      const smp = e.target.closest('[data-tsmp]'); if (smp) { smp.disabled = true; try { TPL.d = Object.assign({}, TPL.d, await rpc('taskTplSamples', {})); draw(); } catch (er) { smp.disabled = false; fail(er); } return; }
+      const it = e.target.closest('[data-tpl]'), x = it && TPL.d.list.find(y => y.id === it.dataset.tpl); if (!x) return;
       if (e.target.closest('[data-tu]')) { m.close(); tplUse(x); }
       else if (e.target.closest('[data-te]')) { m.close(); tplEdit(x); }
       else if (e.target.closest('[data-td]')) {
@@ -19830,8 +19858,8 @@ async function viewTasks(arg, v) {
         '<div class="fg"><label class="flabel">Tên mẫu</label><input class="inp" id="teN" maxlength="120" value="' + esc(x.name) + '"></div>' +
         '<div class="fg"><label class="flabel">Ai được dùng</label><select class="sel" id="teU">' + tplShare(x.users, TPL.d && TPL.d.roles) + '</select></div>' +
         '<div class="fg tpl-pic"><label class="flabel">Ghi chú</label><input class="inp" id="teD" maxlength="1000" value="' + esc(x.desc) + '" placeholder="VD: Dùng khi có nhân sự mới"></div></div>' +
-      '<div class="tk-h">Chuỗi việc · <span id="teC"></span></div><div class="tpl-ed-h"><span style="flex:1">Tên việc</span><span>Hạn = ngày bắt đầu + n</span></div><div class="tpl-ed" id="teL"></div>' +
-      '<div class="tk-h">Lặp định kỳ</div><label class="tk-pk"><input type="checkbox" id="teR"' + (rec.on ? ' checked' : '') + '><i class="bi bi-arrow-repeat"></i><span><b>Tự tạo chuỗi việc mới theo lịch</b><small id="teRn"></small></span></label>' +
+      '<div class="tk-h">Các việc trong mẫu · <span id="teC"></span></div><div class="tpl-ed-h"><span style="flex:1">Tên việc</span><span>Hạn = ngày bắt đầu + n</span></div><div class="tpl-ed" id="teL"></div>' +
+      '<div class="tk-h">Lặp định kỳ</div><label class="tk-pk"><input type="checkbox" id="teR"' + (rec.on ? ' checked' : '') + '><i class="bi bi-arrow-repeat"></i><span><b>Tự tạo lại các việc theo lịch</b><small id="teRn"></small></span></label>' +
       '<div class="tpl-recf" id="teRf"' + (rec.on ? '' : ' hidden') + '><div class="fg"><label class="flabel">Lặp</label><select class="sel" id="teE"><option value="week"' + (rec.ev === 'week' ? ' selected' : '') + '>Hằng tuần</option><option value="month"' + (rec.ev === 'month' ? ' selected' : '') + '>Hằng tháng</option></select></div>' +
         '<div class="fg" id="teWw"><label class="flabel">Vào</label><select class="sel" id="teW">' + TPL_DOW.slice(1).map((d, i) => '<option value="' + (i + 1) + '"' + (rec.dow === i + 1 ? ' selected' : '') + '>' + d + '</option>').join('') + '</select></div>' +
         '<div class="fg" id="teMw"><label class="flabel">Ngày trong tháng</label><input class="inp" type="number" min="1" max="31" id="teM" value="' + esc(rec.dom) + '" title="Tháng ít ngày hơn → ngày cuối tháng"></div>' +
@@ -19850,7 +19878,7 @@ async function viewTasks(arg, v) {
     const draw = () => { m.$('#teL').innerHTML = items.map(row).join(''); m.$('#teC').textContent = tplCnt(x); };
     const recUi = () => { const on = m.$('#teR').checked, mo = m.$('#teE').value === 'month'; m.$('#teRf').hidden = !on; m.$('#teWw').hidden = mo; m.$('#teMw').hidden = !mo;
       const same = on && rec.on && x0.rec.ev === m.$('#teE').value && String(x0.rec.dow) === m.$('#teW').value && String(x0.rec.dom) === m.$('#teM').value && x0.rec.pid === m.$('#teB').value;
-      m.$('#teRn').textContent = !on ? 'Mỗi sáng hệ thống xem mẫu nào tới lịch thì tạo chuỗi việc mới (đứng tên người tạo mẫu) — mỗi kỳ chỉ một lần' : same && x0.next ? 'Lần tạo tới: ' + tkDmy(x0.next) + (x0.lastErr ? ' · lần trước lỗi: ' + x0.lastErr : '') : 'Lưu để xem ngày tạo tới — nếu ngày của kỳ này đã qua thì bắt đầu từ kỳ sau'; };
+      m.$('#teRn').textContent = !on ? 'Mỗi sáng hệ thống xem mẫu nào tới lịch thì tạo lại các việc của mẫu (đứng tên người tạo mẫu) — mỗi kỳ chỉ một lần' : same && x0.next ? 'Lần tạo tới: ' + tkDmy(x0.next) + (x0.lastErr ? ' · lần trước lỗi: ' + x0.lastErr : '') : 'Lưu để xem ngày tạo tới — nếu ngày của kỳ này đã qua thì bắt đầu từ kỳ sau'; };
     tkPick(m.$('#teP'), { sel: rec.pic, pool: () => tkAsgPool(tkProj(m.$('#teB').value), null, { type: x.kind }), onChange: s => { rec.pic = s; }, ph: 'Chọn người phụ trách…' });
     m.$('#teL').addEventListener('input', e => { const r = e.target.closest('.tpl-er'), f = e.target.dataset.f, i = r && items.find(y => y.k === r.dataset.k); if (!i || !f) return;
       if (f === 't') i.t = e.target.value; else if (f === 'off') i.off = e.target.value === '' ? '' : Math.max(0, Math.round(Number(e.target.value)) || 0); });
