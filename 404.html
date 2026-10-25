@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T18:22:05.508Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T18:29:18.942Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -769,6 +769,7 @@ html[data-theme="graphite"]{ --brand-950:#0B0F17; --brand-900:#111827; --brand-8
 .ucap-r{ display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:8px; font-size:12.5px; cursor:pointer } .ucap-r:hover{ background:var(--surface-3) }
 .ucap-r span{ flex:1 } .ucap-r small{ color:var(--muted); font-size:11px } .ucap-r em{ font-style:normal; font-size:11px; font-weight:700; color:#7C3AED }
 .ucap-r.own{ background:color-mix(in srgb, #7C3AED 8%, transparent) }
+.ucap-q{ margin:2px 0 6px } .card-h .search.rq{ max-width:260px; margin-left:12px }
 .le-ext{ gap:6px; margin-top:6px; align-items:center }
 .mn-gh .mn-mt{ font-size:13.5px; color:var(--ink) }
 .tree-i .fi.grpic{ color:var(--brand-600) }
@@ -4194,7 +4195,7 @@ html.tk-noadd .tk-quick, html.tk-noadd .tk-qadd, html.tk-noadd #tkNew, html.tk-n
 
 /* ══════════ QUẢN TRỊ TRÊN ĐIỆN THOẠI (18-10-2026): Người dùng · Phân quyền · Lời mời — ít nút, ít chữ, mỗi người / lời mời một thẻ gọn ══════════
    Nguyên tắc: một hàng tìm + một hàng lọc; chữ phụ (ghi chú, “Hoạt động”, giải thích dài) ẩn; nút sửa / xoá / thu hồi gom vào chạm cả thẻ. */
-.u-flt{ display:flex; align-items:center; gap:8px } .u-rsel{ display:none; align-items:center; gap:6px; color:var(--muted) } .u-rsel .sel{ height:32px }
+.u-flt{ display:flex; align-items:center; gap:8px } .u-rsel{ display:none; align-items:center; gap:6px; color:var(--muted) } .u-rsel.show{ display:flex } .u-rsel .sel{ height:32px }
 .modal-f .u-del{ margin-right:auto; color:var(--danger) } .modal-f .u-del:hover{ background:color-mix(in srgb, var(--danger) 8%, transparent) }
 .u-bulk-l{ display:inline-flex; align-items:center; gap:6px; color:var(--primary); font-weight:600; cursor:pointer; text-decoration:underline }
 details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary::-webkit-details-marker{ display:none }
@@ -8706,8 +8707,8 @@ async function viewUsers(arg, v) {
       v.innerHTML = head() + '<div class="card"><div class="card-h ucard-h"><div class="search" style="flex:1;max-width:320px"><i class="bi bi-search"></i><input class="inp" id="uQ" placeholder="Tìm tên / email" value="' + esc(q) + '"></div>' +
         '<div class="row" style="gap:4px"><button class="rchip' + (!rf ? ' on' : '') + '" data-rf="" style="--rc:var(--brand-600)">Tất cả · ' + list.length + '</button>' +
           (nPend ? '<button class="rchip pend' + (rf === '_pending' ? ' on' : '') + '" data-rf="_pending" style="--rc:#B45309"><i class="bi bi-hourglass-split"></i> Chờ duyệt · ' + nPend + '</button>' : '') +
-          R.roles.map(r => '<button class="rchip' + (rf === r.id ? ' on' : '') + '" data-rf="' + r.id + '" style="--rc:' + r.color + '">' + esc(r.label) + ' · ' + (cnt[r.id] || 0) + '</button>').join('') + '</div><span class="sp"></span>' +
-          '<div class="u-flt"><label class="u-rsel"><i class="bi bi-funnel"></i><select class="sel" id="uRfS" aria-label="Lọc theo vai trò"><option value="">Tất cả · ' + list.length + '</option>' + (nPend ? '<option value="_pending"' + (rf === '_pending' ? ' selected' : '') + '>Chờ duyệt · ' + nPend + '</option>' : '') +
+          (R.roles.length > ROLE_CHIPS ? '' : R.roles.map(r => '<button class="rchip' + (rf === r.id ? ' on' : '') + '" data-rf="' + r.id + '" style="--rc:' + r.color + '">' + esc(r.label) + ' · ' + (cnt[r.id] || 0) + '</button>').join('')) + '</div><span class="sp"></span>' +
+          '<div class="u-flt"><label class="u-rsel' + (R.roles.length > ROLE_CHIPS ? ' show' : '') + '"><i class="bi bi-funnel"></i><select class="sel" id="uRfS" aria-label="Lọc theo vai trò"><option value="">Tất cả · ' + list.length + '</option>' + (nPend ? '<option value="_pending"' + (rf === '_pending' ? ' selected' : '') + '>Chờ duyệt · ' + nPend + '</option>' : '') +
             R.roles.filter(r => cnt[r.id] || rf === r.id).map(r => '<option value="' + r.id + '"' + (rf === r.id ? ' selected' : '') + '>' + esc(r.label) + ' · ' + (cnt[r.id] || 0) + '</option>').join('') + '</select></label>' +
           '<label class="u-sort"><i class="bi bi-sort-down"></i><select class="sel" id="uSortS" aria-label="Sắp xếp">' + [['name', 1, 'Tên A → Z'], ['name', -1, 'Tên Z → A'], ['seen', -1, 'Truy cập gần nhất'], ['seen', 1, 'Truy cập lâu nhất'], ['created', -1, 'Mới thêm gần đây'], ['created', 1, 'Thêm lâu nhất'], ['role', 1, 'Theo vai trò'], ['status', 1, 'Theo trạng thái']]
             .map(o => '<option value="' + o[0] + '|' + o[1] + '"' + (us === o[0] && ud === o[1] ? ' selected' : '') + '>' + o[2] + '</option>').join('') + '</select></label></div></div>' +
@@ -8789,7 +8790,7 @@ async function viewUsers(arg, v) {
       const onApp = (r, id) => !!r.locked || (r.apps || []).indexOf(id) >= 0;
       const cell = (r, i, c, mid) => { const has = !!r.locked || r.caps.indexOf(c) >= 0, off = !!mid && !onApp(r, mid);
         return '<td class="rc' + (off ? ' r-off' : '') + '"><button class="rcell' + (has ? ' on' : '') + '" data-ri="' + i + '" data-cap="' + c + '"' + (locked(r) || off ? ' disabled' : '') + ' style="--rc:' + r.color + '" aria-pressed="' + has + '" aria-label="' + esc(r.label + ': ' + ALL[c][0]) + '"' + (off ? ' title="Vai trò chưa bật ứng dụng này"' : '') + '><i class="bi ' + (has ? 'bi-check-lg' : 'bi-dash') + '"></i></button></td>'; };
-      const capRow = (c, mid) => '<tr><td><b>' + esc(ALL[c][0]) + '</b><div class="t-sub mono">' + c + '</div></td>' + R.roles.map((r, i) => cell(r, i, c, mid)).join('') + '</tr>';
+      const capRow = (c, mid) => '<tr class="r-cap"><td><b>' + esc(ALL[c][0]) + '</b><div class="t-sub mono">' + c + '</div></td>' + R.roles.map((r, i) => cell(r, i, c, mid)).join('') + '</tr>';
       const sub = t => '<tr class="r-sub"><td colspan="' + (n + 1) + '">' + esc(t) + '</td></tr>';
       const appRow = m => '<tr class="rg r-app"><td><i class="bi ' + esc(m.i) + '"></i> ' + esc(m.t) + '</td>' + R.roles.map((r, i) => { const o = onApp(r, m.id);
         return '<td class="rc"><button class="rcell rapp' + (o ? ' on' : '') + '" data-ri="' + i + '" data-app="' + m.id + '"' + (locked(r) ? ' disabled' : '') + ' style="--rc:' + r.color + '" aria-pressed="' + o + '" title="' + esc((o ? 'Đang bật ' : 'Đang tắt ') + m.t + ' cho ' + r.label) + '"><i class="bi ' + (o ? 'bi-toggle-on' : 'bi-toggle-off') + '"></i></button></td>'; }).join('') + '</tr>';
@@ -8797,10 +8798,10 @@ async function viewUsers(arg, v) {
         if (m.id !== 'task') return appRow(m) + caps.map(c => capRow(c, m.id)).join('');
         const gs = []; caps.forEach(c => { if (gs.indexOf(ALL[c][1]) < 0) gs.push(ALL[c][1]); });
         return appRow(m) + gs.map(g => sub(g) + caps.filter(c => ALL[c][1] === g).map(c => capRow(c, m.id)).join('')).join('') + sub('Chấm công') +
-          '<tr><td><b>Chấm công theo giờ</b><div class="t-sub">Có ô “Thời gian thực hiện” trong Task / Sub-task, phải ghi khi việc sang Hoàn thành</div></td>' + R.roles.map((r, i) => { const has = !r.locked && !!r.hourly, off = !onApp(r, 'task');
+          '<tr class="r-cap"><td><b>Chấm công theo giờ</b><div class="t-sub">Có ô “Thời gian thực hiện” trong Task / Sub-task, phải ghi khi việc sang Hoàn thành</div></td>' + R.roles.map((r, i) => { const has = !r.locked && !!r.hourly, off = !onApp(r, 'task');
             return '<td class="rc' + (off ? ' r-off' : '') + '"><button class="rcell' + (has ? ' on' : '') + '" data-ri="' + i + '" data-hourly="1"' + (locked(r) || off ? ' disabled' : '') + ' style="--rc:' + r.color + '" aria-pressed="' + has + '"><i class="bi ' + (has ? 'bi-check-lg' : 'bi-dash') + '"></i></button></td>'; }).join('') + '</tr>'; };
       const other = Object.keys(ALL).filter(c => !inMod[c]);
-      v.innerHTML = head() + '<div class="card"><div class="card-h"><h2><i class="bi bi-shield-lock"></i>Vai trò × ứng dụng × quyền</h2><span class="sp"></span>' +
+      v.innerHTML = head() + '<div class="card"><div class="card-h"><h2><i class="bi bi-shield-lock"></i>Vai trò × ứng dụng × quyền</h2><div class="search rq"><i class="bi bi-search"></i><input class="inp" id="rQ" placeholder="Tìm quyền…" value="' + esc(v._rq || '') + '" autocomplete="off"></div><span class="sp"></span>' +
         (S.me.isAdmin ? '<span class="small muted">Bật ứng dụng cho vai trò, tick quyền trong ứng dụng, rồi Lưu quyền</span>' : '<span class="small muted">Chỉ quản trị viên được sửa</span>') + '</div>' +
         '<div class="tbl-wrap"><table class="tbl rtbl"><thead><tr><th>Ứng dụng · quyền</th>' + R.roles.map((r, i) => '<th class="rc"><div class="rh" style="--rc:' + r.color + '">' +
           (S.me.isAdmin && !r.locked ? '<button type="button" class="rh-ed" data-redit="' + i + '" title="Sửa tên, màu' + (r.custom ? ', xoá' : '') + ' vai trò"><b>' + esc(r.label) + '</b><i class="bi bi-pencil"></i></button>' : '<b>' + esc(r.label) + '</b>') +
@@ -8809,6 +8810,10 @@ async function viewUsers(arg, v) {
         '</tbody></table></div><div class="card-b small muted"><b>Cách hoạt động:</b> mỗi người có một hoặc nhiều vai trò; ứng dụng hiện với họ là ứng dụng mà ít nhất một vai trò bật, quyền là hợp quyền các vai trò. ' +
         'Vai trò Kiến Task (Asst, Leader, Giáo viên, CTV…) là vai trò chung như mọi vai trò khác — người có quyền Phân quyền Kiến Task sửa phần Kiến Task ở Kiến Task › Quản trị. ' +
         'Học sinh chỉ cần “Xem chương trình được chia sẻ” — rồi chia sẻ chương trình cho email học sinh hoặc cả vai trò (<span class="mono">role:hocsinh</span>).</div></div>';
+      // tìm quyền trong ma trận: ẩn hàng quyền không khớp (hàng bật ứng dụng luôn hiện)
+      const rqF = () => { const w = fold(v._rq || '').split(/\s+/).filter(Boolean); $$('.rtbl tr.r-cap', v).forEach(tr => { tr.hidden = !!w.length && !w.every(z => fold(tr.textContent).indexOf(z) >= 0); });
+        $$('.rtbl tr.r-sub', v).forEach(tr => { let n = tr.nextElementSibling, any = false; while (n && n.classList.contains('r-cap')) { if (!n.hidden) any = true; n = n.nextElementSibling; } tr.hidden = !!w.length && !any; }); };
+      const rq = $('#rQ', v); rq.oninput = () => { v._rq = rq.value; rqF(); }; rqF();
     }
   };
   /** sửa vai trò (1.43.4): tên, màu — mọi vai trò trừ Quản trị; vai trò tự thêm xoá được. Đổi xong bấm “Lưu quyền” như mọi thay đổi của ma trận. */
@@ -8852,7 +8857,7 @@ async function viewUsers(arg, v) {
       '<div class="fg"><label class="flabel">Vai trò (chọn một hoặc nhiều)</label><div class="rpick" id="dR"></div></div>' +
       '<div class="fg"><label class="flabel">Trạng thái</label><div class="seg fill" id="dSt"><button class="seg-b" data-s="active"><i class="bi bi-check-circle"></i>Hoạt động</button><button class="seg-b" data-s="pending"><i class="bi bi-hourglass-split"></i>Chờ duyệt</button><button class="seg-b" data-s="inactive"><i class="bi bi-slash-circle"></i>Ngưng</button></div></div>' +
       '<div class="fg"><label class="flabel">Ghi chú</label><input class="inp" id="dNo" value="' + esc(u.note || '') + '" placeholder="VD: lớp 4A, phụ trách Toán 5"></div>' +
-      (S.me.isAdmin ? '<details class="ucap"' + (plus.length || minus.length ? ' open' : '') + '><summary><i class="bi bi-sliders2"></i><b>Quyền riêng của người này</b><span id="dCs" class="small muted"></span><i class="bi bi-chevron-down cv"></i></summary><div id="dCaps"></div></details>' : '') +
+      (S.me.isAdmin ? '<details class="ucap"' + (plus.length || minus.length ? ' open' : '') + '><summary><i class="bi bi-sliders2"></i><b>Quyền riêng của người này</b><span id="dCs" class="small muted"></span><i class="bi bi-chevron-down cv"></i></summary><div class="search ucap-q"><i class="bi bi-search"></i><input class="inp" id="dCq" placeholder="Tìm quyền — VD: giao việc, tải, chấm công…" autocomplete="off"></div><div id="dCaps"></div></details>' : '') +
       (u.email ? '' : '<a class="small u-bulk-l" data-bulk><i class="bi bi-people"></i> Thêm nhiều người cùng lúc</a>') + '</div>',
       foot: (u.email ? [{ t: 'Xoá', cls: 'ghost u-del', i: 'bi-trash', fn: async () => { if (!await ask('Xoá ' + u.email + ' khỏi danh sách người dùng?', { danger: true, ok: 'Xoá' })) return false; uq('deleteUser', { email: u.email }, 'Xoá người dùng · ' + u.email, () => { list = list.filter(x => x.email !== u.email); }); toast('Đã xoá ' + u.email); } }] : []).concat([{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', cls: 'pri', i: 'bi-check2', fn: async mm => {
         if (!roles.length) { toast('Chọn ít nhất một vai trò', 'warn'); return false; }
@@ -8875,19 +8880,27 @@ async function viewUsers(arg, v) {
     const MODS = R.mods || [], capMods = c => MODS.filter(x => x.caps.indexOf(c) >= 0).map(x => x.id);
     const keep = apps => c => { const own = capMods(c); return !own.length || own.some(id => apps.indexOf(id) >= 0) || MODS.some(x => apps.indexOf(x.id) >= 0 && (x.share || []).indexOf(c) >= 0); };
     const defCaps = () => { if (roles.indexOf('admin') >= 0) return Object.keys(R.caps); const out = [];
-      roles.forEach(id => { const r = R.roles.find(x => x.id === id); if (!r) return; const k = keep(r.apps || []); r.caps.forEach(c => { if (out.indexOf(c) < 0 && k(c)) out.push(c); }); }); return out; };
+      roles.forEach(id => { const r = R.roles.find(x => x.id === id); if (!r) return; const k = keep(r.apps || []); r.caps.forEach(c => { if (out.indexOf(c) < 0 && k(c)) out.push(c); });
+        if (r.hourly && (r.apps || []).indexOf('task') >= 0 && out.indexOf('hourly') < 0) out.push('hourly'); }); return out; };      // 'hourly' = chấm công theo giờ (cờ của vai trò, không phải quyền)
+    const capT = c => c === 'hourly' ? 'Chấm công theo giờ — có ô “Thời gian thực hiện”, phải ghi khi việc sang Hoàn thành' : R.caps[c][0];
     const paintCaps = () => {
-      const D = defCaps(), ad = roles.indexOf('admin') >= 0, eff = c => (D.indexOf(c) >= 0 || plus.indexOf(c) >= 0) && minus.indexOf(c) < 0;
+      const D = defCaps().filter(c => c !== 'hourly' || roles.indexOf('admin') < 0), ad = roles.indexOf('admin') >= 0, eff = c => (D.indexOf(c) >= 0 || plus.indexOf(c) >= 0) && minus.indexOf(c) < 0;
       const row = c => { const d = D.indexOf(c) >= 0, on = eff(c), own = on !== d;
-        return '<label class="ucap-r' + (own ? ' own' : '') + '"><input type="checkbox" data-uc="' + c + '"' + (on ? ' checked' : '') + (ad ? ' disabled' : '') + '><span>' + esc(R.caps[c][0]) + '</span>' +
+        return '<label class="ucap-r' + (own ? ' own' : '') + '"><input type="checkbox" data-uc="' + c + '"' + (on ? ' checked' : '') + (ad ? ' disabled' : '') + '><span>' + esc(capT(c)) + '</span>' +
           (own ? '<em>' + (on ? 'thêm riêng' : 'bớt riêng') + '</em>' : '<small>' + (d ? 'theo vai trò' : '') + '</small>') + '</label>'; };
       const other = Object.keys(R.caps).filter(c => !capMods(c).length);
       capsBox.innerHTML = (ad ? '<div class="small muted">Quản trị luôn có mọi quyền.</div>' : '<div class="small muted ucap-h">Ô đã tick = người này có quyền đó. Mặc định theo vai trò; tick / bỏ tick để <b>thêm</b> hoặc <b>bớt riêng</b> người này. ' +
           (plus.length || minus.length ? '<a data-ucr>Về theo vai trò</a>' : '') + '</div>') +
-        MODS.map(x => { const L = x.caps.filter(c => R.caps[c] && c !== 'tasks.use'); return L.length ? '<div class="ucap-g"><b><i class="bi ' + esc(x.i) + '"></i> ' + esc(x.t) + '</b>' + L.map(row).join('') + '</div>' : ''; }).join('') +
+        MODS.map(x => { const L = x.caps.filter(c => R.caps[c] && c !== 'tasks.use').concat(x.id === 'task' ? ['hourly'] : []); return L.length ? '<div class="ucap-g"><b><i class="bi ' + esc(x.i) + '"></i> ' + esc(x.t) + '</b>' + L.map(row).join('') + '</div>' : ''; }).join('') +
         (other.length ? '<div class="ucap-g"><b>Khác</b>' + other.map(row).join('') + '</div>' : '');
+      capFilter();
       const sm = m.$('#dCs'); if (sm) sm.textContent = plus.length || minus.length ? ' · ' + [plus.length ? '+' + plus.length + ' thêm' : '', minus.length ? '−' + minus.length + ' bớt' : ''].filter(Boolean).join(', ') : ' · theo vai trò';
     };
+    // tìm quyền: ẩn dòng không khớp (không dấu cũng được), nhóm không còn dòng nào thì ẩn luôn
+    const capFilter = () => { const w = fold(m.$('#dCq').value).split(/\s+/).filter(Boolean);
+      m.$$('#dCaps .ucap-r').forEach(r => { r.hidden = !!w.length && !w.every(z => fold(r.textContent + ' ' + r.querySelector('input').dataset.uc).indexOf(z) >= 0); });
+      m.$$('#dCaps .ucap-g').forEach(g => { g.hidden = !g.querySelector('.ucap-r:not([hidden])'); }); };
+    m.$('#dCq').oninput = capFilter;
     capsBox.onchange = e => { const c = e.target.dataset.uc; if (!c) return; const d = defCaps().indexOf(c) >= 0;
       plus = plus.filter(x => x !== c); minus = minus.filter(x => x !== c);
       if (e.target.checked && !d) plus.push(c); if (!e.target.checked && d) minus.push(c); paintCaps(); };
