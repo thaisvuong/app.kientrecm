@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T17:08:45.255Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T17:24:14.917Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -588,7 +588,10 @@ table.tbl{ width:100%; border-collapse:separate; border-spacing:0; font-size:12.
 
 /* ── đang xử lý: nút có vệt sáng quét + thẻ nổi ở giữa đáy màn hình ── */
 .btn.busy{ opacity:1 !important; cursor:progress }
-.modal-f .modal-wait{ margin-right:auto; display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#7A4A06 } .modal-f .modal-wait i{ animation:spin 1.6s linear infinite }
+.modal-f .modal-wait{ margin-right:auto; display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#7A4A06 }
+/* vòng xoay tròn (thay đồng hồ cát xoay — glyph lệch tâm nên trông như bị méo / lắc) */
+.modal-f .modal-wait .mw-ring{ flex:none; width:13px; height:13px; border-radius:50%; border:2px solid currentColor; border-right-color:transparent; animation:spin .75s linear infinite }
+@media (prefers-reduced-motion: reduce){ .modal-f .modal-wait .mw-ring{ animation-duration:2s } }
 .btn.busy::after{ content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit; background-size:220% 100%; animation:btnSheen 1.05s linear infinite;
   background-image:linear-gradient(110deg, transparent 25%, rgba(255,255,255,.34) 45%, rgba(255,255,255,.34) 55%, transparent 75%) }
 .btn:not(.pri).busy::after{ background-image:linear-gradient(110deg, transparent 25%, color-mix(in srgb, var(--brand-500) 20%, transparent) 50%, transparent 75%) }
@@ -754,6 +757,10 @@ html[data-theme="graphite"]{ --brand-950:#0B0F17; --brand-900:#111827; --brand-8
 .tree-src{ margin-bottom:6px }
 .tree-i .fi.srcic{ color:var(--sc, var(--brand-600)) }
 .tree-i.root{ font-weight:800; color:var(--ink) }
+/* nhóm nguồn trên cây Thư viện (1.43.1) */
+.tree-grp > .tree-kids{ margin-top:2px } .tree-grp .tree-src{ margin-bottom:2px }
+.tree-i .fi.grpic{ color:var(--brand-600) }
+.tree-i.in{ background:color-mix(in srgb, var(--brand-50) 60%, transparent) }
 .lib-bar{ position:sticky; top:0; z-index:20; display:flex; flex-direction:column; gap:10px; padding:12px var(--sp-4); background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--border) }
 .lib-r1{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
 .lib-q{ flex:1 1 300px; display:flex; align-items:center; gap:8px; height:38px; padding:0 6px 0 12px; border-radius:12px; background:var(--surface); border:1px solid var(--border-strong); transition:border-color var(--t-fast), box-shadow var(--t-fast) }
@@ -1227,6 +1234,10 @@ html[data-glass] .lib-bar{ border-radius:20px 20px 0 0 }
 .rbadge{ display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:999px; font-size:10.5px; font-weight:800; color:var(--rc); background:color-mix(in srgb, var(--rc) 11%, var(--surface)); border:1px solid color-mix(in srgb, var(--rc) 25%, transparent); margin:1px 0 }
 .rchip{ height:28px; padding:0 11px; border-radius:999px; border:1px solid var(--border); background:var(--surface); font-size:11.5px; font-weight:700; color:var(--ink-2); cursor:pointer; white-space:nowrap }
 .rchip:hover{ border-color:var(--rc) } .rchip.on{ background:var(--rc); border-color:var(--rc); color:#fff }
+/* dãy vai trò dài → ô chọn có tìm kiếm (roleSelect): chọn nhiều thì vai trò đã chọn là chip bấm để bỏ, ô chọn nối sau */
+.rsel-on{ display:flex !important; flex-direction:row !important; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:6px }
+.rsel-on > .csel{ flex:1 1 220px; min-width:200px; max-width:360px } .rsel-on:not(.rsel-multi) > .csel{ max-width:none }
+.rsel-multi > button.on::after{ content:'\00d7'; margin-left:6px; font-weight:800; opacity:.8 }
 .ucard-h{ flex-wrap:wrap; gap:10px }
 .rpick{ display:flex; flex-direction:column; gap:6px }
 .rp{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-2); cursor:pointer; text-align:left }
@@ -4753,7 +4764,7 @@ function modal(o) {
         btn.classList.add('busy'); btn.disabled = true;
         // việc chạy lâu hơn chớp mắt → hiện dòng báo + khoá các nút khác: tránh bấm lại / đóng hộp giữa chừng
         const tw = setTimeout(() => { if (m.closed) return; f.classList.add('wait'); m.btns.forEach(x => { if (x !== btn) x.disabled = true; }); bg.querySelector('[data-x]').disabled = true;
-          if (!f.querySelector('.modal-wait')) f.insertAdjacentHTML('afterbegin', '<span class="modal-wait" role="status"><i class="bi bi-hourglass-split"></i>Đang xử lý — đừng bấm lại hay đóng hộp</span>'); }, 250);
+          if (!f.querySelector('.modal-wait')) f.insertAdjacentHTML('afterbegin', '<span class="modal-wait" role="status"><span class="mw-ring" aria-hidden="true"></span>Đang xử lý — đừng bấm lại hay đóng hộp</span>'); }, 250);
         try { const r = await b.fn(m, btn); if (r !== false) m.close(); }
         catch (e) { fail(e); }
         finally { clearTimeout(tw); btn.classList.remove('busy'); btn.disabled = false; if (!m.closed) { f.classList.remove('wait'); const w = f.querySelector('.modal-wait'); if (w) w.remove(); m.btns.forEach(x => { x.disabled = false; }); bg.querySelector('[data-x]').disabled = false; } }
@@ -5347,7 +5358,7 @@ function showInactive(me) {
   document.body.appendChild(L);
   if (invWarn) { const p0 = L.querySelector('.login-card > p'); if (p0) p0.insertAdjacentHTML('afterend', invWarn); }
   let role = me.requested || '';
-  const R = $('#rgR', L);
+  const R = $('#rgR', L); roleSelect(R);
   if (R) R.onclick = e => { const b = e.target.closest('[data-r]'); if (!b) return; role = b.dataset.r; $$('.rp', R).forEach(x => { const on = x === b; x.classList.toggle('on', on); x.querySelector('i').className = 'bi ' + (on ? 'bi-check-circle-fill' : 'bi-circle'); }); };
   const go_ = $('#rgGo', L);
   if (go_) go_.onclick = async () => {
@@ -5605,7 +5616,7 @@ async function pvPick() {
   const qi = m.$('#pvQ'); qi.oninput = debounce(() => { q = qi.value; paintL(); }, 120);
   m.el.addEventListener('click', e => { const r = e.target.closest('[data-role]'); if (r) { touched = 1; role = r.dataset.role; who = ''; paintR(); paintL(); } });
   m.el.addEventListener('change', e => { if (e.target.name === 'pvw') { who = e.target.value; m.$$('.pv-u').forEach(l => l.classList.toggle('on', l.contains(e.target))); } });
-  paintR(); paintL(); setTimeout(() => { try { qi.focus(); } catch (e) {} }, 60);
+  paintR(); paintL(); roleSelect(m.$('#pvR')); setTimeout(() => { try { qi.focus(); } catch (e) {} }, 60);
   try { const r = await rpc('listUsers', {}, { quiet: true, real: true }); PV_USERS = r; users = r; } catch (e) { users = users || []; }
   if (m.closed) return;
   if (who) { const u = users.find(x => String(x.email).toLowerCase() === who); if (u && !touched) { role = String(u.role || '').split(',')[0].trim() || role; paintR(); } }
@@ -5905,8 +5916,37 @@ function viewerChips(host, ta) {
   box.onclick = e => { if (!e.target.closest('button') && !e.target.closest('.tk-mp-dd')) q.focus(); };
   q.onblur = () => setTimeout(() => { dd.hidden = true; q.setAttribute('aria-expanded', 'false'); }, 120);
   ta.addEventListener('input', () => { paint(); sync(); });
-  paint(); sync();
+  paint(); sync(); roleSelect(host, { multi: 1 });      // nhiều vai trò → ô chọn có tìm kiếm
   userPickList().then(r => { P = r || []; sync(); if (!dd.hidden) list(); }).catch(e => { err = 'Không tải được danh sách người dùng — gõ email đầy đủ để thêm'; if (!dd.hidden) list(); });
+}
+/** DÃY NÚT VAI TRÒ DÀI → Ô CHỌN CÓ TÌM KIẾM (1.43.1). Quá ROLE_CHIPS nút thì gọn lại: chọn nhiều — nút đang bật vẫn hiện (bấm để bỏ),
+    còn lại vào ô “+ Thêm vai trò…”; chọn một — ẩn hết nút, ô chọn thay. Ô chọn chỉ “bấm hộ” nút tương ứng nên sự kiện & dữ liệu của trang giữ nguyên.
+    Theo dõi host: trang vẽ lại / đổi trạng thái nút thì tự gọn lại. o = { multi, ph } */
+const ROLE_CHIPS = 6;
+function roleSelect(host, o) {
+  if (!host) return; o = o || {};
+  const run = () => {
+    host.querySelectorAll(':scope > .rsel, :scope > .rsel + .csel').forEach(x => x.remove());
+    const B = $$('button[data-r], button[data-role]', host), many = B.length > ROLE_CHIPS;
+    host.classList.toggle('rsel-on', many); host.classList.toggle('rsel-multi', many && !!o.multi);
+    if (!many) { B.forEach(b => { b.hidden = false; }); return; }
+    const isOn = b => b.classList.contains('on') || b.getAttribute('aria-pressed') === 'true';
+    const lab = b => ((b.querySelector('b') || b).textContent || '').trim();
+    const cur = B.find(isOn), opts = o.multi ? B.filter(b => !isOn(b) && !b.disabled) : B;
+    B.forEach(b => { b.hidden = !o.multi || !isOn(b); });
+    if (!opts.length) return;
+    const s = document.createElement('select'); s.className = 'sel rsel';
+    s.innerHTML = (o.multi || !cur ? '<option value="">' + esc(o.ph || (o.multi ? '+ Thêm vai trò… (gõ để tìm)' : 'Chọn vai trò… (gõ để tìm)')) + '</option>' : '') +
+      opts.map((b, i) => '<option value="' + i + '"' + (!o.multi && b === cur ? ' selected' : '') + (b.disabled ? ' disabled' : '') + '>' + esc(lab(b)) + '</option>').join('');
+    s.onchange = e => { e.stopPropagation(); const b = opts[Number(s.value)]; if (s.value !== '' && b && !b.disabled) b.click(); };
+    host.appendChild(s); selSearch(s, 0);
+  };
+  if (!host._rsel) {      // trang vẽ lại (innerHTML) hoặc bật / tắt nút → gọn lại; bỏ qua thay đổi do chính hàm này
+    let busy = false;
+    host._rsel = new MutationObserver(() => { if (busy) return; busy = true; try { run(); } finally { host._rsel.takeRecords(); busy = false; } });
+    host._rsel.observe(host, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'aria-pressed'] });
+    busy = true; try { run(); } finally { host._rsel.takeRecords(); busy = false; }
+  }
 }
 /** Ô CHỌN CÓ TÌM KIẾM thay cho một <select> dài (VD chọn lớp): gõ để lọc (không dấu cũng được), ↑ ↓ Enter chọn, Esc đóng.
     <select> gốc vẫn giữ giá trị (ẩn đi) → người gọi đọc sel.value như cũ; chọn xong bắn sự kiện change. Ít hơn min lựa chọn thì để nguyên. */
@@ -6886,16 +6926,29 @@ async function viewLibrary(arg, v) {
       '<span class="nm">' + esc(d.name) + '</span>' + accBadge(isSrc ? key : d.id) + '<span class="ct">' + fmtN(n) + '</span></button>' +
       (open && kids.length ? '<div class="tree-kids">' + kids.map(k => node(k.id, k, depth + 1)).join('') + '</div>' : '') + '</div>';
   };
+  /* NHÓM NGUỒN (1.43.1): nguồn cùng nhóm (Thư viện › Nguồn dữ liệu › Nhóm) gom dưới một dòng gập / mở được — bớt dòng ở gốc cây.
+     Nhóm đứng ở vị trí của nguồn đầu tiên trong nhóm; nguồn chưa có nhóm vẫn ở gốc như cũ. Gập / mở nhớ ở LIB.open['grp:<tên>']. */
+  const srcTree = () => { const seen = {};
+    return IX.sources.map(s => {
+      if (!s.grp) return node(rootKey(s.id), s, 0, true);
+      if (seen[s.grp]) return ''; seen[s.grp] = 1;
+      const k = 'grp:' + s.grp, open = !!LIB.open[k], L = IX.sources.filter(x => x.grp === s.grp), n = L.reduce((a, x) => a + (IX.sub[rootKey(x.id)] || 0), 0);
+      const has = !open && L.some(x => x.id === LIB.scope || (IX.dirs[LIB.scope] && IX.dirs[LIB.scope].sid === x.id));      // đang xem một thư mục bên trong nhóm đang gập
+      return '<div class="tree-src tree-grp"><button class="tree-i root' + (has ? ' in' : '') + '" data-tog="' + esc(k) + '" title="' + esc(s.grp + ' · ' + L.length + ' nguồn') + '" aria-expanded="' + open + '">' +
+        '<i class="bi bi-chevron-right cr' + (open ? ' open' : '') + '"></i><i class="bi bi-folder' + (open ? '2-open' : '-fill') + ' fi grpic"></i><span class="nm">' + esc(s.grp) + '</span><span class="ct">' + fmtN(n) + '</span></button>' +
+        (open ? '<div class="tree-kids">' + L.map(x => node(rootKey(x.id), x, 1, true)).join('') + '</div>' : '') + '</div>';
+    }).join(''); };
   const paintTree = () => {
     tree.innerHTML = '<div class="ftree-h"><span>Thư mục</span><span class="sp"></span>' + (libHidden().length ? '<button class="ibtn lh-b" id="lbHid" title="Thư mục bạn đã ẩn — bấm để hiện lại"><i class="bi bi-eye-slash"></i><em>' + libHidden().length + '</em></button>' : '') + '<button class="ibtn" style="width:24px;height:24px" id="lbColl" title="Thu gọn tất cả"><i class="bi bi-arrows-collapse"></i></button><button class="ibtn tree-x" id="lbTreeX" title="Đóng" aria-label="Đóng khung thư mục"><i class="bi bi-x-lg"></i></button></div>' +
       '<button class="tree-i root' + (LIB.scope === '' ? ' on' : '') + '" data-scope=""><i class="bi bi-chevron-right cr" style="visibility:hidden"></i><i class="bi bi-collection-fill fi" style="color:var(--brand-600)"></i><span class="nm">Tất cả tài liệu</span><span class="ct">' + fmtN(IX.files.length) + '</span></button>' +
-      IX.sources.map(s => node(rootKey(s.id), s, 0, true)).join('') +
+      srcTree() +
       (!IX.sources.length ? '<div class="empty small">Chưa có nguồn</div>' : '');
     const cur = $('.tree-i.on', tree); if (cur && !paintTree.scrolled) { cur.scrollIntoView({ block: 'center' }); paintTree.scrolled = 1; }
   };
   const openTo = scope => {
     if (!scope) return;
-    const d = IX.dirs[scope];
+    const d = IX.dirs[scope], gs = IX.sources.find(s => s.id === (IX.src[scope] ? scope : d && d.sid));
+    if (gs && gs.grp) LIB.open['grp:' + gs.grp] = 1;      // thư mục nằm trong một nhóm nguồn → mở nhóm
     if (IX.src[scope]) return;
     if (d) { LIB.open[rootKey(d.sid)] = 1; dirPath(d.pid, d.sid).forEach(x => { LIB.open[x.id] = 1; }); }
   };
@@ -8777,7 +8830,7 @@ async function viewUsers(arg, v) {
     const ps = () => m.$$('#dSt .seg-b').forEach(b => b.setAttribute('aria-pressed', b.dataset.s === st));
     m.$('#dSt').onclick = e => { const b = e.target.closest('[data-s]'); if (b) { st = b.dataset.s; ps(); } };
     ps();
-    pr();
+    pr(); roleSelect(m.$('#dR'), { multi: 1 });
   };
   const approve = u => {
     let role = String(u.role || 'giasu').split(',')[0];
@@ -8788,7 +8841,7 @@ async function viewUsers(arg, v) {
              { t: 'Huỷ', cls: 'ghost' }, { t: 'Duyệt & kích hoạt', i: 'bi-check2', cls: 'pri', fn: async () => { uq('approveUser', { email: u.email, role: role }, 'Duyệt · ' + u.email, () => { u.status = 'active'; u.role = role; }); toast('Đã duyệt ' + (u.name || u.email) + ' — ' + roleOf(role).label); } }] });
     const pr = () => { m.$('#apR').innerHTML = R.roles.map(r => { const on = role === r.id, dis = (r.id === 'admin' || r.top) && !S.me.isAdmin; return '<button type="button" class="rp' + (on ? ' on' : '') + '" data-r="' + r.id + '" style="--rc:' + r.color + '"' + (dis ? ' disabled' : '') + '><i class="bi ' + (on ? 'bi-check-circle-fill' : 'bi-circle') + '"></i><span><b>' + esc(r.label) + '</b><small>' + r.caps.map(c => (R.caps[c] || [c])[0]).slice(0, 3).join(' · ') + '</small></span></button>'; }).join(''); };
     m.$('#apR').onclick = e => { const b = e.target.closest('[data-r]'); if (b && !b.disabled) { role = b.dataset.r; pr(); } };
-    pr();
+    pr(); roleSelect(m.$('#apR'));
   };
   const bulk = () => modal({ title: 'Thêm nhiều người dùng', icon: 'bi-people', body:
     '<div class="stack"><div class="fg"><label class="flabel">Mỗi dòng một người — “email” hoặc “Tên, email” (dán thẳng từ Excel được)</label><textarea class="ta" id="bT" rows="8" autofocus placeholder="Nguyễn Văn A, gva@gmail.com&#10;hsb@gmail.com"></textarea></div>' +
@@ -8932,6 +8985,7 @@ function invDialog(scope, done) {
       if (done) done();
       invResult(r.results || []);
     } }] });
+  roleSelect(m.$('#ivR'), { multi: 1 });
   const btnT = () => { const b = m.btns[1]; if (b) b.innerHTML = md === 'link' ? '<i class="bi bi-link-45deg"></i>Tạo link mời' : '<i class="bi bi-send"></i>Gửi lời mời'; };
   btnT();
   m.el.addEventListener('click', e => {
@@ -14127,6 +14181,7 @@ function annEdit(x, after) {
   m.$('#anA').onclick = e => { const b = e.target.closest('.rchip'); if (!b) return;
     if (b.hasAttribute('data-all')) { m.$$('#anA .rchip').forEach(z => z.classList.toggle('on', z === b)); return sum(); }
     b.classList.toggle('on'); const any = m.$$('#anA [data-role].on').length; m.$('#anA [data-all]').classList.toggle('on', !any); sum(); };
+  roleSelect(m.$('#anA'), { multi: 1, ph: '+ Thêm người nhận theo vai trò… (gõ để tìm)' });
   m.el.addEventListener('change', e => { if (e.target.closest('.anx-opt')) sum(); });
   // dán ảnh (Ctrl/⌘ + V) vào ô nội dung cũng thêm được
   B.addEventListener('paste', e => { const fs = [...(e.clipboardData && e.clipboardData.files || [])].filter(f => /^image\//.test(f.type)); if (!fs.length) return; e.preventDefault(); const dt = new DataTransfer(); fs.forEach(f => dt.items.add(f)); const fi = m.$('#anF'); fi.files = dt.files; fi.dispatchEvent(new Event('change')); });
