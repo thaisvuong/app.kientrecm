@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T18:42:43.182Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T23:15:13.108Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -18967,8 +18967,12 @@ async function viewTasks(arg, v) {
      Từ 1.43 sửa thẳng VAI TRÒ CHUNG (cùng dữ liệu với Quản trị › Vai trò & quyền): ma trận = vai trò có bật Kiến Task × quyền Kiến Task.
      Người dùng: ô chọn = vai trò chỉ bật Kiến Task của người đó (vai trò khác giữ nguyên). Đổi: hiện ngay, lưu ngầm (lỗi → trả lại). */
   /* thanh con của tab Quản trị: chỉ hiện mục người dùng được quyền */
-  const adminBar = sub => { const ok = { roles: can('tasks.roles'), boards: can('tasks.boards'), settings: can('tasks.remind') || can('tasks.manage') };
-    return '<div class="tk-bar"><div class="seg tk-pmt">' + [['roles', 'Phân quyền', 'bi-shield-check'], ['boards', 'Thống kê bảng', 'bi-clipboard-data'], ['settings', 'Cài đặt', 'bi-sliders']].filter(x => ok[x[0]]).map(x => '<button class="seg-b" data-adm="' + x[0] + '" aria-pressed="' + (sub === x[0]) + '"><i class="bi ' + x[2] + '"></i><span>' + x[1] + '</span></button>').join('') + '</div></div>'; };
+  /* thanh Quản trị (1.43.8): MỘT dãy tab — Người dùng · Vai trò & quyền · Lời mời (phần Phân quyền) · Thống kê bảng · Cài đặt; trước đây là hai dãy chồng nhau, trông như lỗi */
+  const adminBar = sub => { const ok = { roles: can('tasks.roles'), boards: can('tasks.boards'), settings: can('tasks.remind') || can('tasks.manage') }, pt = TK.permTab || 'users';
+    return '<div class="tk-bar"><div class="seg tk-pmt">' + [['roles', 'users', 'Người dùng', 'bi-people'], ['roles', 'matrix', 'Vai trò & quyền', 'bi-grid-3x3'], ['roles', 'invites', 'Lời mời', 'bi-envelope-paper-heart'],
+      ['boards', '', 'Thống kê bảng', 'bi-clipboard-data'], ['settings', '', 'Cài đặt', 'bi-sliders']].filter(x => ok[x[0]])
+      .map(x => '<button class="seg-b" data-adm="' + x[0] + '"' + (x[1] ? ' data-pt="' + x[1] + '"' : '') + ' aria-pressed="' + (sub === x[0] && (!x[1] || x[1] === pt)) + '"><i class="bi ' + x[3] + '"></i><span>' + x[2] + '</span></button>').join('') + '</div>' +
+      (sub === 'roles' && pt === 'users' ? '<div class="search tk-find"><i class="bi bi-search"></i><input class="inp" id="pmQ" placeholder="Tìm người…" value="' + esc(TK.pmQ || '') + '"></div>' : '') + '</div>'; };
   const paintSettings = () => {
     setTitle('Cài đặt Kiến Task', 'bi-sliders', [{ t: 'Kiến Task', r: 'tasks' }], v);
     v.innerHTML = adminBar('settings') + '<div class="card"><div class="card-h"><h2><i class="bi bi-sliders"></i>Cài đặt Kiến Task</h2></div><div class="card-b stack"><div class="small muted">Nhắc việc qua mail và dữ liệu mẫu của Kiến Task.</div><div class="row">' +
@@ -18976,8 +18980,7 @@ async function viewTasks(arg, v) {
       (can('tasks.manage') ? '<button class="btn sm" data-go-set="taskdemo"><i class="bi bi-magic"></i>Dữ liệu mẫu</button>' : '') + '</div></div></div>'; };
   const paintRoles = async () => {
     const R = TK.perm, tab = TK.permTab || 'users';
-    const shell = inner => adminBar('roles') + '<div class="tk-bar"><div class="seg tk-pmt">' + [['users', 'Người dùng', 'bi-people'], ['matrix', 'Vai trò & quyền', 'bi-grid-3x3'], ['invites', 'Lời mời', 'bi-envelope-paper-heart']].map(x => '<button class="seg-b" data-pmt="' + x[0] + '" aria-pressed="' + (tab === x[0]) + '"><i class="bi ' + x[2] + '"></i><span>' + x[1] + '</span></button>').join('') + '</div>' +
-      (tab === 'users' ? '<div class="search tk-find"><i class="bi bi-search"></i><input class="inp" id="pmQ" placeholder="Tìm người…" value="' + esc(TK.pmQ || '') + '"></div>' : '') + '</div>' + inner;
+    const shell = inner => adminBar('roles') + inner;
     setTitle('Phân quyền Kiến Task', 'bi-shield-check', [{ t: 'Kiến Task', r: 'tasks' }], v);
     if (!R) { v.innerHTML = shell(miniLoader('Đang tải phân quyền…')); try { TK.perm = await rpc('taskPerm', {}); } catch (e) { v.innerHTML = shell('<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'); return; } if (mode === 'roles' && v.isConnected) paintRoles(); return; }
     const rl = id => R.roles.find(r => r.id === id) || { label: id, color: '#475569' }, chip = id => '<span class="pm-chip" style="--rc:' + esc(rl(id).color) + '">' + esc(rl(id).label) + '</span>';
@@ -19069,9 +19072,13 @@ async function viewTasks(arg, v) {
       foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', cls: 'pri', i: 'bi-check2', fn: mm => { out = mm.$('#pmN').value; } }] });
     setTimeout(() => { const i = $('#pmN'); if (i) { i.focus(); i.select(); } }, 60); });
   /* sự kiện của tab Phân quyền (gắn một lần) */
-  v.addEventListener('change', async e => {
-    const adm = e.target.closest('[data-adm]'); if (adm) return go('tasks/admin/' + adm.dataset.adm);      // thanh con Quản trị
+  /* thanh Quản trị + nút của Cài đặt Kiến Task (sự kiện BẤM — 1.43.8 sửa: bản 1.43 gắn nhầm vào “change” nên bấm không ăn) */
+  v.addEventListener('click', e => {
+    const adm = e.target.closest('[data-adm]'); if (adm) { if (adm.dataset.pt) TK.permTab = adm.dataset.pt;      // tab của Phân quyền đổi tại chỗ
+      return mode === 'roles' && adm.dataset.adm === 'roles' ? paintRoles() : go('tasks/admin/' + adm.dataset.adm); }
     const gs = e.target.closest('[data-go-set]'); if (gs) return go('settings/' + gs.dataset.goSet);      // Cài đặt Kiến Task → mục Cài đặt tương ứng
+  });
+  v.addEventListener('change', async e => {
     const ps = mode === 'perf' && e.target.closest('[data-pfsel]'); if (ps) { TK.pfWho = ps.value; return paint(); }
     if (mode !== 'roles' || !TK.perm) return;
     const us = e.target.closest('[data-urole]');
