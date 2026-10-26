@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-26T03:06:23.620Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-26T03:23:02.808Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -1692,9 +1692,9 @@ details.adv > summary .bi{ font-size:11px; transition:transform var(--t-base) } 
 .cd-t{ flex:1; min-width:0 } .cd-t b{ display:block; font-size:16px } .cd-t small{ color:var(--muted); font-size:12px }
 .cd-meta{ display:flex; flex-wrap:wrap; gap:4px 16px; font-size:12px; color:var(--ink-2) } .cd-meta i{ margin-right:5px; color:var(--muted) }
 .cd-prog{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
-.cd-auto{ display:flex; align-items:center; gap:10px; padding:8px 10px; margin:0 -2px; border-radius:12px; background:var(--surface-2); border:1px solid var(--border); cursor:pointer; -webkit-tap-highlight-color:transparent }
+.cd-auto{ display:inline-flex; align-self:flex-start; max-width:100%; align-items:center; gap:10px; padding:8px 10px; margin:0 -2px; border-radius:12px; background:var(--surface-2); border:1px solid var(--border); cursor:pointer; -webkit-tap-highlight-color:transparent }
 .cd-auto > i{ font-size:17px; color:var(--muted); width:20px; text-align:center } .cd-auto.on{ background:var(--brand-50); border-color:var(--brand-100) } .cd-auto.on > i{ color:var(--brand-700) }
-.cd-auto > span:nth-child(2){ flex:1; min-width:0; display:flex; flex-direction:column } .cd-auto b{ font-size:13px } .cd-auto small{ font-size:11.5px; color:var(--muted); line-height:1.35 }
+.cd-auto > span:nth-child(2){ flex:0 1 auto; min-width:0; margin-right:14px; display:flex; flex-direction:column } .cd-auto b{ font-size:13px } .cd-auto small{ font-size:11.5px; color:var(--muted); line-height:1.35 }
 .cd-lay{ flex:1; min-height:0; display:grid; grid-template-columns:minmax(260px,1fr) minmax(320px,1.15fr); gap:12px }
 .cd-col{ display:flex; flex-direction:column; min-height:0; overflow:hidden; padding:0 } .cd-col .lk-cn{ font-size:14px }
 .cd-tree{ flex:1; max-height:none }
@@ -11519,10 +11519,10 @@ function clRow(x, opt) {
       (!man ? '<span class="cl-slot tg">' + (x.released && x.status !== 'taught' ? '<button class="btn xs pri" data-act="taught"><i class="bi bi-check2-all"></i>Đã dạy</button>' : '') + '</span>' : '') +
       '<button class="ibtn sm cl-mo" data-act="more" title="Tuỳ chọn: đổi ngày giờ, ghi chú, bỏ đã dạy…" aria-label="Tuỳ chọn"><i class="bi bi-three-dots"></i></button></div></div>';
 }
-/** Thêm buổi: hiện ngay trên máy (ngày kế tiếp theo lịch học), máy chủ lưu ngầm rồi tự xếp bài */
+/** Thêm buổi: hiện ngay trên máy (ngày học kế tiếp tính từ hôm nay — sau buổi cuối nếu buổi cuối còn ở phía trước), máy chủ lưu ngầm rồi tự xếp bài */
 function clAddSess(c, done) {
-  const L = clSess(c.id), last = L.length ? L[L.length - 1].date : '', dows = scDows(c.days);
-  let d = last ? clAdd(last, 1) : CL.d.today; for (let g = 0; dows.length && dows.indexOf(clDate(d).getDay()) < 0 && g < 14; g++) d = clAdd(d, 1);
+  const L = clSess(c.id), last = L.length ? L[L.length - 1].date : '', dows = scDows(c.days), nx = last ? clAdd(last, 1) : '';
+  let d = nx > CL.d.today ? nx : CL.d.today; for (let g = 0; dows.length && dows.indexOf(clDate(d).getDay()) < 0 && g < 14; g++) d = clAdd(d, 1);
   const r = scParse(c.days, c.times).find(z => z.d === clDate(d).getDay()) || {}, time = r.a ? r.a + (r.b ? ' - ' + r.b : '') : '';
   const id = 'S' + [...crypto.getRandomValues(new Uint8Array(10))].map(z => 'abcdefghijklmnopqrstuvwxyz0123456789'[z % 36]).join('');
   clQueue('sessionAdd', { classId: c.id, newId: id, date: d, time: time }, { label: 'Thêm buổi · ' + clName(c) });
