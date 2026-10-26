@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-25T23:15:13.108Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-26T03:06:23.620Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -17790,21 +17790,11 @@ function tkAv(e) { return e ? '<span class="av sm" title="' + esc(tkUser(e)) + '
 /** người phụ trách (PIC) của một việc — có thể nhiều người */
 function tkWho(t) { return t.assignees || String(t.assignee || '').split(',').filter(Boolean); }
 /** NGƯỜI GIAO ĐƯỢC ở bảng p: thành viên bảng (bảng không giới hạn / bảng riêng = mọi người dùng Kiến Task) · keep = người đang phụ trách (giữ dù đã thôi dùng Kiến Task).
-    Bảng chung giới hạn thành viên mà người giao là trưởng bảng / có quyền “Giao việc” / người giữ Epic chứa việc t → thêm mọi người dùng Kiến Task khác
-    (out = ngoài bảng; giao là máy chủ tự thêm vào thành viên bảng). */
-function tkAsgPool(p, keep, t) {
+    Bảng chung giới hạn thành viên: chỉ gợi ý người đã thêm vào bảng (1.43.9) — thêm người mới ở Sửa bảng › Thành viên. */
+function tkAsgPool(p, keep) {
   const d = TK.d, k = keep || [], ok = u => u.task || k.indexOf(u.email) >= 0;
   if (!p || p.scope === 'personal' || !p.members.length) return d.users.filter(ok);
-  const inB = u => p.members.indexOf(u.email) >= 0 || u.email === p.createdBy || k.indexOf(u.email) >= 0, L = d.users.filter(u => inB(u) && ok(u));
-  if (p.createdBy !== d.me && !(d.can || {}).assign && !tkEpLead(t)) return L;
-  return L.concat(d.users.filter(u => u.task && !inB(u)).map(u => Object.assign({}, u, { out: 1 })));
-}
-/** người giữ Epic (1.43): người tạo / phụ trách epic chứa việc t (t là epic: chính nó; epic mới chưa lưu: người tạo) — giao được việc trong epic cho người khác */
-function tkEpLead(t) {
-  if (!t || !TK.d) return false;
-  const me = TK.d.me, ep = t.type === 'epic' ? t : tkById(t.epicId);
-  if (t.type === 'epic' && !t.id) return true;
-  return !!ep && ep.type === 'epic' && (ep.reporter === me || tkWho(ep).indexOf(me) >= 0);
+  return d.users.filter(u => (p.members.indexOf(u.email) >= 0 || u.email === p.createdBy || k.indexOf(u.email) >= 0) && ok(u));
 }
 /** NGƯỜI TRÊN BẢNG CHUNG (1.43.7): tối đa 5 avatar người hay tương tác nhất (phụ trách / tạo việc trong bảng — tính từ dữ liệu đã tải, không gọi thêm máy chủ), còn lại “+N”;
     viền xanh = đang mở bảng này (TK.here, nhận theo nhịp ping sẵn có của app) */
@@ -18049,10 +18039,10 @@ function tkPick(root, o) {
     q.placeholder = sel.length ? (o.phMore || '+ Thêm…') : (o.ph || 'Tìm tên hoặc email…'); };
   const changed = () => { sync(); if (o.onChange) o.onChange(sel.slice()); };
   const list = () => { const w = fold(q.value).trim(), v = q.value.trim().toLowerCase(), P = o.pool();
-    L = P.filter(u => sel.indexOf(u.email) < 0 && (!w || fold(u.name + ' ' + u.email).indexOf(w) >= 0)).sort((a, b) => (b.email === me) - (a.email === me) || (a.out ? 1 : 0) - (b.out ? 1 : 0)).slice(0, 50);
+    L = P.filter(u => sel.indexOf(u.email) < 0 && (!w || fold(u.name + ' ' + u.email).indexOf(w) >= 0)).sort((a, b) => (b.email === me) - (a.email === me)).slice(0, 50);
     if (o.typed && /^[^@\s,;]+@[^@\s,;]+\.[^@\s,;]+$/.test(v) && !P.some(u => u.email === v) && sel.indexOf(v) < 0) L = L.concat([{ email: v, name: v, typed: 1 }]);
     hi = Math.min(hi, Math.max(0, L.length - 1));
-    dd.innerHTML = L.length ? L.map((u, i) => '<div class="tk-mp-o' + (i === hi ? ' on' : '') + '" role="option" data-mi="' + i + '">' + tkAv(u.email) + '<span><b>' + esc(u.typed ? 'Thêm ' + u.email : u.name + (u.email === me ? ' (tôi)' : '')) + '</b><small>' + esc(u.typed ? 'Email chưa có trong danh sách người dùng' : u.email + (u.out ? ' · ngoài bảng — giao là thêm vào bảng' : '')) + '</small></span></div>').join('')
+    dd.innerHTML = L.length ? L.map((u, i) => '<div class="tk-mp-o' + (i === hi ? ' on' : '') + '" role="option" data-mi="' + i + '">' + tkAv(u.email) + '<span><b>' + esc(u.typed ? 'Thêm ' + u.email : u.name + (u.email === me ? ' (tôi)' : '')) + '</b><small>' + esc(u.typed ? 'Email chưa có trong danh sách người dùng' : u.email) + '</small></span></div>').join('')
       : '<div class="tk-mp-none">' + (q.value.trim() ? 'Không tìm thấy “' + esc(q.value.trim()) + '”' : 'Không còn ai để chọn') + '</div>';
     dd.hidden = false; q.setAttribute('aria-expanded', 'true');
     const on = $('.tk-mp-o.on', dd); if (on) on.scrollIntoView({ block: 'nearest' }); };
@@ -18709,8 +18699,8 @@ async function viewTasks(arg, v) {
     catch (e) { Object.keys(t).forEach(k => { delete t[k]; }); Object.assign(t, was); paint(); fail(e); }
   };
   const dbPicMenu = btn => { const t = D().tasks.find(x => x.id === btn.closest('tr').dataset.row), p = t && tkProj(t.projectId); if (!t || !p || t.mir) return;
-    const cur = tkWho(t), M = tkAsgPool(p, cur, t);
-    openMenu(btn, M.map(u => ({ t: u.name + (u.email === D().me ? ' (tôi)' : '') + (u.out ? ' · ngoài bảng' : ''), i: cur.indexOf(u.email) >= 0 ? 'bi-check-circle-fill' : 'bi-circle', fn: async () => { const nx = cur.indexOf(u.email) >= 0 ? cur.filter(e => e !== u.email) : cur.concat([u.email]);
+    const cur = tkWho(t), M = tkAsgPool(p, cur);
+    openMenu(btn, M.map(u => ({ t: u.name + (u.email === D().me ? ' (tôi)' : ''), i: cur.indexOf(u.email) >= 0 ? 'bi-check-circle-fill' : 'bi-circle', fn: async () => { const nx = cur.indexOf(u.email) >= 0 ? cur.filter(e => e !== u.email) : cur.concat([u.email]);
       await dbSave(t, { assignees: nx }, btn); tkJoinLocal(p, nx); const b = $('tr[data-row="' + t.id + '"] [data-f="pic"]', v); if (b) b.innerHTML = dbPic(t); } }))
       .concat(cur.length ? ['-', { t: 'Bỏ giao', i: 'bi-person-dash', fn: async () => { await dbSave(t, { assignees: [] }, btn); const b = $('tr[data-row="' + t.id + '"] [data-f="pic"]', v); if (b) b.innerHTML = dbPic(t); } }] : [])); };
   const paintBacklog = () => {
@@ -19478,7 +19468,7 @@ async function viewTasks(arg, v) {
     if (isNew && !init.draft && mode === 'board' && activeSp(p0)) cur.sprintId = activeSp(p0).id;
     if (isNew && tkPar(cur.parentId)) { const pa = tkPar(cur.parentId); cur.epicId = pa.epicId || ''; if (!init.draft) cur.sprintId = pa.sprintId || ''; }      // sub-task mới: theo epic, đợt của task cha
     const opt = (list, val) => list.map(o => '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(val) ? ' selected' : '') + '>' + esc(o[1]) + '</option>').join('');
-    const members = p => tkAsgPool(p, null, cur);      // người giao được: thành viên bảng (+ người dùng Kiến Task ngoài bảng nếu mình giao được cho người khác / giữ epic chứa việc này)
+    const members = p => tkAsgPool(p);      // người giao được: thành viên bảng
     const spOpts = p => [['', 'Việc chờ (chưa xếp đợt)']].concat(sprints(p).filter(s => s.status !== 'done' || s.id === cur.sprintId).map(s => [s.id, s.name + (s.status === 'active' ? ' · đang chạy' : '')]));
     const epOpts = p => [['', 'Không']].concat(D().tasks.filter(x => x.projectId === p.id && x.type === 'epic' && x.id !== cur.id).map(x => [x.id, x.title]));
     const lv0 = isNew ? (cur.type === 'epic' ? 'epic' : tkPar(cur.parentId) ? 'sub' : 'task') : tkLv(cur);
@@ -19767,7 +19757,7 @@ async function viewTasks(arg, v) {
       '<button type="button" class="ibtn" data-cx title="Bỏ cột" aria-label="Bỏ cột"' + (cols.length <= 2 ? ' disabled' : '') + '><i class="bi bi-x-lg"></i></button></div>').join('');
     const doneHtml = () => cols.map((c, i) => '<option value="' + i + '"' + (c.done ? ' selected' : '') + '>' + esc(c.t || 'Cột ' + (i + 1)) + '</option>').join('');
     const m = modal({ title: (isNew ? 'Tạo ' : 'Sửa ') + (personal ? 'bảng riêng' : 'bảng chung'), icon: personal ? 'bi-lock' : 'bi-people', sticky: true, body:
-      '<div class="stack tk-pdlg">' + (canConv ? '<div class="fg"><label class="flabel">Loại bảng</label><div class="seg tk-scope" id="pSc" role="group" aria-label="Loại bảng">' +
+      '<div class="stack tk-pdlg">' + (canConv ? '<div class="fg"><label class="flabel">Loại bảng</label><div class="seg fill tk-scope" id="pSc" role="group" aria-label="Loại bảng">' +
           '<button type="button" class="seg-b" data-sc="personal" aria-pressed="' + personal + '"><i class="bi bi-lock"></i><span>Bảng riêng</span></button>' +
           '<button type="button" class="seg-b" data-sc="team" aria-pressed="' + !personal + '"' + (!personal || canTeam ? '' : ' disabled title="Bạn chưa được cấp quyền tạo bảng chung"') + '><i class="bi bi-people"></i><span>Bảng chung</span></button></div>' +
           '<div class="hint" id="pScN"></div></div>' : '') + '<div class="row" style="flex-wrap:nowrap;align-items:flex-end"><div class="fg" style="flex:1"><label class="flabel">Tên bảng</label><input class="inp" id="pN" value="' + esc(p ? p.name : '') + '"' + (isNew ? ' autofocus' : '') + ' placeholder="' + (personal ? 'VD: Việc riêng của tôi' : 'VD: Soạn giáo trình Toán 5') + '"></div>' +
@@ -19951,7 +19941,7 @@ async function viewTasks(arg, v) {
         return '<div class="tpl-r lv-' + i.lv + '" style="padding-left:' + (6 + tplDepth(x, i) * 22) + 'px">' + tkLvIc(i.lv) + '<span class="t" title="' + esc(i.t) + '">' + esc(i.t) + '</span>' + (i.pic ? '<i class="bi bi-star-fill tpl-star" title="Giao cho người được chọn khi tạo"></i>' : '') +
           (as.length ? tkAvs({ assignees: as }) : tkAv('')) + '<span class="tpl-off">' + (i.off === '' ? 'không hạn' : '+' + i.off + ' ngày') + '</span>' +
           '<input class="inp tpl-due' + (hand[i.k] !== undefined ? ' hand' : '') + '" type="date" data-k="' + esc(i.k) + '" value="' + esc(dueOf(i, st)) + '" aria-label="Hạn của ' + esc(i.t) + '"></div>'; }).join(''); };
-    const pk = hasPic ? tkPick(m.$('#tuP'), { sel: [], pool: () => tkAsgPool(tkProj(m.$('#tuB').value), null, { type: x.kind }), onChange: s => { pic = s; draw(); }, ph: 'Chọn người phụ trách (VD nhân sự mới)…' }) : null;
+    const pk = hasPic ? tkPick(m.$('#tuP'), { sel: [], pool: () => tkAsgPool(tkProj(m.$('#tuB').value)), onChange: s => { pic = s; draw(); }, ph: 'Chọn người phụ trách (VD nhân sự mới)…' }) : null;
     m.$('#tuB').onchange = () => { draw(); if (pk) pk.refresh(); };
     m.$('#tuS').oninput = draw;
     m.$('#tuV').onchange = e => { const i = e.target.closest('.tpl-due'); if (!i) return; hand[i.dataset.k] = i.value; i.classList.add('hand'); };
@@ -20000,7 +19990,7 @@ async function viewTasks(arg, v) {
     const recUi = () => { const on = m.$('#teR').checked, mo = m.$('#teE').value === 'month'; m.$('#teRf').hidden = !on; m.$('#teWw').hidden = mo; m.$('#teMw').hidden = !mo;
       const same = on && rec.on && x0.rec.ev === m.$('#teE').value && String(x0.rec.dow) === m.$('#teW').value && String(x0.rec.dom) === m.$('#teM').value && x0.rec.pid === m.$('#teB').value;
       m.$('#teRn').textContent = !on ? 'Mỗi sáng hệ thống xem mẫu nào tới lịch thì tạo lại các việc của mẫu (đứng tên người tạo mẫu) — mỗi kỳ chỉ một lần' : same && x0.next ? 'Lần tạo tới: ' + tkDmy(x0.next) + (x0.lastErr ? ' · lần trước lỗi: ' + x0.lastErr : '') : 'Lưu để xem ngày tạo tới — nếu ngày của kỳ này đã qua thì bắt đầu từ kỳ sau'; };
-    tkPick(m.$('#teP'), { sel: rec.pic, pool: () => tkAsgPool(tkProj(m.$('#teB').value), null, { type: x.kind }), onChange: s => { rec.pic = s; }, ph: 'Chọn người phụ trách…' });
+    tkPick(m.$('#teP'), { sel: rec.pic, pool: () => tkAsgPool(tkProj(m.$('#teB').value)), onChange: s => { rec.pic = s; }, ph: 'Chọn người phụ trách…' });
     m.$('#teL').addEventListener('input', e => { const r = e.target.closest('.tpl-er'), f = e.target.dataset.f, i = r && items.find(y => y.k === r.dataset.k); if (!i || !f) return;
       if (f === 't') i.t = e.target.value; else if (f === 'off') i.off = e.target.value === '' ? '' : Math.max(0, Math.round(Number(e.target.value)) || 0); });
     m.$('#teL').addEventListener('change', e => { const r = e.target.closest('.tpl-er'), f = e.target.dataset.f, i = r && items.find(y => y.k === r.dataset.k); if (!i || !f) return;
