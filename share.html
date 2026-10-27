@@ -783,7 +783,18 @@ html[data-theme="graphite"]{ --brand-950:#0B0F17; --brand-900:#111827; --brand-8
 .pg.hit{ box-shadow:0 0 0 3px var(--accent-soft), 0 2px 14px rgba(20,30,50,.18) }
 .vw-img{ max-width:100%; display:block; margin:0 auto; box-shadow:0 2px 14px rgba(20,30,50,.18); background:#fff }
 .vw-text{ max-width:900px; margin:0 auto; background:#fff; padding:28px 32px; border-radius:6px; white-space:pre-wrap; font:13px/1.6 var(--font-mono); box-shadow:0 2px 14px rgba(20,30,50,.12) }
-.vw-side{ border-left:1px solid var(--border); background:var(--surface); display:flex; flex-direction:column; min-width:0; overflow:hidden }
+.vw-side{ position:relative; border-left:1px solid var(--border); background:var(--surface); display:flex; flex-direction:column; min-width:0; overflow:hidden }
+/* (1.43.16) mép trái khung bên: kéo đổi độ rộng */
+.vs-rs{ position:absolute; left:0; top:0; bottom:0; width:8px; margin-left:-3px; cursor:col-resize; z-index:3; touch-action:none }
+.vs-rs::after{ content:''; position:absolute; left:3px; top:0; bottom:0; width:2px; background:transparent; transition:background var(--t-fast) }
+.vs-rs:hover::after, .vs-rs:focus-visible::after, .vw.rsz .vs-rs::after{ background:var(--primary) } .vs-rs:focus-visible{ outline:0 }
+.vw.rsz, .vw.rsz *{ cursor:col-resize !important; user-select:none } .vw.rsz .vw-pages{ pointer-events:none }
+/* thông tin tài liệu nằm chung hàng công cụ (bỏ dòng tên + hàng nút cùng thư mục) */
+.vw-meta{ flex:1; min-width:0; display:flex; align-items:center; gap:4px 10px; font-size:11.5px; color:var(--muted); overflow:hidden; white-space:nowrap; padding:0 6px }
+.vw-meta > *{ flex:none } .vw-meta .vm-p{ flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis }
+.vw-meta a{ color:var(--muted); cursor:pointer; text-decoration:none } .vw-meta a:hover{ color:var(--brand-700); text-decoration:underline }
+@media (max-width:1100px){ .vs-rs{ display:none } }
+@media (max-width:720px){ .vw-meta .vm-p, .vw-meta .vm-s{ display:none } }
 .vw.noside .vw-side{ display:none }
 .st-b{ display:flex; align-items:center; gap:5px; padding:8px 8px; border:0; background:none; border-bottom:2px solid transparent; font-size:11.5px; font-weight:700; color:var(--muted); cursor:pointer; white-space:nowrap;
   transition:color var(--t-fast), border-color var(--t-fast) }
@@ -1618,7 +1629,9 @@ details.adv > summary .bi{ font-size:11px; transition:transform var(--t-base) } 
 .td-rb.need button{ border-color:#E8A23B; animation:td-sh .3s 2 } @keyframes td-sh{ 50%{ transform:translateX(3px) } }
 .cd-hn{ display:flex !important; gap:5px; align-items:flex-start; margin-top:2px; color:var(--ink-2) !important; font-style:italic } .cd-hn i{ font-style:normal; color:var(--muted) }
 .pg-ft{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; padding:10px 12px; border-radius:12px; background:var(--surface-2); font-size:13px } .pg-ft span{ display:inline-flex; align-items:center; gap:6px; color:var(--ink-2) }
-.pg-qk{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px } .pg-qk .chip{ cursor:pointer; height:26px }
+.pg-qk{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:6px } .pg-qk .chip{ cursor:pointer; height:26px }
+.pg-qk .qk-e{ cursor:default; gap:2px; padding-right:2px } .pg-qk .qk-e button{ border:0; background:transparent; width:20px; height:20px; border-radius:50%; display:grid; place-items:center; color:var(--muted); cursor:pointer } .pg-qk .qk-e button:hover{ background:#FDECEC; color:#B4232A }
+.pg-qk .qk-add{ display:inline-flex; gap:6px; align-items:center } .pg-qk .qk-add .inp{ height:28px; width:200px; font-size:12.5px } .pg-qk .qk-ed{ width:26px; height:26px; color:var(--muted) }
 .pg-lk{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:12px; background:#FFF8E8; border:1px solid #F3DFAE; cursor:pointer } .pg-lk span{ display:flex; flex-direction:column; gap:2px; font-size:13px } .pg-lk b i{ margin-right:5px } .pg-lk small{ color:var(--ink-2); font-size:12px }
 /* Thống kê lớp (1.43.11) */
 .rp-grid{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; align-items:start } .rp-col{ display:flex; flex-direction:column; gap:12px; min-width:0 }
@@ -4282,7 +4295,13 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .tl-when{ flex:0 0 86px; font-size:12px; font-weight:700; color:var(--ink-2) } .tl-g.late .tl-when{ color:#B4232A }
 @media (max-width:720px){
   .gc-col{ flex:0 0 82vw; max-width:none; max-height:none } .gc-vw .bl{ display:none } .gc-kbd{ justify-content:flex-start }
-  .ask-tabs{ gap:6px } .ask-t{ padding:10px; gap:8px } .ask-t > i{ width:30px; height:30px; font-size:15px } .ask-t b{ font-size:13px } .ask-t small{ display:none }
+  .ask-tabs{ gap:6px; margin-bottom:8px } .ask-t{ padding:7px 10px; gap:8px; border-radius:12px } .ask-t > i{ width:26px; height:26px; font-size:13px; border-radius:8px } .ask-t b{ font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis } .ask-t small{ display:none }
+  .ask-lg{ display:none } .ask-n{ min-width:20px; height:20px; font-size:11px; padding:0 6px }
+  .ask-w .gc-hd{ padding:8px; gap:8px; flex-wrap:nowrap } .ask-w .gc-hi{ display:none } .ask-w .gc-acts{ flex-wrap:nowrap; min-width:0; width:100% } .ask-w .gc-acts .btn{ height:38px }
+  .ask-w .gc-acts .btn:not(.pri){ flex:none; width:38px; padding:0; justify-content:center } .ask-w .gc-acts .btn:not(.pri) .bl{ display:none } .ask-w .gc-acts .btn.pri{ flex:1; min-width:0 }
+  .ask-w .gc-who{ flex:1 1 140px; height:34px } .ask-w .gc-q{ flex:1 1 100% } .ask-w .gc-rv{ margin-top:8px }
+  .ask-w .gc-bar{ margin:8px 0; gap:6px } .ask-w .gc-bar .seg-b{ height:32px; padding:0 9px; font-size:12.5px } .ask-w .gc-bar .seg-b small{ font-size:11px }
+  .ask-w .gc-r{ padding:9px 10px; gap:8px } .ask-w .gc-k{ width:30px; height:30px; font-size:14px; border-radius:9px } .ask-w .gc-r .tag{ margin-left:38px } .ask-w .gc-m{ flex-basis:calc(100% - 40px) }
   .gc-bar{ gap:6px } .gc-bar > .seg{ max-width:100%; overflow-x:auto } .gc-who{ max-width:100%; flex:1 1 140px } .gc-q{ flex-basis:100%; min-width:0 }
   .tl-i{ flex-wrap:wrap; gap:6px 10px } .tl-when{ flex-basis:100% } .tl-i .gc-m{ flex-basis:calc(100% - 60px) }
 }

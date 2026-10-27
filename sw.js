@@ -3,7 +3,7 @@
       cho lần mở sau (stale-while-revalidate). Lần đầu trên máy chưa có bản cất → tải từ mạng như bình thường.
    2. THÔNG BÁO ĐẨY: nhận push → hỏi máy chủ thông báo mới nhất rồi hiện; bấm thông báo mở đúng trang. */
 const APP = 'https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec';
-const CACHE = 'kt-app-mvqa4i6o';
+const CACHE = 'kt-app-mvqg466j';
 const SHELL = '/index.html';
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.add(new Request(SHELL, { cache: 'no-cache' }))).catch(() => {})); });
 self.addEventListener('activate', e => e.waitUntil((async () => {
