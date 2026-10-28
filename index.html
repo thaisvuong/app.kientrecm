@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T14:18:38.284Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T14:24:08.341Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -9689,17 +9689,29 @@ function awPrep(d) {
   const R = {}; d.users.forEach((u, i) => u[2].forEach(r => { (R[r] = R[r] || []).push(i); }));
   Object.assign(d, { N: N, P: P, R: R, roots: d.src.map(s => 'root:' + s[0]).filter(k => N[k]), proots: Object.keys(P).filter(id => !P[id].pid || !P[P[id].pid]).sort((a, b) => P[a].ord - P[b].ord || natCmp(P[a].name, P[b].name)) });
 }
-/** gom người xem thành biểu tượng: vai trò mà mọi thành viên (trong bảng) đều xem → 1 biểu tượng vai trò; vai trò ≥ 60% → biểu tượng kèm “x/y”; còn lại từng người */
-function awGroup(set) {
+/** gom người xem thành biểu tượng: vai trò mà mọi thành viên (trong bảng) đều xem → 1 biểu tượng vai trò; vai trò ≥ 60% → biểu tượng kèm “x/y”; còn lại từng người.
+    (1.44.18) nhiều người mang hai vai trò (VD “Gia sư, CTV”) → vai trò được ĐẶT RÕ ở thư mục này / thư mục cha (nút +, luật Giới hạn) gom trước,
+    rồi vai trò cả nhóm đều xem, rồi vai trò đông người — trước đây thêm Gia sư lại hiện thành “CTV 80/84” vì CTV đông hơn. */
+function awGroup(set, key) {
   const d = AW.d, has = {}; set.forEach(i => { has[i] = 1; });
-  const roles = Object.keys(d.R).sort((a, b) => d.R[b].length - d.R[a].length), done = {}, out = [];
+  const pref = awPref(key), full = r => d.R[r].every(i => has[i]) ? 0 : 1, pi = r => { const i = pref.indexOf(r); return i < 0 ? 99 : i; };
+  const roles = Object.keys(d.R).sort((a, b) => pi(a) - pi(b) || full(a) - full(b) || d.R[b].length - d.R[a].length), done = {}, out = [];
   roles.forEach(r => { const M = d.R[r], left = M.filter(i => has[i] && !done[i]); if (!left.length) return;
     const all = M.every(i => has[i]); if (!all && (left.length < 3 || left.length / M.length < .6)) return;
     left.forEach(i => { done[i] = 1; }); out.push({ r: r, n: M.filter(i => has[i]).length, of: M.length, all: all }); });
   return { roles: out, users: set.filter(i => !done[i]) };
 }
+/** vai trò được đặt rõ cho mục này: thêm tay / luật Giới hạn ở chính nó rồi các thư mục cha (gần trước) — bỏ vai trò đã gỡ */
+function awPref(key) {
+  const d = AW.d, out = [], off = {}; if (!key) return out;
+  let k = key.indexOf('p:') === 0 ? ((d.P[key.slice(2)] || {}).dkey || '') : key;
+  for (let g = 0; k && d.N[k] && g < 80; k = d.N[k].pk, g++) { const r = d.rule[d.N[k].tid]; if (!r) continue;
+    (r.d || []).forEach(w => { if (/^role:/.test(w)) off[w.slice(5)] = 1; });
+    (r.a || []).concat(r.v || []).forEach(w => { const id = /^role:/.test(w) ? w.slice(5) : ''; if (id && !off[id] && out.indexOf(id) < 0) out.push(id); }); }
+  return out;
+}
 function awChips(key, set, tid, nm) {
-  const d = AW.d, G = awGroup(set);
+  const d = AW.d, G = awGroup(set, key);
   const kx = (who, lab) => tid ? '<button class="aw-x" data-key="' + esc(tid) + '" data-kick="' + esc(who) + '" data-nm="' + esc(nm) + '" title="Gỡ ' + esc(lab) + ' khỏi người xem “' + esc(nm) + '”"><i class="bi bi-x"></i></button>' : '';
   let h = G.roles.map(g => { const r = awRole(g.r);
     return '<span class="aw-rc" style="--rc:' + r.color + '" title="' + esc(r.label) + ': ' + (g.all ? 'cả ' + g.of + ' người' : g.n + '/' + g.of + ' người') + ' xem được"><span class="aw-ri"><i class="bi ' + r.icon + '"></i></span>' + esc(r.label) + '<em>' + (g.all ? g.of : g.n + '/' + g.of) + '</em>' + kx('role:' + g.r, 'vai trò ' + r.label) + '</span>'; }).join('');
@@ -9783,7 +9795,7 @@ function awBody(B) {
 /** danh sách đầy đủ người xem một mục — chặn từng người / cả vai trò */
 function awPeople(key, B) {
   const d = AW.d, isP = key.indexOf('p:') === 0, x = isP ? d.P[key.slice(2)] : d.N[key]; if (!x) return;
-  const set = isP ? x.set : d.setOf(key), tid = isP ? (x.g ? '' : (x.dkey ? d.N[x.dkey].tid : '')) : x.tid, G = awGroup(set);
+  const set = isP ? x.set : d.setOf(key), tid = isP ? (x.g ? '' : (x.dkey ? d.N[x.dkey].tid : '')) : x.tid, G = awGroup(set, key);
   const urow = i => { const u = d.users[i]; return '<div class="aw-pl"><span class="av sm">' + esc(initials(u[1] || u[0])) + '</span><span><b>' + esc(u[1]) + '</b><small>' + esc(u[0]) + ' · ' + u[2].map(r => awRole(r).label).join(', ') + '</small></span>' +
     (tid ? '<button class="btn xs ghost aw-red" data-kick="' + esc(u[0]) + '" data-key="' + esc(tid) + '" data-nm="' + esc(x.name) + '"><i class="bi bi-x-lg"></i>Gỡ</button>' : '') + '</div>'; };
   const m = modal({ title: 'Ai xem được · ' + x.name, icon: 'bi-people', size: 'lg', body: '<div class="aw-pm">' +
