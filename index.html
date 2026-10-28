@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T14:00:28.551Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T14:18:38.284Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4848,7 +4848,7 @@ const obTransient = e => !e.srv || /lock|timeout|timed out|too many|exceeded|ser
 /* lệnh ghi gửi gộp được (máy chủ API.batch): nhiều lệnh liên tiếp đi chung MỘT lần gọi — kéo điền, đẩy lùi, duyệt nhiều buổi lưu nhanh hơn hẳn */
 const OB_BATCH = { classSave: 1, classMine: 1, classStudent: 1, classStart: 1, classLcfg: 1, classAdd: 1, classRemove: 1, classDelete: 1, reqDecide: 1,
                    sessionSave: 1, sessionContent: 1, sessionApprove: 1, sessionOff: 1, sessionTaught: 1, sessionAdd: 1, sessionDelete: 1, notifRead: 1,
-                   taskSave: 1, taskMove: 1, taskDelete: 1, taskProjectSave: 1, taskProjectDelete: 1 };
+                   taskSave: 1, taskMove: 1, taskDelete: 1, taskProjectSave: 1, taskProjectDelete: 1, accessKick: 1 };      // accessKick (1.44.17): thêm / gỡ người xem liên tiếp đi chung một lần gọi
 /** lệnh it đã lưu xong (đang đứng đầu hàng đợi) */
 function obDone(it, r) {
   if (OB.q[0] === it) OB.q.shift(); else { const i = OB.q.indexOf(it); if (i >= 0) OB.q.splice(i, 1); }
@@ -9848,10 +9848,17 @@ function awAdd(key, B) {
   m.$('#awAq').oninput = debounce(e => { q = e.target.value; paint(); }, 120);
   m.$('#awAl').onclick = e => { const b = e.target.closest('[data-aadd]'); if (!b) return; const up = !!m.$('#awUp').checked; lsSet('awUp', up); awKick(tid, b.dataset.aadd, nm, false, B, up); paint(); };
 }
-/** tính lại từ máy chủ sau khi lưu (gộp các lần bấm liên tiếp) */
+/** tính lại từ máy chủ sau khi lưu (gộp các lần bấm liên tiếp).
+    (1.44.17) còn lệnh thêm / gỡ chờ lưu → chưa tải (lệnh cuối lưu xong sẽ gọi lại); tải về rồi vẫn phủ các lệnh chưa lưu lên trên
+    — trước đây gỡ liền nhiều người thì người gỡ sau hiện lại vài giây (bản máy chủ chưa có) rồi mới mất. */
 const awSync = debounce(async B => {
-  try { const x = await rpc('accessWho', { fresh: 1 }, { quiet: true }); AW.d = x; awPrep(x); if (B.isConnected) { const q = $('#awQ', B), f = q && document.activeElement === q; awPaint(B); if (f) { const q2 = $('#awQ', B); q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); } } } catch (e) {}
-}, 600);
+  if (obPending('accessKick').length) return;
+  try {
+    const x = await rpc('accessWho', { fresh: 1 }, { quiet: true });
+    AW.d = x; awPrep(x); obPending('accessKick').forEach(p => awLocal(p.targetId, p.who, !!p.on));
+    if (B.isConnected) { const q = $('#awQ', B), f = q && document.activeElement === q; awPaint(B); if (f) { const q2 = $('#awQ', B); q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); } }
+  } catch (e) {}
+}, 800);
 
 /* ══════════ MENU & TAB: thứ tự, nhóm, tên, biểu tượng, ẩn ══════════ */
 const NAV_ICONS = ['bi-grid-1x2', 'bi-collection', 'bi-mortarboard', 'bi-stars', 'bi-link-45deg', 'bi-person-video3', 'bi-chat-dots', 'bi-life-preserver', 'bi-hdd-network', 'bi-people', 'bi-gear',
