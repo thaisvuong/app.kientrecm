@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T15:29:36.935Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T15:34:47.523Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4606,7 +4606,13 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .aw-upc{ display:inline-flex; align-items:center; gap:4px; height:22px; padding:0 8px; border-radius:99px; background:#E8F3FF; color:#1D4ED8; font-size:11.5px; font-weight:700 }
 .aw-upb{ display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:99px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font:inherit; font-size:11.5px; font-weight:600; cursor:pointer; white-space:nowrap }
 .aw-upb:hover{ border-color:#1D4ED8; color:#1D4ED8 } .aw-upb.on{ background:#E8F3FF; border-color:#BFDBFE; color:#1D4ED8 } .aw-upb.dis{ cursor:default; opacity:.75 }
-.aw-pg summary .aw-upb{ margin-right:4px } .aw-pl .aw-upb{ margin-right:4px }
+/* (1.44.21) cột nút cố định: Upload | Gỡ thẳng hàng ở mọi dòng (vai trò, từng người, Người khác, Chỉ upload) */
+.aw-acts{ flex:none; display:grid; grid-template-columns:84px 60px; gap:6px; align-items:center; justify-items:stretch }
+.aw-acts .aw-upb{ justify-content:center }
+.aw-kb{ display:inline-flex; align-items:center; justify-content:center; gap:4px; height:24px; border:1px solid transparent; border-radius:99px; background:none; color:var(--danger, #DC2626); font:inherit; font-size:11.5px; font-weight:600; cursor:pointer }
+.aw-kb:hover{ background:#FFF1F1; border-color:#FBD5D5 }
+.aw-pg2{ padding:4px 8px } .aw-pg2 .aw-ph{ margin:4px 0 2px }
+.aw-pg summary{ min-height:32px; padding:4px !important } .aw-pl{ min-height:42px }
 .aw-uph{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:10px; background:#F0F7FF; color:#1E3A8A; font-size:12.5px; line-height:1.45 } .aw-uph > i{ font-size:16px; color:#1D4ED8 }
 .aw-upo{ display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:10px; background:var(--brand-50); cursor:pointer } .aw-upo input{ margin-top:3px }
 .aw-upo span{ display:flex; flex-direction:column; gap:2px } .aw-upo b{ font-size:13px } .aw-upo small{ font-size:11.5px; color:var(--muted) } .aw-al{ max-height:56vh; overflow:auto } .aw-al .aw-pl:first-of-type{ border-top:0 }
@@ -9816,22 +9822,22 @@ function awPeople(key, B) {
     const set = isP ? x.set : d.setOf(key), tid = isP ? (x.g ? '' : (x.dkey ? d.N[x.dkey].tid : '')) : x.tid, G = awGroup(set, key);
     const upOk = !!tid && !!ukey, U = ukey ? d.upOf(ukey) : [], own = (d.up[tid] || []);
     // nút upload: bật / tắt được khi quyền nằm ở CHÍNH thư mục này; được từ thư mục cha / vai trò thì báo nguồn
-    const upBtn = (who, idxs) => { if (!upOk) return ''; const on = idxs.length && idxs.every(i => U.indexOf(i) >= 0), mine = own.indexOf(who) >= 0;
+    const upBtn = (who, idxs) => { if (!upOk) return '<span></span>'; const on = idxs.length && idxs.every(i => U.indexOf(i) >= 0), mine = own.indexOf(who) >= 0;
       if (on && !mine) return '<span class="aw-upb on dis" title="Được upload từ thư mục cha hoặc theo vai trò — tắt ở đó"><i class="bi bi-cloud-arrow-up-fill"></i>Upload</span>';
       return '<button class="aw-upb' + (on ? ' on' : '') + '" data-upt="' + esc(who) + '" data-on="' + (on ? 0 : 1) + '" title="' + (on ? 'Đang được upload — bấm để tắt' : 'Chỉ xem — bấm để cho upload') + '"><i class="bi bi-cloud-arrow-up' + (on ? '-fill' : '') + '"></i>Upload</button>'; };
     const urow = (i, kick) => { const u = d.users[i]; return '<div class="aw-pl"><span class="av sm">' + esc(initials(u[1] || u[0])) + '</span><span><b>' + esc(u[1]) + '</b><small>' + esc(u[0]) + ' · ' + u[2].map(r => awRole(r).label).join(', ') + '</small></span>' +
-      upBtn(u[0], [i]) + (tid && kick ? '<button class="btn xs ghost aw-red" data-kick="' + esc(u[0]) + '" data-key="' + esc(tid) + '" data-nm="' + esc(nm) + '"><i class="bi bi-x-lg"></i>Gỡ</button>' : '') + '</div>'; };
+      '<span class="aw-acts">' + upBtn(u[0], [i]) + (tid && kick ? '<button class="aw-kb" data-kick="' + esc(u[0]) + '" data-key="' + esc(tid) + '" data-nm="' + esc(nm) + '" title="Gỡ khỏi người xem"><i class="bi bi-x-lg"></i>Gỡ</button>' : '<span></span>') + '</span></div>'; };
     const onlyUp = U.filter(i => set.indexOf(i) < 0);
     m.$('#awPm').innerHTML =
       (upOk ? '<div class="aw-uph"><i class="bi bi-cloud-arrow-up"></i><span><b>' + U.length + ' người được upload</b> vào thư mục này (Thư viện › Upload file) · bấm <b>Upload</b> ở từng người / vai trò để bật / tắt — không đổi quyền xem</span></div>' : '') +
       (!set.length ? '<div class="empty small"><i class="bi bi-shield-lock"></i>Chỉ quản trị xem được mục này</div>' : '') +
       G.roles.map(g => { const r = awRole(g.r), mem = d.R[g.r].filter(i => set.indexOf(i) >= 0);
-        return '<details class="aw-pg"><summary><span class="aw-rc" style="--rc:' + r.color + '"><span class="aw-ri"><i class="bi ' + r.icon + '"></i></span>' + esc(r.label) + '<em>' + (g.all ? g.of : g.n + '/' + g.of) + '</em></span><span class="sp"></span>' +
+        return '<details class="aw-pg"><summary><span class="aw-rc" style="--rc:' + r.color + '"><span class="aw-ri"><i class="bi ' + r.icon + '"></i></span>' + esc(r.label) + '<em>' + (g.all ? g.of : g.n + '/' + g.of) + '</em></span><span class="sp"></span><span class="aw-acts">' +
           upBtn('role:' + g.r, d.R[g.r]) +
-          (tid ? '<button class="btn xs ghost aw-red" data-kick="role:' + esc(g.r) + '" data-key="' + esc(tid) + '" data-nm="' + esc(nm) + '"><i class="bi bi-x-lg"></i>Gỡ cả vai trò</button>' : '') + '</summary>' + mem.map(i => urow(i, true)).join('') +
+          (tid ? '<button class="aw-kb" data-kick="role:' + esc(g.r) + '" data-key="' + esc(tid) + '" data-nm="' + esc(nm) + '" title="Gỡ cả vai trò khỏi người xem"><i class="bi bi-x-lg"></i>Gỡ</button>' : '<span></span>') + '</span></summary>' + mem.map(i => urow(i, true)).join('') +
           (g.all ? '' : '<small class="aw-miss">Không xem được: ' + esc(d.R[g.r].filter(i => set.indexOf(i) < 0).map(i => d.users[i][1]).join(', ')) + '</small>') + '</details>'; }).join('') +
-      (G.users.length ? '<div class="aw-ph">Người khác · ' + G.users.length + '</div>' + G.users.map(i => urow(i, true)).join('') : '') +
-      (onlyUp.length ? '<div class="aw-ph">Chỉ upload (không xem được) · ' + onlyUp.length + '</div>' + onlyUp.map(i => urow(i, false)).join('') : '') +
+      (G.users.length ? '<div class="aw-pg aw-pg2"><div class="aw-ph">Người khác · ' + G.users.length + '</div>' + G.users.map(i => urow(i, true)).join('') + '</div>' : '') +
+      (onlyUp.length ? '<div class="aw-pg aw-pg2"><div class="aw-ph">Chỉ upload (không xem được) · ' + onlyUp.length + '</div>' + onlyUp.map(i => urow(i, false)).join('') + '</div>' : '') +
       (!tid ? '<div class="small muted" style="margin-top:10px"><i class="bi bi-info-circle"></i> Nhóm gồm nhiều chương trình — mở từng chương trình để thêm / gỡ.</div>' : '');
   };
   paint();
