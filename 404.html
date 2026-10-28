@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T14:31:20.658Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T15:29:36.935Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4603,6 +4603,11 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .aw-row:hover .aw-add{ opacity:1 } .aw-add:hover{ border-style:solid; border-color:var(--primary); color:var(--primary); background:var(--brand-50) }
 @media (hover:none){ .aw-add{ opacity:1 } }
 .aw-ad{ display:flex; flex-direction:column; gap:10px }
+.aw-upc{ display:inline-flex; align-items:center; gap:4px; height:22px; padding:0 8px; border-radius:99px; background:#E8F3FF; color:#1D4ED8; font-size:11.5px; font-weight:700 }
+.aw-upb{ display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:99px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font:inherit; font-size:11.5px; font-weight:600; cursor:pointer; white-space:nowrap }
+.aw-upb:hover{ border-color:#1D4ED8; color:#1D4ED8 } .aw-upb.on{ background:#E8F3FF; border-color:#BFDBFE; color:#1D4ED8 } .aw-upb.dis{ cursor:default; opacity:.75 }
+.aw-pg summary .aw-upb{ margin-right:4px } .aw-pl .aw-upb{ margin-right:4px }
+.aw-uph{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:10px; background:#F0F7FF; color:#1E3A8A; font-size:12.5px; line-height:1.45 } .aw-uph > i{ font-size:16px; color:#1D4ED8 }
 .aw-upo{ display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:10px; background:var(--brand-50); cursor:pointer } .aw-upo input{ margin-top:3px }
 .aw-upo span{ display:flex; flex-direction:column; gap:2px } .aw-upo b{ font-size:13px } .aw-upo small{ font-size:11.5px; color:var(--muted) } .aw-al{ max-height:56vh; overflow:auto } .aw-al .aw-pl:first-of-type{ border-top:0 }
 .aw-al .aw-ri{ width:24px; height:24px; font-size:12px; flex:none } .aw-ok{ display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:var(--ok, #15803D) }
@@ -4848,7 +4853,7 @@ const obTransient = e => !e.srv || /lock|timeout|timed out|too many|exceeded|ser
 /* lệnh ghi gửi gộp được (máy chủ API.batch): nhiều lệnh liên tiếp đi chung MỘT lần gọi — kéo điền, đẩy lùi, duyệt nhiều buổi lưu nhanh hơn hẳn */
 const OB_BATCH = { classSave: 1, classMine: 1, classStudent: 1, classStart: 1, classLcfg: 1, classAdd: 1, classRemove: 1, classDelete: 1, reqDecide: 1,
                    sessionSave: 1, sessionContent: 1, sessionApprove: 1, sessionOff: 1, sessionTaught: 1, sessionAdd: 1, sessionDelete: 1, notifRead: 1,
-                   taskSave: 1, taskMove: 1, taskDelete: 1, taskProjectSave: 1, taskProjectDelete: 1, accessKick: 1 };      // accessKick (1.44.17): thêm / gỡ người xem liên tiếp đi chung một lần gọi
+                   taskSave: 1, taskMove: 1, taskDelete: 1, taskProjectSave: 1, taskProjectDelete: 1, accessKick: 1, accessUp: 1 };      // accessKick (1.44.17): thêm / gỡ người xem liên tiếp đi chung một lần gọi
 /** lệnh it đã lưu xong (đang đứng đầu hàng đợi) */
 function obDone(it, r) {
   if (OB.q[0] === it) OB.q.shift(); else { const i = OB.q.indexOf(it); if (i >= 0) OB.q.splice(i, 1); }
@@ -9676,6 +9681,12 @@ function awPrep(d) {
   Object.keys(N).forEach(k => N[k].kids.sort((a, b) => natCmp(N[a].name, N[b].name)));
   const memo = {};
   d.setOf = k => { if (k in memo) return memo[k]; memo[k] = []; return (memo[k] = d.see[k] || (N[k] && N[k].pk ? d.setOf(N[k].pk) : [])); };
+  // (1.44.20) ai được upload: danh sách ở chính thư mục + các thư mục cha (Upload file cho duyệt / tải vào thư mục con) → chỉ số người
+  d.up = d.up || {}; const umemo = {};
+  d.upOf = k => { if (k in umemo) return umemo[k]; umemo[k] = []; const n = N[k]; if (!n) return [];
+    const has = {}; (d.up[n.tid] || []).forEach(w => (/^role:/.test(w) ? d.R[w.slice(5)] || [] : [d.users.findIndex(u => u[0] === w)]).forEach(i => { if (i >= 0) has[i] = 1; }));
+    (n.pk ? d.upOf(n.pk) : []).forEach(i => { has[i] = 1; });
+    return (umemo[k] = Object.keys(has).map(Number).sort((a, b) => a - b)); };
   // chương trình: nhóm › chương trình (người xem = pSee) › các thư mục con của thư mục gắn tới
   const P = {}; d.progs.forEach(x => { P[x[0]] = { id: x[0], pid: x[1], g: x[2] === 'g', name: x[3], link: x[4], hid: x[5], ord: x[6], kids: [] }; });
   Object.keys(P).forEach(id => { const x = P[id]; if (x.pid && P[x.pid]) P[x.pid].kids.push(id); });
@@ -9720,6 +9731,8 @@ function awChips(key, set, tid, nm) {
     return '<span class="aw-u" title="' + esc(u[1] + ' · ' + u[0]) + '"><span class="av sm">' + esc(initials(u[1] || u[0])) + '</span>' + kx(u[0], u[1]) + '</span>'; }).join('') +
     (U.length > MAX ? '<span class="aw-more">+' + (U.length - MAX) + '</span>' : '') + '</span>';
   if (!set.length) h = '<span class="aw-none">Chỉ quản trị</span>';
+  const ukey = key && key.indexOf('p:') === 0 ? ((d.P[key.slice(2)] || {}).dkey || '') : key, UP = ukey && tid ? d.upOf(ukey) : [];
+  if (UP.length) h += '<span class="aw-upc" title="Được upload (Thư viện › Upload file): ' + esc(UP.slice(0, 12).map(i => d.users[i][1]).join(', ') + (UP.length > 12 ? '…' : '')) + '"><i class="bi bi-cloud-arrow-up-fill"></i>' + UP.length + '</span>';      // (1.44.20)
   if (tid) h += '<button class="aw-add" data-awadd="' + esc(key) + '" title="Thêm vai trò / người xem “' + esc(nm) + '”"><i class="bi bi-plus-lg"></i></button>';      // (1.44.16)
   return '<div class="aw-ch" data-awpp="' + esc(key) + '">' + h + '</div>';
 }
@@ -9792,30 +9805,56 @@ function awBody(B) {
   T.innerHTML = '<div class="aw-hd"><span>' + (isP ? 'Chương trình / thư mục' : 'Nguồn / thư mục') + '</span><span class="r">Tài liệu</span><span>Ai xem được</span><span></span></div>' +
     (rows.length ? rows.join('') : '<div class="empty small"><i class="bi bi-search"></i>Không có mục khớp</div>');
 }
-/** danh sách đầy đủ người xem một mục — chặn từng người / cả vai trò */
+/** danh sách đầy đủ người xem một mục — gỡ từng người / cả vai trò · (1.44.20) bật / tắt quyền upload RIÊNG từng người / vai trò (người xem và người upload có thể khác nhau) */
 function awPeople(key, B) {
-  const d = AW.d, isP = key.indexOf('p:') === 0, x = isP ? d.P[key.slice(2)] : d.N[key]; if (!x) return;
-  const set = isP ? x.set : d.setOf(key), tid = isP ? (x.g ? '' : (x.dkey ? d.N[x.dkey].tid : '')) : x.tid, G = awGroup(set, key);
-  const urow = i => { const u = d.users[i]; return '<div class="aw-pl"><span class="av sm">' + esc(initials(u[1] || u[0])) + '</span><span><b>' + esc(u[1]) + '</b><small>' + esc(u[0]) + ' · ' + u[2].map(r => awRole(r).label).join(', ') + '</small></span>' +
-    (tid ? '<button class="btn xs ghost aw-red" data-kick="' + esc(u[0]) + '" data-key="' + esc(tid) + '" data-nm="' + esc(x.name) + '"><i class="bi bi-x-lg"></i>Gỡ</button>' : '') + '</div>'; };
-  const m = modal({ title: 'Ai xem được · ' + x.name, icon: 'bi-people', size: 'lg', body: '<div class="aw-pm">' +
+  const d0 = AW.d, isP = key.indexOf('p:') === 0, x0 = isP ? d0.P[key.slice(2)] : d0.N[key]; if (!x0) return;
+  const nm = x0.name, ukey = isP ? (x0.dkey || '') : key;
+  const m = modal({ title: 'Ai xem được · ' + nm, icon: 'bi-people', size: 'lg', body: '<div class="aw-pm" id="awPm"></div>',
+    foot: [{ t: 'Đóng', cls: 'ghost' }].concat(!(isP && x0.g) ? [{ t: 'Thêm người xem', i: 'bi-plus-lg', cls: 'pri', fn: () => { setTimeout(() => awAdd(key, B), 0); } }] : []) });
+  const paint = () => {
+    const d = AW.d, x = isP ? d.P[key.slice(2)] : d.N[key]; if (!x) return;
+    const set = isP ? x.set : d.setOf(key), tid = isP ? (x.g ? '' : (x.dkey ? d.N[x.dkey].tid : '')) : x.tid, G = awGroup(set, key);
+    const upOk = !!tid && !!ukey, U = ukey ? d.upOf(ukey) : [], own = (d.up[tid] || []);
+    // nút upload: bật / tắt được khi quyền nằm ở CHÍNH thư mục này; được từ thư mục cha / vai trò thì báo nguồn
+    const upBtn = (who, idxs) => { if (!upOk) return ''; const on = idxs.length && idxs.every(i => U.indexOf(i) >= 0), mine = own.indexOf(who) >= 0;
+      if (on && !mine) return '<span class="aw-upb on dis" title="Được upload từ thư mục cha hoặc theo vai trò — tắt ở đó"><i class="bi bi-cloud-arrow-up-fill"></i>Upload</span>';
+      return '<button class="aw-upb' + (on ? ' on' : '') + '" data-upt="' + esc(who) + '" data-on="' + (on ? 0 : 1) + '" title="' + (on ? 'Đang được upload — bấm để tắt' : 'Chỉ xem — bấm để cho upload') + '"><i class="bi bi-cloud-arrow-up' + (on ? '-fill' : '') + '"></i>Upload</button>'; };
+    const urow = (i, kick) => { const u = d.users[i]; return '<div class="aw-pl"><span class="av sm">' + esc(initials(u[1] || u[0])) + '</span><span><b>' + esc(u[1]) + '</b><small>' + esc(u[0]) + ' · ' + u[2].map(r => awRole(r).label).join(', ') + '</small></span>' +
+      upBtn(u[0], [i]) + (tid && kick ? '<button class="btn xs ghost aw-red" data-kick="' + esc(u[0]) + '" data-key="' + esc(tid) + '" data-nm="' + esc(nm) + '"><i class="bi bi-x-lg"></i>Gỡ</button>' : '') + '</div>'; };
+    const onlyUp = U.filter(i => set.indexOf(i) < 0);
+    m.$('#awPm').innerHTML =
+      (upOk ? '<div class="aw-uph"><i class="bi bi-cloud-arrow-up"></i><span><b>' + U.length + ' người được upload</b> vào thư mục này (Thư viện › Upload file) · bấm <b>Upload</b> ở từng người / vai trò để bật / tắt — không đổi quyền xem</span></div>' : '') +
       (!set.length ? '<div class="empty small"><i class="bi bi-shield-lock"></i>Chỉ quản trị xem được mục này</div>' : '') +
       G.roles.map(g => { const r = awRole(g.r), mem = d.R[g.r].filter(i => set.indexOf(i) >= 0);
         return '<details class="aw-pg"><summary><span class="aw-rc" style="--rc:' + r.color + '"><span class="aw-ri"><i class="bi ' + r.icon + '"></i></span>' + esc(r.label) + '<em>' + (g.all ? g.of : g.n + '/' + g.of) + '</em></span><span class="sp"></span>' +
-          (tid ? '<button class="btn xs ghost aw-red" data-kick="role:' + esc(g.r) + '" data-key="' + esc(tid) + '" data-nm="' + esc(x.name) + '"><i class="bi bi-x-lg"></i>Gỡ cả vai trò</button>' : '') + '</summary>' + mem.map(urow).join('') +
+          upBtn('role:' + g.r, d.R[g.r]) +
+          (tid ? '<button class="btn xs ghost aw-red" data-kick="role:' + esc(g.r) + '" data-key="' + esc(tid) + '" data-nm="' + esc(nm) + '"><i class="bi bi-x-lg"></i>Gỡ cả vai trò</button>' : '') + '</summary>' + mem.map(i => urow(i, true)).join('') +
           (g.all ? '' : '<small class="aw-miss">Không xem được: ' + esc(d.R[g.r].filter(i => set.indexOf(i) < 0).map(i => d.users[i][1]).join(', ')) + '</small>') + '</details>'; }).join('') +
-      (G.users.length ? '<div class="aw-ph">Người khác · ' + G.users.length + '</div>' + G.users.map(urow).join('') : '') +
-      (!tid ? '<div class="small muted" style="margin-top:10px"><i class="bi bi-info-circle"></i> Nhóm gồm nhiều chương trình — mở từng chương trình để thêm / gỡ.</div>' : '') + '</div>',
-    foot: [{ t: 'Đóng', cls: 'ghost' }].concat(tid ? [{ t: 'Thêm người xem', i: 'bi-plus-lg', cls: 'pri', fn: () => { setTimeout(() => awAdd(key, B), 0); } }] : []) });
-  m.el.addEventListener('click', e => { const k = e.target.closest('[data-kick]'); if (!k) return; e.preventDefault(); m.close(); awKick(k.dataset.key, k.dataset.kick, k.dataset.nm, true, B); });
+      (G.users.length ? '<div class="aw-ph">Người khác · ' + G.users.length + '</div>' + G.users.map(i => urow(i, true)).join('') : '') +
+      (onlyUp.length ? '<div class="aw-ph">Chỉ upload (không xem được) · ' + onlyUp.length + '</div>' + onlyUp.map(i => urow(i, false)).join('') : '') +
+      (!tid ? '<div class="small muted" style="margin-top:10px"><i class="bi bi-info-circle"></i> Nhóm gồm nhiều chương trình — mở từng chương trình để thêm / gỡ.</div>' : '');
+  };
+  paint();
+  m.el.addEventListener('click', e => {
+    const u = e.target.closest('[data-upt]'); if (u) { e.preventDefault(); const d = AW.d, x = isP ? d.P[key.slice(2)] : d.N[key], tid = isP ? d.N[x.dkey].tid : x.tid; awUpSet(tid, u.dataset.upt, u.dataset.on === '1', nm, B); paint(); return; }
+    const k = e.target.closest('[data-kick]'); if (!k) return; e.preventDefault(); m.close(); awKick(k.dataset.key, k.dataset.kick, k.dataset.nm, true, B); });
 }
+/** (1.44.20) bật / tắt upload ngay trên máy, lưu ngầm (lệnh accessUp) */
+function awUpSet(tid, who, on, nm, B) {
+  awUpLocal(tid, who, on); awPaint(B);
+  const isR = /^role:/.test(who), lab = isR ? 'vai trò ' + awRole(who.slice(5)).label : ((AW.d.users.find(u => u[0] === who) || [who, who])[1]);
+  toast((on ? 'Cho ' : 'Tắt upload: ') + lab + (on ? ' upload vào “' : ' · “') + nm + '”');
+  queueRpc('accessUp', { targetId: tid, who: who, on: on ? 1 : 0 }, { key: 'up:' + tid + '|' + who, label: (on ? 'Cho upload ' : 'Tắt upload ') + lab + ' · ' + nm, merge: (a, b) => b })
+    .then(() => awSync(B), e => { fail(e); awSync(B); });
+}
+function awUpLocal(tid, who, on) { const d = AW.d, L = (d.up[tid] || []).filter(x => x !== who); if (on) L.push(who); d.up[tid] = L; awPrep(d); }
 /* (1.44.15) gỡ / thêm hiện NGAY: sửa bảng trên máy rồi lưu ngầm qua hàng đợi ghi; lưu xong máy chủ tính lại (gộp nhiều lần bấm liên tiếp) cho số liệu khớp tuyệt đối.
    (1.44.16) on = gỡ hẳn khỏi người xem (không còn nhãn “đã chặn”) · !on = thêm người xem. Gỡ cả vai trò mới hỏi lại. */
 async function awKick(tid, who, nm, on, B, up) {
   const d = AW.d, isR = /^role:/.test(who), lab = isR ? 'vai trò ' + awRole(who.slice(5)).label : ((d.users.find(u => u[0] === who) || [who, who])[1]);
   const n = isR ? (d.R[who.slice(5)] || []).length : 1;
   if (on && isR && !await ask('Gỡ ' + lab + ' khỏi người xem “' + nm + '” và mọi thư mục bên trong? ' + n + ' người có vai trò này (kể cả người có thêm vai trò khác) sẽ không còn thấy trong Thư viện / Chương trình. Thêm lại được bằng nút +.', { ok: 'Gỡ', danger: true })) return;
-  awLocal(tid, who, on); awPaint(B);
+  awLocal(tid, who, on); if (on || up) awUpLocal(tid, who, !on); awPaint(B);
   toast(on ? 'Đã gỡ ' + lab + ' · “' + nm + '”' : 'Đã thêm ' + lab + (up ? ' (xem + upload)' : '') + ' · “' + nm + '”');
   queueRpc('accessKick', { targetId: tid, who: who, on: on ? 1 : 0, up: up ? 1 : 0 }, { key: 'kick:' + tid + '|' + who, label: (on ? 'Gỡ ' : 'Thêm ') + lab + ' · ' + nm, merge: (x, y) => y })
     .then(() => awSync(B), e => { fail(e); awSync(B); });
@@ -9864,10 +9903,10 @@ function awAdd(key, B) {
     (1.44.17) còn lệnh thêm / gỡ chờ lưu → chưa tải (lệnh cuối lưu xong sẽ gọi lại); tải về rồi vẫn phủ các lệnh chưa lưu lên trên
     — trước đây gỡ liền nhiều người thì người gỡ sau hiện lại vài giây (bản máy chủ chưa có) rồi mới mất. */
 const awSync = debounce(async B => {
-  if (obPending('accessKick').length) return;
+  if (obPending('accessKick').length || obPending('accessUp').length) return;
   try {
     const x = await rpc('accessWho', { fresh: 1 }, { quiet: true });
-    AW.d = x; awPrep(x); obPending('accessKick').forEach(p => awLocal(p.targetId, p.who, !!p.on));
+    AW.d = x; awPrep(x); obPending('accessKick').forEach(p => awLocal(p.targetId, p.who, !!p.on)); obPending('accessUp').forEach(p => awUpLocal(p.targetId, p.who, !!p.on));
     if (B.isConnected) { const q = $('#awQ', B), f = q && document.activeElement === q; awPaint(B); if (f) { const q2 = $('#awQ', B); q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); } }
   } catch (e) {}
 }, 800);
