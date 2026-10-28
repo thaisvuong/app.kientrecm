@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T08:01:06.124Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T08:41:08.300Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -3441,6 +3441,16 @@ html .cp-gd .btn{ height:26px; font-size:11.5px; font-weight:600; padding:0 9px;
 .tdn .kg-h3 span{ font-size:12.5pt; color:#C4400F; letter-spacing:.03em }
 .tdn .kg-ul li::before{ content:'•'; color:#EE5B27; font-weight:700 }
 .tdn .kg-the{ background:#F3F7FC; border:.8pt solid #D2DCEA; border-left:2.8pt solid #35558C; border-radius:7pt; padding:9pt 13pt 10pt }
+/* (1.44.9) KIẾN GIA SƯ OPEN — kgs-style v5: câu hỏi KHÔNG đóng khung (nhãn đặc BÀI n + chip NT/VD/VDC + vạch mảnh kéo hết dòng, đề trên nền trắng,
+   dưới đề nhãn xám BÀI LÀM + dòng kẻ). Thẻ lý thuyết (ghi nhớ, ví dụ, lỗi hay gặp) vẫn là thẻ. Màu, đầu / chân trang KGS giữ nguyên. */
+.nb .kg-the.bt{ background:none; border:0; border-radius:0; padding:0 }
+.kg-page.nb .kg-the.bt > .kg-lb{ display:flex; align-items:center; gap:6pt; background:none; padding:0; margin-bottom:6pt; letter-spacing:0 }
+.nb .kg-the.bt > .kg-lb span{ background:#036528; color:#fff; font-size:10pt; letter-spacing:.06em; padding:3.4pt 9pt; border-radius:4pt }
+.nb .kg-the.bt > .kg-lb::after{ content:''; flex:1; height:.8pt; background:#CFE3D6 }
+.nb .kg-q > .kg-mc{ margin-left:0 }
+.kg-lv{ display:inline-block; font:700 8.5pt/1 Arial, Helvetica, sans-serif; font-style:normal; letter-spacing:.06em; padding:2.6pt 6pt; border-radius:99pt; border:.8pt solid; text-transform:uppercase; vertical-align:1pt; margin-right:6pt }
+.kg-lv.nt{ color:#036528; background:#E6F2EA; border-color:#B5D3BF } .kg-lv.vd{ color:#C4400F; background:#FDE9DB; border-color:#F2BE9C } .kg-lv.vdc{ color:#B4232A; background:#FDECEC; border-color:#F2B8B5 }
+.kg-bl{ font:700 8pt/1 Arial, Helvetica, sans-serif; letter-spacing:.14em; color:#8A9A90; margin:2pt 0 0 }
 .tdn .kg-the.cam{ background:#FEF4EE; border-color:#F6D7C7; border-left-color:#EE5B27 }
 .kg-page.tdn .kg-the > .kg-lb{ display:flex; align-items:center; gap:8pt; background:none; padding:0; margin-bottom:6pt }
 .tdn .kg-lb span{ background:#142C52; color:#fff; font-size:9.2pt; letter-spacing:.11em; padding:3.6pt 9pt; border-radius:3.5pt }
@@ -11635,6 +11645,7 @@ function clState(x) {
   if (x.status === 'draft') return { k: 'draft', t: 'Chờ duyệt', i: 'bi-pencil-square', c: 'blue' };
   if (x.hold) return { k: 'none', t: 'Để trống — chờ chèn bài', i: 'bi-hourglass', c: 'red' };
   if (x.fill) return { k: 'fill', t: 'Đang tự xếp bài', i: 'bi-magic', c: 'blue' };
+  if ((clClass(x.classId) || {}).manual) return { k: 'none', t: 'Liên hệ chuyên môn để cập nhật bài', i: 'bi-telephone', c: 'warn' };      // (1.44.9) lớp “Chỉ tạo buổi”
   return { k: 'none', t: 'Chưa có nội dung', i: 'bi-exclamation-circle', c: 'red' };
 }
 /** giờ tự duyệt của buổi nháp */
@@ -11676,14 +11687,14 @@ function clOverlay(d) {
   const C = {}; d.classes.forEach(c => { C[c.id] = c; });
   const X = {}; d.sessions.forEach(x => { X[x.id] = x; });
   const autoOn = new Set();
-  P('classSave').forEach(p => (p.items || []).forEach(it => { const c = C[it.id]; if (c) { Object.assign(c, it.patch); if ('programId' in it.patch) c.plock = null; if ('autoOk' in it.patch) { c.autoOk = it.patch.autoOk ? 1 : 0; if (c.autoOk) autoOn.add(c.id); } } }));
+  P('classSave').forEach(p => (p.items || []).forEach(it => { const c = C[it.id]; if (c) { Object.assign(c, it.patch); if ('programId' in it.patch) c.plock = null; if ('autoOk' in it.patch) { c.autoOk = it.patch.autoOk ? 1 : 0; if (c.autoOk) autoOn.add(c.id); } if ('manual' in it.patch) c.manual = it.patch.manual ? 1 : 0; } }));
   if (autoOn.size) d.sessions.forEach(x => { if (autoOn.has(x.classId) && x.status === 'draft' && (x.folders || []).length) { x.status = 'approved'; x.auto = true; } });   // vừa bật Tự duyệt → buổi nháp hiện đã duyệt ngay
   if (d.manage) P('classAdd').forEach(p => { if (p.newId && !C[p.newId]) { const c = { id: p.newId, code: p.code, student: p.student, grade: p.grade, ref: '', course: '', status: 'Đang học', days: p.days, times: p.times, tutorEmail: p.tutorEmail, tutorName: p.tutorName, programId: p.programId, startDate: p.startDate, lead: '', per: '', note: p.note, order: d.classes.length + 1, done: [] }; d.classes.push(c); C[c.id] = c; } });   // lớp vừa thêm, chưa lưu xong
   P('classMine').forEach(p => { if (C[p.id]) { Object.assign(C[p.id], p.patch); if ('programId' in p.patch) C[p.id].plock = null; } });
   P('classLock').forEach(p => { if (C[p.id]) C[p.id].plock = p.k ? { k: p.k, to: p.to || '', note: p.note || '', by: p.by || '', name: p.name || '', at: p.at || '' } : null; });
   P('classStudent').forEach(p => { if (C[p.id]) C[p.id].student = p.student; });
   if (d.manage) P('classStart').forEach(p => { const c = C[p.id]; if (c) { c.done = (p.done || []).slice(); c.started = 1; } });
-  P('sessionAdd').forEach(p => { if (p.newId && !X[p.newId] && C[p.classId]) { const x = { id: p.newId, classId: p.classId, no: 0, date: p.date, time: p.time || '', status: '', note: '', released: false, gate: 'wait', folders: [], extra: [], auto: false, fill: 1 }; d.sessions.push(x); X[x.id] = x; } });   // buổi vừa thêm, chưa lưu xong — máy chủ đang tự xếp bài
+  P('sessionAdd').forEach(p => { if (p.newId && !X[p.newId] && C[p.classId]) { const x = { id: p.newId, classId: p.classId, no: 0, date: p.date, time: p.time || '', status: '', note: '', released: false, gate: 'wait', folders: [], extra: [], auto: false, fill: C[p.classId].manual ? 0 : 1 }; d.sessions.push(x); X[x.id] = x; } });   // buổi vừa thêm, chưa lưu xong — máy chủ đang tự xếp bài
   P('sessionTaught').forEach(p => { const x = X[p.id]; if (x) { x.status = p.undo ? 'approved' : 'taught'; if (!p.undo) x.taughtAt = x.taughtAt || new Date().toISOString();
     if (!p.undo && p.rate) x.rate = p.rate;
     if (!p.undo && (p.taught || p.more)) { const T = p.taught || x.folders || [], M = p.more || []; x.folders = (x.folders || []).filter(f => T.indexOf(f) >= 0 || M.indexOf(f) >= 0).concat(M.filter(f => (x.folders || []).indexOf(f) < 0));      // buổi chỉ còn đúng bài đã dạy; bài dạy thêm rời khỏi buổi khác
@@ -11888,6 +11899,7 @@ function clContentHtml(x, c) {
   if (x.status === 'off') return '<span class="tag gray"><i class="bi bi-slash-circle"></i>Nghỉ</span>';
   if (!fs.length && !(x.extra || []).length && x.hold) return '<span class="cl-warn"><i class="bi bi-hourglass"></i>Để trống — chờ chèn bài</span>';
   if (!fs.length && !(x.extra || []).length && x.fill && p) return '<span class="cl-fill">' + (c.autoOk ? 'Tự duyệt bật — xếp xong là duyệt & phát luôn' : 'Tự duyệt tắt — xếp xong chờ bạn duyệt') + '</span>';      // trạng thái “Đang tự xếp bài” đã có ở nhãn bên dưới
+  if (!fs.length && !(x.extra || []).length && c.manual) return '<span class="cl-warn"><i class="bi bi-telephone"></i>' + (CL.d.manage ? 'Chỉ tạo buổi — bấm sửa để chọn bài cho buổi này' : 'Chưa có bài — liên hệ bộ phận chuyên môn để cập nhật') + '</span>';
   if (!fs.length && !(x.extra || []).length) { const r = p && clRunway(c);
     return !p ? '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Lớp chưa gán chương trình</span>' : r && !r.left ? '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Hết bài trong chương trình — chọn bài tay</span>' : '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Chưa xếp bài — bấm sửa để chọn tay</span>'; }
   const man = CL.d.manage;   // gia sư chỉ thấy tên bài (tiến trình), mở tài liệu qua link buổi học
@@ -11903,7 +11915,7 @@ function clRow(x, opt) {
       // tên lớp có mũi tên › → biết là bấm vào để mở chi tiết lớp
       : '<div class="cl-rc"><a class="cl-code" data-go="classes/c/' + c.id + '" title="Sửa nhanh lớp"><span class="cl-cn">' + esc(clName(c)) + '</span><i class="bi bi-chevron-right cl-cv"></i></a>' + clFlags(c) + clChatDot(c) + (c.student ? '<span class="cl-stu cl-cd">' + esc(c.code) + '</span>' : '') + (c.grade ? '<span class="cl-gr">' + esc(c.grade) + '</span>' : '') +
         '<small>' + (man ? (c.tutorEmail ? zlName(c.tutorName || c.tutorEmail.split('@')[0], c.tutorEmail) : 'Chưa có gia sư') + (x.time ? ' · ' + esc(x.time) : '') : dd.ws + ' ' + dd.dm + ' · ' + esc(dd.rel) + (x.time ? ' · ' + esc(x.time) : '')) + '</small></div>') +
-    '<div class="cl-rf">' + (man || x.released ? clContentHtml(x, c) : '<span class="small muted"><i class="bi bi-lock"></i> ' + (x.gate === 'prev' ? 'Xác nhận buổi trước “Đã dạy” để mở nội dung' : 'Nội dung đang chờ quản lý duyệt') + '</span>') +
+    '<div class="cl-rf">' + (man || x.released ? clContentHtml(x, c) : '<span class="small muted"><i class="bi bi-lock"></i> ' + (x.gate === 'prev' ? 'Xác nhận buổi trước “Đã dạy” để mở nội dung' : c.manual && !x.status ? 'Chưa có bài — liên hệ bộ phận chuyên môn để cập nhật bài' : 'Nội dung đang chờ quản lý duyệt') + '</span>') +
       '<span class="cl-st ' + st.c + '"><i class="bi ' + st.i + '"></i>' + st.t + (x.auto && x.status !== 'draft' ? '<small class="cl-sx"> · tự duyệt</small>' : '') + (auto ? '<small class="cl-sx"> · tự duyệt lúc ' + auto + '</small>' : '') + (x.status === 'taught' && x.taughtAt ? '<small class="cl-sx"> · ' + fmtDT(x.taughtAt) + '</small>' : '') + '</span>' + (x.rate && CL_RATE[x.rate] ? '<span class="cl-rate r-' + x.rate + '" title="Gia sư đánh giá bài với bé' + (x.rnote ? ': ' + esc(x.rnote) : '') + '"><i class="bi ' + CL_RATE[x.rate][1] + '"></i>' + CL_RATE[x.rate][0] + '</span>' : '') + '</div>' +
     // các nút nằm trong ô cố định → thẳng hàng giữa các dòng kể cả khi dòng không có nút đó
     '<div class="cl-ra ' + (man ? 'm' : 't') + '">' +
@@ -11928,7 +11940,7 @@ function clAddSess(c, done) {
   const id = 'S' + [...crypto.getRandomValues(new Uint8Array(10))].map(z => 'abcdefghijklmnopqrstuvwxyz0123456789'[z % 36]).join('');
   clQueue('sessionAdd', { classId: c.id, newId: id, date: d, time: time, auto: c.autoOk ? 1 : 0 }, { label: 'Thêm buổi · ' + clName(c) });
   const dd = clDay(d, t); haptic();
-  toast('Đã thêm buổi ' + dd.ws + ' ' + dd.dm + (time ? ' ' + scRange(time)[0] : '') + ' · ' + clName(c) + (!clProg(c) ? ' — lớp chưa gán chương trình, cần chọn bài tay'
+  toast('Đã thêm buổi ' + dd.ws + ' ' + dd.dm + (time ? ' ' + scRange(time)[0] : '') + ' · ' + clName(c) + (!clProg(c) ? ' — lớp chưa gán chương trình, cần chọn bài tay' : c.manual ? ' — lớp chỉ tạo buổi: bộ phận chuyên môn cập nhật bài'
     : c.autoOk ? ' — đang tự xếp bài · Tự duyệt BẬT: xếp xong là duyệt & phát luôn' : ' — đang tự xếp bài · Tự duyệt TẮT: xếp xong chờ bạn duyệt'), 'ok', 6000);
   done && done();
 }
@@ -13300,7 +13312,8 @@ function clDetail(B, v, id) {
       '<div class="cd-prog">' + (p || man ? clProgChip(c) : '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Chưa gán chương trình</span>') +
         (canPrint ? '<button class="btn xs pri" id="cdPrint" title="In gộp ' + nPrint + ' buổi đã duyệt chưa dạy"><i class="bi bi-printer"></i><span class="cd-bl">In gộp </span>' + nPrint + '<span class="cd-bl"> buổi</span></button>' : '') +
         (r && (r.warn || !r.sess) ? '<span class="cl-rwtag on" title="' + r.left + ' / ' + r.total + ' bài chưa xếp">' + (r.sess ? 'Còn ' + r.sess + ' buổi' : 'Hết bài') + '</span>' : '') +
-        (man ? '<label class="cd-auto' + (c.autoOk ? ' on' : '') + '" title="' + (c.autoOk ? 'Đang bật — bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '"><i class="bi bi-robot"></i><b>Tự duyệt</b><span class="sw"><input type="checkbox" id="cdAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '') + '</div></div>' +
+        (man ? '<label class="cd-auto' + (c.autoOk ? ' on' : '') + '" title="' + (c.autoOk ? 'Đang bật — bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '"><i class="bi bi-robot"></i><b>Tự duyệt</b><span class="sw"><input type="checkbox" id="cdAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '') +
+        (man ? '<label class="cd-auto' + (!c.manual ? ' on' : '') + '" title="' + (c.manual ? 'Đang tắt — chỉ tạo buổi, bộ phận chuyên môn cập nhật bài; gia sư được nhắc trước giờ học 3 tiếng nếu buổi chưa có bài' : 'Đang bật — hệ thống tự xếp bài kế tiếp theo chương trình') + '"><i class="bi bi-magic"></i><b>Tự xếp bài</b><span class="sw"><input type="checkbox" id="cdFill"' + (!c.manual ? ' checked' : '') + '><span></span></span></label>' : '') + '</div></div>' +
       (rq.length ? '<button class="cl-rqb" data-go="classes/reqs"><i class="bi bi-hourglass-split"></i><span><b>' + rq.length + ' yêu cầu chờ duyệt</b><small>' + rq.map(q => esc(q.label)).join(' · ') + '</small></span><i class="bi bi-chevron-right"></i></button>' : '') +
       '<div class="seg cd-tabs" id="cdTabs"><button class="seg-b cd-tab" data-pane="s" aria-pressed="' + (pane === 's') + '">Buổi học <small>' + (notOut.length + out.length) + '</small></button><button class="seg-b cd-tab" data-pane="l" aria-pressed="' + (pane === 'l') + '">' + (man ? 'Bài trong chương trình' : 'Tiến trình học') + '</button></div>' +
       '<div class="cd-lay' + (man ? '' : p ? ' tut' : ' one') + '" data-pane="' + pane + '">' +
@@ -13351,6 +13364,9 @@ function clDetail(B, v, id) {
   const bind = () => {
     $('#cdMore', B).onclick = e => more(e.currentTarget);
     const pr = $('#cdPrint', B); if (pr) pr.onclick = () => clPrintAll(c, pr);
+    const fl = $('#cdFill', B); if (fl) fl.onchange = () => { const on = fl.checked; haptic();      // (1.44.9) tắt = “Chỉ tạo buổi”
+      toast(on ? 'Đã bật tự xếp bài · ' + clName(c) : 'Chỉ tạo buổi · ' + clName(c) + ' — gia sư liên hệ chuyên môn, được nhắc trước 3 giờ nếu buổi chưa có bài', 'ok', 4000);
+      setTimeout(() => clSave(c, { manual: on ? '' : 1 }, on ? 'Bật tự xếp bài' : 'Chỉ tạo buổi'), 160); };
     const au = $('#cdAuto', B); if (au) au.onchange = () => { const on = au.checked, nDraft = clSess(c.id).filter(x => x.status === 'draft' && (x.folders || []).length).length; haptic();
       if (on) clSess(c.id).forEach(x => { if (x.status === 'draft' && (x.folders || []).length) { x.status = 'approved'; x.auto = true; } });   // buổi nháp hiện đã duyệt ngay
       toast(on ? 'Đã bật tự duyệt · ' + clName(c) + (nDraft ? ' · ' + nDraft + ' buổi được duyệt' : '') : 'Đã tắt tự duyệt · ' + clName(c));
@@ -13407,7 +13423,8 @@ function clQuick(id) {
         (zp ? '<a class="cq-a" href="https://zalo.me/' + esc(zp) + '" target="_blank" rel="noopener"><i class="bi bi-chat-dots-fill z"></i><span>Zalo gia sư</span></a>' : '') +
         '<a class="cq-a" data-go="classes/c/' + c.id + '" data-full><i class="bi bi-layout-text-sidebar"></i><span>Trang lớp</span></a></div>' +
       '<div class="cq-st">' + [['Chờ duyệt', st.draft, 'blue', 'draft'], ['Đã duyệt', st.ok, 'ok', 'out'], ['Đã dạy', st.taught, 'gray', 'taught'], ['Chưa có bài', st.none, 'red', 'none']].map(o => '<div class="cq-s ' + o[2] + (o[1] ? '' : ' z') + '"><b>' + o[1] + '</b><span>' + o[0] + '</span></div>').join('') + '</div>' +
-      (man ? '<label class="cq-sw"><span><b>Tự duyệt nội dung</b><small>' + (c.autoOk ? 'Bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '</small></span><span class="sw"><input type="checkbox" id="cqAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '');
+      (man ? '<label class="cq-sw"><span><b>Tự duyệt nội dung</b><small>' + (c.autoOk ? 'Bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '</small></span><span class="sw"><input type="checkbox" id="cqAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '') +
+      (man ? '<label class="cq-sw"><span><b>Tự xếp bài</b><small>' + (c.manual ? 'Đang tắt — chỉ tạo buổi, gia sư liên hệ bộ phận chuyên môn (nhắc trước 3 giờ)' : 'Hệ thống tự xếp bài kế tiếp theo chương trình') + '</small></span><span class="sw"><input type="checkbox" id="cqFill"' + (!c.manual ? ' checked' : '') + '><span></span></span></label>' : '');
   };
   const fields = () => {
     const c = C(); if (!c) return;
@@ -13438,6 +13455,8 @@ function clQuick(id) {
   const refresh = () => { top(); nextS(); };
   m.el.addEventListener('change', e => {
     const c = C(); if (!c) return;
+    if (e.target.id === 'cqFill') { const on = e.target.checked; clSave(c, { manual: on ? '' : 1 }, on ? 'Bật tự xếp bài' : 'Chỉ tạo buổi');
+      toast(on ? 'Đã bật tự xếp bài · ' + clName(c) : 'Chỉ tạo buổi · ' + clName(c), 'ok', 3000); return refresh(); }
     if (e.target.id === 'cqAuto') {
       const on = e.target.checked, nDraft = clSess(c.id).filter(x => x.status === 'draft' && (x.folders || []).length).length;
       clSave(c, { autoOk: on ? 1 : '' }, on ? 'Bật tự duyệt' : 'Tắt tự duyệt');
@@ -15536,7 +15555,7 @@ function cpPrep(doc) {
   const G = doc.grade = cpGrade(doc.meta);
   doc.stem = cpStem(doc.meta);
   const tk = cpFold(doc.meta.tieude || '_');
-  doc.tpl = CP.tpl[tk] || doc.meta.kieu || 'kgs';                                   // mẫu thiết kế: chọn trên app > @kieu > Kiến Gia Sư
+  doc.tpl = CP.tpl[tk] || doc.meta.kieu || 'kgsn';                                  // mẫu thiết kế: chọn trên app > @kieu > Kiến Gia Sư Open (kgs-style v5, 1.44.9)
   const exam = /KIEM TRA|DE THI|KHAO SAT|THI THU/.test(fold(doc.meta.loai || '').toUpperCase());
   doc.blocks.forEach(b => { if (b.t === 'h2' && b.alt && !doc.stem && !exam) b.label = b.alt; });
   // hình đứng NGAY TRƯỚC khung bài đọc (AI đặt [HÌNH] ngoài “::: van”) là tranh của bài đọc đó → đưa vào trong khung để chữ chạy quanh được.
@@ -15635,7 +15654,7 @@ function cpParse(text) {
     else if (k === 'phieu' || k === 'phieuso') meta.so = v;
     else if (k === 'choviet' || k === 'kieuke') meta.choviet = /oli|ovuong/.test(cpFold(v)) ? 'oli' : 'dong';
     else if (k === 'thoigianlam' || k === 'thoiluong') meta.thoigian = v;
-    else if (k === 'kieu' || k === 'mauthietke' || k === 'style') meta.kieu = /tdn|kientre|navy/.test(cpFold(v)) ? 'gttdn' : 'kgs';
+    else if (k === 'kieu' || k === 'mauthietke' || k === 'style') meta.kieu = /tdn|kientre|navy/.test(cpFold(v)) ? 'gttdn' : /box|the/.test(cpFold(v)) ? 'kgs' : 'kgsn';
     else if (k in meta) meta[k] = v;
     inTitle = k === 'tieude';
   });
@@ -15828,7 +15847,7 @@ const CP_BT = /^(bai|cau|vi ?du|thu thach|kham pha|de bai|luyen tap|van dung|bai
 /** ctx = loại khối chứa (van / tho / khung / the / thecam / muctieu; cấp ngoài = '') */
 const cpSt = f => !f ? '' : ' style="' + (f.al ? 'text-align:' + ({ giua: 'center', phai: 'right', trai: 'left', deu: 'justify' })[f.al] + ';' + (f.al === 'giua' || f.al === 'phai' ? 'text-indent:0;' : '') : '') + (f.ind ? 'margin-left:' + f.ind * 20 + 'pt;' : '') + '"';
 function cpHtml0(b, ctx) {
-  const tdn = CP.doc && CP.doc.tpl === 'gttdn';
+  const tdn = CP.doc && CP.doc.tpl === 'gttdn', nb = CP.doc && CP.doc.tpl === 'kgsn';      // nb = Kiến Gia Sư Open: câu hỏi không đóng khung (kgs-style v5)
   switch (b.t) {
     case 'p': return /^\$\$[^$]+\$\$$/.test(b.text.trim()) ? '<div class="kg-eq">' + cpInline(b.text.trim()) + '</div>'
       : '<p class="kg-p' + (cpIsSub(b) && /\$/.test(b.text) ? ' sub' : '') + '"' + cpSt(b.fm) + '>' + cpInline(b.text) + '</p>';   // ý con có công thức: canh trái (canh đều kéo giãn khoảng trắng quanh công thức)
@@ -15839,7 +15858,7 @@ function cpHtml0(b, ctx) {
     case 'src': return '<div class="kg-src"' + cpSt(b.fm) + '>' + cpInline(b.text) + '</div>';
     case 'img': return cpImgHtml(b, ctx);
     case 'dong': return '<div class="kg-dong kg-sp' + (b.grid ? ' kg-oli' : '') + '" data-di="' + b.di + '"' + (b.fixed ? ' data-fixed="1"' : '') + ' title="' + (b.fixed ? 'Đã chỉnh tay: ' : b.auto ? 'Tự tính: ' : '') + b.n + ' dòng — kéo vạch dưới để thêm / bớt">' +
-      cpRows(b.n, b.grid ? cpOli(CP.doc ? CP.doc.grade.lp : 30) : '') + (tdn && b.auto === 'giai' && !b.grid && !b.half ? '<footer class="kg-ds"><b>ĐÁP SỐ</b><i></i></footer>' : '') +
+      (nb && !b.half ? '<div class="kg-bl">BÀI LÀM</div>' : '') + cpRows(b.n, b.grid ? cpOli(CP.doc ? CP.doc.grade.lp : 30) : '') + (tdn && b.auto === 'giai' && !b.grid && !b.half ? '<footer class="kg-ds"><b>ĐÁP SỐ</b><i></i></footer>' : '') +
       '<span class="kg-drag" title="Kéo lên / xuống để bớt / thêm dòng"><i></i></span></div>';
     case 'bang': return cpTable(b);
     case 'h1': return '<div class="kg-h1">' + cpInline(b.text) + '</div>';
@@ -15852,15 +15871,17 @@ function cpHtml0(b, ctx) {
       if (k === 'the' || k === 'thecam') {
         const bt = k === 'the' && CP_BT.test(fold(b.title || '').trim());
         const card = kids => {
-          let lb = b.title ? '<div class="kg-lb"><span>' + cpInline(b.title) + '</span></div>' : '', j = -1;
+          // (1.44.9) chip mức độ: nhãn kết thúc bằng NT / VD / VDC (“BÀI 3 VDC”, “BÀI 3 (VD)”, “BÀI 3 · NT”) → nhãn + chip màu
+          const lv = /^(.*?)[\s·\-–(\[]+(NT|VD|VDC)[)\]]?$/i.exec(String(b.title || '').trim()), lt = lv ? lv[1] : b.title;
+          let lb = b.title ? '<div class="kg-lb"><span>' + cpInline(lt) + '</span>' + (lv ? '<em class="kg-lv ' + lv[2].toLowerCase() + '">' + lv[2].toUpperCase() + '</em>' : '') + '</div>' : '', j = -1;
           // mẫu Kiến Gia Sư: nhãn câu hỏi (CÂU 1, BÀI 2, VÍ DỤ…) đứng CÙNG DÒNG với câu hỏi — không xuống dòng sau nhãn.
           // (chỉ khi nội dung đầu tiên của thẻ là một đoạn chữ; hình trái / phải đứng trước không tính. Thẻ ghi nhớ / mẫu GTTDN giữ nhãn riêng dòng)
-          if (lb && bt && !tdn) {
+          if (lb && bt && !tdn && !nb) {
             j = kids.findIndex(x => !(x.t === 'gap' || (x.t === 'img' && /^(?:|trai|phai)$/.test(cpImgPos(x, k)))));
             if (j < 0 || kids[j].t !== 'p' || /^\$\$[^$]+\$\$$/.test(kids[j].text.trim())) j = -1;
           }
           const parts = cpKids(kids, k, j);
-          if (j >= 0) { const at = parts.findIndex(h => /^<p\b[^>]*data-run/.test(h)); if (at >= 0) { parts[at] = parts[at].replace(/^<p\b[^>]*>/, m0 => m0.replace(' data-run="1"', '') + '<span class="kg-lb in">' + cpInline(b.title) + '</span>'); lb = ''; } }
+          if (j >= 0) { const at = parts.findIndex(h => /^<p\b[^>]*data-run/.test(h)); if (at >= 0) { parts[at] = parts[at].replace(/^<p\b[^>]*>/, m0 => m0.replace(' data-run="1"', '') + '<span class="kg-lb in">' + cpInline(lt) + '</span>' + (lv ? '<em class="kg-lv ' + lv[2].toLowerCase() + '">' + lv[2].toUpperCase() + '</em>' : '')); lb = ''; } }
           return '<div class="kg-the' + (k === 'thecam' ? ' cam' : '') + (bt ? ' bt' : '') + '">' + lb + parts.join('') + '</div>';
         };
         const mc = b.kids.filter(x => x.t === 'mc');
@@ -15940,7 +15961,7 @@ function cpUnits(blocks) {
 const CP_CLOCK = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.4V8l2.6 1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
 function cpPage(doc, no) {
   const meta = doc.meta, tdn = doc.tpl === 'gttdn';
-  const el = cpEl('<div class="kg-sheet"><div class="kg-page' + (meta.mau === 'cam' ? ' cam' : '') + (tdn ? ' tdn' : '') + (doc.stem ? ' stem' : '') + '" style="--lp:' + (tdn && !doc.blocks.some(b => b.t === 'dong' && b.grid) ? 24 : doc.grade.lp) + 'pt">' +
+  const el = cpEl('<div class="kg-sheet"><div class="kg-page' + (meta.mau === 'cam' ? ' cam' : '') + (tdn ? ' tdn' : '') + (doc.tpl === 'kgsn' ? ' nb' : '') + (doc.stem ? ' stem' : '') + '" style="--lp:' + (tdn && !doc.blocks.some(b => b.t === 'dong' && b.grid) ? 24 : doc.grade.lp) + 'pt">' +
     '<div class="kg-hd"><img src="' + (tdn ? CP_LOGO_KT : CP_LOGO) + '" alt="">' + (meta.mon ? '<i></i><b>' + esc(meta.mon) + '</b>' : '') + '<span class="sp"></span>' +
       (meta.chude ? '<span class="kg-pill">' + (tdn ? cpKite() + esc(meta.chude) : '<i></i>Chủ đề: ' + esc(meta.chude)) + '</span>' : '') + '</div><div class="kg-hl"></div>' +
     '<div class="kg-body"></div>' +
@@ -16454,7 +16475,7 @@ function cpStat(n) {
   const L = CP.slots || [], miss = L.filter(o => !(CP.imgs[o.key] || {}).src).length;
   el.innerHTML = n ? '<span><i class="bi bi-file-earmark"></i>' + n + ' trang A4</span><span><i class="bi bi-image"></i>' + L.length + ' hình' + (miss ? ' · <em>' + miss + ' chưa chèn</em>' : '') + '</span>' +
     '<span><i class="bi bi-mortarboard"></i>Lớp ' + CP.doc.grade.g + ' · dòng ' + CP.doc.grade.lp + 'pt</span>' +
-    '<label class="cp-cv"><i class="bi bi-palette"></i>Mẫu <select class="sel cp-mini" id="cpTpl" title="Mẫu thiết kế của phiếu">' + [['', 'Theo mã'], ['kgs', 'Kiến Gia Sư (xanh)'], ['gttdn', 'Kiển Trẻ GTTDN (navy)']].map(x => '<option value="' + x[0] + '"' + ((CP.tpl[cpFold(CP.doc.meta.tieude || '_')] || '') === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></label>' +
+    '<label class="cp-cv"><i class="bi bi-palette"></i>Mẫu <select class="sel cp-mini" id="cpTpl" title="Mẫu thiết kế của phiếu">' + [['', 'Theo mã'], ['kgsn', 'Kiến Gia Sư Open (mới)'], ['kgs', 'Kiến Gia Sư Box'], ['gttdn', 'Kiển Trẻ GTTDN (navy)']].map(x => '<option value="' + x[0] + '"' + ((CP.tpl[cpFold(CP.doc.meta.tieude || '_')] || '') === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></label>' +
     (() => { const P = CP.pn[cpFold(CP.doc.meta.tieude || '_')] || {}; return '<label class="cp-cv" title="Vị trí số trang ở chân trang; ô bên cạnh: số của trang đầu (để trống = 1)"><i class="bi bi-123"></i>Số trang <select class="sel cp-mini" id="cpPn">' +
       [['', 'Theo mẫu'], ['r', 'Bên phải'], ['c', 'Ở giữa'], ['l', 'Bên trái'], ['box', 'Ô trống (điền tay)'], ['none', 'Không in']].map(x => '<option value="' + x[0] + '"' + ((P.pos || '') === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') +
       '</select><input class="inp cp-pns" id="cpPnS" type="number" min="1" inputmode="numeric" placeholder="từ 1" value="' + (P.start || '') + '" title="Số của trang đầu tiên"></label>'; })() +
@@ -16762,7 +16783,7 @@ const CP_SYNTAX = `MÃ KGS — mỗi dòng một thành phần. App tự tính v
 @chude: …        @buoi: 21        @so: 21        @thoigian: 120 phút
 @loai: PHIẾU HỌC TẬP | BÀI TẬP VỀ NHÀ | ĐỀ KIỂM TRA | ĐÁP ÁN
 @tieude: TÊN PHIẾU        @hoten: có | không        @mau: xanh | cam (đáp án)
-@kieu: kgs | gttdn    → mẫu thiết kế: Kiến Gia Sư (xanh) | Kiển Trẻ GTTDN (navy – cam, không ô họ tên, bài tập không khung, có BÀI LÀM / ĐÁP SỐ). Trên app: ô “Mẫu”.
+@kieu: open | box | gttdn    → mẫu thiết kế: Kiến Gia Sư Open (mặc định — câu hỏi không đóng khung, nhãn BÀI n + chip NT/VD/VDC + vạch mảnh, BÀI LÀM) | Kiến Gia Sư Box (câu hỏi trong thẻ nền xanh) | Kiển Trẻ GTTDN (navy – cam). Trên app: ô “Mẫu”.
 @chudiem: 08          → mẫu GTTDN: số in trên băng “CHỦ ĐIỂM 08” (không ghi thì lấy @so / @buoi)
 
 TIÊU ĐỀ
