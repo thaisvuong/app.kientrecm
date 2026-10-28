@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T16:02:56.013Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T16:26:46.108Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -9891,7 +9891,7 @@ function awAdd(key, B) {
   const has = () => { const s = isP ? (AW.d.P[key.slice(2)] || {}).set || [] : AW.d.setOf(key); const o = {}; s.forEach(i => { o[i] = 1; }); return o; };
   const roles = (S.boot.roles || []).filter(r => r.id !== 'admin');
   let q = '';
-  const m = modal({ title: 'Thêm người xem · ' + nm, icon: 'bi-person-plus', size: 'lg', body: '<div class="aw-ad"><label class="search"><i class="bi bi-search"></i><input class="inp" id="awAq" placeholder="Tìm vai trò / người — tên, email…" autocomplete="off"></label><label class="aw-upo"><input type="checkbox" id="awUp"' + (lsGet('awUp', true) ? ' checked' : '') + '><span><b>Cho upload file vào thư mục này</b><small>Tải lên trong app (Thư viện › Upload file) — file đứng tên tài khoản chủ, không cần chia sẻ trên Drive. Gỡ người xem thì gỡ luôn quyền upload.</small></span></label>' +
+  const m = modal({ title: 'Thêm người xem · ' + nm, icon: 'bi-person-plus', size: 'lg', body: '<div class="aw-ad"><label class="search"><i class="bi bi-search"></i><input class="inp" id="awAq" placeholder="Tìm vai trò / người — tên, email…" autocomplete="off"></label><label class="aw-upo"><input type="checkbox" id="awUp"><span><b>Cũng cho upload file vào thư mục này</b><small>Mặc định chỉ thêm quyền XEM. Bật ô này thì người / vai trò được thêm cũng tải lên được (Thư viện › Upload file — file đứng tên tài khoản chủ). Gỡ người xem thì gỡ luôn quyền upload.</small></span></label>' +
     '<div class="aw-al" id="awAl"></div></div>',
     foot: [{ t: 'Xong', cls: 'pri' }] });
   const paint = () => {
@@ -9906,7 +9906,10 @@ function awAdd(key, B) {
   };
   paint(); setTimeout(() => { const i = m.$('#awAq'); if (i) i.focus(); }, 50);
   m.$('#awAq').oninput = debounce(e => { q = e.target.value; paint(); }, 120);
-  m.$('#awAl').onclick = e => { const b = e.target.closest('[data-aadd]'); if (!b) return; const up = !!m.$('#awUp').checked; lsSet('awUp', up); awKick(tid, b.dataset.aadd, nm, false, B, up); paint(); };
+  m.$('#awAl').onclick = e => { const b = e.target.closest('[data-aadd]'); if (!b) return; const up = !!m.$('#awUp').checked, who = b.dataset.aadd;      // (1.44.23) mặc định chỉ xem; cấp upload cho CẢ vai trò thì hỏi lại
+    const go = () => { awKick(tid, who, nm, false, B, up); paint(); };
+    if (up && /^role:/.test(who)) { ask('Cho CẢ vai trò ' + awRole(who.slice(5)).label + ' (' + (AW.d.R[who.slice(5)] || []).length + ' người) xem VÀ upload file vào “' + nm + '”?', { ok: 'Xem + upload' }).then(y => { if (y) go(); }); return; }
+    go(); };
 }
 /** tính lại từ máy chủ sau khi lưu (gộp các lần bấm liên tiếp).
     (1.44.17) còn lệnh thêm / gỡ chờ lưu → chưa tải (lệnh cuối lưu xong sẽ gọi lại); tải về rồi vẫn phủ các lệnh chưa lưu lên trên
