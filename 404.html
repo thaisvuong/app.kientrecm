@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T08:51:36.390Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T08:56:37.216Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -11707,6 +11707,7 @@ function clOverlay(d) {
   if (delS.size || delC.size) { d.sessions = d.sessions.filter(x => !delS.has(x.id) && !delC.has(x.classId)); d.classes = d.classes.filter(c => !delC.has(c.id)); }
   P('sessionSave').forEach(p => { const x = X[p.id]; if (!x) return; ['date', 'time', 'note'].forEach(k => { if (k in p) x[k] = p[k]; }); if ('off' in p) x.status = p.off ? 'off' : ((x.folders || []).length ? 'draft' : ''); });
   P('sessionOff').forEach(p => (p.ids || []).forEach(id => { const x = X[id]; if (x && x.status !== 'taught') x.status = p.off ? 'off' : ((x.folders || []).length ? 'draft' : ''); }));
+  P('sessionClear').forEach(p => (p.ids || []).forEach(id => { const x = X[id]; if (x && x.status !== 'taught' && x.status !== 'off') Object.assign(x, { folders: [], extra: [], pick: null, tags: [], status: '', hold: 1, link: null, auto: false }); }));      // (1.44.11) xoá nội dung đang chờ gửi
   if (d.manage && d.reqs) { const dec = new Set(); P('reqDecide').forEach(p => (p.ids || []).forEach(i => dec.add(i))); if (dec.size) d.reqs = d.reqs.filter(r => !dec.has(r.id)); }
   return d;
 }
@@ -12131,6 +12132,7 @@ function clTodo(B, v) {
     list = L.length ? byDate(L, 'todo_' + CL.st) : '<div class="lk-empty"><i class="bi ' + T[2] + '"></i><span>Không có buổi “' + T[1] + '”' + (nf ? ' khớp bộ lọc' : '') + '</span></div>'; }
   const dayLab = pickDay ? clDay(pickDay, t).ws + ' ' + clDay(pickDay, t).dm : '';
   const nSel = CL.sel.size, selL = D.sessions.filter(x => CL.sel.has(x.id)), selDraft = selL.filter(x => x.status === 'draft').length;
+  const clrOk = x => x.status !== 'taught' && x.status !== 'off' && ((x.folders || []).length || (x.extra || []).length), selCont = selL.filter(clrOk).length;      // (1.44.11) xoá nội dung
   // một nút phễu → bảng chọn trường lọc (ngày học · trạng thái · khối · chương trình · gia sư…); lọc đang bật hiện thành chip nhỏ, bấm × để bỏ
   const nF = nConds + (CL.day ? 1 : 0) + (CL.st !== 'all' ? 1 : 0);
   const T0 = CL_ST_TABS.find(k => k[0] === CL.st) || CL_ST_TABS[0], D0 = CL_DAYS.find(k => k[0] === CL.day);
@@ -12153,8 +12155,9 @@ function clTodo(B, v) {
       '<button class="btn xs ghost" id="csA">' + (shown.length && shown.every(x => CL.sel.has(x.id)) ? 'Bỏ chọn' : 'Chọn hết ' + shown.length) + '</button><span class="sp"></span>' +
       '<button class="btn xs" id="csAsg"' + (nSel ? '' : ' disabled') + '><i class="bi bi-collection"></i><span class="bl">Gán bài</span></button>' +
       '<button class="btn xs pri" id="csOk"' + (selDraft ? '' : ' disabled') + '><i class="bi bi-check2-all"></i>Duyệt' + (selDraft ? ' ' + selDraft : '') + '</button>' +
+      '<button class="btn xs" id="csClr"' + (selCont ? '' : ' disabled') + ' title="Bỏ bài / tệp của các buổi đã chọn — buổi về “Để trống — chờ chèn bài”"><i class="bi bi-eraser"></i><span class="bl">Xoá nội dung' + (selCont ? ' ' + selCont : '') + '</span></button>' +
       '<button class="btn xs" id="csOff"' + (nSel ? '' : ' disabled') + '><i class="bi bi-slash-circle"></i><span class="bl">Nghỉ</span></button>' +
-      '<button class="btn xs red" id="csDel"' + (nSel ? '' : ' disabled') + '><i class="bi bi-trash"></i>Xoá' + (nSel ? ' ' + nSel : '') + '</button></div>' : ''));
+      '<button class="btn xs red" id="csDel"' + (nSel ? '' : ' disabled') + '><i class="bi bi-trash"></i>Xoá buổi' + (nSel ? ' ' + nSel : '') + '</button></div>' : ''));
   const sc = $('.ct-scroll', B); if (sc && prevScroll) sc.scrollTop = prevScroll;
   const again = () => clTodo(B, v);
   const reset = () => { Object.keys(CLP).forEach(k => { if (/^todo/.test(k)) delete CLP[k]; }); const s2 = $('.ct-scroll', B); if (s2) s2.scrollTop = 0; };
@@ -12182,7 +12185,7 @@ function clTodo(B, v) {
     { t: 'Đợt gán (tên bài)', d: 'Xem lớp nào đã được gán · lọc · gỡ cả đợt', i: 'bi-bookmarks', fn: () => clTagsDlg() },
     target.length ? { t: 'Gán cùng bài cho ' + target.length + ' buổi đang lọc', d: 'Buổi đã dạy: thêm buổi mới cùng ngày', i: 'bi-collection', fn: () => clAssignMany(target, target.length + ' buổi đang lọc') } : null,
     drafts.length && !selOn ? { t: 'Duyệt tất cả ' + drafts.length + ' buổi chờ duyệt', i: 'bi-check2-all', fn: () => { const a = $('#ctAll', B); if (a) a.click(); } } : null,
-    { t: selOn ? 'Thôi chọn nhiều' : 'Chọn nhiều buổi', d: 'Duyệt · nghỉ · xoá cùng lúc', i: 'bi-check2-square', fn: () => { CL.selOn = !CL.selOn; if (!CL.selOn) CL.sel.clear(); again(); } },
+    { t: selOn ? 'Thôi chọn nhiều' : 'Chọn nhiều buổi', d: 'Duyệt · xoá nội dung · nghỉ · xoá buổi cùng lúc', i: 'bi-check2-square', fn: () => { CL.selOn = !CL.selOn; if (!CL.selOn) CL.sel.clear(); again(); } },
     { t: CL.tv === 'table' ? 'Xem dạng thẻ' : 'Xem dạng bảng', i: CL.tv === 'table' ? 'bi-view-stacked' : 'bi-table', fn: () => { CL.tv = CL.tv === 'table' ? 'card' : 'table'; lsSet('clTv', CL.tv); reset(); again(); } },
     nF ? { t: 'Bỏ mọi bộ lọc', i: 'bi-funnel', fn: () => { CL.day = ''; CL.st = 'all'; lsSet('clDay', ''); lsSet('clSt', 'all'); CFC.conds.splice(0, CFC.conds.length); lsSet('clTodoFConds', []); reset(); again(); } } : null
   ].filter(Boolean));
@@ -12205,6 +12208,12 @@ function clTodo(B, v) {
       ds.forEach(x => { x.status = 'approved'; x.auto = false; }); CL._fl = null; ds.forEach(x => CL.sel.delete(x.id));
       toast('Đã duyệt ' + ds.length + ' buổi'); again();
       clQueue('sessionApprove', { ids: ds.map(x => x.id) }, { label: 'Duyệt ' + ds.length + ' buổi' }).then(r => { if (r && r.errors && r.errors.length) toast(r.errors.length + ' buổi lỗi: ' + r.errors[0], 'warn', 6000); }); return; }
+    if (e.target.closest('#csClr')) { const cs = L.filter(clrOk); if (!cs.length) return toast('Các buổi đã chọn không có nội dung để xoá (buổi đã dạy / nghỉ giữ nguyên)', 'warn');
+      const nOut = cs.filter(x => x.status === 'approved').length, nLk = cs.filter(x => x.link).length;
+      if (!await ask('Xoá nội dung học của ' + cs.length + ' buổi?\nCác buổi về “Để trống — chờ chèn bài” (hệ thống không tự xếp lại).' + (nOut ? '\n' + nOut + ' buổi đã duyệt sẽ về chưa có nội dung.' : '') + (nLk ? '\n' + nLk + ' link tạm của các buổi này bị thu hồi.' : ''), { ok: 'Xoá nội dung ' + cs.length + ' buổi', danger: true })) return;
+      cs.forEach(x => { x.folders = []; x.extra = []; x.pick = null; x.tags = []; x.status = ''; x.hold = 1; x.link = null; x.auto = false; }); CL.sel.clear(); CL._fl = null;
+      toast('Đã xoá nội dung ' + cs.length + ' buổi'); again();
+      clQueue('sessionClear', { ids: cs.map(x => x.id) }, { label: 'Xoá nội dung ' + cs.length + ' buổi' }); return; }
     if (e.target.closest('#csOff')) { const ls = L.filter(x => x.status !== 'taught'); if (!ls.length) return toast('Buổi đã dạy không đánh dấu nghỉ được', 'warn');
       const off = ls.some(x => x.status !== 'off');
       ls.forEach(x => { x.status = off ? 'off' : ((x.folders || []).length ? 'draft' : ''); }); CL.sel.clear();
