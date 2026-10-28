@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T16:26:46.108Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T16:57:44.451Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4603,6 +4603,9 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .aw-row:hover .aw-add{ opacity:1 } .aw-add:hover{ border-style:solid; border-color:var(--primary); color:var(--primary); background:var(--brand-50) }
 @media (hover:none){ .aw-add{ opacity:1 } }
 .aw-ad{ display:flex; flex-direction:column; gap:10px }
+/* (1.44.24) Vai trò & quyền: bản nháp chưa lưu */
+.r-dirty{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:99px; background:#FFF4E5; color:#B45309; font-size:12px; font-weight:700 } .r-dirty i{ font-size:7px }
+.btn.r-dirty-b{ box-shadow:0 0 0 3px rgba(245,158,11,.35) }
 .aw-upc{ display:inline-flex; align-items:center; gap:4px; height:22px; padding:0 8px; border-radius:99px; background:#E8F3FF; color:#1D4ED8; font-size:11.5px; font-weight:700 }
 .aw-upb{ display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:99px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font:inherit; font-size:11.5px; font-weight:600; cursor:pointer; white-space:nowrap }
 .aw-upb:hover{ border-color:#1D4ED8; color:#1D4ED8 } .aw-upb.on{ background:#E8F3FF; border-color:#BFDBFE; color:#1D4ED8 } .aw-upb.dis{ cursor:default; opacity:.75 }
@@ -4958,7 +4961,7 @@ function obPanel() {
   paint();
 }
 addEventListener('online', () => { if (OB.q.length) { OB.q.forEach(x => { x.tries = 0; }); clearTimeout(OB.t); obFlush(); } });
-addEventListener('beforeunload', e => { if (OB.q.length || WK.list.length) { e.preventDefault(); e.returnValue = ''; } });   // vẫn còn trong máy — lần mở sau gửi tiếp
+addEventListener('beforeunload', e => { if (OB.q.length || WK.list.length || Object.values(VIEWS).some(r => r.el._guard && r.el._guard())) { e.preventDefault(); e.returnValue = ''; } });   // vẫn còn trong máy — lần mở sau gửi tiếp
 addEventListener('storage', e => { if (e.key === 'ktcm.outbox' && !OB.run) { OB.q = lsGet('outbox', []); obUI(); } });
 
 /* ══════════ NHỊP "ĐANG TRUY CẬP" — cho tab Hoạt động của quản trị ══════════ */
@@ -6747,7 +6750,7 @@ async function go(route, opt) {
   const R = ROUTES[key];
   { const md = modOf(route); if (md) { if (md !== S.mod && myMods().some(m => m.id === md) && modSet(md)) buildNav(); MOD_LAST[md] = route; lsSet('modLast', MOD_LAST); } }
   const guard = Object.values(VIEWS).find(r => r.el._guard && r.el._guard() && !r.el.hidden);
-  if (guard && S.route !== route) { if (!await ask('Chương trình đang sửa chưa lưu. Rời trang và bỏ thay đổi?', { ok: 'Rời trang', danger: true })) { try { google.script.history.replace({ r: S.route }, { page: S.route }); } catch (e) {} return; } guard.el._guard = null; }
+  if (guard && S.route !== route) { if (!await ask(guard.el._guardMsg || 'Chương trình đang sửa chưa lưu. Rời trang và bỏ thay đổi?', { ok: 'Rời trang', danger: true })) { try { google.script.history.replace({ r: S.route }, { page: S.route }); } catch (e) {} return; } guard.el._guard = null; }
   if (seq !== NAV) return;
   if ($('#app').classList.contains('reading') && key !== 'file') toggleReading(false);
   $$('.sheet-bg').forEach(x => x.remove()); if (menuEl && menuEl._close) menuEl = null;      // đổi trang → đóng bảng “Thêm” / bảng tác vụ còn mở
@@ -9014,6 +9017,10 @@ async function viewUsers(arg, v) {
   let tab = arg === 'roles' ? 'roles' : arg === 'apps' ? 'apps' : arg === 'invites' ? 'invites' : 'list', uLimit = 50;
   let aDraft = {}, rhDraft = null, aQ = '';      // tab Ứng dụng: thay đổi chưa lưu { email: { apps, home } } + mặc định theo vai trò     // bảng dài → 50 người / lần, nút Xem thêm
   let list = null, R = null, q = '', rf = '';
+  // (1.44.24) ma trận vai trò là BẢN NHÁP tới khi bấm Lưu quyền → báo “chưa lưu”, hỏi lại khi rời trang / tải lại (trước đây deploy xong app tải lại là mất)
+  const rSnap = () => JSON.stringify(((R && R.roles) || []).filter(r => !r.locked).map(r => [r.id, r.label, r.color, (r.caps || []).slice().sort(), (r.apps || []).slice().sort(), r.hourly ? 1 : 0]));
+  const rDirty = () => !!R && !!R._s0 && rSnap() !== R._s0;
+  v._guard = () => tab === 'roles' && rDirty(); v._guardMsg = 'Vai trò & quyền có thay đổi CHƯA LƯU. Rời trang và bỏ thay đổi?';
   // sắp xếp: chọn ở ô Sắp xếp hoặc bấm tiêu đề cột (bấm lại để đảo chiều); người chờ duyệt luôn lên đầu
   let us = lsGet('uSort', 'seen'), ud = lsGet('uDir', -1);
   const U_SORT = { name: ['Tên A → Z', 1], seen: ['Truy cập gần nhất', -1], created: ['Mới thêm', -1], role: ['Vai trò', 1], status: ['Trạng thái', 1] };
@@ -9164,7 +9171,7 @@ async function viewUsers(arg, v) {
       v.innerHTML = head() + '<div class="card"><div class="card-h"><h2><i class="bi bi-shield-lock"></i>Vai trò × ứng dụng × quyền</h2><div class="search rq"><i class="bi bi-search"></i><input class="inp" id="rQ" placeholder="Tìm quyền…" value="' + esc(v._rq || '') + '" autocomplete="off"></div><span class="sp"></span>' +
         (S.me.isAdmin ? '<span class="small muted">Bật ứng dụng cho vai trò, tick quyền trong ứng dụng, rồi Lưu quyền</span>' : '<span class="small muted">Chỉ quản trị viên được sửa</span>') + '</div>' +
         '<div class="tbl-wrap"><table class="tbl rtbl"><thead><tr><th>Ứng dụng · quyền</th>' + R.roles.map((r, i) => '<th class="rc"><div class="rh" style="--rc:' + r.color + '">' +
-          (S.me.isAdmin && !r.locked ? '<button type="button" class="rh-ed" data-redit="' + i + '" title="Sửa tên, màu' + (r.custom ? ', xoá' : '') + ' vai trò"><b>' + esc(r.label) + '</b><i class="bi bi-pencil"></i></button>' : '<b>' + esc(r.label) + '</b>') +
+          (S.me.isAdmin && !r.locked ? '<button type="button" class="rh-ed" data-redit="' + i + '" title="Sửa tên, màu' + ', xoá vai trò"><b>' + esc(r.label) + '</b><i class="bi bi-pencil"></i></button>' : '<b>' + esc(r.label) + '</b>') +
           '<small>' + r.users + ' người</small></div></th>').join('') + '</tr></thead><tbody>' +
         MODS.map(block).join('') + (other.length ? '<tr class="rg"><td colspan="' + (n + 1) + '">Khác</td></tr>' + other.map(c => capRow(c, '')).join('') : '') +
         '</tbody></table></div><div class="card-b small muted"><b>Cách hoạt động:</b> mỗi người có một hoặc nhiều vai trò; ứng dụng hiện với họ là ứng dụng mà ít nhất một vai trò bật, quyền là hợp quyền các vai trò. ' +
@@ -9174,14 +9181,18 @@ async function viewUsers(arg, v) {
       const rqF = () => { const w = fold(v._rq || '').split(/\s+/).filter(Boolean); $$('.rtbl tr.r-cap', v).forEach(tr => { tr.hidden = !!w.length && !w.every(z => fold(tr.textContent).indexOf(z) >= 0); });
         $$('.rtbl tr.r-sub', v).forEach(tr => { let n = tr.nextElementSibling, any = false; while (n && n.classList.contains('r-cap')) { if (!n.hidden) any = true; n = n.nextElementSibling; } tr.hidden = !!w.length && !any; }); };
       const rq = $('#rQ', v); rq.oninput = () => { v._rq = rq.value; rqF(); }; rqF();
+      if (!R._s0) R._s0 = rSnap();
+      const dt = rDirty(), sb = $('#rSaveR', top);
+      if (sb) { sb.classList.toggle('r-dirty-b', dt); const bl = $('.bl', sb); if (bl) bl.textContent = dt ? 'Lưu quyền · chưa lưu' : 'Lưu quyền'; }
+      const ch = $('.card-h', v); if (ch && dt) ch.insertAdjacentHTML('beforeend', '<span class="r-dirty"><i class="bi bi-circle-fill"></i>Có thay đổi chưa lưu — bấm Lưu quyền</span>');
     }
   };
   /** sửa vai trò (1.43.4): tên, màu — mọi vai trò trừ Quản trị; vai trò tự thêm xoá được. Đổi xong bấm “Lưu quyền” như mọi thay đổi của ma trận. */
   const editRole = i => { const r = R.roles[i]; let color = r.color;
     const mm = modal({ title: 'Sửa vai trò', icon: 'bi-pencil-square', body: '<div class="stack"><div class="fg"><label class="flabel">Tên vai trò</label><input class="inp" id="erL" maxlength="40" value="' + esc(r.label) + '"></div>' +
         '<div class="fg"><label class="flabel">Màu</label><div class="row" id="erC">' + SRC_COLORS.map(c => '<button type="button" class="sw-c" data-c="' + c + '" style="--c:' + c + '"' + (c === color ? ' aria-pressed="true"' : '') + '></button>').join('') + '</div></div>' +
-        '<div class="small muted">' + r.users + ' người đang có vai trò này. ' + (r.custom ? 'Xoá vai trò thì những người này mất quyền của vai trò đó.' : 'Vai trò có sẵn — đổi tên, màu được, không xoá được.') + '</div></div>',
-      foot: (r.custom ? [{ t: 'Xoá vai trò', cls: 'ghost u-del', i: 'bi-trash', fn: async () => { if (r.users && !await ask('Vai trò “' + r.label + '” đang có ' + r.users + ' người. Xoá thì những người này mất quyền của vai trò đó (máy chủ chặn nếu còn người dùng — đổi vai trò của họ trước). Tiếp tục?', { danger: true, ok: 'Xoá' })) return false;
+        '<div class="small muted">' + r.users + ' người đang có vai trò này. ' + (r.users ? 'Muốn xoá vai trò: đổi vai trò của những người này trước.' : 'Xoá vai trò rồi bấm Lưu quyền — vai trò có sẵn cũng xoá được, không tự hiện lại.') + '</div></div>',
+      foot: (!r.locked ? [{ t: 'Xoá vai trò', cls: 'ghost u-del', i: 'bi-trash', fn: async () => { if (r.users && !await ask('Vai trò “' + r.label + '” đang có ' + r.users + ' người. Xoá thì những người này mất quyền của vai trò đó (máy chủ chặn nếu còn người dùng — đổi vai trò của họ trước). Tiếp tục?', { danger: true, ok: 'Xoá' })) return false;
         R.roles.splice(i, 1); paint(); toast('Đã bỏ “' + r.label + '” khỏi ma trận — bấm Lưu quyền để áp dụng', 'info'); } }] : []).concat([{ t: 'Huỷ', cls: 'ghost' }, { t: 'Xong', cls: 'pri', i: 'bi-check2', fn: m2 => {
         const l = m2.$('#erL').value.trim(); if (!l) { toast('Chưa nhập tên vai trò', 'warn'); return false; }
         Object.assign(r, { label: l, color: color }); paint(); toast('Đã sửa — bấm Lưu quyền để áp dụng', 'info'); } }]) });
