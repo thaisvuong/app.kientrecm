@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T09:05:48.640Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T09:19:39.483Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -14889,11 +14889,13 @@ function annGate(list, done) {
   const xb = m.$('[data-x]'); if (xb) xb.hidden = true;
   const ok = m.btns[0]; ok.classList.add('dim'); m.$('#anOk').onchange = e => ok.classList.toggle('dim', !e.target.checked);
 }
-/** “Gửi cho”: chỉ vai trò của ứng dụng đang đăng — Kiến Task: vai trò Kiến Task (CTV, Giáo viên…); ứng dụng khác: vai trò Kiến CM có quyền của ứng dụng đó */
+/** “Gửi cho”: Kiến Task — vai trò Kiến Task (CTV, Giáo viên…); ứng dụng khác — MỌI vai trò Kiến CM (1.44.13: trước chỉ vai trò có quyền của ứng dụng đó).
+    Vai trò chưa có quyền ứng dụng này: ghi chú “chưa dùng …” — người chỉ có vai trò đó sẽ không thấy tin (Admin luôn thấy, không cần chọn) */
 const ANN_AUD = () => {
   if (S.mod === 'task') return (S.boot.troles || []).filter(r => r.id !== 'admin').map(r => ({ tok: 'trole:' + r.id, label: r.label, color: r.color }));
   const m = (S.boot.mods || []).find(x => x.id === S.mod), mc = m && m.caps;
-  return (S.boot.roles || []).filter(r => r.id !== 'admin' && (!mc || !r.caps || r.caps.some(c => mc.indexOf(c) >= 0))).map(r => ({ tok: 'role:' + r.id, label: r.label, color: r.color }));
+  return (S.boot.roles || []).filter(r => r.id !== 'admin').map(r => { const off = !!(mc && r.caps && !r.caps.some(c => mc.indexOf(c) >= 0));
+    return { tok: 'role:' + r.id, label: r.label + (off ? ' (chưa dùng ' + (m.t || 'ứng dụng này') + ')' : ''), color: r.color, off: off }; });
 };
 const annAudLabel = a => /^trole:/.test(a) ? ((S.boot.troles || []).find(r => r.id === a.slice(6)) || { label: a.slice(6) }).label : /^role:/.test(a) ? roleOf(a.slice(5)).label : a;
 /** ảnh chọn từ máy → thu nhỏ (cạnh dài ≤ 1600px, JPEG) trên máy rồi mới gửi — nhanh, nhẹ */
@@ -14926,7 +14928,8 @@ function annEdit(x, after) {
           '<button type="button" class="anx-tb" data-md="- " title="Gạch đầu dòng"><i class="bi bi-list-ul"></i></button><button type="button" class="anx-tb" data-md="link" title="Chèn link"><i class="bi bi-link-45deg"></i></button></div></div></div>' +
       '<details class="anx-opt"' + (x.must || x.pin || aud.length || x.keep ? ' open' : '') + '><summary><i class="bi bi-sliders"></i>Tuỳ chọn<span class="anx-sum" id="anSum"></span><i class="bi bi-chevron-down cv"></i></summary>' +
         '<div class="fg"><label class="flabel">Gửi cho</label><div class="an-aud" id="anA"><button type="button" class="rchip' + (aud.length ? '' : ' on') + '" data-all>Mọi người</button>' +
-          ANN_AUD().map(r => '<button type="button" class="rchip' + (aud.indexOf(r.tok) >= 0 ? ' on' : '') + '" data-role="' + esc(r.tok) + '" style="--rc:' + r.color + '">' + esc(r.label) + '</button>').join('') + '</div></div>' +
+          ANN_AUD().map(r => '<button type="button" class="rchip' + (aud.indexOf(r.tok) >= 0 ? ' on' : '') + '" data-role="' + esc(r.tok) + '" style="--rc:' + r.color + '"' + (r.off ? ' title="Vai trò này chưa được dùng ứng dụng — người chỉ có vai trò này sẽ không thấy tin"' : '') + '>' + esc(r.label) + '</button>').join('') +
+          aud.filter(t => !ANN_AUD().some(r => r.tok === t) && !/^(role|trole):/.test(t)).map(e => '<button type="button" class="rchip on" data-role="' + esc(e) + '">' + esc(e) + '</button>').join('') + '</div></div>' +
         '<label class="an-sw"><span><b>Bắt buộc đọc</b><small>Chưa bấm “Tôi đã đọc” thì chưa dùng được app</small></span><span class="sw"><input type="checkbox" id="anM"' + (x.must ? ' checked' : '') + '><span></span></span></label>' +
         '<label class="an-sw"><span><b>Ghim lên đầu</b></span><span class="sw"><input type="checkbox" id="anP"' + (x.pin ? ' checked' : '') + '><span></span></span></label>' +
         '<label class="an-sw"><span><b>Tự xoá sau khi đọc</b><small>Mỗi người đã đọc quá số ngày này sẽ không thấy nữa; mọi người đọc hết thì xoá hẳn</small></span><select class="sel anx-keep" id="anK">' + ANN_KEEP.map(k => '<option value="' + k[0] + '"' + (Number(x.keep || 0) === k[0] ? ' selected' : '') + '>' + k[1] + '</option>').join('') + '</select></label>' +
