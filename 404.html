@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T15:34:47.523Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T16:02:56.013Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -9870,6 +9870,9 @@ function awLocal(tid, who, on) {
   const d = AW.d, r = d.rule[tid] = d.rule[tid] || { m: '', v: [], d: [], a: [] };
   r.d = (r.d || []).filter(x => x !== who); r.a = (r.a || []).filter(x => x !== who); (on ? r.d : r.a).push(who);
   const hit = {}; (/^role:/.test(who) ? d.R[who.slice(5)] || [] : [d.users.findIndex(u => u[0] === who)]).forEach(i => { if (i >= 0) hit[i] = 1; });
+  // (1.44.22) cùng cấp: gỡ một VAI TRÒ không đụng người được thêm riêng (email) hoặc có vai trò khác đang được thêm ở đây — giống máy chủ
+  if (on && /^role:/.test(who)) Object.keys(hit).forEach(i => { const u = d.users[i]; if (r.a.indexOf(u[0]) >= 0 || u[2].some(x => r.a.indexOf('role:' + x) >= 0)) delete hit[i]; });
+  if (!on && /^role:/.test(who)) Object.keys(hit).forEach(i => { if (r.d.indexOf(d.users[i][0]) >= 0) delete hit[i]; });
   const H = Object.keys(hit).map(Number), N = d.N, sub = {};
   const walk = (k, own) => { if (k in sub) return; const rr = d.rule[N[k].tid];
     if (!own && rr && ((rr.a || []).indexOf(who) >= 0 || (rr.d || []).indexOf(who) >= 0)) return;      // thư mục con tự thêm / gỡ người này → giữ nguyên
