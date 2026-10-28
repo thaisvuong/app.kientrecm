@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T08:41:08.300Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T08:51:36.390Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -11687,7 +11687,7 @@ function clOverlay(d) {
   const C = {}; d.classes.forEach(c => { C[c.id] = c; });
   const X = {}; d.sessions.forEach(x => { X[x.id] = x; });
   const autoOn = new Set();
-  P('classSave').forEach(p => (p.items || []).forEach(it => { const c = C[it.id]; if (c) { Object.assign(c, it.patch); if ('programId' in it.patch) c.plock = null; if ('autoOk' in it.patch) { c.autoOk = it.patch.autoOk ? 1 : 0; if (c.autoOk) autoOn.add(c.id); } if ('manual' in it.patch) c.manual = it.patch.manual ? 1 : 0; } }));
+  P('classSave').forEach(p => (p.items || []).forEach(it => { const c = C[it.id]; if (c) { Object.assign(c, it.patch); if ('programId' in it.patch) c.plock = null; if ('autoOk' in it.patch) { c.autoOk = it.patch.autoOk ? 1 : 0; if (c.autoOk) autoOn.add(c.id); } } }));
   if (autoOn.size) d.sessions.forEach(x => { if (autoOn.has(x.classId) && x.status === 'draft' && (x.folders || []).length) { x.status = 'approved'; x.auto = true; } });   // vừa bật Tự duyệt → buổi nháp hiện đã duyệt ngay
   if (d.manage) P('classAdd').forEach(p => { if (p.newId && !C[p.newId]) { const c = { id: p.newId, code: p.code, student: p.student, grade: p.grade, ref: '', course: '', status: 'Đang học', days: p.days, times: p.times, tutorEmail: p.tutorEmail, tutorName: p.tutorName, programId: p.programId, startDate: p.startDate, lead: '', per: '', note: p.note, order: d.classes.length + 1, done: [] }; d.classes.push(c); C[c.id] = c; } });   // lớp vừa thêm, chưa lưu xong
   P('classMine').forEach(p => { if (C[p.id]) { Object.assign(C[p.id], p.patch); if ('programId' in p.patch) C[p.id].plock = null; } });
@@ -13312,8 +13312,7 @@ function clDetail(B, v, id) {
       '<div class="cd-prog">' + (p || man ? clProgChip(c) : '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Chưa gán chương trình</span>') +
         (canPrint ? '<button class="btn xs pri" id="cdPrint" title="In gộp ' + nPrint + ' buổi đã duyệt chưa dạy"><i class="bi bi-printer"></i><span class="cd-bl">In gộp </span>' + nPrint + '<span class="cd-bl"> buổi</span></button>' : '') +
         (r && (r.warn || !r.sess) ? '<span class="cl-rwtag on" title="' + r.left + ' / ' + r.total + ' bài chưa xếp">' + (r.sess ? 'Còn ' + r.sess + ' buổi' : 'Hết bài') + '</span>' : '') +
-        (man ? '<label class="cd-auto' + (c.autoOk ? ' on' : '') + '" title="' + (c.autoOk ? 'Đang bật — bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '"><i class="bi bi-robot"></i><b>Tự duyệt</b><span class="sw"><input type="checkbox" id="cdAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '') +
-        (man ? '<label class="cd-auto' + (!c.manual ? ' on' : '') + '" title="' + (c.manual ? 'Đang tắt — chỉ tạo buổi, bộ phận chuyên môn cập nhật bài; gia sư được nhắc trước giờ học 3 tiếng nếu buổi chưa có bài' : 'Đang bật — hệ thống tự xếp bài kế tiếp theo chương trình') + '"><i class="bi bi-magic"></i><b>Tự xếp bài</b><span class="sw"><input type="checkbox" id="cdFill"' + (!c.manual ? ' checked' : '') + '><span></span></span></label>' : '') + '</div></div>' +
+        (man ? '<label class="cd-auto' + (c.autoOk ? ' on' : '') + '" title="' + (c.autoOk ? 'Đang bật — bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '"><i class="bi bi-robot"></i><b>Tự duyệt</b><span class="sw"><input type="checkbox" id="cdAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '') + '</div></div>' +
       (rq.length ? '<button class="cl-rqb" data-go="classes/reqs"><i class="bi bi-hourglass-split"></i><span><b>' + rq.length + ' yêu cầu chờ duyệt</b><small>' + rq.map(q => esc(q.label)).join(' · ') + '</small></span><i class="bi bi-chevron-right"></i></button>' : '') +
       '<div class="seg cd-tabs" id="cdTabs"><button class="seg-b cd-tab" data-pane="s" aria-pressed="' + (pane === 's') + '">Buổi học <small>' + (notOut.length + out.length) + '</small></button><button class="seg-b cd-tab" data-pane="l" aria-pressed="' + (pane === 'l') + '">' + (man ? 'Bài trong chương trình' : 'Tiến trình học') + '</button></div>' +
       '<div class="cd-lay' + (man ? '' : p ? ' tut' : ' one') + '" data-pane="' + pane + '">' +
@@ -13364,9 +13363,6 @@ function clDetail(B, v, id) {
   const bind = () => {
     $('#cdMore', B).onclick = e => more(e.currentTarget);
     const pr = $('#cdPrint', B); if (pr) pr.onclick = () => clPrintAll(c, pr);
-    const fl = $('#cdFill', B); if (fl) fl.onchange = () => { const on = fl.checked; haptic();      // (1.44.9) tắt = “Chỉ tạo buổi”
-      toast(on ? 'Đã bật tự xếp bài · ' + clName(c) : 'Chỉ tạo buổi · ' + clName(c) + ' — gia sư liên hệ chuyên môn, được nhắc trước 3 giờ nếu buổi chưa có bài', 'ok', 4000);
-      setTimeout(() => clSave(c, { manual: on ? '' : 1 }, on ? 'Bật tự xếp bài' : 'Chỉ tạo buổi'), 160); };
     const au = $('#cdAuto', B); if (au) au.onchange = () => { const on = au.checked, nDraft = clSess(c.id).filter(x => x.status === 'draft' && (x.folders || []).length).length; haptic();
       if (on) clSess(c.id).forEach(x => { if (x.status === 'draft' && (x.folders || []).length) { x.status = 'approved'; x.auto = true; } });   // buổi nháp hiện đã duyệt ngay
       toast(on ? 'Đã bật tự duyệt · ' + clName(c) + (nDraft ? ' · ' + nDraft + ' buổi được duyệt' : '') : 'Đã tắt tự duyệt · ' + clName(c));
@@ -13423,8 +13419,7 @@ function clQuick(id) {
         (zp ? '<a class="cq-a" href="https://zalo.me/' + esc(zp) + '" target="_blank" rel="noopener"><i class="bi bi-chat-dots-fill z"></i><span>Zalo gia sư</span></a>' : '') +
         '<a class="cq-a" data-go="classes/c/' + c.id + '" data-full><i class="bi bi-layout-text-sidebar"></i><span>Trang lớp</span></a></div>' +
       '<div class="cq-st">' + [['Chờ duyệt', st.draft, 'blue', 'draft'], ['Đã duyệt', st.ok, 'ok', 'out'], ['Đã dạy', st.taught, 'gray', 'taught'], ['Chưa có bài', st.none, 'red', 'none']].map(o => '<div class="cq-s ' + o[2] + (o[1] ? '' : ' z') + '"><b>' + o[1] + '</b><span>' + o[0] + '</span></div>').join('') + '</div>' +
-      (man ? '<label class="cq-sw"><span><b>Tự duyệt nội dung</b><small>' + (c.autoOk ? 'Bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '</small></span><span class="sw"><input type="checkbox" id="cqAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '') +
-      (man ? '<label class="cq-sw"><span><b>Tự xếp bài</b><small>' + (c.manual ? 'Đang tắt — chỉ tạo buổi, gia sư liên hệ bộ phận chuyên môn (nhắc trước 3 giờ)' : 'Hệ thống tự xếp bài kế tiếp theo chương trình') + '</small></span><span class="sw"><input type="checkbox" id="cqFill"' + (!c.manual ? ' checked' : '') + '><span></span></span></label>' : '');
+      (man ? '<label class="cq-sw"><span><b>Tự duyệt nội dung</b><small>' + (c.autoOk ? 'Bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '</small></span><span class="sw"><input type="checkbox" id="cqAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '');
   };
   const fields = () => {
     const c = C(); if (!c) return;
@@ -13455,8 +13450,6 @@ function clQuick(id) {
   const refresh = () => { top(); nextS(); };
   m.el.addEventListener('change', e => {
     const c = C(); if (!c) return;
-    if (e.target.id === 'cqFill') { const on = e.target.checked; clSave(c, { manual: on ? '' : 1 }, on ? 'Bật tự xếp bài' : 'Chỉ tạo buổi');
-      toast(on ? 'Đã bật tự xếp bài · ' + clName(c) : 'Chỉ tạo buổi · ' + clName(c), 'ok', 3000); return refresh(); }
     if (e.target.id === 'cqAuto') {
       const on = e.target.checked, nDraft = clSess(c.id).filter(x => x.status === 'draft' && (x.folders || []).length).length;
       clSave(c, { autoOk: on ? 1 : '' }, on ? 'Bật tự duyệt' : 'Tắt tự duyệt');
@@ -13974,6 +13967,7 @@ function clSettings(B, v) {
       return '<div class="card"><div class="card-h"><h3><i class="bi bi-sliders"></i>Tự tạo buổi · duyệt · nhắc việc</h3><span class="sp"></span><button class="btn sm pri" id="csS"><i class="bi bi-check2"></i>Lưu cài đặt</button></div><div class="card-b cs-grid">' +
         grp('bi-calendar-week', 'Lịch & duyệt bài',
           row('Tạo buổi kế tiếp trước', 'VD 3 → buổi Thứ 6 xuất hiện (và được xếp bài nháp) từ Thứ 3', num('csL', c.lead, 'ngày', 0, 30)) +
+          row('Tự xếp bài', 'Tắt = chỉ tạo buổi: bộ phận chuyên môn cập nhật bài; buổi chưa có bài sắp tới giờ (≤ 3 giờ) → nhắc gia sư liên hệ chuyên môn', sw('csF', c.autoFill !== false)) +
           row('Tự duyệt khi còn', 'Tới giờ học. 0 = luôn chờ quản lý duyệt', num('csA', c.autoApprove, 'giờ', 0, 168)) +
           row('Phải bấm “Đã dạy” mới mở buổi sau', 'Tắt = buổi đã duyệt là mở luôn, gia sư lấy file in trước được (nút “In gộp”)', sw('csG', c.gate)) +
           row('Cảnh báo sắp hết bài khi còn', 'Hiện ở Duyệt & phát, Tiến độ, email sáng. 0 = tắt', num('csW', c.warnLeft || 0, 'buổi', 0, 30))) +
@@ -13990,8 +13984,9 @@ function clSettings(B, v) {
         '</div></div>';
     })();
   $('#csS', B).onclick = async e => {
-    try { const vals = { lead: $('#csL', B).value, autoApprove: $('#csA', B).value, linkDays: $('#csD', B).value, autoLink: $('#csK', B).checked, pnum: $('#csN', B).checked, warnLeft: $('#csW', B).value, linkPrint: $('#csLP', B).checked, tutorLinkMax: $('#csTM', B).value, remind: $('#csR', B).checked, gate: $('#csG', B).checked };
-      Object.assign(CL.d.cfg, { lead: Number(vals.lead) || CL.d.cfg.lead, autoApprove: Number(vals.autoApprove) || 0, autoLink: vals.autoLink, pnum: vals.pnum, warnLeft: Number(vals.warnLeft) || 0, linkPrint: vals.linkPrint, tutorLinkMax: vals.tutorLinkMax, gate: vals.gate });
+    try { const vals = { lead: $('#csL', B).value, autoApprove: $('#csA', B).value, linkDays: $('#csD', B).value, autoLink: $('#csK', B).checked, autoFill: $('#csF', B).checked, pnum: $('#csN', B).checked, warnLeft: $('#csW', B).value, linkPrint: $('#csLP', B).checked, tutorLinkMax: $('#csTM', B).value, remind: $('#csR', B).checked, gate: $('#csG', B).checked };
+      CL.d.classes.forEach(k => { k.manual = vals.autoFill ? 0 : 1; });      // (1.44.10) Tự xếp bài là cài đặt chung
+      Object.assign(CL.d.cfg, { lead: Number(vals.lead) || CL.d.cfg.lead, autoApprove: Number(vals.autoApprove) || 0, autoLink: vals.autoLink, autoFill: vals.autoFill, pnum: vals.pnum, warnLeft: Number(vals.warnLeft) || 0, linkPrint: vals.linkPrint, tutorLinkMax: vals.tutorLinkMax, gate: vals.gate });
       toast('Đã lưu cài đặt');
       clQueue('classCfgSave', { values: vals }, { key: 'clcfg', label: 'Cài đặt lớp gia sư', merge: (a, b) => ({ values: Object.assign({}, a.values, b.values) }) }).then(r => { if (r) CL.d.cfg = r; }); }
     catch (er) { fail(er); }
