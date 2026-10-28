@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T13:36:04.318Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T13:43:23.932Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -9790,16 +9790,40 @@ function awPeople(key, B) {
     foot: [{ t: 'Đóng', cls: 'ghost' }] });
   m.el.addEventListener('click', e => { const k = e.target.closest('[data-kick]'); if (!k) return; e.preventDefault(); m.close(); awKick(k.dataset.key, k.dataset.kick, k.dataset.nm, true, B); });
 }
+/* (1.44.15) chặn / bỏ chặn hiện NGAY: sửa bảng trên máy (nhãn đỏ + bớt / thêm người ở thư mục đó và bên trong) rồi lưu ngầm qua hàng đợi ghi;
+   lưu xong máy chủ tính lại (gộp nhiều lần bấm liên tiếp thành một lần tính) để số liệu khớp tuyệt đối. */
 async function awKick(tid, who, nm, on, B) {
   const d = AW.d, isR = /^role:/.test(who), lab = isR ? 'vai trò ' + awRole(who.slice(5)).label : ((d.users.find(u => u[0] === who) || [who, who])[1]);
   const n = isR ? (d.R[who.slice(5)] || []).length : 1;
   if (on && !await ask('Chặn ' + lab + ' xem “' + nm + '” và mọi thư mục bên trong?' + (isR ? ' ' + n + ' người có vai trò này (kể cả người có thêm vai trò khác) sẽ không còn thấy trong Thư viện / Chương trình.' : '') + ' Bỏ chặn được bất cứ lúc nào.', { ok: 'Chặn', danger: true })) return;
-  try {
-    await rpc('accessKick', { targetId: tid, who: who, on: on ? 1 : 0 });
-    AW.d = await rpc('accessWho', { fresh: 1 }, { quiet: true }); awPrep(AW.d);
-    awPaint(B); toast(on ? 'Đã chặn ' + lab + ' · “' + nm + '”' : 'Đã bỏ chặn ' + lab);
-  } catch (e) { fail(e); }
+  awLocal(tid, who, on); awPaint(B);
+  toast(on ? 'Đã chặn ' + lab + ' · “' + nm + '”' : 'Đã bỏ chặn ' + lab);
+  queueRpc('accessKick', { targetId: tid, who: who, on: on ? 1 : 0 }, { key: 'kick:' + tid + '|' + who, label: (on ? 'Chặn ' : 'Bỏ chặn ') + lab + ' · ' + nm, merge: (x, y) => y })
+    .then(() => awSync(B), e => { fail(e); awSync(B); });
 }
+/** sửa bảng trên máy cho một lần chặn / bỏ chặn (máy chủ tính lại sau) */
+function awLocal(tid, who, on) {
+  const d = AW.d, r = d.rule[tid] = d.rule[tid] || { m: '', v: [], d: [] };
+  r.d = r.d.filter(x => x !== who); if (on) r.d.push(who);
+  const hit = {}; (/^role:/.test(who) ? d.R[who.slice(5)] || [] : [d.users.findIndex(u => u[0] === who)]).forEach(i => { if (i >= 0) hit[i] = 1; });
+  const N = d.N, starts = Object.keys(N).filter(k => N[k].tid === tid), sub = {};
+  const walk = k => { if (sub[k]) return; sub[k] = 1; N[k].kids.forEach(walk); }; starts.forEach(walk);
+  const blocked = k => { for (let c = k, g = 0; c && g++ < 80; c = N[c] && N[c].pk) { const rr = d.rule[N[c].tid]; if (rr && rr.d.some(w => w === who)) return true; } return false; };
+  const cur = {}; Object.keys(sub).forEach(k => { cur[k] = d.setOf(k); });
+  Object.keys(sub).forEach(k => {
+    let set = cur[k];
+    if (on) set = set.filter(i => !hit[i]);
+    else if (!blocked(k)) { const own = d.rule[N[k].tid], par = N[k].pk ? d.setOf(N[k].pk) : [];      // bỏ chặn: thêm lại người mà thư mục cha cho xem (trừ chỗ có luật Giới hạn riêng)
+      if (!(own && own.m === 'restrict')) set = set.concat(Object.keys(hit).map(Number).filter(i => set.indexOf(i) < 0 && (!N[k].pk || par.indexOf(i) >= 0 || starts.indexOf(k) < 0))).sort((a, b) => a - b); }
+    d.see[k] = set;
+  });
+  Object.keys(d.P).forEach(id => { const x = d.P[id]; if (!x.g && x.dkey && sub[x.dkey]) d.pSee[id] = d.see[x.dkey].slice(); });
+  awPrep(d);
+}
+/** tính lại từ máy chủ sau khi lưu (gộp các lần bấm liên tiếp) */
+const awSync = debounce(async B => {
+  try { const x = await rpc('accessWho', { fresh: 1 }, { quiet: true }); AW.d = x; awPrep(x); if (B.isConnected) { const q = $('#awQ', B), f = q && document.activeElement === q; awPaint(B); if (f) { const q2 = $('#awQ', B); q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); } } } catch (e) {}
+}, 600);
 
 /* ══════════ MENU & TAB: thứ tự, nhóm, tên, biểu tượng, ẩn ══════════ */
 const NAV_ICONS = ['bi-grid-1x2', 'bi-collection', 'bi-mortarboard', 'bi-stars', 'bi-link-45deg', 'bi-person-video3', 'bi-chat-dots', 'bi-life-preserver', 'bi-hdd-network', 'bi-people', 'bi-gear',
