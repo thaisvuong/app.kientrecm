@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T02:15:26.180Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T06:45:25.718Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -18335,6 +18335,13 @@ button.tk-loose{ margin-top:16px; padding:5px 8px 5px 4px; border:0; border-radi
 /* ══ 1.30: THẺ LINK trong mô tả (dán link → Tab) ══ */
 .tk-rte{ display:block; min-height:96px; max-height:340px; overflow-y:auto; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.6; cursor:text; outline:none }
 .tk-rte:empty::before{ content:attr(data-ph); color:var(--muted); pointer-events:none }
+/* (1.44.3) ảnh trong mô tả · popup xem to */
+.tk-dimg{ display:block; max-width:100%; max-height:260px; width:auto; margin:6px 0; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); cursor:zoom-in; object-fit:contain }
+.tk-rte .tk-dimg:hover{ box-shadow:0 0 0 2px var(--brand-300, #A9BEE6) } .tk-rte.drag{ box-shadow:0 0 0 2px var(--primary); background:color-mix(in srgb, var(--primary) 4%, var(--surface)) }
+.tk-dup{ display:inline-flex; align-items:center; gap:6px; margin:4px 0; padding:4px 10px; border-radius:8px; background:var(--surface-2); color:var(--muted); font-size:12.5px }
+.tk-rte-ft{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px } .tk-rte-ft small{ font-size:11.5px; color:var(--muted) } .tk-rte-ft .btn{ flex:none }
+.tk-imgv{ display:grid; place-items:center; min-height:min(calc(100dvh - 230px), 640px); max-height:calc(100dvh - 200px); overflow:auto; background:var(--surface-2); border-radius:10px } .tk-imgv img{ max-width:100%; max-height:calc(100dvh - 210px); object-fit:contain; cursor:default }
+.tk-mir-d .tk-dimg{ max-height:320px } .modal-f .btn.tk-del{ color:var(--danger); margin-right:auto }
 .tk-rtew{ position:relative } .tk-rte-hint{ position:absolute; right:10px; bottom:8px; display:inline-flex; align-items:center; gap:6px; padding:4px 10px 4px 5px; border:0; border-radius:7px; background:var(--k-ink, #142C52); color:#fff; font:inherit; font-size:11.5px; font-weight:600; cursor:pointer; box-shadow:0 6px 16px -8px rgba(15,23,42,.6); animation:popIn .18s ease-out }
 .tk-rte-hint[hidden]{ display:none }
 .tk-rte-hint kbd{ padding:1px 6px; border-radius:4px; background:rgba(255,255,255,.18); font:600 11px var(--font-mono) }
@@ -18652,10 +18659,19 @@ function tkLinkKind(u) {
 function tkLinkHost(u) { const m = /^https?:\/\/(?:www\.)?([^/?#]+)/i.exec(u || ''); return m ? m[1] : 'Liên kết'; }
 function tkChip(url, title) { const k = TK_LK[tkLinkKind(url)];
   return '<a class="tk-lchip" contenteditable="false" href="' + esc(url) + '" data-url="' + esc(url) + '" target="_blank" rel="noopener" title="' + esc(url) + '"><i class="bi ' + k[0] + '" style="color:' + k[2] + '"></i><span>' + esc(title || k[1] || tkLinkHost(url)) + '</span></a>'; }
+/** (1.44.3) ẢNH trong mô tả: lưu dạng ![tên](link ảnh) — hiện thành ảnh, bấm để xem to */
+function tkImg(url, alt) { return '<img class="tk-dimg" contenteditable="false" src="' + esc(url) + '" data-url="' + esc(url) + '" alt="' + esc(alt || 'ảnh') + '" title="Bấm để xem to" loading="lazy">'; }
+/** xem ảnh to (popup). onDel = có nút “Xoá ảnh” (đang soạn) */
+function tkImgView(src, alt, onDel) {
+  const m = modal({ title: alt && alt !== 'ảnh' ? alt : 'Ảnh trong mô tả', icon: 'bi-image', size: 'xl', body: '<div class="tk-imgv"><img src="' + esc(src) + '" alt="' + esc(alt || '') + '"></div>',
+    foot: (onDel ? [{ t: 'Xoá ảnh', i: 'bi-trash3', cls: 'ghost tk-del', fn: () => { onDel(); } }] : []).concat(/^https:/.test(src) ? [{ t: 'Mở tab mới', i: 'bi-box-arrow-up-right', cls: 'ghost', fn: () => { const w = window.open(src, '_blank'); if (w) try { w.opener = null; } catch (e) {} } }] : [], [{ t: 'Đóng', cls: 'pri' }]) });
+  m.$('.tk-imgv').addEventListener('click', e => { if (e.target.tagName !== 'IMG') m.close(); });
+}
+document.addEventListener('click', e => { const im = e.target.closest && e.target.closest('img.tk-dimg'); if (im && !im.closest('.tk-rte')) { e.preventDefault(); tkImgView(im.dataset.url || im.src, im.alt); } });
 /** chữ mô tả → HTML cho ô soạn: [tên](link) thành thẻ, xuống dòng giữ nguyên */
 function tkDescHtml(s) {
-  s = String(s || ''); const re = /\[([^\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, out = []; let i = 0, m;
-  while ((m = re.exec(s))) { out.push(esc(s.slice(i, m.index)).replace(/\n/g, '<br>'), tkChip(m[2], m[1])); i = re.lastIndex; }
+  s = String(s || ''); const re = /(!?)\[([^\]\n]{0,200})\]\(((?:https?:\/\/|data:image\/(?:png|jpe?g|gif|webp);base64,)[^\s)]+)\)/g, out = []; let i = 0, m;
+  while ((m = re.exec(s))) { if (!m[1] && (!m[2] || /^data:/.test(m[3]))) continue; out.push(esc(s.slice(i, m.index)).replace(/\n/g, '<br>'), m[1] ? tkImg(m[3], m[2]) : tkChip(m[3], m[2])); i = re.lastIndex; }
   out.push(esc(s.slice(i)).replace(/\n/g, '<br>')); return out.join('');
 }
 /** ô soạn → chữ lưu xuống (thẻ → [tên](link)) */
@@ -18663,6 +18679,8 @@ function tkDescVal(el) {
   let s = '';
   const walk = n => n.childNodes.forEach(c => {
     if (c.nodeType === 3) { s += c.nodeValue; return; } if (c.nodeType !== 1) return;
+    if (c.classList.contains('tk-dup')) return;
+    if (c.classList.contains('tk-dimg')) { s += '![' + String(c.alt || '').replace(/[[\]\n]/g, '').trim() + '](' + c.dataset.url + ')'; return; }
     if (c.classList.contains('tk-lchip')) { s += '[' + c.textContent.replace(/[[\]\n]/g, '').trim() + '](' + c.dataset.url + ')'; return; }
     if (c.tagName === 'BR') { s += '\n'; return; }
     const blk = /^(DIV|P|LI|H\d)$/.test(c.tagName); if (blk && s && !/\n$/.test(s)) s += '\n'; walk(c); if (blk && !/\n$/.test(s)) s += '\n'; });
@@ -18678,7 +18696,28 @@ function tkChipFix(el) {
   $$('.tk-lchip', el).forEach(c => { const pv = c.previousSibling; if (!pv || pv.nodeName === 'BR') c.before(document.createTextNode('\u200B')); });
 }
 /** biến ô soạn el thành ô mô tả có thẻ link (Tab / nút “Đổi thành thẻ”), dán chỉ lấy chữ, Enter xuống dòng. hint = nút gợi ý (hiện khi con trỏ đứng sau một link) */
-function tkRte(el, hint) {
+/** (1.44.3) tải ảnh vào ô mô tả: ảnh to được thu nhỏ (cạnh dài ≤ 2000px) trước khi gửi, chèn vào chỗ con trỏ */
+async function tkImgUp(el, files) {
+  const sel = getSelection(); let at = sel.rangeCount && el.contains(sel.anchorNode) ? sel.getRangeAt(0).cloneRange() : null;
+  for (const f of files) {
+    if (f.size > 15 * 1024 * 1024) { toast('“' + f.name + '” lớn quá (tối đa 15 MB)', 'warn'); continue; }
+    const ph = document.createElement('span'); ph.className = 'tk-dup'; ph.contentEditable = 'false'; ph.innerHTML = '<i class="bi bi-cloud-arrow-up"></i>Đang tải ảnh…';
+    if (at) { at.collapse(false); at.insertNode(ph); } else el.appendChild(ph);
+    try {
+      let url = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(f); }), mime = f.type;
+      const im = await new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = url; });
+      if (im && f.type !== 'image/gif' && (Math.max(im.naturalWidth, im.naturalHeight) > 2000 || f.size > 1.5 * 1024 * 1024)) {
+        const k = Math.min(1, 2000 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); url = c.toDataURL('image/jpeg', .86); mime = 'image/jpeg'; }
+      const o = await rpc('taskImage', { data: url, mime: mime, name: f.name }, { quiet: true });
+      const box = document.createElement('span'); box.innerHTML = tkImg(o.src, f.name.replace(/\.\w+$/, '')); const img = box.firstChild; ph.replaceWith(img);
+      at = document.createRange(); at.setStartAfter(img); at.collapse(true);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    } catch (e) { ph.remove(); toast(e.message || String(e), 'err'); }
+  }
+  if (at && document.activeElement === el) { const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(at); }
+}
+function tkRte(el, hint, imgBtn) {
   const T = TK.lt || (TK.lt = {});
   const urlAt = () => { const sel = getSelection(); if (!sel.rangeCount || !sel.isCollapsed || !el.contains(sel.anchorNode) || sel.anchorNode.nodeType !== 3) return null;
     const n = sel.anchorNode, m = /(https?:\/\/[^\s<>"']+)$/.exec(n.nodeValue.slice(0, sel.anchorOffset)); return m ? { n: n, end: sel.anchorOffset, url: m[1].replace(/[.,;:!?)]+$/, '') } : null; };
@@ -18696,15 +18735,22 @@ function tkRte(el, hint) {
     if (e.key === 'Tab' && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) { if (chip()) e.preventDefault(); return; }
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); document.execCommand('insertLineBreak'); }
   });
-  el.addEventListener('paste', e => { const t = (e.clipboardData || window.clipboardData).getData('text/plain'); e.preventDefault(); document.execCommand('insertText', false, t); setTimeout(sync, 0); });
-  el.addEventListener('drop', e => e.preventDefault());
+  el.addEventListener('paste', e => { const cd = e.clipboardData || window.clipboardData, fs = Array.from((cd && cd.files) || []).filter(f => /^image\//.test(f.type)); e.preventDefault();
+    if (fs.length) { tkImgUp(el, fs); return; } document.execCommand('insertText', false, cd.getData('text/plain')); setTimeout(sync, 0); });
+  el.addEventListener('dragover', e => { if (e.dataTransfer && Array.from(e.dataTransfer.types || []).indexOf('Files') >= 0) { e.preventDefault(); el.classList.add('drag'); } });
+  el.addEventListener('dragleave', () => el.classList.remove('drag'));
+  el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag'); const fs = Array.from((e.dataTransfer && e.dataTransfer.files) || []).filter(f => /^image\//.test(f.type));
+    if (!fs.length) return; if (document.caretRangeFromPoint) { const r = document.caretRangeFromPoint(e.clientX, e.clientY); if (r && el.contains(r.startContainer)) { const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } } tkImgUp(el, fs); });
+  if (imgBtn) { const fi = document.createElement('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = true; fi.hidden = true; imgBtn.after(fi);
+    imgBtn.addEventListener('mousedown', e => e.preventDefault()); imgBtn.addEventListener('click', () => fi.click()); fi.addEventListener('change', () => { const fs = Array.from(fi.files || []); fi.value = ''; if (fs.length) tkImgUp(el, fs); }); }
   ['keyup', 'mouseup', 'input', 'focus'].forEach(k => el.addEventListener(k, sync));
   el.addEventListener('input', () => { if (el.querySelector('.tk-lchip br, .tk-lchip div, .tk-lchip p') || $$('.tk-lchip', el).some(c => c.childNodes.length !== 2)) tkChipFix(el); });
   el.addEventListener('beforeinput', e => { const sel = getSelection(), n = sel.rangeCount && sel.anchorNode, c = n && (n.nodeType === 1 ? n : n.parentElement).closest('.tk-lchip');
     if (c && el.contains(c)) { e.preventDefault(); const r = document.createRange(); r.setStartAfter(c); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); } });      // con trỏ kẹt trong thẻ → đưa ra sau thẻ, không gõ vào thẻ
   tkChipFix(el); el.addEventListener('blur', () => setTimeout(() => { if (hint && document.activeElement !== el) hint.hidden = true; }, 150));
   // bấm thẻ: Mở · Đổi tên · Trả về link thường (như thẻ của Google Docs — không mở nhầm khi đang soạn)
-  el.addEventListener('click', e => { const c = e.target.closest('.tk-lchip'); if (!c) return; e.preventDefault(); const url = c.dataset.url, nm = $('span', c).textContent;
+  el.addEventListener('click', e => { const im = e.target.closest('img.tk-dimg'); if (im) { e.preventDefault(); tkImgView(im.dataset.url || im.src, im.alt, () => { im.remove(); el.dispatchEvent(new Event('input', { bubbles: true })); }); return; }
+    const c = e.target.closest('.tk-lchip'); if (!c) return; e.preventDefault(); const url = c.dataset.url, nm = $('span', c).textContent;
     openMenu(c, [{ t: 'Mở link', d: url.length > 60 ? url.slice(0, 57) + '…' : url, i: 'bi-box-arrow-up-right', fn: () => { const w = window.open(url, '_blank'); if (w) try { w.opener = null; } catch (er) {} } },
       { t: 'Đổi tên thẻ', i: 'bi-pencil', fn: () => { const v = prompt('Tên hiện trên thẻ', nm); if (v && v.trim()) { $('span', c).textContent = v.trim().slice(0, 200); T[url] = T[url] || ''; el.dispatchEvent(new Event('input', { bubbles: true })); } } },
       { t: 'Trả về link thường', i: 'bi-link-45deg', fn: () => { c.replaceWith(document.createTextNode(url)); el.dispatchEvent(new Event('input', { bubbles: true })); } }]); });
@@ -20282,8 +20328,9 @@ async function viewTasks(arg, v) {
         (delOk ? '<button type="button" class="btn sm red" data-dq="ok"><i class="bi bi-trash3"></i>Xoá</button><button type="button" class="btn sm" data-dq="no">Giữ lại</button>' : myReq ? '<button type="button" class="btn sm" data-dq="cancel">Rút lại</button>' : '') + '</div>' : '';
     const m = modal({ title: isNew ? (lv0 === 'epic' ? 'Tạo epic' : lv0 === 'sub' ? 'Tạo sub-task' : 'Tạo task') : cur.key + ' · ' + TK_LV[lv0] + (lv0 !== 'epic' && cur.type !== 'task' ? ' · ' + (TK_TYPE[cur.type] || TK_TYPE.task)[0] : ''), icon: lv0 === 'sub' ? 'bi-arrow-return-right' : (TK_TYPE[cur.type] || TK_TYPE.task)[1], size: 'lg', sticky: true, body:
       '<div class="tk-dlg"><div>' + delBar + '<div class="tk-path" id="tPath" aria-label="Vị trí trong ba cấp Epic › Task › Sub-task"></div><input class="tk-ti" id="tT" placeholder="Tên công việc" value="' + esc(cur.title) + '"' + (isNew ? ' autofocus' : '') + '>' +
-        '<div class="tk-h">Mô tả</div><div class="tk-rtew"><div class="ta tk-rte" id="tD" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Mô tả" data-ph="Mô tả chi tiết, tiêu chí hoàn thành… Dán link tài liệu rồi nhấn Tab để thành thẻ">' + tkDescHtml(cur.desc) + '</div>' +
+        '<div class="tk-h">Mô tả</div><div class="tk-rtew"><div class="ta tk-rte" id="tD" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Mô tả" data-ph="Mô tả chi tiết, tiêu chí hoàn thành… Dán link tài liệu rồi nhấn Tab để thành thẻ · dán / kéo thả ảnh vào đây">' + tkDescHtml(cur.desc) + '</div>' +
           '<button type="button" class="tk-rte-hint" id="tDh" hidden><kbd>Tab</kbd>Đổi link thành thẻ</button></div>' +
+          '<div class="tk-rte-ft"><button type="button" class="btn xs ghost" id="tDi"><i class="bi bi-image"></i>Chèn ảnh</button><small>hoặc dán (Ctrl/⌘ V) · kéo thả ảnh vào ô mô tả · bấm ảnh để xem to</small></div>' +
           '<div class="tk-dfh" id="tDf" hidden><i class="bi bi-folder-check"></i><span>Nhận diện <b>thư mục Drive</b> trong mô tả — dùng làm nơi nhận tài liệu của việc này' + (isNew ? ' (lưu xong sẽ thấy ô kéo thả ở mục Tài liệu)' : '') + '. <a data-dfgo>Cho người phụ trách tải vào…</a></span></div>' +
         // CẤP CON thêm ngay trong hộp (giống nút “+” trên thẻ): Epic → Task · Task → Sub-task — gõ tên rồi Enter, hộp không đóng, danh sách cập nhật ngay
         (kt ? '<div class="tk-h">' + (kt === 'task' ? 'Task thuộc epic' : 'Sub-task') + ' · <span id="tKidN"></span><a class="tk-tpl" id="tKidAdd"><i class="bi bi-plus-lg"></i> Thêm ' + TK_LV[kt].toLowerCase() + '</a></div><div id="tKids"></div>' +
@@ -20366,7 +20413,7 @@ async function viewTasks(arg, v) {
       if (q.dataset.dq === 'cancel') return dqCancel();
       if (q.dataset.dq === 'no') return dqDrop('reject', 'Đã giữ lại ' + cur.key + ' — báo cho ' + tkUser(cur.delBy));
       const x = D().tasks.find(k => k.id === cur.id); if (x && await delTasks([x])) m.close(); }; }
-    tkRte(m.$('#tD'), m.$('#tDh'));
+    tkRte(m.$('#tD'), m.$('#tDh'), m.$('#tDi'));
     { const dfx = () => { const has = /drive\.google\.com\/drive\/(?:u\/\d+\/)?folders\/[\w-]{20,}/.test(tkDescVal(m.$('#tD'))); m.$('#tDf').hidden = !has || m.$('#tLv').value === 'sub'; };      // (1.44) khối thư mục Drive được nhận diện → báo + lối tới công tắc PIC
       m.$('#tD').addEventListener('input', debounce(dfx, 250)); dfx();
       m.$('#tDf').addEventListener('click', e => { if (!e.target.closest('[data-dfgo]')) return; const d = m.$('#tDocs'); if (!d) return toast('Lưu việc này trước — sau đó bật “Cho người phụ trách tải file vào” ở mục Tài liệu', 'info', 4000);
