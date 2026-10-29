@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-28T16:57:44.451Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-29T09:02:08.292Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -12844,6 +12844,15 @@ function clContent0(x, done, TX) {
     H2.innerHTML = !lq.value.trim() ? '' : res.length ? res.map(r => { const on = r.dir ? folders.indexOf(r.id) >= 0 : extra.some(z => z.id === r.id) || folders.indexOf(r.id) >= 0;
       return clLibRow(r, '<button type="button" class="ibtn sm cc-la' + (on ? ' on' : '') + '" data-la="' + r.id + '" title="' + (on ? 'Đã có trong buổi' : 'Chèn vào buổi') + '" aria-label="Chèn"><i class="bi ' + (on ? 'bi-check2' : 'bi-plus-lg') + '"></i></button>'); }).join('') : '<div class="small muted" style="padding:8px">Không thấy “' + esc(lq.value) + '”' + (ls.value ? ' trong chương trình này — chọn Cả thư viện' : '') + '</div>'; };
   if (lq) { lq.oninput = debounce(paintLib, 180); ls.onchange = paintLib; ls.value = ''; }
+  /* gõ tìm → kéo ô tìm lên đầu vùng cuộn của hộp, danh sách kết quả dùng hết chiều cao còn lại (trước đây nằm sát đáy, chỉ thấy 1–2 dòng).
+     minHeight = cao vùng cuộn để luôn kéo lên được; ô trống và rời ô → trả lại như cũ */
+  if (lq) { const lw = lq.closest('.cc-lw'), H2 = m.$('#ccLR');
+    const scr = () => { for (let p = lw.parentElement; p && p !== document.body; p = p.parentElement) { const o = getComputedStyle(p).overflowY; if (o === 'auto' || o === 'scroll') return p; } return null; };
+    const lift = () => { const sc = scr(); if (!sc) return; lw.style.minHeight = sc.clientHeight + 'px';
+      H2.style.maxHeight = Math.max(240, sc.clientHeight - (H2.getBoundingClientRect().top - lw.getBoundingClientRect().top) - 12) + 'px';
+      requestAnimationFrame(() => { sc.scrollTop += lw.getBoundingClientRect().top - sc.getBoundingClientRect().top - 4; }); };      // cuộn ngay (cuộn mượt bị trình duyệt cắt ngang khi đặt con trỏ vào ô)
+    lq.addEventListener('focus', lift); lq.addEventListener('input', () => { if (!lw.style.minHeight) lift(); });
+    lq.addEventListener('blur', () => { if (!lq.value.trim()) { lw.style.minHeight = ''; H2.style.maxHeight = ''; } }); }
   m.el.addEventListener('click', e => { const row = e.target.closest('#ccLR .lb-it'), la = e.target.closest('[data-la]') || (row && row.querySelector('[data-la]')); if (!la) return; const id = la.dataset.la;
     if (IX.dirs[id]) { if (folders.indexOf(id) < 0) { folders.push(id); if (pick) filesOf(id).forEach(f => { if (ruleOn(f)) pick.add(f.id); }); markRow(id); paintFiles(); toast('Đã chèn bài “' + IX.dirs[id].name + '”'); } }
     else { const f = IX.byId[id]; if (f && !extra.some(z => z.id === id)) { extra.push({ id: f.id, n: f.name, t: f.type, s: f.size || 0 }); paintExtra(); toast('Đã chèn tệp “' + clFName(f.name) + '”'); } }
@@ -19481,12 +19490,12 @@ function tkKeyOf(name, typed) {
 }
 function tkMkP(pl, d) {
   return { id: pl.newId, key: pl.key, name: pl.name, desc: pl.desc || '', color: '#204983', members: pl.scope === 'personal' ? [] : String(pl.members || '').toLowerCase().split(/[,;\s]+/).filter(e => /@/.test(e)),
-    cols: tkColsNorm(pl.cols, d.defCols), status: 'active', createdBy: d.me, createdAt: new Date().toISOString(), scope: pl.scope === 'personal' ? 'personal' : 'team', demo: 0, pend: 1 };
+    cols: tkColsNorm(pl.cols, d.defCols), status: 'active', createdBy: d.me, createdAt: new Date().toISOString(), scope: pl.scope === 'personal' ? 'personal' : 'team', view: pl.scope === 'personal' ? '' : pl.view || '', demo: 0, pend: 1 };
 }
 /** áp một lệnh sửa bảng (chưa lên Sheet) lên bản trên máy */
 function tkApplyP(x, pl, d) {
   if (pl.scope === 'personal' || pl.scope === 'team') { x.scope = pl.scope; if (x.scope === 'personal') x.members = []; }      // đổi loại bảng (1.31.3)
-  if (pl.name !== undefined) x.name = pl.name; if (pl.desc !== undefined) x.desc = pl.desc; if (pl.syncIn !== undefined) x.syncIn = pl.syncIn ? 1 : 0;
+  if (pl.name !== undefined) x.name = pl.name; if (pl.desc !== undefined) x.desc = pl.desc; if (pl.syncIn !== undefined) x.syncIn = pl.syncIn ? 1 : 0; if (pl.view !== undefined) x.view = pl.view || '';
   if (pl.members !== undefined && x.scope !== 'personal') x.members = String(pl.members || '').toLowerCase().split(/[,;\s]+/).filter(e => /@/.test(e));
   if (pl.cols) x.cols = tkColsNorm(pl.cols, d.defCols);
 }
@@ -21029,6 +21038,7 @@ async function viewTasks(arg, v) {
     const lost = () => { const s2 = new Set(p.members); D().tasks.forEach(t => { if (t.projectId === p.id && !t.mir) tkWho(t).forEach(e => s2.add(e)); }); s2.delete(p.createdBy); return [...s2]; };
     if (!isNew && !canEdit(p)) return toast('Chỉ người tạo bảng hoặc quản lý task được sửa', 'warn'); let cols = JSON.parse(JSON.stringify(p ? p.cols : D().defCols));
     let wipOn = cols.some(c => c.wip);
+    const vw0 = p ? p.view || '' : ''; let vw = vw0 === 'up' ? 'pic' : vw0, vwDn = vw0 !== 'up';      // (1.45) 'up' = giới hạn, không kèm cấp nhỏ hơn
     // mỗi cột MỘT dòng: tên · (giới hạn, khi bật) · bỏ cột. Cột “xong” chọn MỘT lần ở ô bên dưới — không lặp chữ “Hoàn thành” ở mọi dòng
     const colHtml = () => (wipOn ? '<div class="tk-colh"><span>Tên cột</span><span>Tối đa</span><span></span></div>' : '') + cols.map((c, i) => '<div class="r' + (c.done ? ' dn' : '') + '" data-i="' + i + '"><span class="nm"><input class="inp" value="' + esc(c.t) + '" placeholder="Tên cột" aria-label="Tên cột ' + (i + 1) + '">' +
       (c.done ? '<i class="bi bi-check2-circle" title="Việc vào cột này = đã xong"></i>' : '') + '</span>' +
@@ -21045,7 +21055,12 @@ async function viewTasks(arg, v) {
         '<div id="pMW"' + (personal ? ' hidden' : '') + '>' +
         '<div class="fg"><label class="flabel">Thành viên <span class="opt">tuỳ chọn · thêm sau cũng được</span></label><input type="hidden" id="pM" value="' + esc(p ? p.members.join(',') : '') + '">' +
           '<div id="pMP"></div>' +
-          '<div class="hint">Để trống = mọi người dùng Kiến Task đều thấy bảng. Thêm / bớt người lúc nào cũng được: nút <i class="bi bi-folder-plus"></i> › Sửa bảng.</div></div></div>' +
+          '<div class="hint">Để trống = mọi người dùng Kiến Task đều thấy bảng. Thêm / bớt người lúc nào cũng được: nút <i class="bi bi-folder-plus"></i> › Sửa bảng.</div></div>' +
+        /* PHẠM VI XEM (1.45): theo vai trò · toàn bảng · giới hạn theo PIC (+ kèm cấp nhỏ hơn) — máy chủ lọc ở taskSeesT_ */
+        '<div class="fg" style="margin-top:14px"><label class="flabel">Thành viên thấy việc nào</label><div class="seg fill tk-scope" id="pVw" role="group" aria-label="Phạm vi xem">' +
+          [['', 'bi-person-badge', 'Theo vai trò'], ['all', 'bi-eye', 'Toàn bảng'], ['pic', 'bi-funnel', 'Giới hạn theo PIC']].map(o => '<button type="button" class="seg-b" data-vw="' + o[0] + '" aria-pressed="' + (vw === o[0]) + '"><i class="bi ' + o[1] + '"></i><span>' + o[2] + '</span></button>').join('') + '</div>' +
+          '<div class="hint" id="pVwN"></div>' +
+          '<label class="tk-wipt" id="pVdW"' + (vw === 'pic' ? '' : ' hidden') + '><input type="checkbox" id="pVd"' + (vwDn ? ' checked' : '') + '><span><b>Kèm cấp nhỏ hơn</b><br><span class="small muted">PIC của Epic thấy mọi Task / Sub-task trong Epic, PIC của Task thấy mọi Sub-task của Task — kể cả việc giao cho người khác. Bỏ chọn = chỉ thấy đúng việc mình được giao.</span></span></label></div></div>' +
         (!isNew && !personal ? '<div class="fg" id="pInvW"><label class="flabel">Link mời vào bảng <span class="opt">gửi qua Zalo / tin nhắn · đủ số người là link tự huỷ</span></label><div class="tk-binv" id="pInv">' + miniLoader('Đang tải…') + '</div></div>' : '') +
         (!isNew && !personal && (p.createdBy === D().me || C().admin) ? '<label class="tk-wipt" id="pSyW"><input type="checkbox" id="pSy"' + (p.syncIn ? ' checked' : '') + '><span><b>Cho phép bảng chung khác đồng bộ vào bảng này</b><br><span class="small muted">Trưởng bảng khác kết nối được cả bảng của họ sang đây (chỉ xem). Tắt = các bảng đang đồng bộ vào thôi hiện.</span></span></label>' : '') +
         '<div class="fg"><label class="flabel">Cột trạng thái</label><div class="tk-cols' + (wipOn ? ' wip' : '') + '" id="pCols">' + colHtml() + '</div><button type="button" class="btn sm" id="pCA" style="margin-top:8px;align-self:flex-start"><i class="bi bi-plus-lg"></i>Thêm cột</button>' +
@@ -21058,6 +21073,7 @@ async function viewTasks(arg, v) {
           if (!isNew && personal !== was0 && personal && lost().length && !await ask('Đổi “' + p.name + '” thành bảng riêng? ' + lost().length + ' người khác (thành viên / đang được giao việc) sẽ không thấy bảng này nữa; link mời đang mở bị thu hồi.', { ok: 'Đổi thành bảng riêng', danger: true })) return false;
           const pl = { id: p ? p.id : '', scope: personal ? 'personal' : 'team', name: name, key: k.key, desc: mm.$('#pD').value.trim(), members: personal ? '' : mm.$('#pM').value, cols: cols.filter(c => c.t).map(c => Object.assign({}, c, { wip: wipOn ? c.wip : 0 })) };
           const sy = mm.$('#pSy'); if (sy && !personal) pl.syncIn = sy.checked ? 1 : 0;      // (1.44.4)
+          if (!personal) pl.view = vw === 'pic' && !mm.$('#pVd').checked ? 'up' : vw;      // (1.45)
           if (isNew) projAdd(pl); else projEdit(p, pl);
         } }]) });
     const readCols = () => { const di = Number(m.$('#pDone').value); $$('#pCols .r', m.el).forEach((r, i) => { if (!cols[i]) return; cols[i].t = $('.inp', r).value.trim(); const w = $('.w', r); if (w) cols[i].wip = Math.max(0, Math.min(99, Number(w.value) || 0)); cols[i].done = i === di ? 1 : 0; }); };
@@ -21074,6 +21090,11 @@ async function viewTasks(arg, v) {
           if (!personal && was0 && !m.$('#pM').value) { m.$('#pM').value = p.createdBy; const pk = m.$('#pMP'); pk.innerHTML = ''; tkPick(pk, { sel: [p.createdBy], pool: () => D().users.filter(u => u.task), typed: true, ph: 'Tìm tên hoặc email để thêm…', phMore: '+ Thêm thành viên…', onChange: L => { m.$('#pM').value = L.join(','); } }); }      // sang bảng chung: mặc định chỉ có chủ bảng (không bỗng dưng công khai)
           note(); };
         note(); } }
+    { const vn = () => { m.$('#pVwN').innerHTML = vw === 'all' ? 'Mọi thành viên thấy toàn bộ Epic / Task / Sub-task của bảng.'
+          : vw === 'pic' ? 'Mỗi người chỉ thấy việc mình tạo / được giao, <b>kèm các cấp lớn hơn</b> chứa nó (được giao Sub-task → thấy Task và Epic chứa nó). Trưởng bảng, Admin, người quản lý bảng vẫn thấy toàn bảng.'
+          : 'Người có quyền “Thấy mọi việc trong bảng” (VD Leader) thấy toàn bảng; người khác chỉ thấy việc mình tạo / phụ trách và cấp lớn hơn chứa nó.'; m.$('#pVdW').hidden = vw !== 'pic'; };
+      m.$('#pVw').onclick = e => { const b = e.target.closest('[data-vw]'); if (!b) return; vw = b.dataset.vw; $$('[data-vw]', m.$('#pVw')).forEach(x => x.setAttribute('aria-pressed', x === b)); vn(); };
+      vn(); }
     m.$('#pCA').onclick = () => { readCols(); if (cols.length >= 8) return toast('Tối đa 8 cột', 'warn'); cols.splice(Math.max(1, cols.length - 1), 0, { id: 'c' + Date.now().toString(36), t: '', done: 0, wip: 0 }); redraw(); const ins = m.$$('#pCols .r'); $('.inp', ins[ins.length - 2]).focus(); };
     m.$('#pCols').addEventListener('click', e => { const x = e.target.closest('[data-cx]'); if (!x) return; readCols(); cols.splice(Number(x.closest('.r').dataset.i), 1); if (!cols.some(c => c.done)) cols[cols.length - 1].done = 1; redraw(); });
     m.$('#pCols').addEventListener('input', e => { if (!e.target.matches('.nm .inp')) return; const i = Number(e.target.closest('.r').dataset.i), o = m.$('#pDone').options[i]; if (o) o.textContent = e.target.value.trim() || 'Cột ' + (i + 1); });
@@ -21126,7 +21147,7 @@ async function viewTasks(arg, v) {
     paint(); toast('Đã lưu bảng “' + p.name + '”', 'ok', 1800);
     const conv = pl.scope && pl.scope !== was.scope;
     if (conv) toast(pl.scope === 'personal' ? 'Đã đổi “' + p.name + '” thành bảng riêng' : 'Đã đổi “' + p.name + '” thành bảng chung — bạn là trưởng bảng', 'ok', 3500);
-    queueRpc('taskProjectSave', Object.assign({ id: p.id, name: pl.name, desc: pl.desc, members: pl.members, cols: pl.cols }, conv ? { scope: pl.scope } : {}, pl.syncIn !== undefined ? { syncIn: pl.syncIn } : {}), { label: (conv ? 'Đổi loại bảng “' : 'Sửa bảng “') + pl.name.slice(0, 60) + '”', key: 'tkp:' + p.id })
+    queueRpc('taskProjectSave', Object.assign({ id: p.id, name: pl.name, desc: pl.desc, members: pl.members, cols: pl.cols }, conv ? { scope: pl.scope } : {}, pl.syncIn !== undefined ? { syncIn: pl.syncIn } : {}, pl.view !== undefined ? { view: pl.view } : {}), { label: (conv ? 'Đổi loại bảng “' : 'Sửa bảng “') + pl.name.slice(0, 60) + '”', key: 'tkp:' + p.id })
       .then(r => { const y = TK.d && TK.d.projects.find(z => z.id === p.id); if (y) { Object.assign(y, r); if (TK.ui) TK.ui.paint(); } if (conv) tkRefresh().catch(() => {}); },
         () => { const y = TK.d && TK.d.projects.find(z => z.id === p.id); if (y) { Object.keys(y).forEach(k => { delete y[k]; }); Object.assign(y, was); } moved.forEach(m2 => { m2[0].status = m2[1]; m2[0].doneAt = m2[2]; }); if (TK.ui) TK.ui.paint(); });
   }
