@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-30T16:36:23.375Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-30T17:45:59.278Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -18413,6 +18413,19 @@ KIỂM TRA CUỐI NĂM & TỔNG KẾT:
 .tk-ck input[type=text]{ flex:1; border:0; border-bottom:1px solid transparent; background:none; outline:none; font:inherit; font-size:13px; padding:3px 0; color:var(--ink) } .tk-ck input[type=text]:focus{ border-bottom-color:var(--brand-500) } .tk-ck.d input[type=text]{ color:var(--muted); text-decoration:line-through }
 .tk-cm{ display:flex; gap:9px; padding:7px 0 } .tk-cm .b{ min-width:0; flex:1 } .tk-cm .h{ font-size:11px; color:var(--muted) } .tk-cm .h b{ color:var(--ink); font-size:12.5px }
 .tk-cm .x{ font-size:13px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; margin-top:2px } .tk-cm.a{ padding:2px 0 } .tk-cm.a .x{ display:inline; font-size:11.5px; color:var(--muted) }
+/* 1.49 · bình luận: khối tên người được nhắc · nút xoá (hiện khi rê chuột, luôn hiện trên màn cảm ứng) · bình luận đang gửi mờ đi */
+.tk-mn{ display:inline-flex; align-items:center; gap:2px; padding:0 7px 0 5px; border-radius:99px; background:var(--brand-50, #EAF0FB); color:var(--primary); font-weight:600; font-size:.95em; line-height:1.55; white-space:nowrap; vertical-align:baseline }
+.tk-mn i{ font-size:.85em } .tk-mn.off{ background:var(--k-tray); color:var(--muted); text-decoration:line-through }
+.tk-mn button{ border:0; background:none; padding:0 0 0 2px; color:inherit; cursor:pointer; display:inline-flex } .tk-mn button i{ font-size:13px }
+.tk-mnl{ display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-top:6px } .tk-mnl:empty{ display:none } .tk-mnl small{ color:var(--muted); font-size:11.5px }
+.tk-cm{ position:relative } .tk-cm.pend{ opacity:.6 } .tk-cmdel{ opacity:0; align-self:flex-start; color:var(--muted); transition:opacity .15s } .tk-cm:hover .tk-cmdel, .tk-cmdel:focus-visible{ opacity:1 } .tk-cmdel:hover{ color:var(--danger, #C0392B) }
+@media (hover:none){ .tk-cmdel{ opacity:.7 } }
+#tCmS.busy{ pointer-events:none; opacity:.7 }
+/* 1.49 · sửa nhanh ở dòng việc bên trong (hộp task): hạn · người phụ trách · trạng thái là nút bấm được */
+.tk-kq{ border:0; background:none; padding:2px; margin:-2px 0; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; color:inherit; font:inherit }
+.tk-kq:hover, .tk-kq:focus-visible{ background:var(--surface, #fff); box-shadow:0 0 0 1px var(--border, #D5DCE8) }
+.tk-kq0{ display:inline-flex; color:var(--muted); font-size:14px; padding:0 4px; opacity:.55 } .tk-row:hover .tk-kq0{ opacity:1 }
+.tk-kdue{ opacity:0; width:1px; height:1px; border:0; padding:0; z-index:3000 } .tk-kdue.on{ opacity:1; width:auto; height:auto; padding:4px; border:1px solid var(--border, #D5DCE8); border-radius:8px; background:var(--surface, #fff) }
 /* hộp tạo / sửa bảng: mỗi cột một dòng (tên · tối đa khi bật · bỏ), cột “xong” chọn một lần ở dưới */
 .tk-cols{ display:flex; flex-direction:column; gap:6px }
 .tk-cols .r, .tk-colh{ display:grid; grid-template-columns:minmax(0, 1fr) 36px; gap:6px; align-items:center } .tk-cols.wip .r, .tk-cols.wip .tk-colh{ grid-template-columns:minmax(0, 1fr) 84px 36px }
@@ -19240,9 +19253,9 @@ function tkPick(root, o) {
   sync();
   return { refresh: () => { if (!dd.hidden) list(); } };
 }
-/** NHẮC TÊN TRONG BÌNH LUẬN: gõ @ trong ô bình luận → hiện danh sách người dùng Kiến Task (lọc theo chữ gõ sau @, không dấu cũng được); ↑ ↓ Enter / Tab / bấm để chèn @email
+/** NHẮC TÊN TRONG BÌNH LUẬN: gõ @ trong ô bình luận → hiện danh sách NGƯỜI TRONG BẢNG (poolFn — 1.49; trước là mọi người dùng Kiến Task) (lọc theo chữ gõ sau @, không dấu cũng được); ↑ ↓ Enter / Tab / bấm để chèn @email
     (máy chủ báo người được nhắc theo @email). Esc đóng. */
-function tkMention(ta) {
+function tkMention(ta, poolFn) {
   if (!ta || ta._mn) return; ta._mn = 1;
   const host = ta.parentNode; host.style.position = 'relative';
   const dd = document.createElement('div'); dd.className = 'tk-mp-dd tk-mn-dd'; dd.setAttribute('role', 'listbox'); dd.hidden = true; host.appendChild(dd);
@@ -19252,7 +19265,7 @@ function tkMention(ta) {
   const list = () => {
     const w = word(); if (!w) return close();
     at = w.i; const q = fold(w.q);
-    L = ((TK.d && TK.d.users) || []).filter(u => u.task && u.email !== me && (!q || fold(u.name + ' ' + u.email).indexOf(q) >= 0)).slice(0, 8);
+    L = (poolFn ? poolFn() : ((TK.d && TK.d.users) || []).filter(u => u.task)).filter(u => u.email !== me && (!q || fold(u.name + ' ' + u.email).indexOf(q) >= 0)).slice(0, 8);
     if (!L.length) return close();
     hi = Math.min(hi, L.length - 1);
     dd.innerHTML = L.map((u, i) => '<div class="tk-mp-o' + (i === hi ? ' on' : '') + '" role="option" data-mi="' + i + '">' + tkAv(u.email) + '<span><b>' + esc(u.name) + '</b><small>' + esc(u.email) + '</small></span></div>').join('');
@@ -19266,6 +19279,51 @@ function tkMention(ta) {
     else if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); e.stopPropagation(); pick(hi); } else if (e.key === 'Escape') { e.stopPropagation(); close(); } });
   dd.addEventListener('mousedown', e => { const x = e.target.closest('[data-mi]'); if (x) { e.preventDefault(); pick(Number(x.dataset.mi)); } });
   ta.addEventListener('blur', () => setTimeout(close, 150));
+}
+/* ══ BÌNH LUẬN (1.49) ══ */
+/** người nhắc tên được ở bình luận của việc t: thành viên + chủ / đồng chủ bảng + người phụ trách / tạo việc (bảng riêng: chủ bảng + người phụ trách) — khớp taskPpl_ ở máy chủ */
+function tkMnPool(t) {
+  const d = TK.d, p = t && tkProj(t.projectId); if (!d || !p) return [];
+  const keep = tkWho(t).concat([t.reporter, p.createdBy], p.leads || []).map(e => String(e || '').toLowerCase());
+  if (p.scope === 'personal') return d.users.filter(u => keep.indexOf(u.email) >= 0);
+  return tkAsgPool(p, keep).concat(d.users.filter(u => (p.leads || []).indexOf(u.email) >= 0)).filter((u, i, a) => a.indexOf(u) === i);
+}
+/** nội dung bình luận: @email → khối tên người */
+function tkCmText(s) { return esc(s).replace(/@([^\s@,;]+@[^\s,;]+\.[a-z]{2,})/gi, (m0, e) => '<span class="tk-mn" title="' + e + '"><i class="bi bi-at"></i>' + esc(tkUser(e.toLowerCase())) + '</span>'); }
+function tkCmHtml(list, delOk) {
+  return list.length ? list.map(c => '<div class="tk-cm' + (c.kind === 'a' ? ' a' : '') + (c.pend ? ' pend' : '') + '">' + (c.kind === 'a' ? '<i class="bi bi-dot muted"></i>' : '<span class="av sm">' + esc(initials(c.name)) + '</span>') +
+    '<div class="b"><span class="h"><b>' + esc(c.name) + '</b>' + (c.kind === 'a' ? ' ' : ' · ' + (c.pend ? '<i class="spin-s"></i> đang gửi…' : esc(ago(c.at)))) + '</span>' + (c.kind === 'a' ? '<span class="x">' + esc(c.text) + ' · ' + esc(ago(c.at)) + '</span>' : '<div class="x">' + tkCmText(c.text) + '</div>') + '</div>' +
+    (c.kind !== 'a' && !c.pend && delOk(c) ? '<button type="button" class="ibtn xs tk-cmdel" data-cdel="' + esc(c.id) + '" title="Xoá bình luận" aria-label="Xoá bình luận"><i class="bi bi-trash3"></i></button>' : '') + '</div>').join('') : '<div class="small muted">Chưa có bình luận</div>';
+}
+/** ô bình luận: bấm Gửi (hoặc Ctrl/⌘ + Enter) → bình luận hiện NGAY với “đang gửi…”, ô trống, nút khoá tới khi lưu xong (không gửi trùng); lỗi → trả chữ về ô.
+    Dưới ô: khối những người sẽ được báo (từ @ đã gõ, × để bỏ). Nút thùng rác ở bình luận xoá được (hỏi lại).
+    o = { t, get(), set(list), send(text) → Promise<r>, del(cid) → Promise<r>, after(r, sent) } */
+function tkCmWire(m, o) {
+  const ta = m.$('#tCmT'), bt = m.$('#tCmS'), box = m.$('#tCm'); if (!ta || !bt || !box) return;
+  let busy = false;
+  tkMention(ta, () => tkMnPool(o.t));
+  const ch = document.createElement('div'); ch.className = 'tk-mnl'; ta.closest('.row').after(ch);
+  const who = () => { const P = tkMnPool(o.t).map(u => u.email), L = [...new Set((ta.value.match(/@[^\s@,;]+@[^\s,;]+\.[a-z]{2,}/gi) || []).map(x => x.slice(1).toLowerCase()))];
+    ch.innerHTML = L.length ? '<small>Báo cho</small>' + L.map(e => '<span class="tk-mn' + (P.indexOf(e) < 0 ? ' off' : '') + '" title="' + esc(P.indexOf(e) < 0 ? e + ' — không có trong bảng, sẽ không được báo' : e) + '"><i class="bi bi-at"></i>' + esc(tkUser(e)) + '<button type="button" data-mnx="' + esc(e) + '" aria-label="Bỏ"><i class="bi bi-x"></i></button></span>').join('') : ''; };
+  ta.addEventListener('input', who);
+  ch.onclick = e => { const x = e.target.closest('[data-mnx]'); if (!x) return; const re = new RegExp('@' + x.dataset.mnx.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s?', 'gi'); ta.value = ta.value.replace(re, ''); who(); ta.focus(); };
+  const send = async () => {
+    const text = ta.value.trim(); if (!text) return ta.focus(); if (busy) return; busy = true;
+    const me = TK.d.me, tmp = { id: 'tmp' + Date.now(), email: me, name: tkUser(me), text: text, at: new Date().toISOString(), kind: 'c', pend: 1 };
+    ta.value = ''; who(); bt.disabled = true; bt.classList.add('busy');
+    o.set(o.get().concat([tmp])); box.lastElementChild && box.lastElementChild.scrollIntoView({ block: 'nearest' });
+    try { const r = await o.send(text); if (!m.closed) o.set(r.comments); o.after && o.after(r, 1); }
+    catch (e) { if (!m.closed) { o.set(o.get().filter(c => c !== tmp)); if (!ta.value.trim()) { ta.value = text; who(); } } fail(e); }
+    finally { busy = false; bt.disabled = false; bt.classList.remove('busy'); }
+  };
+  bt.onclick = send;
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); send(); } });
+  box.addEventListener('click', async e => {
+    const b = e.target.closest('[data-cdel]'); if (!b) return;
+    if (!await ask('Xoá bình luận này? Không hoàn tác được.', { ok: 'Xoá', danger: true })) return;
+    const was = o.get(), id = b.dataset.cdel; o.set(was.filter(c => c.id !== id));
+    try { const r = await o.del(id); if (!m.closed) o.set(r.comments); o.after && o.after(r, 0); toast('Đã xoá bình luận', 'ok', 2000); } catch (er) { if (!m.closed) o.set(was); fail(er); }
+  });
 }
 /** THÊM BÊN TRONG THẺ: nút “+” (góc trên phải, hiện khi rê chuột · luôn hiện trên màn cảm ứng) sổ xuống cấp con của thẻ đó — Epic → Task · Task → Sub-task.
     Chọn là mở ô gõ NGAY TRÊN THẺ ĐÓ (không đổi cấp của cả Kanban — đổi cấp cả bảng bằng các nút ở trên). Sub-task không có cấp con nên không có nút. */
@@ -20661,13 +20719,11 @@ async function viewTasks(arg, v) {
         '<div class="small muted">Cập nhật ' + esc(ago(t.updatedAt || t.createdAt)) + '</div></div></div>',
       foot: [{ t: 'Chép link', cls: 'ghost', i: 'bi-link-45deg', fn: () => { copyText(linkOf('tasks/t/' + M.id), 'Đã chép link ' + t.key); return false; } }, { t: 'Đóng', cls: 'ghost' }] });
     m.el.addEventListener('click', e => { const r = e.target.closest('.tk-kids [data-id]'), k = r && tkById(r.dataset.id); if (k) { m.close(); taskDialog(k); } });
-    const cm = list => { m.$('#tCm').innerHTML = list.length ? list.map(c => '<div class="tk-cm' + (c.kind === 'a' ? ' a' : '') + '">' + (c.kind === 'a' ? '<i class="bi bi-dot muted"></i>' : '<span class="av sm">' + esc(initials(c.name)) + '</span>') +
-      '<div class="b"><span class="h"><b>' + esc(c.name) + '</b>' + (c.kind === 'a' ? ' ' : ' · ' + esc(ago(c.at))) + '</span>' + (c.kind === 'a' ? '<span class="x">' + esc(c.text) + ' · ' + esc(ago(c.at)) + '</span>' : '<div class="x">' + esc(c.text) + '</div>') + '</div></div>').join('') : '<div class="small muted">Chưa có bình luận</div>'; };
+    let CL = []; const cm = list => { CL = list; m.$('#tCm').innerHTML = tkCmHtml(list, c => c.email === D().me || !!C().admin); };
     { const c0 = tkoCached(M.id); if (c0) cm(c0.comments || []); tkUpd(m, 1);
       tkoGet(M.id).then(r => { tkUpd(m, 0); if (!m.closed) cm(r.comments || []); }).catch(e => { tkUpd(m, 0); if (!m.closed && !c0) m.$('#tCm').innerHTML = '<div class="small muted">' + esc(e.message || 'Không tải được bình luận') + '</div>'; }); }
-    tkMention(m.$('#tCmT'));
-    m.$('#tCmS').onclick = async () => { const ta = m.$('#tCmT'), text = ta.value.trim(); if (!text) return ta.focus();
-      try { const r = await rpc('taskComment', { id: M.id, text: text }); ta.value = ''; cm(r.comments); t.nc = r.comments.filter(c => c.kind !== 'a').length; paint(); toast('Đã gửi bình luận — ' + tkUser(M.owner) + ' sẽ nhận thông báo', 'ok', 2500); } catch (e) { fail(e); } };
+    tkCmWire(m, { t: t, get: () => CL, set: cm, send: text => rpc('taskComment', { id: M.id, text: text }), del: cid => rpc('taskCommentDel', { id: M.id, cid: cid }),
+      after: (r, sent) => { t.nc = r.comments.filter(c => c.kind !== 'a').length; paint(); if (sent) toast('Đã gửi bình luận — ' + tkUser(M.owner) + ' sẽ nhận thông báo', 'ok', 2500); } });
   }
   /* ── TÀI LIỆU (1.35): tải file lên Drive ĐỨNG TÊN TÀI KHOẢN CHỦ (Admin chọn) — thư mục đích theo Epic / Task, file đi từng khúc qua máy chủ (DriveOwner.gs) ── */
   const tkFileIc = n => /\.pdf$/i.test(n) ? 'bi-file-earmark-pdf' : /\.(docx?|odt)$/i.test(n) ? 'bi-file-earmark-word' : /\.(xlsx?|csv)$/i.test(n) ? 'bi-file-earmark-spreadsheet' : /\.(png|jpe?g|gif|webp|heic)$/i.test(n) ? 'bi-file-earmark-image' : 'bi-file-earmark';
@@ -20789,13 +20845,16 @@ async function viewTasks(arg, v) {
     const lv0 = isNew ? (cur.type === 'epic' ? 'epic' : tkPar(cur.parentId) ? 'sub' : 'task') : tkLv(cur);
     const kids = !isNew ? tkKids(cur) : [], kt = isNew ? '' : TK_KID[lv0] || '';
     const paOpts = p => [['', 'Chọn task cha…']].concat(D().tasks.filter(x => x.projectId === p.id && tkLv(x) === 'task' && x.id !== cur.id).sort((a, b) => a.order - b.order).map(x => [x.id, x.key + ' · ' + x.title]));
-    const kidRow = k => '<div class="tk-row s' + (tkDone(k) ? ' done' : '') + '" data-id="' + k.id + '">' + (tkLv(k) === 'sub' ? tkLvIc('sub') : tkTyIc(k)) + '<span class="tk-key">' + esc(k.key) + '</span><span class="t">' + esc(k.title) + '</span><span class="tk-c-ft">' + tkDue(k) + tkHrBadge(k) + '</span>' + tkAvs(k) + tkStPill(k) + '</div>';
+    // (1.49) dòng việc bên trong: bấm đúng hạn / người phụ trách / trạng thái → sửa nhanh tại chỗ; bấm chỗ khác → mở hộp của việc đó (chồng lên, đóng là về lại hộp này)
+    const kEd = k => !k.mir && !k.pend && (C().edit || C().admin || lead(tkProj(k.projectId)) || k.reporter === D().me || tkWho(k).indexOf(D().me) >= 0);
+    const kq = (k, f, title, html) => kEd(k) ? '<button type="button" class="tk-kq" data-kq="' + f + '" title="' + title + '" aria-label="' + title + ' ' + esc(k.key) + '">' + html + '</button>' : html;
+    const kidRow = k => '<div class="tk-row s' + (tkDone(k) ? ' done' : '') + '" data-id="' + k.id + '">' + (tkLv(k) === 'sub' ? tkLvIc('sub') : tkTyIc(k)) + '<span class="tk-key">' + esc(k.key) + '</span><span class="t">' + esc(k.title) + '</span><span class="tk-c-ft">' + kq(k, 'due', 'Đổi hạn', tkDue(k) || (kEd(k) ? '<span class="tk-kq0"><i class="bi bi-calendar-plus"></i></span>' : '')) + tkHrBadge(k) + '</span>' + kq(k, 'pic', 'Đổi người phụ trách', tkAvs(k)) + kq(k, 'st', 'Đổi trạng thái', tkStPill(k)) + '</div>';
     /* XOÁ / YÊU CẦU XOÁ: việc của mình (hoặc Admin) xoá thẳng · việc của người khác → gửi yêu cầu cho người tạo duyệt · người tạo / người duyệt thấy dải yêu cầu với nút Xoá · Giữ lại */
     const me = D().me, dq = !isNew && cur.delBy, delOk = !isNew && tkDelOk(cur), myReq = dq && cur.delBy === me;
     const delBar = dq ? '<div class="tk-delq-bar"><i class="bi bi-trash3"></i><span><b>' + esc(myReq ? 'Bạn' : tkUser(cur.delBy)) + '</b> yêu cầu xoá việc này' + (cur.delAt ? ' · ' + esc(ago(cur.delAt)) : '') + (cur.delWhy ? '<em>' + esc(cur.delWhy) + '</em>' : '') +
         (delOk ? '' : myReq ? '<small>Đang chờ ' + esc(tkUser(cur.reporter)) + ' duyệt</small>' : '') + '</span>' +
         (delOk ? '<button type="button" class="btn sm red" data-dq="ok"><i class="bi bi-trash3"></i>Xoá</button><button type="button" class="btn sm" data-dq="no">Giữ lại</button>' : myReq ? '<button type="button" class="btn sm" data-dq="cancel">Rút lại</button>' : '') + '</div>' : '';
-    const m = modal({ title: isNew ? (lv0 === 'epic' ? 'Tạo epic' : lv0 === 'sub' ? 'Tạo sub-task' : 'Tạo task') : cur.key + ' · ' + TK_LV[lv0] + (lv0 !== 'epic' && cur.type !== 'task' ? ' · ' + (TK_TYPE[cur.type] || TK_TYPE.task)[0] : ''), icon: lv0 === 'sub' ? 'bi-arrow-return-right' : (TK_TYPE[cur.type] || TK_TYPE.task)[1], size: 'lg', sticky: true, body:
+    const m = modal({ title: isNew ? (lv0 === 'epic' ? 'Tạo epic' : lv0 === 'sub' ? 'Tạo sub-task' : 'Tạo task') : cur.key + ' · ' + TK_LV[lv0] + (lv0 !== 'epic' && cur.type !== 'task' ? ' · ' + (TK_TYPE[cur.type] || TK_TYPE.task)[0] : ''), icon: lv0 === 'sub' ? 'bi-arrow-return-right' : (TK_TYPE[cur.type] || TK_TYPE.task)[1], size: 'lg', sticky: true, onClose: init.onClose, body:
       '<div class="tk-dlg"><div>' + delBar + '<div class="tk-path" id="tPath" aria-label="Vị trí trong ba cấp Epic › Task › Sub-task"></div><input class="tk-ti" id="tT" placeholder="Tên công việc" value="' + esc(cur.title) + '"' + (isNew ? ' autofocus' : '') + '>' +
         '<div class="tk-h">Mô tả</div><div class="tk-rtew"><div class="ta tk-rte" id="tD" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Mô tả" data-ph="Mô tả chi tiết, tiêu chí hoàn thành… Dán link tài liệu rồi nhấn Tab để thành thẻ · dán / kéo thả ảnh vào đây">' + tkDescHtml(cur.desc) + '</div>' +
           '<button type="button" class="tk-rte-hint" id="tDh" hidden><kbd>Tab</kbd>Đổi link thành thẻ</button></div>' +
@@ -20912,7 +20971,24 @@ async function viewTasks(arg, v) {
       const kPaint = () => { const all = tkKids(cur), K = (kt === 'task' ? all.filter(k => !tkPar(k.parentId)) : all).sort(byO); m.$('#tKidN').textContent = all.filter(tkDone).length + '/' + all.length;
         box.innerHTML = K.length ? '<div class="tk-rows tk-kids" style="box-shadow:none;background:var(--k-tray)">' + K.map(k => kidRow(k) + (kt === 'task' ? tkKids(k).sort(byO).map(c2 => '<div class="tk-kin">' + kidRow(c2) + '</div>').join('') : '')).join('') + '</div>' : ''; };
       kPaint();
-      box.onclick = e => { const r = e.target.closest('[data-id]'), k = r && D().tasks.find(x => x.id === r.dataset.id); if (k && !k.pend) { m.close(); taskDialog(k); } };      // bấm một việc bên trong → mở việc đó (việc đang lưu thì chờ)
+      const kSave = async (k, patch) => {      // đổi ngay trên hộp + bảng, lưu ngầm; máy chủ từ chối → trả lại như cũ
+        const was = Object.assign({}, k); Object.assign(k, patch); if (patch.assignees) k.assignee = patch.assignees.join(','); kPaint(); paintKeep();
+        try { Object.assign(k, await tkSend('taskSave', Object.assign({ id: k.id }, patch), { quiet: true })); if (patch.assignees) tkJoinLocal(tkProj(k.projectId), patch.assignees); }
+        catch (e) { Object.keys(k).forEach(x => { delete k[x]; }); Object.assign(k, was); if (e.code !== 'HRS') fail(e); else toast(e.message, 'warn', 4000); }
+        if (!m.closed) kPaint(); paintKeep(); };
+      const kQuick = (b, k) => { const p = tkProj(k.projectId); if (!p) return;
+        if (b.dataset.kq === 'st') return openMenu(b, p.cols.map(c => ({ t: c.t, i: c.id === k.status ? 'bi-check-circle-fill' : c.done ? 'bi-check2-circle' : 'bi-circle', fn: () => { if (c.id !== k.status) kSave(k, { status: c.id }); } })));
+        if (b.dataset.kq === 'pic') { const cw = tkWho(k);
+          return openMenu(b, tkAsgPool(p, cw).map(u => ({ t: u.name + (u.email === D().me ? ' (tôi)' : ''), i: cw.indexOf(u.email) >= 0 ? 'bi-check-circle-fill' : 'bi-circle', fn: () => kSave(k, { assignees: cw.indexOf(u.email) >= 0 ? cw.filter(e => e !== u.email) : cw.concat([u.email]) }) }))
+            .concat(cw.length ? ['-', { t: 'Bỏ giao', i: 'bi-person-dash', fn: () => kSave(k, { assignees: [] }) }] : [])); }
+        // hạn: mở bảng chọn ngày của trình duyệt ngay tại chỗ bấm (xoá ngày trong bảng chọn = bỏ hạn)
+        const r = b.getBoundingClientRect(), i = document.createElement('input'); i.type = 'date'; i.value = k.due || ''; i.className = 'tk-kdue';
+        Object.assign(i.style, { position: 'fixed', left: r.left + 'px', top: r.bottom + 'px' }); document.body.appendChild(i);
+        i.onchange = () => { if (i.value !== (k.due || '')) kSave(k, { due: i.value }); i.remove(); }; i.onblur = () => setTimeout(() => i.remove(), 300);
+        try { i.showPicker(); } catch (er) { i.classList.add('on'); i.focus(); } };
+      box.onclick = e => { const r = e.target.closest('[data-id]'), k = r && D().tasks.find(x => x.id === r.dataset.id); if (!k || k.pend) return;      // việc đang lưu thì chờ
+        const b = e.target.closest('[data-kq]'); if (b) { e.stopPropagation(); return kQuick(b, k); }
+        taskDialog(k, { onClose: () => { if (!m.closed) kPaint(); } }); };      // mở việc bên trong CHỒNG lên hộp này — đóng là về lại đây (không phải tìm lại task cha)
       m.$('#tKidAdd').onclick = () => inp.focus();
       inp.onkeydown = e => { if (e.key !== 'Enter') return; e.preventDefault(); e.stopPropagation(); const val = inp.value.trim(), par = D().tasks.find(x => x.id === cur.id), p = par && tkProj(par.projectId); if (!val || !p) return;
         const sp = activeSp(p), a = tkAdd(p, Object.assign({ title: val.slice(0, 200), type: 'task' }, kt === 'task' ? { epicId: par.id, sprintId: sp ? sp.id : '' } : { parentId: par.id, epicId: par.epicId, sprintId: par.sprintId || '' })); if (!a) return;
@@ -20962,8 +21038,7 @@ async function viewTasks(arg, v) {
     { const ss = m.$('#tS'); if (ss) ss.onchange = () => { ss.className = 'sel ' + tkStCls(tkProj((m.$('#tP') || {}).value || cur.projectId) || p0, ss.value); }; }      // ô trạng thái đổi màu theo giá trị
     const ps = m.$('#tP'); if (ps) ps.onchange = () => { const p = tkProj(ps.value); { const w = m.$('#tShW'); if (w) w.hidden = !(own(p) && teamBoards().length); } m.$('#tS').innerHTML = opt(p.cols.map(c => [c.id, c.t]), p.cols[0].id); m.$('#tS').className = 'sel ' + tkStCls(p, p.cols[0].id);  picker.refresh(); m.$('#tSp').innerHTML = opt(spOpts(p), ''); m.$('#tEp').innerHTML = opt(epOpts(p), ''); m.$('#tPa').innerHTML = opt(paOpts(p), ''); tyFix(); };
     if (!isNew) {
-      const cm = list => { m.$('#tCm').innerHTML = list.length ? list.map(c => '<div class="tk-cm' + (c.kind === 'a' ? ' a' : '') + '">' + (c.kind === 'a' ? '<i class="bi bi-dot muted"></i>' : '<span class="av sm">' + esc(initials(c.name)) + '</span>') +
-        '<div class="b"><span class="h"><b>' + esc(c.name) + '</b>' + (c.kind === 'a' ? ' ' : ' · ' + esc(ago(c.at))) + '</span>' + (c.kind === 'a' ? '<span class="x">' + esc(c.text) + ' · ' + esc(ago(c.at)) + '</span>' : '<div class="x">' + esc(c.text) + '</div>') + '</div></div>').join('') : '<div class="small muted">Chưa có bình luận</div>'; };
+      let CL = []; const cm = list => { CL = list; m.$('#tCm').innerHTML = tkCmHtml(list, c => c.email === D().me || !!C().admin || lead(tkProj(cur.projectId) || p0)); };
       const docs = tkDocs(m.$('#tDocs'), cur, m.$('#tDocN'), () => { if (!m.closed) load(0); });      // tải xong / đổi thư mục → hoạt động hiện ngay dòng mới
       let cmLast = '';
       const apply = r => { if (m.closed || !r) return; const j = JSON.stringify(r.comments || []); if (j !== cmLast) { cmLast = j; cm(r.comments || []); }
@@ -20973,9 +21048,8 @@ async function viewTasks(arg, v) {
         m.$('#tCm').innerHTML = '<div class="small muted">' + esc(e.message || 'Không tải được bình luận') + '</div>'; docs.err(e.message); }); };
       apply(tkoCached(cur.id));      // đã mở / đã tải trước → hiện ngay
       load();
-      tkMention(m.$('#tCmT'));
-      m.$('#tCmS').onclick = async () => { const ta = m.$('#tCmT'), text = ta.value.trim(); if (!text) return ta.focus();
-        try { const r = await tkSend('taskComment', { id: cur.id, text: text }); ta.value = ''; cmLast = JSON.stringify(r.comments); cm(r.comments); tkoPut(cur.id, Object.assign({}, tkoCached(cur.id), { comments: r.comments })); const x = D().tasks.find(k => k.id === cur.id); if (x) { x.nc = r.comments.filter(c => c.kind !== 'a').length; paint(); } } catch (e) { fail(e); } };
+      tkCmWire(m, { t: cur, get: () => CL, set: cm, send: text => tkSend('taskComment', { id: cur.id, text: text }), del: cid => rpc('taskCommentDel', { id: cur.id, cid: cid }),
+        after: r => { cmLast = JSON.stringify(r.comments); tkoPut(cur.id, Object.assign({}, tkoCached(cur.id), { comments: r.comments })); const x = D().tasks.find(k => k.id === cur.id); if (x) { x.nc = r.comments.filter(c => c.kind !== 'a').length; paint(); } } });
     }
   }
 
