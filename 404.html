@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-30T17:45:59.278Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-30T17:52:37.868Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -98,6 +98,15 @@
   #pushSheet button { height: 42px; border-radius: 12px; border: 1px solid #E2E8F0; background: #fff; font: 600 14px -apple-system, BlinkMacSystemFont, sans-serif; color: #334155; }
   #pushSheet #psOk { background: #1D4ED8; border-color: #1D4ED8; color: #fff; }
   @keyframes up { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+  /* (1.50) viên “Có phiên bản mới” */
+  #ktUp { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 2147482000; display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 24px);
+    padding: 8px 8px 8px 14px; background: var(--surface, #fff); color: var(--ink, #0F172A); border: 1px solid var(--border, #E2E8F0); border-radius: 999px; box-shadow: 0 10px 30px rgba(15, 23, 42, .18); animation: up .25s ease; font-size: 13px; }
+  #ktUp > i { font-size: 17px; color: var(--primary, #1D4ED8); } #ktUp span { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; } #ktUp b { font-size: 13px; white-space: nowrap; } #ktUp small { font-size: 11.5px; color: var(--muted, #64748B); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #ktUp .ku-ok { height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--primary, #1D4ED8); color: #fff; font: 600 13px inherit; font-family: inherit; cursor: pointer; white-space: nowrap; }
+  #ktUp .ku-ok:disabled { opacity: .75; cursor: progress; } #ktUp .ku-x { width: 30px; height: 30px; border: 0; border-radius: 50%; background: none; color: var(--muted, #64748B); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  #ktUp .ku-x:hover { background: var(--k-tray, #F1F5F9); } #ktUp.busy > i { animation: kuSpin 1s linear infinite; } #ktUp.out { opacity: 0; transition: opacity .2s; }
+  @keyframes kuSpin { to { transform: rotate(360deg); } }
+  @media (max-width: 820px) { #ktUp { bottom: calc(84px + env(safe-area-inset-bottom)); } #ktUp small { display: none; } }
 
   </style>
 
@@ -22098,6 +22107,36 @@ function bkParseMd(txt) {
         .catch(function (x) { el.remove(); reply(e, { kgs: 'push-err', msg: String(x && x.message || x) }); });
     };
   };
+  /* (1.50) CÓ PHIÊN BẢN MỚI: trang đang mở hỏi /ver.json (sau 20 giây, mỗi 5 phút, khi quay lại tab, khi có mạng lại) — mốc mới hơn KT_BUILD
+     → viên nhỏ dưới màn hình “Kiến Trẻ có phiên bản mới · Cập nhật”. Bấm Cập nhật: chờ lưu xong thay đổi đang chờ (hàng đợi ghi của app),
+     nạp bản mới vào bộ nhớ đệm của service worker (không thì lần mở sau vẫn ra bản cũ đã cất), rồi tải lại trang. × = ẩn tới bản kế tiếp. */
+  var UP = { at: 0, shown: '' };
+  var upBar = function (b) {
+    if (UP.shown === b || document.getElementById('ktUp')) return; UP.shown = b;
+    try { if (sessionStorage.getItem('ktUpHide') === b) return; } catch (x) {}
+    var el = document.createElement('div'); el.id = 'ktUp'; el.setAttribute('role', 'status');
+    el.innerHTML = '<i class="bi bi-arrow-repeat"></i><span><b>Kiến Trẻ có phiên bản mới</b><small>Cập nhật để dùng bản mới nhất</small></span><button type="button" class="ku-ok">Cập nhật</button><button type="button" class="ku-x" aria-label="Để sau" title="Để sau"><i class="bi bi-x-lg"></i></button>';
+    document.body.appendChild(el);
+    el.querySelector('.ku-x').onclick = function () { try { sessionStorage.setItem('ktUpHide', b); } catch (x) {} el.classList.add('out'); setTimeout(function () { el.remove(); }, 200); };
+    el.querySelector('.ku-ok').onclick = function () {
+      var btn = this; btn.disabled = true; btn.textContent = 'Đang cập nhật…'; el.classList.add('busy');
+      var t0 = Date.now(), q = function () { try { return typeof OB !== 'undefined' && OB.q ? OB.q.length : 0; } catch (x) { return 0; } };
+      var go = function () {
+        var fresh = ('caches' in window) ? fetch('/index.html', { cache: 'no-cache' }).then(function (r) { if (!r.ok) return;
+          return caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return /^kt-app-/.test(k); }).map(function (k) { return caches.open(k).then(function (c) { return c.put('/index.html', r.clone()); }); })); }); }) : Promise.resolve();
+        Promise.all([fresh, REG.then(function (reg) { return reg && reg.update(); })]).catch(function () {}).then(function () { location.reload(); });
+      };
+      (function wait() { if (q() && Date.now() - t0 < 15000) { btn.textContent = 'Đang lưu thay đổi…'; try { if (typeof obFlush === 'function') obFlush(); } catch (x) {} return setTimeout(wait, 500); } go(); })();      // thay đổi chưa lưu thì lưu xong mới tải lại
+    };
+  };
+  var upCheck = function () {
+    if (!window.KT_BUILD || Date.now() - UP.at < 45000 || !navigator.onLine) return; UP.at = Date.now();
+    fetch('/ver.json?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { if (j && typeof j.b === 'string' && j.b > window.KT_BUILD) upBar(j.b); }).catch(function () {});
+  };
+  setTimeout(upCheck, 20000); setInterval(upCheck, 300000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) upCheck(); });
+  window.addEventListener('online', upCheck);
   if (navigator.clearAppBadge) document.addEventListener('visibilitychange', function () { if (!document.hidden) try { navigator.clearAppBadge(); } catch (x) {} });
   // vùng an toàn dưới (thanh Home iPhone): khung trong không đọc được env(), nên đo ở đây rồi gửi vào
   var SRC = null, sab = document.getElementById('sab');
