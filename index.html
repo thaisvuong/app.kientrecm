@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-29T15:47:13.111Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-30T04:30:51.851Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -18878,6 +18878,10 @@ button.tk-loose{ margin-top:16px; padding:5px 8px 5px 4px; border:0; border-radi
 .tk-lkw{ display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:999px; background:var(--surface-2); font-size:11.5px; font-weight:600; color:var(--ink-2); white-space:nowrap } .tk-lkw.p{ background:#FFF4E5; color:#9A5B00 }
 .tk-lkf{ display:flex; align-items:center; gap:6px; padding:8px 12px; border-top:1px solid var(--border) } .tk-lkf .sp{ flex:1 } .tk-lkq{ width:220px } .tk-lkq .inp{ height:32px }
 .tk-lkt2 .tk-lkto{ max-width:220px }
+/* LƯU TRỮ (30-10-2026): cột Hoàn thành chỉ hiện việc xong 14 ngày gần nhất · hộp Lưu trữ */
+.tk-dmore{ display:flex; align-items:center; justify-content:center; gap:6px; width:100%; margin-top:2px; padding:7px 10px; border:1px dashed var(--border-strong); border-radius:10px; background:transparent; color:var(--muted); font:600 12px/1.3 inherit; cursor:pointer }
+.tk-dmore:hover{ color:var(--primary); border-color:var(--primary); background:var(--surface) }
+.tk-ar-t tbody tr{ cursor:pointer } .tk-ar-t tbody tr:hover td{ background:var(--surface-2) } .tk-ar-t td .av{ margin-right:-4px }
 </style>
 <script>
 /* ══════════════════════════════════════════════════════════════
@@ -19590,6 +19594,14 @@ function tkoWarm(v) {
   v.addEventListener('focusin', e => go(idOf(e.target)));
 }
 
+/* LỚP 1 — cột Hoàn thành gọn: chỉ hiện việc xong trong TK_DONE_DAYS ngày; việc xong cũ hơn gập lại sau một nút (bấm để hiện / thu gọn) */
+const TK_DONE_DAYS = 14;
+function tkDoneCut(it, key) {
+  const cut = Date.now() - TK_DONE_DAYS * 864e5, old = it.filter(t => t.doneAt && new Date(t.doneAt).getTime() < cut);
+  if (!old.length) return { L: it, btn: '' };
+  const open = !!(TK.doneAll && TK.doneAll[key]);
+  return { L: open ? it : it.filter(t => old.indexOf(t) < 0), btn: '<button type="button" class="tk-dmore" data-dmore="' + esc(key) + '">' + (open ? '<i class="bi bi-chevron-up"></i>Thu gọn việc xong trước ' + TK_DONE_DAYS + ' ngày' : '<i class="bi bi-chevron-down"></i>' + old.length + ' việc xong trước ' + TK_DONE_DAYS + ' ngày') + '</button>' };
+}
 async function viewTasks(arg, v) {
   let mode = 'board', openId = '';
   const parse = a => {
@@ -19651,9 +19663,11 @@ async function viewTasks(arg, v) {
   const paintTop = () => {
     $('#tkTop', top).innerHTML = (C().remind ? '<button class="ibtn" id="tkRem" title="Nhắc việc qua mail"><i class="bi bi-envelope-check"></i></button>' : '') + '<button class="ibtn" id="tkNewP" title="Bảng: tạo bảng riêng / bảng chung, sửa bảng"><i class="bi bi-folder-plus"></i></button>' +
       (projs().length && tplCan() ? '<button class="ibtn" id="tkTpl" title="Mẫu (template) — tạo nhanh nhiều task từ mẫu, lặp định kỳ" aria-label="Mẫu"><i class="bi bi-journal-bookmark"></i></button>' : '') +
+      (projs().length ? '<button class="ibtn" id="tkArch" title="Lưu trữ — việc đã xong quá 90 ngày' + (D().arch ? ' (' + D().arch + ' việc)' : '') + '" aria-label="Lưu trữ"><i class="bi bi-archive"></i></button>' : '') +
       (projs().length ? '<button class="btn pri sm" id="tkNew" aria-haspopup="menu" title="Tạo Epic · Task · Sub-task"><i class="bi bi-plus-lg"></i><span class="bl">Tạo</span><i class="bi bi-chevron-down tk-new-cv"></i></button>' : '');
     // (1.44) MỘT nút “+ Tạo” → hỏi tạo gì (Epic · Task · Sub-task · từ mẫu) rồi hỏi thuộc đâu (bảng / epic / task) — trước đây hai nút Epic + Tạo task
     const n = $('#tkNew', top); if (n) n.onclick = e => newMenu(e.currentTarget);
+    const ar = $('#tkArch', top); if (ar) ar.onclick = () => archDlg();
     const np = $('#tkNewP', top); if (np) np.onclick = e => { const cp = isAll() ? null : curProj();
       openMenu(e.currentTarget, (C().personal ? [{ t: 'Tạo bảng riêng', i: 'bi-lock', d: 'Việc cá nhân của bạn', fn: () => projDialog(null, 'personal') }] : [])
         .concat(C().team ? [{ t: 'Tạo bảng chung cho team', i: 'bi-people', d: 'Mọi thành viên cùng thấy và cập nhật', fn: () => projDialog(null, 'team') }] : [])
@@ -19781,10 +19795,10 @@ async function viewTasks(arg, v) {
       const ctx = ln ? (ln.k === 'e' ? ' data-qe="' + ln.id + '"' : ' data-qs="' + ln.id + '"') : '', where = ln && ln.t ? ' vào ' + ln.t.key : '';
       return '<div class="tk-qadd"><i class="bi bi-plus-lg"></i>' + tkLvIc(k) +
         '<input class="tk-quick" data-quick="' + esc(c.id) + '" data-qp="' + p.id + '" data-qty="' + k + '"' + ctx + ' placeholder="Thêm ' + TK_LV[k].toLowerCase() + esc(where) + ' — gõ tên rồi Enter" aria-label="Thêm ' + TK_LV[k].toLowerCase() + esc(where) + ' vào ' + esc(c.t) + '"></div>'; };
-    const board = (items, lane, base, ln) => '<div class="tk-board' + (ln ? ' tk-tlb' : '') + '">' + p.cols.map((c, ci) => { const it = items.filter(t => t.status === c.id).sort((a, b) => a.order - b.order), all = (base || L).filter(t => t.status === c.id).length;
+    const board = (items, lane, base, ln) => '<div class="tk-board' + (ln ? ' tk-tlb' : '') + '">' + p.cols.map((c, ci) => { const it = items.filter(t => t.status === c.id).sort((a, b) => a.order - b.order), all = (base || L).filter(t => t.status === c.id).length, dc = c.done ? tkDoneCut(it, p.id + ':' + c.id + (ln ? ':' + ln.id : lane ? ':' + items.map(t => t.id).slice(0, 1) : '')) : { L: it, btn: '' };
       return '<section class="tk-col ' + tkStCls(p, c.id) + '" data-col="' + esc(c.id) + '" data-proj="' + p.id + '"' + (ln ? ' data-lk="' + ln.k + '" data-lid="' + ln.id + '"' : '') + '><div class="tk-col-h">' + esc(c.t) + '<span class="n' + (c.wip && all > c.wip ? ' over' : '') + '" title="' + (c.wip ? 'Tối đa ' + c.wip + ' việc' : 'Số việc') + '">' + it.length + (c.wip ? '/' + c.wip : '') + '</span><span class="sp" style="flex:1"></span>' +
         (c.done ? '<i class="bi bi-check2-circle" title="Cột hoàn thành"></i>' : '') + '</div>' +
-        '<div class="tk-col-b">' + it.map((t, i) => tkCard(t, true, i, { story: lv !== 'sub' })).join('') + '</div>' + (lane ? '' : ln ? (ci === 0 ? qadd(p, c, lv, ln) : '') : qadd(p, c, lv)) + '</section>'; }).join('') + '</div>';      // làn phân cấp: ô thêm chỉ ở cột đầu (đỡ rối)
+        '<div class="tk-col-b">' + dc.L.map((t, i) => tkCard(t, true, i, { story: lv !== 'sub' })).join('') + dc.btn + '</div>' + (lane ? '' : ln ? (ci === 0 ? qadd(p, c, lv, ln) : '') : qadd(p, c, lv)) + '</section>'; }).join('') + '</div>';      // làn phân cấp: ô thêm chỉ ở cột đầu (đỡ rối)
     return (many ? '<div class="tk-bh">' + (p.scope === 'personal' ? '<i class="bi bi-lock-fill"></i>' : '<i class="bi bi-people"></i>') + esc(p.name) + '<span>' + L.length + ' ' + TK_LV[lv].toLowerCase() + (sp ? ' · ' + esc(sp.name) : '') + '</span><a data-p="' + p.id + '">Chỉ xem bảng này</a></div>' : sp ? sprintHero(p, sp) : '') +
       (tr ? '<div class="tk-board tk-tlh">' + p.cols.map(c => { const n = L.filter(t => t.status === c.id).length; return '<div class="tk-col ' + tkStCls(p, c.id) + '"><div class="tk-col-h">' + esc(c.t) + '<span class="n' + (c.wip && n > c.wip ? ' over' : '') + '">' + n + (c.wip ? '/' + c.wip : '') + '</span><span class="sp" style="flex:1"></span>' + (c.done ? '<i class="bi bi-check2-circle" title="Cột hoàn thành"></i>' : '') + '</div></div>'; }).join('') + '</div>' +
         tlanes.filter(ln => ln.items.length || (!flt && ln.id)).map(ln => laneHead(ln) + (TK.laneFold[p.id + ':' + ln.id] ? '' : board(ln.items, false, ln.items, ln))).join('') +
@@ -19799,9 +19813,9 @@ async function viewTasks(arg, v) {
     const PR = { urgent: 0, high: 1, med: 2, low: 3 }, key = t => [t.due || '9999', PR[t.priority] == null ? 2 : PR[t.priority], t.order];
     const cmp = (a, b) => { const x = key(a), y = key(b); return x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : x[1] - y[1] || x[2] - y[2]; };
     return '<div class="tk-mg-note"><i class="bi bi-intersect"></i><span>Đang <b>gộp ' + P.length + ' bảng</b> — cột của từng bảng được quy về 4 bước chung, mỗi thẻ ghi tên bảng. Việc trong bước xếp theo hạn rồi ưu tiên. Bảng đang chạy đợt chỉ hiện việc của đợt đó.</span></div>' +
-      '<div class="tk-board tk-mg">' + TK_STAGE.map((x, k) => { const it = by[x[0]].sort(cmp);
+      '<div class="tk-board tk-mg">' + TK_STAGE.map((x, k) => { const it = by[x[0]].sort(cmp), dc = x[0] === 'done' ? tkDoneCut(it, 'mg:done') : { L: it, btn: '' };
         return '<section class="tk-col ' + (x[0] === 'done' ? 'ks ks-d' : 'ks ks-' + k) + '" data-stage="' + x[0] + '"><div class="tk-col-h">' + x[1] + '<span class="n">' + it.length + '</span>' + (x[0] === 'done' ? '<i class="bi bi-check2-circle" title="Bước hoàn thành"></i>' : '') + '</div>' +
-          '<div class="tk-col-b">' + it.map((t, i) => tkCard(t, true, i, { story: lv !== 'sub', board: 1 })).join('') + '</div></section>'; }).join('') + '</div>';
+          '<div class="tk-col-b">' + dc.L.map((t, i) => tkCard(t, true, i, { story: lv !== 'sub', board: 1 })).join('') + dc.btn + '</div></section>'; }).join('') + '</div>';
   };
   const paintBoard = () => {
     if (!projs().length) { v.innerHTML = empty(); return; }
@@ -21346,8 +21360,36 @@ async function viewTasks(arg, v) {
     draw(); recUi();
   }
 
+  /* ══ LƯU TRỮ (30-10-2026) — việc xong quá 90 ngày (cả nhánh đã xong) không tải khi mở app; tìm & mở lại ở đây. Mở lại = cả nhánh hiện lại trên bảng thêm 90 ngày ══ */
+  v.addEventListener('click', e => { const b = e.target.closest('[data-dmore]'); if (!b) return; TK.doneAll = TK.doneAll || {}; TK.doneAll[b.dataset.dmore] = !TK.doneAll[b.dataset.dmore]; paint(); });
+  async function archOpen(id) {
+    const r = await rpc('taskArchOpen', { id: id });
+    r.tasks.forEach(t => { const i = D().tasks.findIndex(x => x.id === t.id); if (i >= 0) D().tasks[i] = t; else D().tasks.push(t); });
+    if (D().arch) D().arch = Math.max(0, D().arch - r.tasks.length);
+    paint(); return D().tasks.find(x => x.id === r.id) || null;
+  }
+  function archDlg() {
+    let seq = 0;
+    const m = modal({ title: 'Lưu trữ', icon: 'bi-archive', size: 'lg', body: '<div class="stack"><div class="tk-bar"><div class="search tk-find"><i class="bi bi-search"></i><input class="inp" id="arQ" placeholder="Tìm mã, tên việc, nhãn, người phụ trách…" autofocus></div></div>' +
+        '<div class="small muted" id="arN"></div><div id="arL">' + miniLoader('Đang tải lưu trữ…') + '</div></div>',
+      foot: (C().demo ? [{ t: 'Lưu trữ ngay', cls: 'ghost', i: 'bi-box-arrow-in-down', fn: async () => { const r = await rpc('taskArchRun', {}); toast(r.moved ? 'Đã chuyển ' + r.moved + ' việc (kèm ' + (r.comments || 0) + ' bình luận) sang tab lưu trữ' : 'Chưa có việc nào cần chuyển', 'ok', 4000); load(); return false; } }] : []).concat([{ t: 'Đóng', cls: 'ghost' }]) });
+    const load = async () => { const my = ++seq; let r;
+      try { r = await rpc('taskArchList', { q: m.$('#arQ').value.trim(), pid: isAll() ? '' : (curProj() || {}).id || '' }, { quiet: true }); } catch (e) { if (!m.closed) m.$('#arL').innerHTML = '<div class="small muted">' + esc(e.message) + '</div>'; return; }
+      if (my !== seq || m.closed) return;
+      m.$('#arN').innerHTML = 'Việc xong quá <b>' + r.days + ' ngày</b> (cả nhánh đã xong) không hiện trên bảng để app luôn mở nhanh — không mất gì. Bấm một việc để mở lại: cả nhánh hiện lại trên bảng thêm ' + r.days + ' ngày.' +
+        (r.last && r.last.at ? ' Lần chuyển sang tab lưu trữ gần nhất: ' + esc(fmtD(r.last.at)) + '.' : '');
+      m.$('#arL').innerHTML = r.items.length ? '<div class="tbl-wrap"><table class="tbl tk-ar-t"><thead><tr><th>Việc</th><th>Bảng</th><th>Phụ trách</th><th>Xong</th></tr></thead><tbody>' +
+          r.items.map(x => '<tr data-ar="' + esc(x.id) + '"><td>' + tkLvIc(x.type === 'epic' ? 'epic' : x.sub ? 'sub' : 'task') + ' <span class="tk-key">' + esc(x.key) + '</span> <b>' + esc(x.title) + '</b>' + (x.parent ? ' <small class="muted">· ' + esc(x.parent) + '</small>' : x.epic ? ' <small class="muted">· ' + esc(x.epic) + '</small>' : '') + '</td>' +
+            '<td class="small">' + esc(x.proj) + '</td><td>' + x.assignees.map(e => tkAv(e)).join('') + '</td><td class="small">' + esc(fmtD(x.doneAt)) + '</td></tr>').join('') + '</tbody></table></div>' +
+          (r.n > r.items.length ? '<div class="small muted" style="margin-top:6px">Hiện ' + r.items.length + ' / ' + r.n + ' việc — gõ để tìm thêm.</div>' : '')
+        : '<div class="empty"><i class="bi bi-archive"></i><b>' + (r.total ? 'Không có việc nào khớp' : 'Chưa có việc nào trong lưu trữ') + '</b><span>Việc xong quá ' + r.days + ' ngày sẽ tự vào đây.</span></div>'; };
+    m.$('#arQ').oninput = debounce(load, 300); load();
+    m.$('#arL').onclick = async e => { const tr = e.target.closest('[data-ar]'); if (!tr || tr.dataset.busy) return; tr.dataset.busy = 1; tr.style.opacity = '.5';
+      try { const t = await archOpen(tr.dataset.ar); m.close(); if (t) { TK.proj = t.projectId; paint(); taskDialog(t); } } catch (er) { delete tr.dataset.busy; tr.style.opacity = ''; fail(er); } };
+  }
   // thông báo bình luận của task đồng bộ trỏ tới mã gốc → tìm cả bản đồng bộ ('m' + mã)
-  const openTask = () => { if (!openId) return; const t = D().tasks.find(x => x.id === openId) || D().tasks.find(x => x.id === 'm' + openId); if (t) { TK.proj = t.projectId; paint(); taskDialog(t); } else toast('Không tìm thấy công việc hoặc bạn không phải thành viên dự án', 'warn'); };
+  const openTask = () => { if (!openId) return; const t = D().tasks.find(x => x.id === openId) || D().tasks.find(x => x.id === 'm' + openId); if (t) { TK.proj = t.projectId; paint(); taskDialog(t); }
+    else archOpen(openId).then(x => { if (!x) throw new Error(''); TK.proj = x.projectId; paint(); taskDialog(x); }).catch(() => toast('Không tìm thấy công việc hoặc bạn không phải thành viên dự án', 'warn')); };      // việc đã lưu trữ (link trong mail / thông báo) → mở lại
   v._onArg = a => { parse(a); paint(); openTask(); };
   v._onShow = () => { if (Date.now() - TK.at > 60000) reload(true); };
   if (Date.now() - TK.at > 60000) reload(true);      // dữ liệu đã được tải ngầm từ trước (warmUp) → hiện ngay bản đó rồi làm mới ngầm
