@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-30T04:30:51.851Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-10-30T16:36:23.375Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -12023,7 +12023,7 @@ function clState(x) {
   if (x.status === 'draft') return { k: 'draft', t: 'Chờ duyệt', i: 'bi-pencil-square', c: 'blue' };
   if (x.hold) return { k: 'none', t: 'Để trống — chờ chèn bài', i: 'bi-hourglass', c: 'red' };
   if (x.fill) return { k: 'fill', t: 'Đang tự xếp bài', i: 'bi-magic', c: 'blue' };
-  if ((clClass(x.classId) || {}).manual) return { k: 'none', t: 'Liên hệ chuyên môn để cập nhật bài', i: 'bi-telephone', c: 'warn' };      // (1.44.9) lớp “Chỉ tạo buổi”
+  if ((clClass(x.classId) || {}).manual) return CL.d.manage ? { k: 'none', t: 'Chưa chọn bài', i: 'bi-pencil', c: 'warn' } : { k: 'none', t: 'Chờ chuyên môn cập nhật bài', i: 'bi-telephone', c: 'warn' };      // (1.44.9) lớp “Chỉ tạo buổi” · (1.48) chữ ngắn, nội dung buổi để trống — không lặp lại nhãn
   return { k: 'none', t: 'Chưa có nội dung', i: 'bi-exclamation-circle', c: 'red' };
 }
 /** giờ tự duyệt của buổi nháp */
@@ -12276,9 +12276,8 @@ async function clPrintAll(c, btn) {
 function clContentHtml(x, c) {
   const p = clProg(c), fs = x.folders || [];
   if (x.status === 'off') return '<span class="tag gray"><i class="bi bi-slash-circle"></i>Nghỉ</span>';
-  if (!fs.length && !(x.extra || []).length && x.hold) return '<span class="cl-warn"><i class="bi bi-hourglass"></i>Để trống — chờ chèn bài</span>';
+  if (!fs.length && !(x.extra || []).length && (x.hold || c.manual)) return '';      // (1.48) “Để trống — chờ chèn bài” / “Chưa chọn bài” đã có ở nhãn trạng thái bên dưới → không hiện hai lần
   if (!fs.length && !(x.extra || []).length && x.fill && p) return '<span class="cl-fill">' + (c.autoOk ? 'Tự duyệt bật — xếp xong là duyệt & phát luôn' : 'Tự duyệt tắt — xếp xong chờ bạn duyệt') + '</span>';      // trạng thái “Đang tự xếp bài” đã có ở nhãn bên dưới
-  if (!fs.length && !(x.extra || []).length && c.manual) return '<span class="cl-warn"><i class="bi bi-telephone"></i>' + (CL.d.manage ? 'Chỉ tạo buổi — bấm sửa để chọn bài cho buổi này' : 'Chưa có bài — liên hệ bộ phận chuyên môn để cập nhật') + '</span>';
   if (!fs.length && !(x.extra || []).length) { const r = p && clRunway(c);
     return !p ? '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Lớp chưa gán chương trình</span>' : r && !r.left ? '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Hết bài trong chương trình — chọn bài tay</span>' : '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Chưa xếp bài — bấm sửa để chọn tay</span>'; }
   const man = CL.d.manage;   // gia sư chỉ thấy tên bài (tiến trình), mở tài liệu qua link buổi học
@@ -12294,12 +12293,12 @@ function clRow(x, opt) {
       // tên lớp có mũi tên › → biết là bấm vào để mở chi tiết lớp
       : '<div class="cl-rc"><a class="cl-code" data-go="classes/c/' + c.id + '" title="Sửa nhanh lớp"><span class="cl-cn">' + esc(clName(c)) + '</span><i class="bi bi-chevron-right cl-cv"></i></a>' + clFlags(c) + clChatDot(c) + (c.student ? '<span class="cl-stu cl-cd">' + esc(c.code) + '</span>' : '') + (c.grade ? '<span class="cl-gr">' + esc(c.grade) + '</span>' : '') +
         '<small>' + (man ? (c.tutorEmail ? zlName(c.tutorName || c.tutorEmail.split('@')[0], c.tutorEmail) : 'Chưa có gia sư') + (x.time ? ' · ' + esc(x.time) : '') : dd.ws + ' ' + dd.dm + ' · ' + esc(dd.rel) + (x.time ? ' · ' + esc(x.time) : '')) + '</small></div>') +
-    '<div class="cl-rf">' + (man || x.released ? clContentHtml(x, c) : '<span class="small muted"><i class="bi bi-lock"></i> ' + (x.gate === 'prev' ? 'Xác nhận buổi trước “Đã dạy” để mở nội dung' : c.manual && !x.status ? 'Chưa có bài — liên hệ bộ phận chuyên môn để cập nhật bài' : 'Nội dung đang chờ quản lý duyệt') + '</span>') +
+    '<div class="cl-rf">' + (man || x.released ? clContentHtml(x, c) : c.manual && !x.status && x.gate !== 'prev' ? '' : '<span class="small muted"><i class="bi bi-lock"></i> ' + (x.gate === 'prev' ? 'Xác nhận buổi trước “Đã dạy” để mở nội dung' : 'Nội dung đang chờ quản lý duyệt') + '</span>') +
       '<span class="cl-st ' + st.c + '"><i class="bi ' + st.i + '"></i>' + st.t + (x.auto && x.status !== 'draft' ? '<small class="cl-sx"> · tự duyệt</small>' : '') + (auto ? '<small class="cl-sx"> · tự duyệt lúc ' + auto + '</small>' : '') + (x.status === 'taught' && x.taughtAt ? '<small class="cl-sx"> · ' + fmtDT(x.taughtAt) + '</small>' : '') + '</span>' + (x.rate && CL_RATE[x.rate] ? '<span class="cl-rate r-' + x.rate + '" title="Gia sư đánh giá bài với bé' + (x.rnote ? ': ' + esc(x.rnote) : '') + '"><i class="bi ' + CL_RATE[x.rate][1] + '"></i>' + CL_RATE[x.rate][0] + '</span>' : '') + '</div>' +
     // các nút nằm trong ô cố định → thẳng hàng giữa các dòng kể cả khi dòng không có nút đó
     '<div class="cl-ra ' + (man ? 'm' : 't') + '">' +
       (man ? '<span class="cl-slot">' + (x.status === 'draft' ? '<button class="btn xs pri" data-act="approve"><i class="bi bi-check2"></i>Duyệt</button>' : '') + '</span>' +
-             '<span class="cl-slot">' + (x.status !== 'off' && x.status !== 'taught' ? '<button class="ibtn sm cl-edb" data-act="edit" title="Sửa nội dung buổi" aria-label="Sửa nội dung buổi"><i class="bi bi-pencil"></i></button>' : '') + '</span>' : '') +
+             '<span class="cl-slot">' + (x.status !== 'off' ? '<button class="ibtn sm cl-edb" data-act="edit" title="' + (x.status === 'taught' ? 'Sửa nội dung / tệp của buổi đã dạy — link của buổi cập nhật theo' : 'Sửa nội dung buổi') + '" aria-label="Sửa nội dung buổi"><i class="bi bi-pencil"></i></button>' : '') + '</span>' : '') +
       // gia sư: nút Link có chữ, to rõ (lấy tài liệu buổi học là việc làm mỗi buổi) · quản lý: nút biểu tượng gọn
       '<span class="cl-slot lk">' + (x.link && (man || x.released) ? '<button class="' + (man ? 'ibtn sm' : 'btn xs cl-lk') + (x.link.state === 'active' ? ' on' : ' dim') + '" data-act="copy" title="' + (x.link.state === 'active' ? 'Sao chép link tài liệu (' + x.link.n + ' tài liệu)' : 'Link đã khoá') + '" aria-label="Sao chép link"><i class="bi bi-link-45deg"></i>' + (man ? '' : 'Link') + '</button>'
         : (x.status === 'approved' || x.status === 'taught') && (man || x.released) && (x.folders || []).length ? '<button class="' + (man ? 'ibtn sm' : 'btn xs cl-lk') + '" data-act="link" title="Tạo link tài liệu" aria-label="Tạo link tài liệu"><i class="bi bi-link-45deg"></i>' + (man ? '' : 'Link') + '</button>' : '') + '</span>' +
@@ -12351,7 +12350,7 @@ async function clAct(anchor, act, x, done) {
   if (act === 'taught' && anchor && (man || !(x.folders || []).length)) clFlash(anchor, 'Đã dạy');
   const refresh = async msg => { await clReload(); if (msg) toast(msg); done(); };
   // điện thoại: chạm vào phần nội dung của buổi = mở hộp chọn bài (nút ít hơn, vẫn đủ chức năng)
-  if (act === 'open' && man && matchMedia('(max-width:820px)').matches && x.status !== 'off' && x.status !== 'taught') act = 'edit';
+  if (act === 'open' && man && matchMedia('(max-width:820px)').matches && x.status !== 'off') act = 'edit';
   try {
     if (act === 'open') { const p = clProg(c), fo = IX.byId[anchor.dataset.open], dir = fo ? fo.fid || '' : anchor.dataset.open; VCTX = null; return go(p ? 'programs/' + p.id + '/' + dir : 'library/' + dir); }
     if (act === 'approve') {
@@ -12369,6 +12368,7 @@ async function clAct(anchor, act, x, done) {
       return anchor ? clSoon(done) : done(); }
     if (act === 'more') return openMenu(anchor, [
       x.link && x.link.state === 'active' && (man || x.released) ? { t: 'Mở link tạm', i: 'bi-box-arrow-up-right', fn: () => window.open(clLinkUrl(x), '_blank') } : null,
+      man && x.link && x.link.state === 'active' && (x.status === 'approved' || x.status === 'taught') ? { t: 'Cập nhật link', d: 'Giữ nguyên link, lấy lại tệp mới nhất của bài (sau khi thay / thêm PDF)', i: 'bi-arrow-repeat', fn: async () => { try { await rpc('sessionLink', { id: x.id }); toast('Đã cập nhật link — tài liệu mới nhất, link giữ nguyên'); await clReload(); done(); } catch (e) { fail(e); } } } : null,
       !man && x.canEdit ? { t: 'Chọn nội dung buổi', d: 'Bạn được cấp quyền chọn bài cho buổi này', i: 'bi-pencil', fn: () => clContent(x, done) } : null,
       man && x.status === 'approved' ? { t: 'Bỏ duyệt (về nháp)', i: 'bi-arrow-counterclockwise', fn: () => { x.status = 'draft'; clQueue('sessionApprove', { ids: [x.id], undo: 1 }, { key: 'appr:' + x.id, label: 'Bỏ duyệt · ' + clName(c) }); toast('Đã bỏ duyệt'); done(); } } : null,
       x.status === 'taught' && (man || x.released) ? { t: 'Độ khó bài với bé' + (x.rate && CL_RATE[x.rate] ? ' · ' + CL_RATE[x.rate][0] : ''), d: 'Dễ quá · Vừa sức · Khó quá', i: 'bi-speedometer2', fn: () => clRateMenu(anchor, x, c, done) } : null,
@@ -12495,7 +12495,7 @@ function clTodo(B, v) {
           '<td class="ct-ct">' + clTagHtml(x) + (fs.length ? fs.map(esc).join('<br>') : x.status === 'off' ? '<span class="muted">Nghỉ</span>' : '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Chưa có bài</span>') + '</td>' +
           '<td class="nw"><span class="cl-st ' + st.c + '"><i class="bi ' + st.i + '"></i>' + st.t + (x.auto && x.status !== 'draft' ? ' · tự duyệt' : '') + '</span></td>' +
           '<td class="nw act">' + (x.status === 'draft' ? '<button class="btn xs pri" data-act="approve"><i class="bi bi-check2"></i>Duyệt</button>' : '') +
-            (x.status !== 'off' && x.status !== 'taught' ? '<button class="ibtn sm" data-act="edit" title="Nội dung"><i class="bi bi-pencil"></i></button>' : '') + '<button class="ibtn sm" data-bd="' + c.id + '" data-bd-s="' + x.id + '" title="Bảng gán bài của lớp (kéo thả nhiều buổi)"><i class="bi bi-grid-3x3-gap"></i></button><button class="ibtn sm" data-act="more" title="Tuỳ chọn"><i class="bi bi-three-dots"></i></button></td></tr>'; }).join('') +
+            (x.status !== 'off' ? '<button class="ibtn sm" data-act="edit" title="Nội dung"><i class="bi bi-pencil"></i></button>' : '') + '<button class="ibtn sm" data-bd="' + c.id + '" data-bd-s="' + x.id + '" title="Bảng gán bài của lớp (kéo thả nhiều buổi)"><i class="bi bi-grid-3x3-gap"></i></button><button class="ibtn sm" data-act="more" title="Tuỳ chọn"><i class="bi bi-three-dots"></i></button></td></tr>'; }).join('') +
       '</tbody></table></div>' + (list.length > n ? '<button class="btn sm cl-more" data-more="' + key + '"><i class="bi bi-chevron-down"></i>Xem thêm · còn ' + (list.length - n) + ' buổi</button>' : '') + '</div>'; };
   let list;
   if (CL.tv === 'table') { const L = shown.slice().sort(sortD); if (CL.st === 'out' || CL.st === 'taught') L.reverse();
@@ -13922,7 +13922,7 @@ const RQ_IC = { classRemove: 'bi-trash', classAdd: 'bi-person-plus', classMine: 
 async function clReqs(B, v) {
   const man = CL.d.manage;
   setTitle('Yêu cầu', 'bi-inboxes', man ? [{ t: S.boot.app, r: 'home' }, { t: 'Lớp gia sư', r: 'classes' }] : [{ t: S.boot.app, r: 'today' }], v);
-  let L = lsGet('reqCache:' + (S.me && S.me.email) + (S.as || ''), null), f = 'pending'; const pk = new Set();
+  let L = lsGet('reqCache:' + (S.me && S.me.email) + (S.as || ''), null), f = ''; const pk = new Set();      // f trống = chưa chọn: có yêu cầu chờ → Chờ duyệt, không có → Tất cả (1.48)
   const ck = 'reqCache:' + (S.me && S.me.email) + (S.as || '');
   // quyết định đang chờ gửi / vừa lưu xong → phủ lên bản tải về (bản tải có thể bắt đầu trước lúc lưu xong → tránh yêu cầu vừa duyệt hiện lại)
   const over = A => { obPending('reqDecide', true).forEach(p => (p.ids || []).forEach(id => { const r = A.find(x => x.id === id); if (r && r.status === 'pending') { r.status = p.act === 'reject' ? 'rejected' : 'approved'; r.note = p.note || ''; r.decidedAt = r.decidedAt || new Date().toISOString(); } })); return A; };
@@ -13930,6 +13930,7 @@ async function clReqs(B, v) {
   if (L) over(L);
   const paint = () => {
     const cnt = k => L.filter(r => k === 'all' || r.status === k).length;
+    if (!f) f = cnt('pending') || !L.length ? 'pending' : 'all';
     const list = L.filter(r => f === 'all' || r.status === f);
     [...pk].forEach(id => { if (!list.some(r => r.id === id && r.status === 'pending')) pk.delete(id); });
     B.innerHTML = '<div class="card"><div class="card-h rq-h"><div class="seg" id="rqF">' + [['pending', 'Chờ duyệt'], ['approved', 'Đã duyệt'], ['rejected', 'Từ chối'], ['all', 'Tất cả']].map(o => '<button class="seg-b" data-f="' + o[0] + '" aria-pressed="' + (f === o[0]) + '">' + o[1] + ' <small>' + cnt(o[0]) + '</small></button>').join('') + '</div><span class="sp"></span>' +
@@ -13956,7 +13957,7 @@ async function clReqs(B, v) {
       .then(r => { if (r && r.failed) toast(r.failed + ' yêu cầu chưa áp dụng được: ' + r.errors[0], 'warn', 7000); else if (r && r.done && act !== 'reject') toast('Đã áp dụng ' + r.done + ' yêu cầu · đã báo cho người gửi'); load().then(() => { if (B.dataset.tab === 'reqs') paint(); }).catch(() => {}); });
   };
   B.onclick = e => {
-    const fb = e.target.closest('[data-f]'); if (fb) { f = fb.dataset.f; return paint(); }
+    const fb = e.target.closest('[data-f]'); if (fb) { f = fb.dataset.f; return paint(); }      // chọn tay → giữ nguyên
     const o = e.target.closest('[data-ok]'); if (o) return decide([o.dataset.ok], 'approve');
     const n = e.target.closest('[data-no]'); if (n) return decide([n.dataset.no], 'reject');
     if (e.target.closest('#rqOk')) return decide([...pk], 'approve');
@@ -14019,20 +14020,30 @@ function tnTimeline(D, L, unread) {
 /** cột của bảng nhận ghi chú (mini-Kanban) — dữ liệu cũ chưa có cột thì dùng 4 trạng thái chuẩn */
 function tnCols(D) { return D && D.cols && D.cols.length ? D.cols : Object.keys(TN_ST).map(k => ({ id: k, t: TN_ST[k][0], done: k === 'done' ? 1 : 0, std: 1 })); }
 function tnColOf(D, x) { const C = tnCols(D); return C[0].std ? x.stage : C.some(c => c.id === x.col) ? x.col : x.done ? (C.find(c => c.done) || C[C.length - 1]).id : C[0].id; }
+/** (1.48) bản tải mới thay vào TN.d nhưng GIỮ đối tượng cũ (cùng mã): hộp xem mở từ bản lưu trên máy trước lúc tải xong vẫn sửa đúng dòng đang hiện
+    — trước đây đổi cột trong hộp xem không thấy đổi (sửa vào bản cũ đã bị thay), phải sang Kanban kéo thẻ. Lệnh chuyển cột chưa lưu xong phủ lên bản tải về. */
+function tnMerge(d, ck) {
+  const was = TN.d && TN.ck === ck ? TN.d : null, by = {}; ((was && was.items) || []).forEach(x => { by[x.id] = x; });
+  d.items = (d.items || []).map(y => by[y.id] ? Object.assign(by[y.id], y) : y);
+  if (was) { Object.keys(was).forEach(k => { if (!(k in d)) delete was[k]; }); Object.assign(was, d); } else { TN.d = d; TN.ck = ck; }
+  (typeof obPending === 'function' ? obPending('tnMove', true) : []).forEach(p => { const x = TN.d.items.find(y => y.id === p.id), c = tnCols(TN.d).find(k => k.id === p.status); if (x && c) tnColSet(TN.d, x, c); });
+}
+function tnColSet(D, x, c) { const i = tnCols(D).indexOf(c); Object.assign(x, { col: c.id, st: c.t, done: c.done ? 1 : 0, stage: c.done ? 'done' : i <= 0 ? 'todo' : /review|duy[eệ]t|ki[eể]m|ch[oờ] /i.test(c.id + ' ' + c.t + ' ') ? 'review' : 'doing' }); }
 /** quản lý chuyển cột một ghi chú (kéo thẻ ở mini-Kanban hoặc ô Chuyển cột trong hộp xem): đổi ngay trên màn hình, lưu ngầm; lỗi → trả lại như cũ */
 function tnMoveTo(x, colId, done, mail) {
   const D = TN.d, C = tnCols(D), c = C.find(k => k.id === colId); if (!c || C[0].std || tnColOf(D, x) === colId) return;
-  const old = { col: x.col, st: x.st, stage: x.stage, done: x.done }, i = C.indexOf(c);
-  Object.assign(x, { col: c.id, st: c.t, done: c.done ? 1 : 0, stage: c.done ? 'done' : i <= 0 ? 'todo' : /review|duy[eệ]t|ki[eể]m|ch[oờ] /i.test(c.id + ' ' + c.t + ' ') ? 'review' : 'doing', upd: new Date().toISOString() });
+  const live = () => (TN.d && (TN.d.items || []).find(y => y.id === x.id)) || x, set = o => { Object.assign(x, o); const y = live(); if (y !== x) Object.assign(y, o); };      // phòng hờ x là bản cũ
+  const old = { col: x.col, st: x.st, stage: x.stage, done: x.done };
+  tnColSet(D, x, c); x.upd = new Date().toISOString(); set({ col: x.col, st: x.st, stage: x.stage, done: x.done, upd: x.upd });
   done && done();
   queueRpc('tnMove', { id: x.id, status: c.id, mail: (mail === undefined ? lsGet('tnMail', 1) : mail) ? 1 : 0 }, { key: 'tnmv:' + x.id, label: 'Chuyển ' + (x.key || 'ghi chú') + ' → ' + c.t, merge: (a, b) => b })
-    .then(r => { Object.assign(x, r); lsSet(TN.ck, D); done && done(); }, e => { Object.assign(x, old); done && done(); toast('Chưa chuyển được ' + (x.key || 'ghi chú') + ' — ' + e.message, 'err', 6000); });
+    .then(r => { set(r); lsSet(TN.ck, TN.d); done && done(); toast((x.key || 'Ghi chú') + ' → ' + c.t, 'ok', 2000); }, e => { set(old); done && done(); toast('Chưa chuyển được ' + (x.key || 'ghi chú') + ' — ' + e.message, 'err', 6000); });
 }
 async function clNotes(B, v, openId) {
   const man = CL.d.manage, ck = 'tnCache:' + (S.me && S.me.email) + (S.as || '');
   setTitle('Yêu cầu', 'bi-inboxes', man ? [{ t: S.boot.app, r: 'home' }, { t: 'Lớp gia sư', r: 'classes' }] : [{ t: S.boot.app, r: 'today' }], v);
   if (!TN.d || TN.ck !== ck) { TN.d = lsGet(ck, null); TN.ck = ck; }
-  const load = async () => { const d = await rpc('tnList', {}, { quiet: true }); TN.d = d; TN.ck = ck; lsSet(ck, d); return d; };
+  const load = async () => { const d = await rpc('tnList', {}, { quiet: true }); tnMerge(d, ck); lsSet(ck, TN.d); return TN.d; };
   const stOf = x => TN_ST[x.stage] || TN_ST.todo, kn = k => ((TN.d && TN.d.kinds) || {})[k] || 'Ghi chú';
   const paint = () => {
     if (B.dataset.tab !== 'notes') return;
@@ -14161,7 +14172,9 @@ function tnView(x, done) {
     queueRpc('tnDue', { id: x.id, due: du.value }, { key: 'tndue:' + x.id, label: 'Đặt hạn ' + (x.key || 'ghi chú'), merge: (a, b) => b })
       .then(r => { Object.assign(x, r); lsSet(TN.ck, D); done && done(); }, e => { x.due = old; du.value = old || ''; done && done(); toast('Chưa đặt được hạn — ' + e.message, 'err'); }); };
   m.$('#tnCt').onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); m.$('#tnCs').click(); } };      // Ctrl / ⌘ + Enter = gửi
-  rpc('tnGet', { id: x.id }, { quiet: true }).then(r => { if (m.closed) return; cm(r.comments); Object.assign(x, r.item); done && done(); }).catch(e => { if (!m.closed) m.$('#tnCm').innerHTML = '<div class="small muted">' + esc(e.message) + '</div>'; });
+  rpc('tnGet', { id: x.id }, { quiet: true }).then(r => { if (m.closed) return; cm(r.comments); Object.assign(x, r.item);
+    obPending('tnMove', true).forEach(q => { const c = q.id === x.id && tnCols(D).find(k => k.id === q.status); if (c) tnColSet(D, x, c); });      // vừa đổi cột mà chưa lưu xong → giữ cột mới
+    const mv = m.$('#tnMv'); if (mv) mv.value = tnColOf(D, x); done && done(); }).catch(e => { if (!m.closed) m.$('#tnCm').innerHTML = '<div class="small muted">' + esc(e.message) + '</div>'; });
   const mv = m.$('#tnMv'); if (mv) mv.onchange = () => tnMoveTo(x, mv.value, done, ml());
   m.$('#tnCs').onclick = async () => { const ta = m.$('#tnCt'), text = ta.value.trim(); if (!text) return ta.focus(); const b = m.$('#tnCs'); b.disabled = true;
     try { const r = await rpc('tnComment', { id: x.id, text: text, mail: ml() ? 1 : 0 }); ta.value = ''; cm(r.comments); Object.assign(x, r.item); lsSet(TN.ck, D); done && done();
@@ -19648,7 +19661,7 @@ async function viewTasks(arg, v) {
   const mirOk = t => !t.mir || !tkProj(t.mir.pid) || (!isAll() && (mode === 'board' || mode === 'list' || mode === 'backlog'));
   const match = t => {
     const w = fold(TK.q).split(/\s+/).filter(Boolean), td = tkToday();
-    return w.every(x => fold(t.key + ' ' + t.title + ' ' + t.labels.join(' ') + ' ' + tkWho(t).map(tkUser).join(' ')).indexOf(x) >= 0) && (!TK.who || tkWho(t).indexOf(TK.who) >= 0) && (!TK.epic || t.epicId === TK.epic) &&
+    return w.every(x => fold(t.key + ' ' + t.title + ' ' + t.labels.join(' ') + ' ' + tkWho(t).map(tkUser).join(' ') + (t.ref && t.ref.src === 'tutor' ? ' ' + (t.ref.clsName || '') + ' ' + (t.ref.prog || '') : '')).indexOf(x) >= 0) && (!TK.who || tkWho(t).indexOf(TK.who) >= 0) && (!TK.epic || t.epicId === TK.epic) &&
       (!TK.quick || (TK.quick === 'me' ? tkWho(t).indexOf(D().me) >= 0 : TK.quick === 'late' ? !tkDone(t) && t.due && t.due < td : TK.quick === 'none' ? !tkWho(t).length : TK.quick === 'new' ? Date.now() - new Date(t.updatedAt || t.createdAt).getTime() < 2 * 864e5 : true));
   };
   // bản trước 1.30: “Chọn bảng hiện…” (tkPick, chỉ nhớ trên máy) → thành NHÓM BẢNG “Bảng đã chọn” (một lần)
@@ -20807,6 +20820,7 @@ async function viewTasks(arg, v) {
         '<div id="tShW"' + (own(p0) && teamBoards().length ? '' : ' hidden') + '><label>Hiện lên bảng chung <i class="bi bi-info-circle" title="Người trong bảng chung (VD trưởng nhóm) thấy task này — bạn chỉ cập nhật ở bảng riêng, bảng chung tự đổi theo. Họ xem và bình luận được, không sửa được. Epic / task được hiện thì việc bên trong đi theo."></i></label>' +
           '<select class="sel" id="tSh">' + opt([['', 'Không hiện']].concat(teamBoards().concat(cur.shareTo && !teamBoards().some(p => p.id === cur.shareTo) && tkProj(cur.shareTo) ? [tkProj(cur.shareTo)] : []).map(p => [p.id, p.name])), cur.shareTo || '') + '</select>' +
           '<button type="button" class="tk-shwho" id="tShWho" hidden></button><small class="muted" id="tShN"></small></div>' +
+        (cur.ref && cur.ref.src === 'tutor' && (cur.ref.clsName || cur.ref.prog) ? '<div><label>Lớp gia sư</label><div class="tk-pic">' + (cur.ref.clsName ? '<span class="tk-pc tk-lbc"><i class="bi bi-person-video3"></i><span>' + esc(cur.ref.clsName) + '</span></span>' : '') + (cur.ref.prog ? '<span class="tk-pc tk-lbc"><i class="bi bi-journal-bookmark"></i><span>' + esc(cur.ref.prog) + '</span></span>' : '') + '</div></div>' : '') +      // (1.48) thay cho nhãn tên bé / chương trình
         '<div><label>Nhãn</label><div class="tk-pic" id="tLb"></div><select class="sel" id="tL" aria-label="Thêm nhãn"></select>' +
           '<div class="tk-lnew" id="tLnW" hidden><input class="inp" id="tLn" placeholder="Tên nhãn mới rồi nhấn Enter" maxlength="40"><button type="button" class="btn sm pri" id="tLnOk"><i class="bi bi-plus-lg"></i>Thêm</button></div></div>' +
         '<details class="tk-more"' + (!isNew && ['bug', 'idea', 'doc'].indexOf(cur.type) >= 0 ? ' open' : '') + '><summary><i class="bi bi-sliders"></i>Tuỳ chọn khác<i class="bi bi-chevron-down cv"></i></summary><div class="tk-more-b">' +
@@ -21067,7 +21081,7 @@ async function viewTasks(arg, v) {
     /* (1.46) HƯỚNG DẪN gọn: chữ giải thích ẩn sau nút ? nhỏ — bấm để xem / ẩn */
     const hq = id => '<button type="button" class="tk-hq" data-hq="' + id + '" title="Xem hướng dẫn" aria-label="Xem hướng dẫn" aria-expanded="false"><i class="bi bi-question-circle"></i></button>';
     const own = isNew ? D().me : p.createdBy, canLd = isNew || p.createdBy === D().me || !!C().admin, ld0 = p ? (p.leads || []).slice() : [];
-    const vw0 = p ? p.view || '' : ''; let vw = vw0 === 'up' ? 'pic' : vw0, vwDn = vw0 !== 'up';      // (1.45) 'up' = giới hạn, không kèm cấp nhỏ hơn
+    const vw0 = p && p.view ? p.view : 'pic'; let vw = vw0 === 'up' ? 'pic' : vw0, vwDn = vw0 !== 'up';      // (1.45) 'up' = giới hạn, không kèm cấp nhỏ hơn · (1.48) mặc định giới hạn theo PIC, 'role' = theo vai trò
     // mỗi cột MỘT dòng: tên · (giới hạn, khi bật) · bỏ cột. Cột “xong” chọn MỘT lần ở ô bên dưới — không lặp chữ “Hoàn thành” ở mọi dòng
     const colHtml = () => (wipOn ? '<div class="tk-colh"><span>Tên cột</span><span>Tối đa</span><span></span></div>' : '') + cols.map((c, i) => '<div class="r' + (c.done ? ' dn' : '') + '" data-i="' + i + '"><span class="nm"><input class="inp" value="' + esc(c.t) + '" placeholder="Tên cột" aria-label="Tên cột ' + (i + 1) + '">' +
       (c.done ? '<i class="bi bi-check2-circle" title="Việc vào cột này = đã xong"></i>' : '') + '</span>' +
@@ -21092,7 +21106,7 @@ async function viewTasks(arg, v) {
           '<div class="hint" id="pMN" hidden>Để trống = mọi người dùng Kiến Task đều thấy bảng. Thêm / bớt người lúc nào cũng được: nút <i class="bi bi-folder-plus"></i> › Sửa bảng.</div></div>' +
         /* PHẠM VI XEM (1.45): theo vai trò · toàn bảng · giới hạn theo PIC (+ kèm cấp nhỏ hơn) — máy chủ lọc ở taskSeesT_ */
         '<div class="fg" style="margin-top:14px"><label class="flabel">Thành viên thấy việc nào ' + hq('pVwN') + '</label><div class="seg fill tk-scope" id="pVw" role="group" aria-label="Phạm vi xem">' +
-          [['', 'bi-person-badge', 'Theo vai trò'], ['all', 'bi-eye', 'Toàn bảng'], ['pic', 'bi-funnel', 'Giới hạn theo PIC']].map(o => '<button type="button" class="seg-b" data-vw="' + o[0] + '" aria-pressed="' + (vw === o[0]) + '"><i class="bi ' + o[1] + '"></i><span>' + o[2] + '</span></button>').join('') + '</div>' +
+          [['pic', 'bi-funnel', 'Giới hạn theo PIC'], ['role', 'bi-person-badge', 'Theo vai trò'], ['all', 'bi-eye', 'Toàn bảng']].map(o => '<button type="button" class="seg-b" data-vw="' + o[0] + '" aria-pressed="' + (vw === o[0]) + '"><i class="bi ' + o[1] + '"></i><span>' + o[2] + '</span></button>').join('') + '</div>' +
           '<div class="hint" id="pVwN" hidden></div>' +
           '<label class="tk-wipt" id="pVdW"' + (vw === 'pic' ? '' : ' hidden') + '><input type="checkbox" id="pVd"' + (vwDn ? ' checked' : '') + '><span><b>Kèm cấp nhỏ hơn</b> ' + hq('pVdN') + '<br><span class="small muted" id="pVdN" hidden>PIC của Epic thấy mọi Task / Sub-task trong Epic, PIC của Task thấy mọi Sub-task của Task — kể cả việc giao cho người khác. Bỏ chọn = chỉ thấy đúng việc mình được giao.</span></span></label></div></div>' +
         (!isNew && !personal ? '<div class="fg" id="pInvW"><label class="flabel">Link mời vào bảng ' + hq('pInN') + '</label><div class="hint" id="pInN" hidden>Gửi qua Zalo / tin nhắn — người nhận đăng nhập là vào thẳng bảng này; đủ số người là link tự huỷ.</div><div class="tk-binv" id="pInv">' + miniLoader('Đang tải…') + '</div></div>' : '') +
