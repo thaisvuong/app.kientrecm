@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T11:24:25.635Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T12:40:36.927Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5294,7 +5294,10 @@ function openMenu(anchor, items) {
   document.body.appendChild(menuEl);
   const w = menuEl.offsetWidth, h = menuEl.offsetHeight;
   menuEl.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + 'px';
-  menuEl.style.top = (r.bottom + 6 + h > innerHeight ? r.top - h - 6 : r.bottom + 6) + 'px';
+  // ưu tiên XỔ XUỐNG: không đủ chỗ thì vẫn xổ xuống và cuộn trong menu; chỉ lật lên khi bên dưới quá chật (< 220px) — lật lên cũng không tràn mép trên
+  const below = innerHeight - r.bottom - 14, above = r.top - 14;
+  if (h <= below || below >= 220 || below >= above) { menuEl.style.top = (r.bottom + 6) + 'px'; if (h > below) menuEl.style.maxHeight = below + 'px'; }
+  else { if (h > above) menuEl.style.maxHeight = above + 'px'; menuEl.style.top = Math.max(8, r.top - Math.min(h, above) - 6) + 'px'; }
   setTimeout(() => document.addEventListener('mousedown', function h(e) { if (menuEl && !menuEl.contains(e.target)) closeMenu(); document.removeEventListener('mousedown', h); }), 0);
 }
 /** điện thoại: menu ⋯ hiện thành bảng tác vụ trượt từ dưới lên (ngón cái với tới, chữ to, có mô tả) */
@@ -20293,7 +20296,8 @@ async function viewTasks(arg, v) {
       if (k === 'epic') return P.filter(p => !q || fold(p.name).indexOf(q) >= 0).map(p => item(p.id, '', '<i class="bi ' + (p.scope === 'personal' ? 'bi-lock-fill' : 'bi-kanban') + ' tk-pw-b"></i>', p.name, p.scope === 'personal' ? 'Bảng riêng' : 'Bảng chung')).join('') || '<div class="small muted tk-pw-0">Không có bảng nào khớp</div>';
       const open = par.filter(t => !tkDone(t) && hit(t)), done = par.filter(t => tkDone(t) && hit(t));
       const none = k === 'task' ? P.map(p => item(p.id, '', '<i class="bi bi-dash-circle tk-pw-b"></i>', 'Không thuộc epic', many ? p.name : 'Task lẻ — gắn epic sau cũng được', 'none')).join('') : '';
-      return (open.length ? open.map(row).join('') : '<div class="small muted tk-pw-0">' + (q ? 'Không có ' + (k === 'task' ? 'epic' : 'task') + ' đang làm nào khớp' : 'Chưa có ' + (k === 'task' ? 'epic' : 'task') + ' nào đang làm') + '</div>') + none +
+      // chưa gõ tìm: “Không thuộc epic” đứng ĐẦU (bấm ngay, khỏi tìm) · đang tìm: xuống cuối để Enter chọn epic khớp đầu tiên
+      return (q ? '' : none) + (open.length ? open.map(row).join('') : '<div class="small muted tk-pw-0">' + (q ? 'Không có ' + (k === 'task' ? 'epic' : 'task') + ' đang làm nào khớp' : 'Chưa có ' + (k === 'task' ? 'epic' : 'task') + ' nào đang làm') + '</div>') + (q ? none : '') +
         (done.length ? '<details class="tk-pw-d"' + (q ? ' open' : '') + '><summary><i class="bi bi-check2-circle"></i>' + done.length + ' ' + (k === 'task' ? 'epic' : 'task') + ' đã hoàn thành<i class="bi bi-chevron-down cv"></i></summary>' + done.map(row).join('') + '</details>' : ''); };
     const m = modal({ title: k === 'epic' ? 'Tạo epic ở bảng nào?' : k === 'task' ? 'Task mới thuộc epic nào?' : 'Sub-task mới thuộc task nào?', icon: k === 'epic' ? 'bi-lightning-charge' : k === 'task' ? 'bi-check2-square' : 'bi-arrow-return-right',
       body: '<div class="tk-pw"><div class="search"><i class="bi bi-search"></i><input class="inp" id="pwQ" placeholder="' + (k === 'epic' ? 'Tìm bảng…' : k === 'task' ? 'Tìm epic…' : 'Tìm task…') + '" autocomplete="off" autofocus></div><div class="tk-pw-l" id="pwL"></div></div>' });
