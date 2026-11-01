@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T04:45:24.481Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T06:45:41.218Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4744,7 +4744,9 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 /* (1.54) quy tắc: hàng nhãn | nội dung · ô chọn nhóm thả xuống (tick nhiều) · tick link · link thêm */
 .zb-r{ gap:10px } .zb-no{ flex:none; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; background:var(--surface-2); font-size:11px; font-weight:700; color:var(--muted) }
 .zb-fg{ display:grid; grid-template-columns:104px minmax(0, 1fr); gap:6px 10px; align-items:start } .zb-fl{ font-size:12px; font-weight:600; color:var(--muted); padding-top:8px }
-.zb-ms{ position:relative; min-width:0 }
+.zb-ms{ position:relative; min-width:0; max-width:440px }      /* (1.55) không kéo dài hết hàng */
+.zb-who{ display:flex; flex-wrap:wrap; align-items:center; gap:8px } .zb-who > .sel{ width:auto; flex:0 0 190px } .zb-who > .zb-ms{ flex:1 1 240px } .zb-wh{ flex:1 1 100%; color:var(--muted); font-size:11.5px }
+.zb-r .zb-fg > .inp{ max-width:560px } .zb-mq{ margin-bottom:4px; height:30px } .zb-ck[hidden]{ display:none }
 .zb-msb{ width:100%; min-height:34px; display:flex; align-items:center; gap:7px; padding:5px 10px; border:1px solid var(--border-strong); border-radius:var(--r-s); background:var(--surface-2); color:var(--ink); font:inherit; font-size:12.5px; text-align:left; cursor:pointer }
 .zb-msb:hover{ border-color:#A8B5C7; background:#fff } .zb-msb[aria-expanded="true"]{ border-color:var(--brand-600); background:#fff; box-shadow:0 0 0 3px var(--ring) }
 .zb-msb > i:first-child{ color:var(--primary) } .zb-msb > span{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .zb-msb em{ flex:none; font-style:normal; font-size:11px; color:var(--muted) } .zb-car{ flex:none; font-size:11px; color:var(--muted) }
@@ -9720,7 +9722,7 @@ async function viewSettings(arg, v, solo) {
    Kết nối bot (Bot Token của Zalo Bot Platform) · nơi nhận (nhóm / tin riêng, dò bằng tin @nhắc bot) · gửi loại thông báo nào vào nhóm nào.
    Máy chủ: ZaloBot.gs (token chỉ ở Script Properties, trình duyệt chỉ thấy 4 ký tự cuối). */
 async function setZalo(B) {
-  let Z = null, R = [], dirty = false, swap = false, pick = -1;      // pick = quy tắc đang mở ô chọn nhóm
+  let Z = null, R = [], dirty = false, swap = false, pick = '';      // pick = ô chọn thả xuống đang mở ('<quy tắc>:<g|u|r>')
   const evOf = k => Z.ev.find(e => e.k === k) || { t: k };
   const gName = id => (Z.groups.find(g => g.id === id) || { name: '(đã xoá)' }).name;
   const take = z => { Z = z; R = JSON.parse(JSON.stringify(z.rules)); dirty = false; paint(); };
@@ -9771,16 +9773,31 @@ async function setZalo(B) {
     return '<div class="zb-diag"><i class="bi bi-info-circle"></i><div><b>Lần dò gần nhất · ' + esc(fmtDT(d.at)) + '</b><small>' + (d.got ? 'Đọc được ' + d.got + ' tin' + (ks ? ' (' + esc(ks) + ')' : '') : esc(d.note || 'Không có tin mới')) + ' · ' + d.calls + ' lần hỏi Zalo</small>' +
       (!d.got && !Z.groups.length && !Z.seen.length ? '<small>Chưa thấy nhóm? (1) Bấm Dò <b>trước</b>, rồi trong 60 giây vào nhóm gõ <b>@</b> và <b>chọn</b> tên bot trong danh sách hiện ra (chữ phải thành màu xanh), gửi. (2) Thử <b>nhắn riêng</b> cho bot một câu rồi Dò — thấy tin riêng mà không thấy tin nhóm nghĩa là Zalo chưa chuyển tin trong nhóm cho bot (tính năng nhóm của Zalo Bot còn đang thử nghiệm); khi đó vẫn dùng được nơi nhận là tin riêng.</small>' : '') +
       (d.sample ? '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Dữ liệu Zalo trả về</summary><code class="zb-raw">' + esc(d.sample) + '</code></details>' : '') + '</div></div>'; };
+  /* (1.55) Ô CHỌN THẢ XUỐNG tick nhiều mục, dùng chung: k = 'g' nhóm nhận · 'u' người · 'r' vai trò (áp dụng cho). pick = '<quy tắc>:<k>' đang mở */
+  const msItems = k => k === 'g' ? Z.groups.map(g => ({ id: g.id, t: g.name, i: kindI(g.kind), s: g.kind === 'PRIVATE' ? 'tin riêng' : 'nhóm' }))
+    : k === 'u' ? Z.users.map(u => ({ id: u.e, t: u.n, i: 'bi-person', s: u.e })) : Z.roles.map(x => ({ id: x.id, t: x.t, i: 'bi-shield-check', s: '' }));
+  const msArr = (r, k) => k === 'g' ? r.g : (r.who = r.who || { m: 'all', u: [], r: [] }, k === 'u' ? (r.who.u = r.who.u || []) : (r.who.r = r.who.r || []));
+  const msBtn = (k, on, ph) => { const sel = msItems(k).filter(x => on.indexOf(x.id) >= 0);
+    return sel.length ? '<i class="bi ' + sel[0].i + '"></i><span>' + esc(sel.map(x => x.t).join(', ')) + '</span>' + (sel.length > 1 ? '<em>' + sel.length + (k === 'g' ? ' nhóm' : k === 'u' ? ' người' : ' vai trò') + '</em>' : '') + '<i class="bi bi-chevron-down zb-car"></i>'
+      : '<span class="muted">' + ph + '</span><i class="bi bi-chevron-down zb-car"></i>'; };
+  const msel = (i, k, on, ph) => { const op = pick === i + ':' + k, L = msItems(k);
+    return '<div class="zb-ms"><button type="button" class="zb-msb" data-ms="' + k + '" data-ph="' + esc(ph) + '" aria-haspopup="listbox" aria-expanded="' + op + '">' + msBtn(k, on, ph) + '</button>' +
+      (op ? '<div class="zb-mp" role="listbox" aria-multiselectable="true">' + (L.length > 7 ? '<input class="inp zb-mq" data-mq placeholder="Tìm…" autocomplete="off">' : '') +
+        L.map(x => '<label class="zb-ck" data-q="' + esc((x.t + ' ' + x.s).toLowerCase()) + '"><input type="checkbox" data-mc="' + esc(x.id) + '"' + (on.indexOf(x.id) >= 0 ? ' checked' : '') + '><i class="bi ' + x.i + '"></i><span>' + esc(x.t) + '</span><small>' + esc(x.s) + '</small></label>').join('') +
+        (L.length ? '' : '<div class="small muted" style="padding:6px">Chưa có mục nào</div>') +
+        '<div class="zb-mpf"><button type="button" class="btn xs ghost" data-msall>Chọn tất cả</button><button type="button" class="btn xs ghost" data-msnone>Bỏ hết</button><span class="sp"></span><button type="button" class="btn xs pri" data-msok>Xong</button></div></div>' : '') + '</div>'; };
   /* (1.54) mỗi quy tắc: loại · bảng (Kiến Task) · GỬI VÀO = ô chọn thả xuống tick nhiều nhóm · KÈM LINK theo loại · LINK THÊM (tên + địa chỉ) · DÒNG ĐẦU TIN · Gửi thử */
   const rules = () => {
     if (!Z.has || !Z.groups.length) return '';
     const daily = R.some(r => evOf(r.ev).d);
     const bopt = cur => '<option value="">Mọi bảng chung</option>' + Z.boards.map(b => '<option value="' + esc(b.id) + '"' + (b.id === cur ? ' selected' : '') + '>' + esc(b.name) + (b.mine ? ' (bảng riêng · ' + esc(b.by.split('@')[0]) + ')' : '') + '</option>').join('');
-    const gsel = (r, i) => { const on = Z.groups.filter(g => r.g.indexOf(g.id) >= 0), op = pick === i;
-      return '<div class="zb-ms"><button type="button" class="zb-msb" data-ms aria-haspopup="listbox" aria-expanded="' + op + '">' +
-        (on.length ? '<i class="bi ' + kindI(on[0].kind) + '"></i><span>' + esc(on.map(g => g.name).join(', ')) + '</span>' + (on.length > 1 ? '<em>' + on.length + ' nhóm</em>' : '') : '<span class="muted">Chọn nhóm nhận…</span>') + '<i class="bi bi-chevron-down zb-car"></i></button>' +
-        (op ? '<div class="zb-mp" role="listbox" aria-multiselectable="true">' + Z.groups.map(g => '<label class="zb-ck"><input type="checkbox" data-rgc="' + g.id + '"' + (r.g.indexOf(g.id) >= 0 ? ' checked' : '') + '><i class="bi ' + kindI(g.kind) + '"></i><span>' + esc(g.name) + '</span><small>' + (g.kind === 'PRIVATE' ? 'tin riêng' : 'nhóm') + '</small></label>').join('') +
-          '<div class="zb-mpf"><button type="button" class="btn xs ghost" data-msall>Chọn tất cả</button><button type="button" class="btn xs ghost" data-msnone>Bỏ hết</button><span class="sp"></span><button type="button" class="btn xs pri" data-msok>Xong</button></div></div>' : '') + '</div>'; };
+    const gsel = (r, i) => msel(i, 'g', r.g, 'Chọn nhóm nhận…');
+    const WH = { taskRemind: 'Chỉ nhắc việc do những người này phụ trách', req: 'Khi gia sư / người gửi yêu cầu thuộc nhóm này', sessReport: 'Khi gia sư báo thuộc nhóm này', classAsk: 'Chỉ lớp của các gia sư này',
+      classDaily: 'Chỉ các lớp của gia sư thuộc nhóm này', account: 'Theo người đăng ký (vai trò họ chọn khi đăng ký)', ann: 'Khi người đăng thuộc nhóm này' };
+    const whoRow = (r, i) => { const w = r.who || { m: 'all' };
+      return '<div class="zb-fg"><div class="zb-fl">Áp dụng cho</div><div class="zb-who"><select class="sel" data-f="wm" aria-label="Áp dụng cho">' + [['all', 'Tất cả mọi người'], ['users', 'Người cụ thể…'], ['roles', 'Vai trò cụ thể…']].map(o => '<option value="' + o[0] + '"' + (o[0] === w.m ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' +
+        (w.m === 'users' ? msel(i, 'u', w.u || [], 'Chọn người…') : w.m === 'roles' ? msel(i, 'r', w.r || [], 'Chọn vai trò…') : '') +
+        (w.m !== 'all' ? '<small class="zb-wh">' + esc(WH[r.ev] || 'Khi người làm, người phụ trách hoặc người tạo việc thuộc nhóm này') + '</small>' : '') + '</div></div>'; };
     const lkOn = r => r.links || ((evOf(r.ev).lk || [])[0] ? [evOf(r.ev).lk[0][0]] : []);
     const lks = r => { const L = evOf(r.ev).lk || [], on = lkOn(r); return L.length ? L.map(x => '<label class="zb-ck"><input type="checkbox" data-lk="' + x[0] + '"' + (on.indexOf(x[0]) >= 0 ? ' checked' : '') + '><span>' + esc(x[1]) + '</span></label>').join('') : '<span class="small muted">Loại này không có link riêng</span>'; };
     const ext = r => (r.extra || []).map((x, j) => '<div class="zb-exr"><input class="inp" data-ex="' + j + '" data-k="t" maxlength="40" placeholder="Tên link, VD Sheet điểm danh" value="' + esc(x.t) + '"><input class="inp mono" data-ex="' + j + '" data-k="u" placeholder="https://…" value="' + esc(x.u) + '"><button type="button" class="ibtn sm" data-exx="' + j + '" title="Bỏ link" aria-label="Bỏ link"><i class="bi bi-x-lg"></i></button></div>').join('') +
@@ -9790,7 +9807,7 @@ async function setZalo(B) {
         return '<div class="zb-r" data-i="' + i + '"><div class="zb-rh"><span class="zb-no">' + (i + 1) + '</span><select class="sel" data-f="ev" aria-label="Loại thông báo">' + Z.ev.map(e => '<option value="' + e.k + '"' + (e.k === r.ev ? ' selected' : '') + '>' + esc(e.t) + '</option>').join('') + '</select>' +
           (E.b ? '<select class="sel" data-f="board" aria-label="Bảng">' + bopt(r.board) + '</select>' : '') +
           '<button type="button" class="btn sm ghost" data-rt title="Gửi một tin mẫu theo quy tắc này vào các nhóm đã chọn"><i class="bi bi-send"></i>Gửi thử</button><button type="button" class="ibtn sm" data-rx title="Bỏ quy tắc" aria-label="Bỏ quy tắc"><i class="bi bi-x-lg"></i></button></div>' +
-          '<div class="zb-fg"><div class="zb-fl">Gửi vào</div>' + gsel(r, i) + '</div>' +
+          '<div class="zb-fg"><div class="zb-fl">Gửi vào</div>' + gsel(r, i) + '</div>' + whoRow(r, i) +
           '<div class="zb-fg"><div class="zb-fl">Kèm link</div><div class="zb-lks">' + lks(r) + '</div></div>' +
           '<div class="zb-fg"><div class="zb-fl">Link thêm</div><div class="zb-ex">' + ext(r) + '</div></div>' +
           '<div class="zb-fg"><div class="zb-fl">Dòng đầu tin</div><input class="inp" data-f="note" maxlength="200" placeholder="(tuỳ chọn) VD: Team Tuyển sinh xử lý trong ngày nhé" value="' + esc(r.note || '') + '"></div></div>'; }).join('') + '</div>'
@@ -9832,33 +9849,37 @@ async function setZalo(B) {
       setTimeout(() => { const i = m.$('#zbNm'); if (i) { i.focus(); i.select(); } }, 30); return; }
     if (t.dataset.zx) { const g = Z.groups.find(x => x.id === t.dataset.zx); if (!g || !await ask('Xoá “' + g.name + '” khỏi danh sách? App thôi gửi tin vào nhóm này (bot vẫn ở trong nhóm Zalo — muốn bot rời nhóm thì xoá bot trong nhóm).', { ok: 'Xoá', danger: true })) return;
       return run(t, 'Đang xoá…', () => rpc('zbotGroup', { id: g.id, del: 1 }, { quiet: true })); }
-    if (t.id === 'zbAdd') { R.push({ ev: 'taskNew', board: '', g: Z.groups.length === 1 ? [Z.groups[0].id] : [], links: ['task'], extra: [], note: '' }); dirty = true; pick = Z.groups.length === 1 ? -1 : R.length - 1; return paint(); }
+    if (t.id === 'zbAdd') { R.push({ ev: 'taskNew', board: '', g: Z.groups.length === 1 ? [Z.groups[0].id] : [], links: ['task'], extra: [], note: '' }); dirty = true; pick = Z.groups.length === 1 ? '' : (R.length - 1) + ':g'; return paint(); }
     const row = t.closest('.zb-r'), ri = row ? Number(row.dataset.i) : -1, r = row && R[ri];
-    if (r && t.hasAttribute('data-rx')) { R.splice(ri, 1); dirty = true; pick = -1; return paint(); }
-    if (r && t.hasAttribute('data-ms')) { pick = pick === ri ? -1 : ri; return paint(); }
-    if (r && (t.hasAttribute('data-msall') || t.hasAttribute('data-msnone'))) { r.g = t.hasAttribute('data-msall') ? Z.groups.map(g => g.id) : []; dirty = true; return paint(); }
-    if (t.hasAttribute('data-msok')) { pick = -1; return paint(); }
+    if (r && t.hasAttribute('data-rx')) { R.splice(ri, 1); dirty = true; pick = ''; return paint(); }
+    if (r && t.dataset.ms) { const k = ri + ':' + t.dataset.ms; pick = pick === k ? '' : k; return paint(); }
+    if (r && (t.hasAttribute('data-msall') || t.hasAttribute('data-msnone'))) { const k = pick.split(':')[1], A = msArr(r, k); A.splice(0, A.length); if (t.hasAttribute('data-msall')) msItems(k).forEach(x => A.push(x.id)); dirty = true; return paint(); }
+    if (t.hasAttribute('data-msok')) { pick = ''; return paint(); }
     if (r && t.hasAttribute('data-exa')) { (r.extra = r.extra || []).push({ t: '', u: '' }); dirty = true; paint(); const L = $$('.zb-r[data-i="' + ri + '"] [data-k="t"]', B); if (L.length) L[L.length - 1].focus(); return; }
     if (r && t.dataset.exx != null) { r.extra.splice(Number(t.dataset.exx), 1); dirty = true; return paint(); }
     if (r && t.hasAttribute('data-rt')) { if (!r.g.length) return toast('Quy tắc thứ ' + (ri + 1) + ' chưa chọn nhóm nhận', 'info');
       const stop = btnWait(t, 'Đang gửi…'); try { const z = await rpc('zbotTest', { rule: clean()[ri] }, { quiet: true }); Z.log = z.log; toast('Đã gửi tin mẫu vào ' + z.sent + ' nhóm — mở Zalo xem', 'ok', 4000); paint(); } catch (er) { stop(); fail(er); } return; }
     if (t.id === 'zbSave') { const bad = R.findIndex(x => !x.g.length); if (bad >= 0) return toast('Quy tắc thứ ' + (bad + 1) + ' chưa chọn nhóm nhận', 'info');
+      const bw = R.findIndex(x => x.who && x.who.m !== 'all' && !(x.who.m === 'users' ? x.who.u : x.who.r || []).length); if (bw >= 0) return toast('Quy tắc thứ ' + (bw + 1) + ': chọn ' + (R[bw].who.m === 'users' ? 'người' : 'vai trò') + ' áp dụng, hoặc đổi về “Tất cả mọi người”', 'info');
       const bu = R.findIndex(x => (x.extra || []).some(y => (y.t.trim() || y.u.trim()) && !/^https?:\/\/\S+$/.test(y.u.trim()))); if (bu >= 0) return toast('Quy tắc thứ ' + (bu + 1) + ': link thêm phải bắt đầu bằng https://', 'info');
-      pick = -1; const h = $('#zbH', B); const z = await run(t, 'Đang lưu…', () => rpc('zbotRules', { rules: clean(), hour: h ? Number(h.value) : Z.hour }, { quiet: true })); if (z) toast('Đã lưu ' + z.rules.length + ' quy tắc'); return; }
+      pick = ''; const h = $('#zbH', B); const z = await run(t, 'Đang lưu…', () => rpc('zbotRules', { rules: clean(), hour: h ? Number(h.value) : Z.hour }, { quiet: true })); if (z) toast('Đã lưu ' + z.rules.length + ' quy tắc'); return; }
     if (t.id === 'zbDay') { const z = await run(t, 'Đang gửi…', () => rpc('zbotTest', { daily: 1 }, { quiet: true })); if (z) toast(z.sent ? 'Đã gửi tin buổi sáng vào ' + z.sent + ' nhóm' : 'Hôm nay không có gì để báo (không có việc quá hạn / đến hạn, buổi chờ duyệt, lớp sắp hết bài)', z.sent ? 'ok' : 'info', 5000); }
   };
   B.onchange = e => {
     const s = e.target; if (s.id === 'zbH') return keep();
-    const row = s.closest('.zb-r'), r = row && R[Number(row.dataset.i)]; if (!r) return;
-    if (s.dataset.rgc) { const i = r.g.indexOf(s.dataset.rgc); if (s.checked && i < 0) r.g.push(s.dataset.rgc); if (!s.checked && i >= 0) r.g.splice(i, 1); dirty = true; return paint(); }      // ô chọn nhóm vẫn mở
+    const row = s.closest('.zb-r'), ri = row ? Number(row.dataset.i) : -1, r = row && R[ri]; if (!r) return;
+    if (s.dataset.mc != null) { const k = pick.split(':')[1], A = msArr(r, k), i = A.indexOf(s.dataset.mc); if (s.checked && i < 0) A.push(s.dataset.mc); if (!s.checked && i >= 0) A.splice(i, 1);
+      const b = $('[data-ms="' + k + '"]', row); if (b) b.innerHTML = msBtn(k, A, b.dataset.ph); return mark(); }      // ô chọn vẫn mở, ô tìm giữ nguyên
+    if (s.dataset.f === 'wm') { r.who = Object.assign({ u: [], r: [] }, r.who, { m: s.value }); pick = s.value === 'users' ? ri + ':u' : s.value === 'roles' ? ri + ':r' : ''; dirty = true; return paint(); }
     if (s.dataset.lk) { r.links = $$('[data-lk]', row).filter(x => x.checked).map(x => x.dataset.lk); return mark(); }
     if (s.dataset.f === 'ev' || s.dataset.f === 'board') { r[s.dataset.f] = s.value; if (s.dataset.f === 'ev') { if (!evOf(r.ev).b) r.board = ''; const L = evOf(r.ev).lk || []; r.links = L[0] ? [L[0][0]] : []; } dirty = true; paint(); }
   };
   B.oninput = e => { const s = e.target, row = s.closest('.zb-r'), r = row && R[Number(row.dataset.i)]; if (!r) return;
+    if (s.hasAttribute('data-mq')) { const q = s.value.trim().toLowerCase(); $$('.zb-mp .zb-ck', row).forEach(l => { l.hidden = !!q && l.dataset.q.indexOf(q) < 0; }); return; }
     if (s.dataset.f === 'note') { r.note = s.value; return mark(); }
     if (s.dataset.ex != null) { const x = r.extra[Number(s.dataset.ex)]; if (x) { x[s.dataset.k] = s.value; mark(); } } };
   // bấm ra ngoài ô chọn nhóm → đóng (đường đi của sự kiện còn giữ nút cũ dù trang vừa vẽ lại)
-  const outside = e => { if (!B.isConnected) return document.removeEventListener('click', outside); if (pick < 0) return; if (e.composedPath().some(n => n.classList && n.classList.contains('zb-ms'))) return; pick = -1; paint(); };
+  const outside = e => { if (!B.isConnected) return document.removeEventListener('click', outside); if (!pick) return; if (e.composedPath().some(n => n.classList && n.classList.contains('zb-ms'))) return; pick = ''; paint(); };
   document.addEventListener('click', outside);
   B.onkeydown = e => { if (e.key === 'Enter' && e.target.id === 'zbT') { e.preventDefault(); $('#zbGo', B).click(); } else if (e.key === 'Enter' && e.target.dataset.zs) { e.preventDefault(); const b = $('[data-za="' + CSS.escape(e.target.dataset.zs) + '"]', B); if (b) b.click(); } };
   B.innerHTML = miniLoader('Đang tải bot Zalo…');
