@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T02:21:42.298Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T03:41:14.260Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4729,6 +4729,19 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 }
 /* (1.52) đoạn chú thích nhiều dòng: trình duyệt chia dòng để dòng cuối không còn trơ một chữ (VD “ngày.” rớt xuống một mình) */
 .small, .hint, .tk-arn, .cc-h small, .modal-b p{ text-wrap:pretty }
+/* (1.53) Quản trị › Bot Zalo */
+.zb-gl{ display:flex; flex-direction:column; gap:8px }
+.zb-g{ display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface) }
+.zb-g > i{ font-size:18px; color:var(--primary); flex:none } .zb-g > div{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:3px }
+.zb-g small{ color:var(--muted); font-size:12px } .zb-g .zb-q{ color:var(--ink-2); font-style:italic; overflow-wrap:anywhere }
+.zb-g.new{ background:var(--surface-2); border-style:dashed } .zb-g.new .inp{ margin-top:4px; max-width:360px }
+.zb-add{ display:flex; flex-direction:column; gap:8px; padding-top:10px; border-top:1px solid var(--border) } .zb-add > b{ font-size:13px } .zb-add > b i{ color:var(--primary) }
+.zb-rl{ display:flex; flex-direction:column; gap:10px }
+.zb-r{ display:flex; flex-direction:column; gap:8px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface) }
+.zb-rh{ display:flex; gap:8px; align-items:center } .zb-rh .sel{ flex:1 1 0; min-width:0 } .zb-rh .ibtn{ flex:none }
+.zb-chips{ display:flex; flex-wrap:wrap; gap:6px; align-items:center }
+.zb-log{ display:flex; flex-direction:column; gap:6px } .zb-log > div{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; font-size:12.5px } .zb-log b{ font-size:12.5px }
+@media (max-width:640px){ .zb-rh{ flex-wrap:wrap } .zb-rh .sel{ flex:1 1 100% } .zb-g{ flex-wrap:wrap } .zb-g > div{ flex-basis:calc(100% - 40px) } }
 </style>
 
   <style>
@@ -6160,6 +6173,7 @@ const NAV_DEF = [
   { r: 'admin/general', t: 'Chung & truy cập', i: 'bi-sliders', g: 'admin', cap: 'settings.manage', m: /^admin\/general/ },
   { r: 'admin/menu', t: 'Menu & tab', i: 'bi-layout-sidebar', g: 'admin', cap: 'settings.manage', m: /^admin\/menu/ },
   { r: 'admin/system', t: 'Hệ thống', i: 'bi-cpu', g: 'admin', cap: 'settings.manage', m: /^admin\/system/ },
+  { r: 'admin/zalo', t: 'Bot Zalo', i: 'bi-robot', g: 'admin', cap: 'settings.manage', m: /^admin\/zalo/ },      // (1.53) thông báo vào nhóm Zalo
   { r: 'admin/audit', t: 'Nhật ký', i: 'bi-journal-text', g: 'admin', cap: 'audit.view', m: /^admin\/audit/ },
   { r: 'settings', t: 'Cài đặt', i: 'bi-gear', g: 'admin' },
   { r: 'apps', t: 'Apps', i: 'bi-grid-3x3-gap', g: 'admin', multi: 1 }      // cuối thanh bên: mở trang chọn ứng dụng (đổi nhanh: bấm tên ứng dụng dưới logo)
@@ -9648,6 +9662,7 @@ const SET_TABS = [
   { k: 'rules', t: 'Quy tắc trích xuất', i: 'bi-magic', cap: 'sources.manage', mod: ['lib'] },
   { k: 'access', t: 'Quyền xem tài liệu', i: 'bi-shield-lock', cap: 'sources.manage', mod: ['lib'] },
   { k: 'system', t: 'Hệ thống', i: 'bi-cpu', cap: 'settings.manage', mod: ['sys'] },
+  { k: 'zalo', t: 'Bot Zalo', i: 'bi-robot', cap: 'settings.manage', mod: ['sys'] },      // (1.53) gửi thông báo vào nhóm Zalo
   { k: 'audit', t: 'Nhật ký', i: 'bi-journal-text', cap: 'audit.view', mod: ['sys'] }
 ];
 const ICONS = ['bi-journal-text', 'bi-house-door', 'bi-plus-square', 'bi-check2-square', 'bi-clipboard-check', 'bi-lightbulb', 'bi-signpost-split', 'bi-book', 'bi-file-earmark',
@@ -9676,13 +9691,121 @@ async function viewSettings(arg, v, solo) {
     setTitle(T.t, T.i, solo ? [] : [{ t: (modInfo(S.mod) || {}).t || S.boot.app, r: homeRoute() }, { t: 'Cài đặt', r: 'settings' }], v);
     if ((T.k === 'general' || T.k === 'rules' || T.k === 'system') && !cfg) { B.innerHTML = miniLoader('Đang tải cài đặt…'); cfg = can('settings.manage') ? await rpc('getSettings', {}, { quiet: true }) : { values: { kindRules: IX.kinds }, defaults: { kindRules: IX.kinds } }; }
     if (cur === 'rules' && !IX.loaded) { B.innerHTML = miniLoader('Đang tải danh mục tài liệu…'); await needIndex(); }
-    ({ tasks: setTasks, taskstore: setTaskStore, taskdemo: setTaskDemo, me: setMe, notify: setNotify, cal: B => calSyncBox(B), theme: setTheme, access: setAccess, menu: setMenu, general: setGeneral, rules: setRules, system: setSystem, audit: setAudit })[cur](B, cfg, c => { cfg = c; });
+    ({ tasks: setTasks, taskstore: setTaskStore, taskdemo: setTaskDemo, me: setMe, notify: setNotify, cal: B => calSyncBox(B), theme: setTheme, access: setAccess, menu: setMenu, general: setGeneral, rules: setRules, system: setSystem, zalo: setZalo, audit: setAudit })[cur](B, cfg, c => { cfg = c; });
   };
   if (!solo) $('#stN', v).onclick = e => {
     const m = e.target.closest('#stMo'); if (m) return openMenu(m, tabs.filter((t, i) => i >= 2 && t.k !== cur).map(t => ({ t: t.t, i: t.i, fn: () => go('settings/' + t.k) })));
     const b = e.target.closest('[data-k]'); if (b && b.dataset.k !== cur) go('settings/' + b.dataset.k); };
   v._onArg = a => { cur = tabs.find(t => t.k === a) ? a : tabs[0].k; draw(); };      // settings/<mục quản trị> cũ được go() đổi sang admin/<mục>
   await draw();
+}
+
+/* ══════════ BOT ZALO (1.53) — Quản trị › Bot Zalo ══════════
+   Kết nối bot (Bot Token của Zalo Bot Platform) · nơi nhận (nhóm / tin riêng, dò bằng tin @nhắc bot) · gửi loại thông báo nào vào nhóm nào.
+   Máy chủ: ZaloBot.gs (token chỉ ở Script Properties, trình duyệt chỉ thấy 4 ký tự cuối). */
+async function setZalo(B) {
+  let Z = null, R = [], dirty = false, swap = false;
+  const evOf = k => Z.ev.find(e => e.k === k) || { t: k };
+  const gName = id => (Z.groups.find(g => g.id === id) || { name: '(đã xoá)' }).name;
+  const take = z => { Z = z; R = JSON.parse(JSON.stringify(z.rules)); dirty = false; paint(); };
+  const load = async () => { try { take(await rpc('zbotGet', {}, { quiet: true })); } catch (e) { B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'; } };
+  const kindI = k => k === 'PRIVATE' ? 'bi-person-fill' : 'bi-people-fill';
+  const steps = L => '<ol class="lg-steps">' + L.map(x => '<li>' + x + '</li>').join('') + '</ol>';
+  /* tên gợi ý cho nơi nhận mới = câu @nhắc bot bỏ phần tên bot: tên bot = phần đầu chung của các câu bắt đầu bằng @ (≥ 2 câu),
+     hoặc phần đầu đã học được lần thêm nhóm trước (câu “@Bot X Nhóm A” lưu tên “Nhóm A” → tên bot là “@Bot X ”) */
+  const botPre = () => { const L = Z.seen.map(s => String(s.text || '')).filter(t => t[0] === '@'); let p = lsGet('zbPre', '');
+    if (L.length > 1) { const w = L.map(t => t.split(' ')); let i = 0; while (w.every(x => x.length > i + 1 && x[i] === w[0][i])) i++; if (i) p = w[0].slice(0, i).join(' ') + ' '; }
+    return p; };
+  const suggest = t => { t = String(t || '').trim(); const p = botPre(); return (p && t.indexOf(p) === 0 ? t.slice(p.length) : t[0] === '@' ? t.slice(1) : t).trim().slice(0, 60); };
+  const conn = () => {
+    const bot = Z.bot || {}, form = !Z.has || swap;
+    return '<div class="card"><div class="card-h"><h2><i class="bi bi-robot"></i>Bot Zalo</h2><span class="sp"></span>' +
+      (Z.has ? (Z.err ? '<span class="tag red">Lỗi kết nối</span>' : '<span class="tag ok">Đã kết nối</span>') : '<span class="tag">Chưa kết nối</span>') + '</div><div class="card-b stack">' +
+      '<p class="small" style="margin:0;line-height:1.6">Gửi thông báo của app (việc mới, việc xong, yêu cầu của gia sư, nhắc việc mỗi sáng…) vào <b>nhóm Zalo</b> qua bot của bạn — mỗi loại vào đúng nhóm bạn chọn. Thông báo trong app và mail vẫn như cũ.</p>' +
+      (Z.has ? '<div class="gmo-now"><i class="bi bi-robot"></i><div><b>' + esc(bot.name || 'Bot Zalo') + '</b><small>Bot Token …' + esc(Z.tail) + (bot.at ? ' · kết nối ' + esc(fmtDT(bot.at)) : '') + '</small>' +
+          (Z.err ? '<small style="color:var(--danger)">' + esc(Z.err) + '</small>' : '') + (bot.groups === 0 ? '<small style="color:var(--warn,#8A5200)">Zalo báo bot này chưa được bật tham gia nhóm — nếu không mời được vào nhóm, kiểm tra trong Zalo Bot Creator.</small>' : '') + '</div>' +
+          '<button class="btn sm" id="zbSw"><i class="bi bi-key"></i>' + (swap ? 'Thôi' : 'Đổi token') + '</button><button class="btn sm ghost" id="zbOff"><i class="bi bi-plug"></i>Ngắt</button></div>' : '') +
+      (form ? '<div class="fg"><label class="flabel">Bot Token</label><div class="row" style="flex-wrap:nowrap"><input class="inp mono" id="zbT" type="password" autocomplete="off" placeholder="Dán Bot Token của bot" style="flex:1;min-width:0">' +
+          '<button class="btn pri" id="zbGo"><i class="bi bi-plug"></i>Kết nối</button></div></div>' +
+        '<details class="adv"' + (Z.has ? '' : ' open') + '><summary><i class="bi bi-chevron-right"></i> Lấy Bot Token ở đâu</summary>' + steps([
+          'Trên điện thoại mở Zalo › Mini app <b>Zalo Bot Creator</b> › chọn bot (VD “Bot Kiến Chuyên môn”) › <b>Thiết lập chung</b>.',
+          'Mục <b>Bot Token</b> → chép token (bấm “Reset” thì token cũ hết hiệu lực — phải dán lại ở đây).',
+          'Ô <b>Webhook URL</b> để <b>trống</b>: app tự đọc tin của bot khi dò nhóm; bot đang đặt Webhook thì không dò được.',
+          'Dán token vào ô trên → <b>Kết nối</b>. Token chỉ lưu ở máy chủ Apps Script, không nằm trong kho dữ liệu, không gửi về trình duyệt.']) + '</details>' : '') +
+      '</div></div>';
+  };
+  const groups = () => !Z.has ? '' : '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-people"></i>Nhóm nhận thông báo</h2><span class="sp"></span><span class="tag">' + Z.groups.length + ' nơi nhận</span></div><div class="card-b stack">' +
+    (Z.groups.length ? '<div class="zb-gl">' + Z.groups.map(g => '<div class="zb-g"><i class="bi ' + kindI(g.kind) + '"></i><div><b>' + esc(g.name) + '</b><small>' + (g.kind === 'PRIVATE' ? 'Tin nhắn riêng với bot' : 'Nhóm Zalo') + ' · thêm ' + esc(fmtD(g.at)) + '</small></div>' +
+        '<button class="btn sm" data-zt="' + g.id + '"><i class="bi bi-send"></i>Gửi thử</button><button class="ibtn sm" data-zn="' + g.id + '" title="Đổi tên" aria-label="Đổi tên"><i class="bi bi-pencil"></i></button>' +
+        '<button class="ibtn sm" data-zx="' + g.id + '" title="Xoá" aria-label="Xoá"><i class="bi bi-trash"></i></button></div>').join('') + '</div>'
+      : '<div class="small muted">Chưa có nhóm nào — làm theo 3 bước bên dưới để thêm.</div>') +
+    '<div class="zb-add"><b><i class="bi bi-plus-circle"></i> Thêm nhóm</b>' + steps([
+      'Zalo Bot Creator › bot › <b>Thông tin</b> › <b>Link mời vào nhóm</b> → gửi link vào nhóm. Trưởng nhóm bấm link → <b>Xác nhận</b> thêm bot.',
+      'Trong nhóm gõ <b>@</b>, chọn tên bot rồi gõ <b>tên nhóm</b>, VD “@Bot Kiến Chuyên môn Nhóm Tuyển sinh” — bot chỉ đọc được tin có @nhắc bot.',
+      'Bấm <b>Dò nhóm mới</b> → nhóm hiện bên dưới → sửa tên cho dễ nhận → <b>Thêm</b>. (Nhắn riêng cho bot rồi dò cũng được — để nhận thông báo cho riêng mình.)']) +
+      '<div class="row"><button class="btn pri" id="zbScan"><i class="bi bi-radar"></i>Dò nhóm mới</button></div>' +
+      (Z.seen.length ? '<div class="zb-gl">' + Z.seen.map(s => '<div class="zb-g new"><i class="bi ' + kindI(s.kind) + '"></i><div><small>' + (s.kind === 'PRIVATE' ? 'Tin riêng' : 'Nhóm') + ' · ' + esc(s.from || '—') + ' · ' + esc(ago(s.at)) + '</small>' +
+          (s.text ? '<small class="zb-q">“' + esc(s.text) + '”</small>' : '') + '<input class="inp" data-zs="' + esc(s.chat) + '" maxlength="60" placeholder="Tên nhóm" value="' + esc(suggest(s.text)) + '"></div>' +
+          '<button class="btn sm pri" data-za="' + esc(s.chat) + '"><i class="bi bi-plus-lg"></i>Thêm</button></div>').join('') + '</div>' : '') +
+    '</div></div></div>';
+  const rules = () => {
+    if (!Z.has || !Z.groups.length) return '';
+    const daily = R.some(r => evOf(r.ev).d);
+    const bopt = cur => '<option value="">Mọi bảng chung</option>' + Z.boards.map(b => '<option value="' + esc(b.id) + '"' + (b.id === cur ? ' selected' : '') + '>' + esc(b.name) + (b.mine ? ' (bảng riêng · ' + esc(b.by.split('@')[0]) + ')' : '') + '</option>').join('');
+    return '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-signpost-split"></i>Gửi gì vào nhóm nào</h2></div><div class="card-b stack">' +
+      (R.length ? '<div class="zb-rl">' + R.map((r, i) => { const E = evOf(r.ev);
+        return '<div class="zb-r" data-i="' + i + '"><div class="zb-rh"><select class="sel" data-f="ev">' + Z.ev.map(e => '<option value="' + e.k + '"' + (e.k === r.ev ? ' selected' : '') + '>' + esc(e.t) + '</option>').join('') + '</select>' +
+          (E.b ? '<select class="sel" data-f="board">' + bopt(r.board) + '</select>' : '') + '<button class="ibtn sm" data-rx title="Bỏ quy tắc" aria-label="Bỏ quy tắc"><i class="bi bi-x-lg"></i></button></div>' +
+          '<div class="zb-chips"><span class="small muted">Gửi vào:</span>' + Z.groups.map(g => '<button class="chip-f' + (r.g.indexOf(g.id) >= 0 ? ' on' : '') + '" data-rg="' + g.id + '"><i class="bi ' + kindI(g.kind) + '"></i>' + esc(g.name) + '</button>').join('') + '</div></div>'; }).join('') + '</div>'
+        : '<div class="small muted">Chưa có quy tắc nào — bấm <b>Thêm quy tắc</b>, chọn loại thông báo và nhóm nhận.</div>') +
+      '<div class="row"><button class="btn" id="zbAdd"><i class="bi bi-plus-lg"></i>Thêm quy tắc</button>' +
+        (daily ? '<label class="small" style="display:flex;align-items:center;gap:6px;white-space:nowrap">Tin buổi sáng gửi lúc <select class="sel" id="zbH">' + [5, 6, 7, 8, 9, 10, 11].map(h => '<option value="' + h + '"' + (h === Z.hour ? ' selected' : '') + '>' + h + ' giờ</option>').join('') + '</select></label>' : '') + '</div>' +
+      '<div class="small muted" style="line-height:1.6">Mỗi thông báo gửi <b>một tin</b> vào từng nhóm được chọn, kèm link mở thẳng trong app. “Mọi bảng chung” không gồm bảng riêng — muốn báo việc của một bảng riêng, chọn đúng bảng đó. Sub-task chỉ báo khi xong hoặc có bình luận.</div>' +
+      '<div class="row"><button class="btn pri" id="zbSave"' + (dirty ? '' : ' disabled') + '><i class="bi bi-check2"></i>Lưu quy tắc</button>' + (dirty ? '<span class="small" style="color:var(--warn,#8A5200)">Có thay đổi chưa lưu</span>' : '') +
+        (!dirty && daily ? '<button class="btn ghost" id="zbDay"><i class="bi bi-sunrise"></i>Gửi thử tin buổi sáng</button>' : '') + '</div></div></div>';
+  };
+  const log = () => !Z.has || !Z.log.length ? '' : '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-clock-history"></i>Gửi gần đây</h2></div><div class="card-b"><div class="zb-log">' +
+    Z.log.slice(0, 15).map(l => '<div><i class="bi ' + (l.ok ? 'bi-check-circle-fill" style="color:var(--ok,#0F6B3D)' : 'bi-x-circle-fill" style="color:var(--danger)') + '"></i><span class="small muted">' + esc(fmtDT(l.at)) + '</span><b>' + esc(gName(l.g)) + '</b>' +
+      '<span class="small">' + esc(l.ev === 'test' ? 'Gửi thử' : evOf(l.ev).t) + (l.t && l.ev !== 'test' ? ' — ' + esc(l.t) : '') + '</span>' + (l.ok ? '' : '<span class="small" style="color:var(--danger)">' + esc(l.err) + '</span>') + '</div>').join('') + '</div></div></div>';
+  const paint = () => { if (!B.isConnected) return; const y = window.scrollY; B.innerHTML = conn() + groups() + rules() + log(); window.scrollTo(0, y); };
+  const run = async (btn, wait, fn) => { const stop = btnWait(btn, wait); try { const z = await fn(); if (z) take(z); return z; } catch (er) { stop(); fail(er); } };
+  const keep = () => { const was = dirty; dirty = true; if (!was) paint(); };
+  B.onclick = async e => {
+    const t = e.target.closest('button'); if (!t || t.disabled) return;
+    if (t.id === 'zbGo') { const v = $('#zbT', B).value.trim(); if (!v) return toast('Dán Bot Token vào ô trước', 'info'); swap = false; const z = await run(t, 'Đang kiểm tra…', () => rpc('zbotToken', { token: v }, { quiet: true })); if (z) toast('Đã kết nối bot ' + ((z.bot && z.bot.name) || '')); return; }
+    if (t.id === 'zbSw') { swap = !swap; return paint(); }
+    if (t.id === 'zbOff') { if (!await ask('Ngắt bot Zalo? App thôi gửi tin vào mọi nhóm (danh sách nhóm và quy tắc vẫn giữ, kết nối lại là gửi tiếp).', { ok: 'Ngắt', danger: true })) return; return run(t, 'Đang ngắt…', () => rpc('zbotToken', { off: 1 }, { quiet: true })); }
+    if (t.id === 'zbScan') { if (dirty && !await ask('Quy tắc có thay đổi chưa lưu — dò nhóm sẽ bỏ các thay đổi đó. Tiếp tục?', { ok: 'Dò nhóm' })) return;
+      const z = await run(t, 'Đang đọc tin của bot…', () => rpc('zbotScan', {}, { quiet: true })); if (z) toast(z.got ? 'Bot nhận được ' + z.got + ' tin mới' + (z.seen.length ? ' — đặt tên rồi bấm Thêm' : '') : z.seen.length ? 'Không có tin mới — các nhóm dò được trước đó ở bên dưới' : 'Chưa thấy tin nào — trong nhóm hãy @nhắc bot rồi dò lại', z.got ? 'ok' : 'info', 5000); return; }
+    if (t.dataset.za) { const inp = $('[data-zs="' + CSS.escape(t.dataset.za) + '"]', B), nm = inp ? inp.value.trim() : ''; if (!nm) { inp && inp.focus(); return toast('Đặt tên cho nhóm trước', 'info'); }
+      if (dirty && !await ask('Quy tắc có thay đổi chưa lưu — thêm nhóm sẽ bỏ các thay đổi đó. Tiếp tục?', { ok: 'Thêm nhóm' })) return;
+      { const s = Z.seen.find(x => x.chat === t.dataset.za), tx = String(s && s.text || '').trim(); if (tx[0] === '@' && tx.length > nm.length && tx.slice(-nm.length) === nm) lsSet('zbPre', tx.slice(0, -nm.length)); }      // học tên bot
+      const z = await run(t, 'Đang thêm…', () => rpc('zbotGroup', { chat: t.dataset.za, name: nm }, { quiet: true })); if (z) toast('Đã thêm “' + nm + '”'); return; }
+    if (t.dataset.zt) { const z = await run(t, 'Đang gửi…', () => rpc('zbotTest', { id: t.dataset.zt }, { quiet: true })); if (z) toast('Đã gửi tin thử vào “' + gName(t.dataset.zt) + '” — mở Zalo xem', 'ok', 4000); else load(); return; }
+    if (t.dataset.zn) { const g = Z.groups.find(x => x.id === t.dataset.zn); if (!g) return;
+      const m = modal({ title: 'Đổi tên nhóm', icon: 'bi-pencil', body: '<input class="inp" id="zbNm" maxlength="60" value="' + esc(g.name) + '">', foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', cls: 'pri', fn: () => {
+        const nm = m.$('#zbNm').value.trim(); if (!nm) return false;
+        rpc('zbotGroup', { id: g.id, name: nm }, { quiet: true }).then(z => { const keepR = dirty ? R : null; take(z); if (keepR) { R = keepR; dirty = true; paint(); } toast('Đã đổi tên'); }).catch(fail); } }] });
+      setTimeout(() => { const i = m.$('#zbNm'); if (i) { i.focus(); i.select(); } }, 30); return; }
+    if (t.dataset.zx) { const g = Z.groups.find(x => x.id === t.dataset.zx); if (!g || !await ask('Xoá “' + g.name + '” khỏi danh sách? App thôi gửi tin vào nhóm này (bot vẫn ở trong nhóm Zalo — muốn bot rời nhóm thì xoá bot trong nhóm).', { ok: 'Xoá', danger: true })) return;
+      return run(t, 'Đang xoá…', () => rpc('zbotGroup', { id: g.id, del: 1 }, { quiet: true })); }
+    if (t.id === 'zbAdd') { R.push({ ev: 'taskNew', board: '', g: Z.groups.length === 1 ? [Z.groups[0].id] : [] }); dirty = true; return paint(); }
+    const row = t.closest('.zb-r'), r = row && R[Number(row.dataset.i)];
+    if (r && t.hasAttribute('data-rx')) { R.splice(Number(row.dataset.i), 1); dirty = true; return paint(); }
+    if (r && t.dataset.rg) { const i = r.g.indexOf(t.dataset.rg); if (i >= 0) r.g.splice(i, 1); else r.g.push(t.dataset.rg); dirty = true; return paint(); }
+    if (t.id === 'zbSave') { const bad = R.findIndex(x => !x.g.length); if (bad >= 0) return toast('Quy tắc thứ ' + (bad + 1) + ' chưa chọn nhóm nhận', 'info');
+      const h = $('#zbH', B); const z = await run(t, 'Đang lưu…', () => rpc('zbotRules', { rules: R, hour: h ? Number(h.value) : Z.hour }, { quiet: true })); if (z) toast('Đã lưu ' + z.rules.length + ' quy tắc'); return; }
+    if (t.id === 'zbDay') { const z = await run(t, 'Đang gửi…', () => rpc('zbotTest', { daily: 1 }, { quiet: true })); if (z) toast(z.sent ? 'Đã gửi tin buổi sáng vào ' + z.sent + ' nhóm' : 'Hôm nay không có gì để báo (không có việc quá hạn / đến hạn, buổi chờ duyệt, lớp sắp hết bài)', z.sent ? 'ok' : 'info', 5000); }
+  };
+  B.onchange = e => {
+    const s = e.target; if (s.id === 'zbH') return keep();
+    const row = s.closest('.zb-r'), r = row && R[Number(row.dataset.i)]; if (!r || !s.dataset.f) return;
+    r[s.dataset.f] = s.value; if (s.dataset.f === 'ev' && !evOf(r.ev).b) r.board = '';
+    dirty = true; paint();
+  };
+  B.onkeydown = e => { if (e.key === 'Enter' && e.target.id === 'zbT') { e.preventDefault(); $('#zbGo', B).click(); } else if (e.key === 'Enter' && e.target.dataset.zs) { e.preventDefault(); const b = $('[data-za="' + CSS.escape(e.target.dataset.zs) + '"]', B); if (b) b.click(); } };
+  B.innerHTML = miniLoader('Đang tải bot Zalo…');
+  await load();
 }
 
 /* ══════════ THÔNG BÁO ĐẨY (khi app ở màn hình chính) ══════════
@@ -19080,7 +19203,7 @@ button.tk-loose{ margin-top:16px; padding:5px 8px 5px 4px; border:0; border-radi
 .tk-dpu{ display:flex; align-items:flex-start; gap:10px; margin:6px 0 2px; padding:8px 12px; border-radius:var(--r-m); background:var(--k-tray, var(--surface-2)); cursor:pointer } .tk-dpu > span:last-child{ display:flex; flex-direction:column; min-width:0 }
 .tk-dpu b{ font-size:12.5px; font-weight:600 } .tk-dpu small{ font-size:11.5px; color:var(--muted) } .tk-dpu .sw{ flex:none; margin-top:1px }
 .tk-lchip:hover{ border-color:var(--primary); background:var(--lightprimary); color:var(--primary) } .tk-lchip > i{ flex:none; font-size:13px } .tk-lchip > span{ min-width:0; overflow:hidden; text-overflow:ellipsis; max-width:420px }
-.tk-lchip.ld > span{ color:var(--muted) }
+.tk-lchip.tk-ld > span{ color:var(--muted) }      /* (1.53) lớp riêng — “ld” trùng khung đang tải toàn trang (cao 560px, xếp dọc) làm thẻ phình thành khối to khi đang lấy tên tài liệu */
 @media (max-width:820px){ .tk-lchip > span{ max-width:220px } .tk-rte-hint kbd{ display:none } .tk-rte-hint{ padding:7px 12px; font-size:13px } }
 /* ══ 1.31 · LIÊN KẾT BẢNG RIÊNG → BẢNG CHUNG ══ */
 .tk-card.mir{ background:linear-gradient(180deg, #F4F8FF, var(--surface)); box-shadow:inset 3px 0 0 #7AA2E3, var(--sh-1, 0 1px 2px rgba(0,0,0,.06)); cursor:pointer }
@@ -19477,8 +19600,8 @@ function tkRte(el, hint, imgBtn) {
     const box = document.createElement('span'); box.innerHTML = tkChip(a.url, T[a.url]); const c = box.firstChild, sp = document.createTextNode(' ');
     r.insertNode(sp); r.insertNode(c); tkChipFix(el); const sel = getSelection(), r2 = document.createRange(); r2.setStart(sp, 1); r2.collapse(true); sel.removeAllRanges(); sel.addRange(r2);
     el.dispatchEvent(new Event('input', { bubbles: true })); sync();
-    if (!T[a.url] && /google\.com/.test(a.url)) { c.classList.add('ld'); rpc('taskLinkTitle', { url: a.url }, { quiet: true }).then(x => { if (x && x.title) { T[a.url] = x.title; $$('.tk-lchip', el).forEach(k => { if (k.dataset.url === a.url && k.classList.contains('ld')) $('span', k).textContent = x.title; }); } })
-      .catch(() => {}).finally(() => $$('.tk-lchip.ld', el).forEach(k => { if (k.dataset.url === a.url) k.classList.remove('ld'); })); }
+    if (!T[a.url] && /google\.com/.test(a.url)) { c.classList.add('tk-ld'); rpc('taskLinkTitle', { url: a.url }, { quiet: true }).then(x => { if (x && x.title) { T[a.url] = x.title; $$('.tk-lchip', el).forEach(k => { if (k.dataset.url === a.url && k.classList.contains('tk-ld')) $('span', k).textContent = x.title; }); } })
+      .catch(() => {}).finally(() => $$('.tk-lchip.tk-ld', el).forEach(k => { if (k.dataset.url === a.url) k.classList.remove('tk-ld'); })); }
     return true; };
   el.addEventListener('keydown', e => {
     if (e.key === 'Tab' && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) { if (chip()) e.preventDefault(); return; }
@@ -21152,7 +21275,7 @@ async function viewTasks(arg, v) {
     const kids = !isNew ? tkKids(cur) : [], kt = isNew ? '' : TK_KID[lv0] || '';
     const paOpts = p => [['', 'Chọn task cha…']].concat(D().tasks.filter(x => x.projectId === p.id && tkLv(x) === 'task' && x.id !== cur.id).sort((a, b) => a.order - b.order).map(x => [x.id, x.key + ' · ' + x.title]));
     // (1.49) dòng việc bên trong: bấm đúng hạn / người phụ trách / trạng thái → sửa nhanh tại chỗ; bấm chỗ khác → mở hộp của việc đó (chồng lên, đóng là về lại hộp này)
-    const kEd = k => !k.mir && !k.pend && (C().edit || C().admin || lead(tkProj(k.projectId)) || k.reporter === D().me || tkWho(k).indexOf(D().me) >= 0);
+    const kEd = k => !k.mir && (C().edit || C().admin || lead(tkProj(k.projectId)) || k.reporter === D().me || tkWho(k).indexOf(D().me) >= 0);
     const kq = (k, f, title, html) => kEd(k) ? '<button type="button" class="tk-kq" data-kq="' + f + '" title="' + title + '" aria-label="' + title + ' ' + esc(k.key) + '">' + html + '</button>' : html;
     const kidRow = k => '<div class="tk-row s' + (tkDone(k) ? ' done' : '') + '" data-id="' + k.id + '">' + (tkLv(k) === 'sub' ? tkLvIc('sub') : tkTyIc(k)) + '<span class="tk-key">' + esc(k.key) + '</span><span class="t">' + esc(k.title) + '</span><span class="tk-c-ft">' + kq(k, 'due', 'Đổi hạn', tkDue(k) || (kEd(k) ? '<span class="tk-kq0"><i class="bi bi-calendar-plus"></i></span>' : '')) + tkHrBadge(k) + '</span>' + kq(k, 'pic', 'Đổi người phụ trách', tkAvs(k)) + kq(k, 'st', 'Đổi trạng thái', tkStPill(k)) + '</div>';
     /* XOÁ / YÊU CẦU XOÁ: việc của mình (hoặc Admin) xoá thẳng · việc của người khác → gửi yêu cầu cho người tạo duyệt · người tạo / người duyệt thấy dải yêu cầu với nút Xoá · Giữ lại */
@@ -21307,10 +21430,12 @@ async function viewTasks(arg, v) {
         // hạn: mở bảng chọn ngày của trình duyệt ngay tại chỗ bấm (xoá ngày trong bảng chọn = bỏ hạn)
         const r = b.getBoundingClientRect(), i = document.createElement('input'); i.type = 'date'; i.value = k.due || ''; i.className = 'tk-kdue';
         Object.assign(i.style, { position: 'fixed', left: r.left + 'px', top: r.bottom + 'px' }); document.body.appendChild(i);
+        void i.getBoundingClientRect();      // (1.53) đặt ô vào chỗ TRƯỚC khi mở lịch — mở ngay sau khi thêm thì lịch bám góc trên bên trái màn hình
         i.onchange = () => { if (i.value !== (k.due || '')) kSave(k, { due: i.value }); i.remove(); }; i.onblur = () => setTimeout(() => i.remove(), 300);
         try { i.showPicker(); } catch (er) { i.classList.add('on'); i.focus(); } };
-      box.onclick = e => { const r = e.target.closest('[data-id]'), k = r && D().tasks.find(x => x.id === r.dataset.id); if (!k || k.pend) return;      // việc đang lưu thì chờ
-        const b = e.target.closest('[data-kq]'); if (b) { e.stopPropagation(); return kQuick(b, k); }
+      box.onclick = e => { const r = e.target.closest('[data-id]'), k = r && D().tasks.find(x => x.id === r.dataset.id); if (!k) return;
+        const b = e.target.closest('[data-kq]'); if (b) { e.stopPropagation(); return kQuick(b, k); }      // (1.53) sửa nhanh hạn / PIC / trạng thái được cả khi việc vừa thêm còn đang lưu
+        if (k.pend) return toast('Đang lưu “' + k.title.slice(0, 40) + '” — mở được sau giây lát. Hạn, người phụ trách, trạng thái thì sửa được ngay trên dòng.', 'info', 3500);
         taskDialog(k, { onClose: () => { if (!m.closed) kPaint(); } }); };      // mở việc bên trong CHỒNG lên hộp này — đóng là về lại đây (không phải tìm lại task cha)
       m.$('#tKidAdd').onclick = () => inp.focus();
       inp.onkeydown = e => { if (e.key !== 'Enter') return; e.preventDefault(); e.stopPropagation(); const val = inp.value.trim(), par = D().tasks.find(x => x.id === cur.id), p = par && tkProj(par.projectId); if (!val || !p) return;
