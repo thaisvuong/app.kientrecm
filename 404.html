@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T03:41:14.260Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T04:08:07.209Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4739,6 +4739,8 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .zb-rl{ display:flex; flex-direction:column; gap:10px }
 .zb-r{ display:flex; flex-direction:column; gap:8px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface) }
 .zb-rh{ display:flex; gap:8px; align-items:center } .zb-rh .sel{ flex:1 1 0; min-width:0 } .zb-rh .ibtn{ flex:none }
+.zb-diag{ display:flex; gap:10px; padding:10px 12px; border-radius:12px; background:var(--surface-2); font-size:12.5px } .zb-diag > i{ color:var(--primary); margin-top:2px }
+.zb-diag > div{ display:flex; flex-direction:column; gap:4px; min-width:0 } .zb-diag small{ color:var(--muted); font-size:12px; line-height:1.55 } .zb-raw{ display:block; margin-top:6px; font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap }
 .zb-chips{ display:flex; flex-wrap:wrap; gap:6px; align-items:center }
 .zb-log{ display:flex; flex-direction:column; gap:6px } .zb-log > div{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; font-size:12.5px } .zb-log b{ font-size:12.5px }
 @media (max-width:640px){ .zb-rh{ flex-wrap:wrap } .zb-rh .sel{ flex:1 1 100% } .zb-g{ flex-wrap:wrap } .zb-g > div{ flex-basis:calc(100% - 40px) } }
@@ -9743,11 +9745,17 @@ async function setZalo(B) {
       'Zalo Bot Creator › bot › <b>Thông tin</b> › <b>Link mời vào nhóm</b> → gửi link vào nhóm. Trưởng nhóm bấm link → <b>Xác nhận</b> thêm bot.',
       'Trong nhóm gõ <b>@</b>, chọn tên bot rồi gõ <b>tên nhóm</b>, VD “@Bot Kiến Chuyên môn Nhóm Tuyển sinh” — bot chỉ đọc được tin có @nhắc bot.',
       'Bấm <b>Dò nhóm mới</b> → nhóm hiện bên dưới → sửa tên cho dễ nhận → <b>Thêm</b>. (Nhắn riêng cho bot rồi dò cũng được — để nhận thông báo cho riêng mình.)']) +
-      '<div class="row"><button class="btn pri" id="zbScan"><i class="bi bi-radar"></i>Dò nhóm mới</button></div>' +
+      '<div class="row"><button class="btn pri" id="zbScan"><i class="bi bi-radar"></i>Dò nhóm mới</button></div>' + diag() +
       (Z.seen.length ? '<div class="zb-gl">' + Z.seen.map(s => '<div class="zb-g new"><i class="bi ' + kindI(s.kind) + '"></i><div><small>' + (s.kind === 'PRIVATE' ? 'Tin riêng' : 'Nhóm') + ' · ' + esc(s.from || '—') + ' · ' + esc(ago(s.at)) + '</small>' +
           (s.text ? '<small class="zb-q">“' + esc(s.text) + '”</small>' : '') + '<input class="inp" data-zs="' + esc(s.chat) + '" maxlength="60" placeholder="Tên nhóm" value="' + esc(suggest(s.text)) + '"></div>' +
           '<button class="btn sm pri" data-za="' + esc(s.chat) + '"><i class="bi bi-plus-lg"></i>Thêm</button></div>').join('') + '</div>' : '') +
     '</div></div></div>';
+  /* (1.53.1) kết quả lần dò gần nhất: Zalo trả gì — để biết vì sao chưa thấy nhóm */
+  const diag = () => { const d = Z.diag; if (!d) return '';
+    const ks = Object.keys(d.kinds || {}).map(k => k + ' × ' + d.kinds[k]).join(', ');
+    return '<div class="zb-diag"><i class="bi bi-info-circle"></i><div><b>Lần dò gần nhất · ' + esc(fmtDT(d.at)) + '</b><small>' + (d.got ? 'Đọc được ' + d.got + ' tin' + (ks ? ' (' + esc(ks) + ')' : '') : esc(d.note || 'Không có tin mới')) + ' · ' + d.calls + ' lần hỏi Zalo</small>' +
+      (!d.got && !Z.groups.length && !Z.seen.length ? '<small>Chưa thấy nhóm? (1) Trong nhóm gõ <b>@</b> rồi <b>chọn</b> tên bot trong danh sách hiện ra (chữ phải thành màu xanh), bấm Dò ngay sau khi gửi. (2) Thử <b>nhắn riêng</b> cho bot một câu rồi Dò — thấy tin riêng mà không thấy tin nhóm nghĩa là Zalo chưa chuyển tin trong nhóm cho bot (tính năng nhóm của Zalo Bot còn đang thử nghiệm); khi đó vẫn dùng được nơi nhận là tin riêng.</small>' : '') +
+      (d.sample ? '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Dữ liệu Zalo trả về</summary><code class="zb-raw">' + esc(d.sample) + '</code></details>' : '') + '</div></div>'; };
   const rules = () => {
     if (!Z.has || !Z.groups.length) return '';
     const daily = R.some(r => evOf(r.ev).d);
