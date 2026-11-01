@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T04:08:07.209Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T04:29:30.133Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -9743,9 +9743,10 @@ async function setZalo(B) {
       : '<div class="small muted">Chưa có nhóm nào — làm theo 3 bước bên dưới để thêm.</div>') +
     '<div class="zb-add"><b><i class="bi bi-plus-circle"></i> Thêm nhóm</b>' + steps([
       'Zalo Bot Creator › bot › <b>Thông tin</b> › <b>Link mời vào nhóm</b> → gửi link vào nhóm. Trưởng nhóm bấm link → <b>Xác nhận</b> thêm bot.',
-      'Trong nhóm gõ <b>@</b>, chọn tên bot rồi gõ <b>tên nhóm</b>, VD “@Bot Kiến Chuyên môn Nhóm Tuyển sinh” — bot chỉ đọc được tin có @nhắc bot.',
-      'Bấm <b>Dò nhóm mới</b> → nhóm hiện bên dưới → sửa tên cho dễ nhận → <b>Thêm</b>. (Nhắn riêng cho bot rồi dò cũng được — để nhận thông báo cho riêng mình.)']) +
-      '<div class="row"><button class="btn pri" id="zbScan"><i class="bi bi-radar"></i>Dò nhóm mới</button></div>' + diag() +
+      'Bấm <b>Dò nhóm mới</b> — app <b>nghe 60 giây</b>. Trong lúc đó, vào nhóm gõ <b>@</b>, chọn tên bot, gửi (kèm tên nhóm càng tốt, VD “@Bot Kiến Chuyên môn Nhóm Tuyển sinh”). Zalo không giữ tin lại — gửi trước khi bấm Dò thì app không thấy.',
+      'Nhóm hiện bên dưới → sửa tên cho dễ nhận → <b>Thêm</b>. Chỉ làm <b>một lần mỗi nhóm</b> (để lấy mã nhóm); sau đó bot chỉ đẩy thông báo, không cần ai nhắn gì. (Nhắn riêng cho bot trong lúc nghe cũng được — để nhận thông báo cho riêng mình.)']) +
+      '<div class="row"><button class="btn pri" id="zbScan"><i class="bi bi-radar"></i>Dò nhóm mới (nghe 60 giây)</button></div>' + diag() +
+      '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Đã có mã nhóm? Nhập thẳng</summary><div class="row" style="margin-top:8px"><input class="inp mono" id="zbMC" placeholder="Mã nhóm, VD zgr-…" style="flex:1 1 200px;min-width:0"><input class="inp" id="zbMN" maxlength="60" placeholder="Tên nhóm" style="flex:1 1 160px;min-width:0"><button class="btn" id="zbMA"><i class="bi bi-plus-lg"></i>Thêm</button></div></details>' +
       (Z.seen.length ? '<div class="zb-gl">' + Z.seen.map(s => '<div class="zb-g new"><i class="bi ' + kindI(s.kind) + '"></i><div><small>' + (s.kind === 'PRIVATE' ? 'Tin riêng' : 'Nhóm') + ' · ' + esc(s.from || '—') + ' · ' + esc(ago(s.at)) + '</small>' +
           (s.text ? '<small class="zb-q">“' + esc(s.text) + '”</small>' : '') + '<input class="inp" data-zs="' + esc(s.chat) + '" maxlength="60" placeholder="Tên nhóm" value="' + esc(suggest(s.text)) + '"></div>' +
           '<button class="btn sm pri" data-za="' + esc(s.chat) + '"><i class="bi bi-plus-lg"></i>Thêm</button></div>').join('') + '</div>' : '') +
@@ -9754,7 +9755,7 @@ async function setZalo(B) {
   const diag = () => { const d = Z.diag; if (!d) return '';
     const ks = Object.keys(d.kinds || {}).map(k => k + ' × ' + d.kinds[k]).join(', ');
     return '<div class="zb-diag"><i class="bi bi-info-circle"></i><div><b>Lần dò gần nhất · ' + esc(fmtDT(d.at)) + '</b><small>' + (d.got ? 'Đọc được ' + d.got + ' tin' + (ks ? ' (' + esc(ks) + ')' : '') : esc(d.note || 'Không có tin mới')) + ' · ' + d.calls + ' lần hỏi Zalo</small>' +
-      (!d.got && !Z.groups.length && !Z.seen.length ? '<small>Chưa thấy nhóm? (1) Trong nhóm gõ <b>@</b> rồi <b>chọn</b> tên bot trong danh sách hiện ra (chữ phải thành màu xanh), bấm Dò ngay sau khi gửi. (2) Thử <b>nhắn riêng</b> cho bot một câu rồi Dò — thấy tin riêng mà không thấy tin nhóm nghĩa là Zalo chưa chuyển tin trong nhóm cho bot (tính năng nhóm của Zalo Bot còn đang thử nghiệm); khi đó vẫn dùng được nơi nhận là tin riêng.</small>' : '') +
+      (!d.got && !Z.groups.length && !Z.seen.length ? '<small>Chưa thấy nhóm? (1) Bấm Dò <b>trước</b>, rồi trong 60 giây vào nhóm gõ <b>@</b> và <b>chọn</b> tên bot trong danh sách hiện ra (chữ phải thành màu xanh), gửi. (2) Thử <b>nhắn riêng</b> cho bot một câu rồi Dò — thấy tin riêng mà không thấy tin nhóm nghĩa là Zalo chưa chuyển tin trong nhóm cho bot (tính năng nhóm của Zalo Bot còn đang thử nghiệm); khi đó vẫn dùng được nơi nhận là tin riêng.</small>' : '') +
       (d.sample ? '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Dữ liệu Zalo trả về</summary><code class="zb-raw">' + esc(d.sample) + '</code></details>' : '') + '</div></div>'; };
   const rules = () => {
     if (!Z.has || !Z.groups.length) return '';
@@ -9784,11 +9785,14 @@ async function setZalo(B) {
     if (t.id === 'zbSw') { swap = !swap; return paint(); }
     if (t.id === 'zbOff') { if (!await ask('Ngắt bot Zalo? App thôi gửi tin vào mọi nhóm (danh sách nhóm và quy tắc vẫn giữ, kết nối lại là gửi tiếp).', { ok: 'Ngắt', danger: true })) return; return run(t, 'Đang ngắt…', () => rpc('zbotToken', { off: 1 }, { quiet: true })); }
     if (t.id === 'zbScan') { if (dirty && !await ask('Quy tắc có thay đổi chưa lưu — dò nhóm sẽ bỏ các thay đổi đó. Tiếp tục?', { ok: 'Dò nhóm' })) return;
-      const z = await run(t, 'Đang đọc tin của bot…', () => rpc('zbotScan', {}, { quiet: true })); if (z) toast(z.got ? 'Bot nhận được ' + z.got + ' tin mới' + (z.seen.length ? ' — đặt tên rồi bấm Thêm' : '') : z.seen.length ? 'Không có tin mới — các nhóm dò được trước đó ở bên dưới' : 'Chưa thấy tin nào — trong nhóm hãy @nhắc bot rồi dò lại', z.got ? 'ok' : 'info', 5000); return; }
+      toast('App đang nghe 60 giây — vào nhóm Zalo @nhắc bot ngay bây giờ', 'info', 8000);
+      const z = await run(t, 'Đang nghe… @nhắc bot trong nhóm ngay', () => rpc('zbotScan', { wait: 60 }, { quiet: true })); if (z) toast(z.got ? 'Bot nhận được ' + z.got + ' tin mới' + (z.seen.length ? ' — đặt tên rồi bấm Thêm' : '') : z.seen.length ? 'Không có tin mới — các nhóm dò được trước đó ở bên dưới' : 'Không nhận được tin nào trong 60 giây — bấm Dò lại rồi @nhắc bot ngay sau khi bấm', z.got ? 'ok' : 'info', 5000); return; }
     if (t.dataset.za) { const inp = $('[data-zs="' + CSS.escape(t.dataset.za) + '"]', B), nm = inp ? inp.value.trim() : ''; if (!nm) { inp && inp.focus(); return toast('Đặt tên cho nhóm trước', 'info'); }
       if (dirty && !await ask('Quy tắc có thay đổi chưa lưu — thêm nhóm sẽ bỏ các thay đổi đó. Tiếp tục?', { ok: 'Thêm nhóm' })) return;
       { const s = Z.seen.find(x => x.chat === t.dataset.za), tx = String(s && s.text || '').trim(); if (tx[0] === '@' && tx.length > nm.length && tx.slice(-nm.length) === nm) lsSet('zbPre', tx.slice(0, -nm.length)); }      // học tên bot
       const z = await run(t, 'Đang thêm…', () => rpc('zbotGroup', { chat: t.dataset.za, name: nm }, { quiet: true })); if (z) toast('Đã thêm “' + nm + '”'); return; }
+    if (t.id === 'zbMA') { const ch = $('#zbMC', B).value.trim(), nm = $('#zbMN', B).value.trim(); if (!ch || !nm) return toast('Nhập mã nhóm và tên nhóm', 'info');
+      const z = await run(t, 'Đang thêm…', () => rpc('zbotGroup', { chat: ch, name: nm, manual: 1 }, { quiet: true })); if (z) toast('Đã thêm “' + nm + '” — bấm Gửi thử để kiểm tra'); return; }
     if (t.dataset.zt) { const z = await run(t, 'Đang gửi…', () => rpc('zbotTest', { id: t.dataset.zt }, { quiet: true })); if (z) toast('Đã gửi tin thử vào “' + gName(t.dataset.zt) + '” — mở Zalo xem', 'ok', 4000); else load(); return; }
     if (t.dataset.zn) { const g = Z.groups.find(x => x.id === t.dataset.zn); if (!g) return;
       const m = modal({ title: 'Đổi tên nhóm', icon: 'bi-pencil', body: '<input class="inp" id="zbNm" maxlength="60" value="' + esc(g.name) + '">', foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', cls: 'pri', fn: () => {
