@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T06:50:38.110Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-01T11:09:03.426Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -9805,12 +9805,15 @@ async function setZalo(B) {
     const daily = R.some(r => evOf(r.ev).d);
     const bopt = cur => '<option value="">Mọi bảng chung</option>' + Z.boards.map(b => '<option value="' + esc(b.id) + '"' + (b.id === cur ? ' selected' : '') + '>' + esc(b.name) + (b.mine ? ' (bảng riêng · ' + esc(b.by.split('@')[0]) + ')' : '') + '</option>').join('');
     const gsel = (r, i) => msel(i, 'g', r.g, 'Chọn nhóm nhận…');
-    const WH = { taskRemind: 'Chỉ nhắc việc do những người này phụ trách', req: 'Khi gia sư / người gửi yêu cầu thuộc nhóm này', sessReport: 'Khi gia sư báo thuộc nhóm này', classAsk: 'Chỉ lớp của các gia sư này',
+    const WH = { taskRemind: 'Chỉ nhắc việc do những người này phụ trách (PIC)', req: 'Khi gia sư / người gửi yêu cầu thuộc nhóm này', sessReport: 'Khi gia sư báo thuộc nhóm này', classAsk: 'Chỉ lớp của các gia sư này',
       classDaily: 'Chỉ các lớp của gia sư thuộc nhóm này', account: 'Theo người đăng ký (vai trò họ chọn khi đăng ký)', ann: 'Khi người đăng thuộc nhóm này' };
     const whoRow = (r, i) => { const w = r.who || { m: 'all' };
       return '<div class="zb-fg"><div class="zb-fl">Áp dụng cho</div><div class="zb-who"><select class="sel" data-f="wm" aria-label="Áp dụng cho">' + [['all', 'Tất cả mọi người'], ['users', 'Người cụ thể…'], ['roles', 'Vai trò cụ thể…']].map(o => '<option value="' + o[0] + '"' + (o[0] === w.m ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' +
         (w.m === 'users' ? msel(i, 'u', w.u || [], 'Chọn người…') : w.m === 'roles' ? msel(i, 'r', w.r || [], 'Chọn vai trò…') : '') +
-        (w.m !== 'all' ? '<small class="zb-wh">' + esc(WH[r.ev] || 'Khi người làm, người phụ trách hoặc người tạo việc thuộc nhóm này') + '</small>' : '') + '</div></div>'; };
+        (w.m !== 'all' && TBY(r.ev) ? '<select class="sel" data-f="wb" aria-label="Xét theo">' + [['pic', 'Xét theo PIC (người phụ trách)'], ['creator', 'Xét theo người tạo việc'], ['actor', 'Xét theo người thao tác (tạo / chuyển / bình luận)'], ['any', 'Xét theo bất kỳ: PIC, người tạo hoặc người thao tác']]
+          .map(o => '<option value="' + o[0] + '"' + (o[0] === (w.by || 'pic') ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' : '') +
+        (w.m !== 'all' && WH[r.ev] ? '<small class="zb-wh">' + esc(WH[r.ev]) + '</small>' : '') + '</div></div>'; };
+    const TBY = ev => /^task/.test(ev) && ev !== 'taskRemind';      // (1.56) việc Kiến Task: chọn xét theo PIC / người tạo / người thao tác
     const lkOn = r => r.links || ((evOf(r.ev).lk || [])[0] ? [evOf(r.ev).lk[0][0]] : []);
     const lks = r => { const L = evOf(r.ev).lk || [], on = lkOn(r); return L.length ? L.map(x => '<label class="zb-ck"><input type="checkbox" data-lk="' + x[0] + '"' + (on.indexOf(x[0]) >= 0 ? ' checked' : '') + '><span>' + esc(x[1]) + '</span></label>').join('') : '<span class="small muted">Loại này không có link riêng</span>'; };
     const ext = r => (r.extra || []).map((x, j) => '<div class="zb-exr"><input class="inp" data-ex="' + j + '" data-k="t" maxlength="40" placeholder="Tên link, VD Sheet điểm danh" value="' + esc(x.t) + '"><input class="inp mono" data-ex="' + j + '" data-k="u" placeholder="https://…" value="' + esc(x.u) + '"><button type="button" class="ibtn sm" data-exx="' + j + '" title="Bỏ link" aria-label="Bỏ link"><i class="bi bi-x-lg"></i></button></div>').join('') +
@@ -9884,6 +9887,7 @@ async function setZalo(B) {
     const row = s.closest('.zb-r'), ri = row ? Number(row.dataset.i) : -1, r = row && R[ri]; if (!r) return;
     if (s.dataset.mc != null) { const k = pick.split(':')[1], A = msArr(r, k), i = A.indexOf(s.dataset.mc); if (s.checked && i < 0) A.push(s.dataset.mc); if (!s.checked && i >= 0) A.splice(i, 1);
       const b = $('[data-ms="' + k + '"]', row); if (b) b.innerHTML = msBtn(k, A, b.dataset.ph); return mark(); }      // ô chọn vẫn mở, ô tìm giữ nguyên
+    if (s.dataset.f === 'wb') { r.who = Object.assign({ m: 'all', u: [], r: [] }, r.who, { by: s.value }); return mark(); }
     if (s.dataset.f === 'wm') { r.who = Object.assign({ u: [], r: [] }, r.who, { m: s.value }); pick = s.value === 'users' ? ri + ':u' : s.value === 'roles' ? ri + ':r' : ''; dirty = true; return paint(); }
     if (s.dataset.lk) { r.links = $$('[data-lk]', row).filter(x => x.checked).map(x => x.dataset.lk); return mark(); }
     if (s.dataset.f === 'ev' || s.dataset.f === 'board') { r[s.dataset.f] = s.value; if (s.dataset.f === 'ev') { if (!evOf(r.ev).b) r.board = ''; const L = evOf(r.ev).lk || []; r.links = L[0] ? [L[0][0]] : []; } dirty = true; paint(); }
