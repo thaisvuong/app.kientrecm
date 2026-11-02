@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-02T08:57:08.196Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-02T09:11:10.116Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -2210,6 +2210,10 @@ html.kb .app, html.kb .main{ height:var(--vvh) !important }
 .cs-num input{ width:64px; height:100%; border:0 !important; box-shadow:none !important; background:none; text-align:right; padding:0 6px 0 8px; font-weight:700 }
 .cs-num em{ font-style:normal; font-size:12px; color:var(--muted); width:46px; padding:0; height:100%; display:grid; place-items:center; background:var(--surface-3); border-left:1px solid var(--border) }
 .cs-sel{ width:150px; height:34px }
+/* 1.57.1 · cài đặt link riêng của lớp */
+.cd-lk{ font:inherit; font-size:12px; color:var(--ink-2); padding-right:10px } .cd-lk.on{ color:var(--brand-700) }
+.cl-lkr{ border:1px solid var(--border); border-radius:14px; padding:0 14px; transition:opacity .15s } .cl-lkr .cs-row:first-child{ border-top:0 } .cl-lkr.off{ opacity:.55 }
+@media (max-width:600px){ .cs-lkall{ grid-template-columns:minmax(0,1fr) } .cs-lkall .cs-rc{ justify-content:stretch } .cs-lkall .btn{ width:100%; justify-content:center } }
 @media (max-width:1000px){ .cs-grid{ grid-template-columns:minmax(0,1fr) } }
 
 /* quyền xem thư mục / tài liệu */
@@ -4596,6 +4600,7 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
   .cd-prog .cd-bl{ display:none } .cd-prog #cdPrint{ padding:0 10px !important; gap:5px }
   .cd-prog .cd-auto{ padding:0; border:0; background:none !important; height:28px; gap:5px }
   .cd-prog .cl-rwtag{ font-size:11px }
+  .cd-prog .cd-lk{ position:relative; width:28px; justify-content:center } .cd-prog .cd-lk > i{ font-size:18px } .cd-prog .cd-lk.on::after{ content:''; position:absolute; top:3px; right:2px; width:7px; height:7px; border-radius:50%; background:var(--brand-600); box-shadow:0 0 0 2px var(--surface) }
 }
 .gc-por{ display:flex; gap:6px; align-items:center } .gc-por .sel{ flex:1; min-width:0 }
 .gc-k.prog{ background:#EEF2FF; color:#3730A3 }
@@ -5031,7 +5036,7 @@ function obPending(fn, withRecent) {
 }
 const obTransient = e => !e.srv || /lock|timeout|timed out|too many|exceeded|service|bận|thử lại|unavailable|internal|quota|đang cập nhật/i.test(e.message || '');
 /* lệnh ghi gửi gộp được (máy chủ API.batch): nhiều lệnh liên tiếp đi chung MỘT lần gọi — kéo điền, đẩy lùi, duyệt nhiều buổi lưu nhanh hơn hẳn */
-const OB_BATCH = { classSave: 1, classMine: 1, classStudent: 1, classStart: 1, classLcfg: 1, classAdd: 1, classRemove: 1, classDelete: 1, reqDecide: 1,
+const OB_BATCH = { classSave: 1, classMine: 1, classStudent: 1, classStart: 1, classLcfg: 1, classLinkCfg: 1, classLinkCfgAll: 1, classAdd: 1, classRemove: 1, classDelete: 1, reqDecide: 1,
                    sessionSave: 1, sessionContent: 1, sessionApprove: 1, sessionOff: 1, sessionTaught: 1, sessionAdd: 1, sessionDelete: 1, sessionMark: 1, notifRead: 1,
                    taskSave: 1, taskMove: 1, taskDelete: 1, taskProjectSave: 1, taskProjectDelete: 1, accessKick: 1, accessUp: 1 };      // accessKick (1.44.17): thêm / gỡ người xem liên tiếp đi chung một lần gọi
 /** lệnh it đã lưu xong (đang đứng đầu hàng đợi) */
@@ -12527,6 +12532,9 @@ function clKids(X, k, fset) {
 /** các tệp được tính là bài (tệp nằm ngay trong thư mục nhóm / gốc chương trình) */
 function clLessonFiles(p, X, key) { X = X || IX; return new Set(clLessonList(p, new Set(), X, key).filter(id => !X.dirs[id])); }
 function clLcfg(p) { return (p && p.lcfg) || { kinds: [], per: 1, skip: [] }; }
+/** cài đặt link áp dụng cho lớp: riêng (c.linkcfg) đè lên chung (CL.d.cfg) — c trống = chỉ lấy chung */
+function clLinkC(c) { const b = CL.d.cfg, o = c && c.linkcfg; return { own: !!o, auto: o && 'auto' in o ? !!o.auto : b.autoLink !== false, days: o && Number(o.days) >= 1 ? Number(o.days) : Number(b.linkDays) || 7, print: o && 'print' in o ? !!o.print : b.linkPrint !== false, pnum: o && 'pnum' in o ? !!o.pnum : !!b.pnum }; }
+function clLinkSum(L) { return 'Hạn ' + L.days + ' ngày · ' + (L.print ? 'cho in' : 'chỉ xem') + ' · ' + (L.pnum ? 'có số trang' : 'không số trang') + ' · ' + (L.auto ? 'tự tạo khi duyệt' : 'không tự tạo'); }
 /** cấu trúc buổi học dùng cho một lớp: riêng của bé (nếu đặt) phủ lên cấu trúc chung của chương trình */
 function clLcfgC(c) { const b = clLcfg(clProg(c)), o = c && c.lcfg; return o ? { kinds: Array.isArray(o.kinds) ? o.kinds : b.kinds, per: Number(o.per) > 0 ? Number(o.per) : b.per, skip: Array.isArray(o.skip) ? o.skip : b.skip, own: 1 } : b; }
 function clLinkUrl(x) { return x.link ? CL.d.linkBase + x.link.token : ''; }
@@ -12588,6 +12596,8 @@ function clOverlay(d) {
   P('classMine').forEach(p => { if (C[p.id]) { Object.assign(C[p.id], p.patch); if ('programId' in p.patch) C[p.id].plock = null; } });
   P('classLock').forEach(p => { if (C[p.id]) C[p.id].plock = p.k ? { k: p.k, to: p.to || '', note: p.note || '', by: p.by || '', name: p.name || '', at: p.at || '' } : null; });
   P('classStudent').forEach(p => { if (C[p.id]) C[p.id].student = p.student; });
+  const lkAll = Math.max(0, ...P('classLinkCfgAll').map(p => p.at || 0)); if (lkAll) d.classes.forEach(c => { c.linkcfg = null; });
+  P('classLinkCfg').forEach(p => { if (C[p.id] && (p.at || 0) > lkAll) C[p.id].linkcfg = p.cfg || null; });
   if (d.manage) P('classStart').forEach(p => { const c = C[p.id]; if (c) { c.done = (p.done || []).slice(); c.started = 1; } });
   P('sessionAdd').forEach(p => { if (p.newId && !X[p.newId] && C[p.classId]) { const x = { id: p.newId, classId: p.classId, no: 0, date: p.date, time: p.time || '', status: '', note: '', released: false, gate: 'wait', folders: [], extra: [], auto: false, fill: C[p.classId].manual ? 0 : 1 }; d.sessions.push(x); X[x.id] = x; } });   // buổi vừa thêm, chưa lưu xong — máy chủ đang tự xếp bài
   P('sessionTaught').forEach(p => { const x = X[p.id]; if (x) { x.status = p.undo ? 'approved' : 'taught'; if (!p.undo) x.taughtAt = x.taughtAt || new Date().toISOString();
@@ -13124,9 +13134,9 @@ function clTodo(B, v) {
   const asg = $('#ctAsg', B); if (asg) asg.onclick = () => clAssignMany(target, target.length + ' buổi đang lọc');
   const dn = $('#ctDone', B); if (dn) dn.onclick = () => { CL.showDone = !CL.showDone; again(); };
   const all = $('#ctAll', B); if (all) all.onclick = async () => {
-    if (!await ask('Duyệt ' + drafts.length + ' buổi đang chờ duyệt' + (nf ? ' (theo bộ lọc đang chọn)' : '') + '?' + (D.cfg.autoLink ? ' Mỗi buổi sẽ được tạo link tạm.' : ''), { ok: 'Duyệt tất cả' })) return;
+    if (!await ask('Duyệt ' + drafts.length + ' buổi đang chờ duyệt' + (nf ? ' (theo bộ lọc đang chọn)' : '') + '?' + (drafts.some(x => clLinkC(clClass(x.classId)).auto) ? ' Mỗi buổi sẽ được tạo link tạm.' : ''), { ok: 'Duyệt tất cả' })) return;
     const ids = drafts.map(x => x.id); drafts.forEach(x => { x.status = 'approved'; x.auto = false; }); CL._fl = null;
-    toast('Đã duyệt ' + ids.length + ' buổi' + (D.cfg.autoLink ? ' · link tạm đang tạo ngầm' : '')); again();
+    toast('Đã duyệt ' + ids.length + ' buổi' + (drafts.some(x => clLinkC(clClass(x.classId)).auto) ? ' · link tạm đang tạo ngầm' : '')); again();
     clQueue('sessionApprove', { ids: ids }, { label: 'Duyệt ' + ids.length + ' buổi' }).then(r => { if (r && r.errors && r.errors.length) toast(r.errors.length + ' buổi lỗi: ' + r.errors[0], 'warn', 6000); });
   };
   // chọn nhiều: tích từng buổi / cả ngày / cả danh sách → Duyệt · Nghỉ · Xoá
@@ -13378,7 +13388,7 @@ function clContent0(x, done, TX) {
     tags = clTagsPrune({ folders: folders, extra: extra, tags: tags }).tags; x.tags = tags;
     clQueue('sessionContent', { id: x.id, folders: folders, pick: pk, extra: extra, approve: doApprove, lnote: lnote, tags: tags }, { key: 'content:' + x.id, label: 'Nội dung buổi · ' + clName(c) + ' ' + dd.dm })
       .then(r => { if (r && r.url && doApprove) toast('Link tạm của ' + clName(c) + ' đã sẵn sàng — bấm nút Link ở dòng buổi để sao chép'); });
-    toast(doApprove ? 'Đã lưu & duyệt ' + clName(c) + (CL.d.cfg.autoLink ? ' · link tạm đang tạo ngầm' : '') : 'Đã lưu nội dung');
+    toast(doApprove ? 'Đã lưu & duyệt ' + clName(c) + (clLinkC(c).auto ? ' · link tạm đang tạo ngầm' : '') : 'Đã lưu nội dung');
     done();
   };
   /* rê chuột / chạm vào một bài trên cây → tải sẵn 2 tệp đầu của bài (bấm 👁 xem trước là hiện ngay) */
@@ -13486,6 +13496,41 @@ function clPreview(title, files, picked, onPick) {
 }
 
 /* ══════════ CẤU TRÚC CHƯƠNG TRÌNH: loại tệp vào link · số bài mỗi buổi · bài loại trừ ══════════ */
+/** (1.57.1) cài đặt link RIÊNG của một lớp — theo chung hay đặt riêng; lưu trống = trở về theo chung */
+function clLinkDlg(c, done) {
+  const g = clLinkC(null), d = clLinkC(c); let own = d.own;
+  const onoff = v => v ? 'bật' : 'tắt';
+  const row = (t, h, ctl) => '<div class="cs-row"><div class="cs-rt"><b>' + t + '</b><small>' + h + '</small></div><div class="cs-rc">' + ctl + '</div></div>';
+  const sw = id => '<label class="sw"><input type="checkbox" id="' + id + '"><span></span></label>';
+  const m = modal({ title: 'Cài đặt link · ' + clName(c), icon: 'bi-link-45deg', body: '<div class="stack">' +
+      '<div class="seg fill" id="lkM"><button type="button" class="seg-b" data-own="0">Theo cài đặt chung</button><button type="button" class="seg-b" data-own="1">Cài đặt riêng</button></div>' +
+      '<div class="small muted cl-hint"><i class="bi bi-info-circle"></i><span id="lkH"></span></div>' +
+      '<div class="cl-lkr" id="lkR">' +
+        row('Duyệt xong tự tạo link', 'Chung: ' + onoff(g.auto), sw('lkA')) +
+        row('Hạn dùng link', 'Chung: ' + g.days + ' ngày · tính từ lúc tạo', '<span class="cs-num"><input class="inp" type="number" id="lkD" min="1" max="365"><em>ngày</em></span>') +
+        row('Đánh số trang', 'Chung: ' + onoff(g.pnum), sw('lkN')) +
+        row('Cho phép in', 'Chung: ' + onoff(g.print) + ' · tắt = chỉ xem', sw('lkP')) + '</div>' +
+      '<div class="small muted">Áp dụng cho link tạo hoặc cập nhật sau khi lưu; link đã có giữ nguyên hạn dùng.</div></div>',
+    foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', i: 'bi-check2', cls: 'pri', fn: () => {
+      read();
+      const cfg = own ? { auto: d.auto, days: Math.max(1, Math.min(365, Math.round(Number(d.days)) || g.days)), print: d.print, pnum: d.pnum } : null;
+      if (!cfg && !c.linkcfg) return;
+      const at = Date.now(); c.linkcfg = cfg;
+      toast(cfg ? 'Đã lưu cài đặt link riêng cho ' + clName(c) : 'Đã chuyển ' + clName(c) + ' về theo cài đặt chung'); done && done();
+      clQueue('classLinkCfg', { id: c.id, cfg: cfg, at: at }, { key: 'cll:' + c.id, label: 'Cài đặt link · ' + clName(c), merge: (a, b) => b });
+    } }] });
+  const read = () => { if (!own) return; d.auto = m.$('#lkA').checked; d.days = m.$('#lkD').value; d.pnum = m.$('#lkN').checked; d.print = m.$('#lkP').checked; };
+  const paint = () => {
+    const v = own ? d : g;
+    m.$$('#lkM .seg-b').forEach(b => b.setAttribute('aria-pressed', (b.dataset.own === '1') === own));
+    m.$('#lkH').innerHTML = own ? 'Riêng cho <b>' + esc(clName(c)) + '</b> — không đổi theo cài đặt chung.' : 'Lớp dùng cài đặt chung (Lớp gia sư › Cài đặt lớp), đổi ở đó là lớp này đổi theo.';
+    m.$('#lkR').classList.toggle('off', !own);
+    m.$('#lkA').checked = v.auto; m.$('#lkD').value = v.days; m.$('#lkN').checked = v.pnum; m.$('#lkP').checked = v.print;
+    ['#lkA', '#lkD', '#lkN', '#lkP'].forEach(id => { m.$(id).disabled = !own; });
+  };
+  m.$('#lkM').onclick = e => { const b = e.target.closest('[data-own]'); if (!b) return; read(); own = b.dataset.own === '1'; paint(); };
+  paint();
+}
 /** cấu trúc buổi học: c = một lớp → cấu trúc RIÊNG của bé (không ảnh hưởng lớp khác) · không có c → cấu trúc CHUNG của chương trình */
 function clStruct(p, done, c) {
   const T = progTarget(p); if (!T.ok) return toast('Chương trình không còn thư mục liên kết', 'warn');
@@ -14274,7 +14319,7 @@ function clDetail(B, v, id) {
     D = CL.d; c = clClass(id) || c;      // dữ liệu vừa tải ngầm về thay bản cũ → luôn vẽ theo bản mới nhất
     const ss = clSess(c.id), used = {}; ss.forEach(s => (s.folders || []).forEach(f => { used[f] = clState(s); }));
     const notOut = ss.filter(x => !x.released && x.status !== 'taught' && x.status !== 'off'), out = ss.filter(x => x.released || x.status === 'taught').reverse(), off = ss.filter(x => x.status === 'off');
-    const nPrint = ss.filter(x => x.released && x.status !== 'taught' && ((x.folders || []).length || (x.extra || []).length)).length, canPrint = nPrint && (man || D.cfg.linkPrint);
+    const nPrint = ss.filter(x => x.released && x.status !== 'taught' && ((x.folders || []).length || (x.extra || []).length)).length, canPrint = nPrint && (man || clLinkC(c).print);
     const r = clRunway(c), act = classActiveC(c), pane = CL.cdPane || 's';
     const rq = (D.reqs || []).filter(q => q.classId === c.id && q.status === 'pending');
     // tên lớp đã ở thanh trên → thẻ đầu chỉ còn một dòng nhỏ (tên học sinh · mã · khối · trạng thái) + lịch, rồi một hàng chương trình + nút in
@@ -14289,7 +14334,8 @@ function clDetail(B, v, id) {
       '<div class="cd-prog">' + (p || man ? clProgChip(c) : '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Chưa gán chương trình</span>') +
         (canPrint ? '<button class="btn xs pri" id="cdPrint" title="In gộp ' + nPrint + ' buổi đã duyệt chưa dạy"><i class="bi bi-printer"></i><span class="cd-bl">In gộp </span>' + nPrint + '<span class="cd-bl"> buổi</span></button>' : '') +
         (r && (r.warn || !r.sess) ? '<span class="cl-rwtag on" title="' + r.left + ' / ' + r.total + ' bài chưa xếp">' + (r.sess ? 'Còn ' + r.sess + ' buổi' : 'Hết bài') + '</span>' : '') +
-        (man ? '<label class="cd-auto' + (c.autoOk ? ' on' : '') + '" title="' + (c.autoOk ? 'Đang bật — bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '"><i class="bi bi-robot"></i><b>Tự duyệt</b><span class="sw"><input type="checkbox" id="cdAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '') + '</div></div>' +
+        (man ? '<label class="cd-auto' + (c.autoOk ? ' on' : '') + '" title="' + (c.autoOk ? 'Đang bật — bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '"><i class="bi bi-robot"></i><b>Tự duyệt</b><span class="sw"><input type="checkbox" id="cdAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '') +
+        (man ? '<button type="button" class="cd-auto cd-lk' + (c.linkcfg ? ' on' : '') + '" id="cdLink" aria-label="Cài đặt link của lớp" title="' + esc((c.linkcfg ? 'Cài đặt link riêng: ' : 'Theo cài đặt chung: ') + clLinkSum(clLinkC(c))) + '"><i class="bi bi-link-45deg"></i><b>' + (c.linkcfg ? 'Link riêng' : 'Link chung') + '</b></button>' : '') + '</div></div>' +
       (rq.length ? '<button class="cl-rqb" data-go="classes/reqs"><i class="bi bi-hourglass-split"></i><span><b>' + rq.length + ' yêu cầu chờ duyệt</b><small>' + rq.map(q => esc(q.label)).join(' · ') + '</small></span><i class="bi bi-chevron-right"></i></button>' : '') +
       '<div class="seg cd-tabs" id="cdTabs"><button class="seg-b cd-tab" data-pane="s" aria-pressed="' + (pane === 's') + '">Buổi học <small>' + (notOut.length + out.length) + '</small></button><button class="seg-b cd-tab" data-pane="l" aria-pressed="' + (pane === 'l') + '">' + (man ? 'Bài trong chương trình' : 'Tiến trình học') + '</button></div>' +
       '<div class="cd-lay' + (man ? '' : p ? ' tut' : ' one') + '" data-pane="' + pane + '">' +
@@ -14323,13 +14369,14 @@ function clDetail(B, v, id) {
     const nPrint = clSess(c.id).filter(x => x.released && x.status !== 'taught' && ((x.folders || []).length || (x.extra || []).length)).length;
     openMenu(btn, [
       { t: 'Sửa thông tin lớp', d: man ? 'Tên, lịch học, khung giờ, gia sư…' : D.cfg.tutorApprove === false ? 'Lưu là áp dụng ngay' : 'Gửi quản lý duyệt', i: 'bi-pencil-square', fn: () => clEditClass(c, paint) },
-      nPrint && (man || D.cfg.linkPrint) ? { t: 'In gộp ' + nPrint + ' buổi', d: 'Một link gồm tài liệu mọi buổi đã duyệt chưa dạy', i: 'bi-printer', fn: () => clPrintAll(c, null) } : null,
+      nPrint && (man || clLinkC(c).print) ? { t: 'In gộp ' + nPrint + ' buổi', d: 'Một link gồm tài liệu mọi buổi đã duyệt chưa dạy', i: 'bi-printer', fn: () => clPrintAll(c, null) } : null,
       p ? { t: 'Xác nhận bài đã học' + ((c.done || []).length ? ' · ' + c.done.length + ' bài' : ''), d: 'Tick bài học sinh đã học (kể cả học trước khi lên app)', i: 'bi-check2-square',
         fn: () => { CL.cdPane = 'l'; if (man) { CL_PGSEL[c.id] = 'new'; return paint(); } paint(); let n = 0; const t = setInterval(() => { const b = $('#cdPg [data-pge]', B); if (b || ++n > 30) { clearInterval(t); if (b) { b.click(); $('#cdPg', B).scrollIntoView({ block: 'start', behavior: 'smooth' }); } } }, 250); } } : null,
       man ? '-' : null,
       man ? { t: (c.tutorEmail ? 'Đổi' : 'Gán') + ' gia sư', d: c.tutorName || c.tutorEmail || 'Chưa có gia sư', i: 'bi-person-badge', fn: () => clTutorDlg(c, paint) } : null,
       man ? { t: (p ? 'Đổi' : 'Gán') + ' chương trình', i: 'bi-mortarboard', fn: () => pickProg(btn) } : null,
       man && p ? { t: 'Cấu trúc buổi học' + (c.lcfg ? ' (riêng)' : ''), d: 'Loại tài liệu vào link, số bài mỗi buổi', i: 'bi-diagram-3', fn: () => clStruct(p, () => clDetail(B, v, id), c) } : null,
+      man ? { t: 'Cài đặt link' + (c.linkcfg ? ' (riêng)' : ''), d: clLinkSum(clLinkC(c)), i: 'bi-link-45deg', fn: () => clLinkDlg(c, paint) } : null,
       man ? { t: 'Bảng gán bài', d: 'Kéo thả bài cho nhiều buổi, đẩy lùi, hoàn tác', i: 'bi-grid-3x3-gap', fn: () => clBoard(c) } : null,
       man ? { t: 'Thêm buổi', i: 'bi-plus-lg', fn: () => clAddSess(c, paint) } : null,
       '-',
@@ -14341,6 +14388,7 @@ function clDetail(B, v, id) {
   const bind = () => {
     $('#cdMore', B).onclick = e => more(e.currentTarget);
     const pr = $('#cdPrint', B); if (pr) pr.onclick = () => clPrintAll(c, pr);
+    const lk = $('#cdLink', B); if (lk) lk.onclick = () => clLinkDlg(c, paint);
     const au = $('#cdAuto', B); if (au) au.onchange = () => { const on = au.checked, nDraft = clSess(c.id).filter(x => x.status === 'draft' && (x.folders || []).length).length; haptic();
       if (on) clSess(c.id).forEach(x => { if (x.status === 'draft' && (x.folders || []).length) { x.status = 'approved'; x.auto = true; } });   // buổi nháp hiện đã duyệt ngay
       toast(on ? 'Đã bật tự duyệt · ' + clName(c) + (nDraft ? ' · ' + nDraft + ' buổi được duyệt' : '') : 'Đã tắt tự duyệt · ' + clName(c));
@@ -14453,9 +14501,10 @@ function clQuick(id) {
     const mo = e.target.closest('#cqMore'); if (mo) {
       const nPrint = clSess(c.id).filter(x => x.released && x.status !== 'taught' && ((x.folders || []).length || (x.extra || []).length)).length, p = clProg(c);
       return openMenu(mo, [
-        nPrint && (man || CL.d.cfg.linkPrint) ? { t: 'In gộp ' + nPrint + ' buổi', i: 'bi-printer', fn: () => clPrintAll(c, null) } : null,
+        nPrint && (man || clLinkC(c).print) ? { t: 'In gộp ' + nPrint + ' buổi', i: 'bi-printer', fn: () => clPrintAll(c, null) } : null,
         man ? { t: (c.tutorEmail ? 'Đổi' : 'Gán') + ' gia sư', d: c.tutorName || c.tutorEmail || 'Chưa có gia sư', i: 'bi-person-badge', fn: () => clTutorDlg(c, () => { refresh(); CL.repaint && CL.repaint(); }) } : null,
         man && p ? { t: 'Cấu trúc buổi học' + (c.lcfg ? ' (riêng)' : ''), i: 'bi-diagram-3', fn: () => clStruct(p, refresh, c) } : null,
+        man ? { t: 'Cài đặt link' + (c.linkcfg ? ' (riêng)' : ''), i: 'bi-link-45deg', fn: () => clLinkDlg(c, () => { refresh(); CL.repaint && CL.repaint(); }) } : null,
         man ? { t: 'Bảng gán bài', i: 'bi-grid-3x3-gap', fn: () => { m.close(); clBoard(c); } } : null,
         man ? { t: 'Thêm buổi', i: 'bi-plus-lg', fn: () => clAddSess(c, () => { refresh(); CL.repaint && CL.repaint(); }) } : null,
         '-',
@@ -14982,6 +15031,7 @@ function clProgMount(el, c, Ls, used, exit) {      // exit: quản lý — thoá
 function clSettings(B, v) {
   setTitle('Cài đặt lớp gia sư', 'bi-sliders', [{ t: S.boot.app, r: 'home' }, { t: 'Lớp gia sư', r: 'classes' }], v);
   const c = CL.d.cfg, used = {}; CL.d.classes.forEach(k => { if (k.programId) used[k.programId] = (used[k.programId] || 0) + 1; });
+  const clLkAllT = () => { const n = CL.d.classes.filter(k => k.linkcfg).length; return n ? n + ' lớp đang đặt riêng. Bấm để đưa tất cả về theo cài đặt chung' : 'Mọi lớp đang theo cài đặt chung. Đặt riêng ở chi tiết lớp › Link'; };
   const progs = Object.keys(used).map(progById).filter(Boolean).sort((a, b) => natCmp(clProgName(a), clProgName(b)));
   B.innerHTML = '<div class="card"><div class="card-h"><h3><i class="bi bi-file-earmark-spreadsheet"></i>Nhập danh sách lớp từ Excel</h3></div><div class="card-b stack">' +
       '<div class="small muted">Dòng tiêu đề gồm: <b>Khối lớp</b> · <b>Gia sư</b> · <b>Email gia sư</b> · <b>Lớp</b> · Mã lớp · <b>Khóa học</b> · <b>Trạng thái lớp</b> · <b>Buổi học (thứ)</b> · <b>Khung giờ</b> · Ghi chú. ' +
@@ -15003,7 +15053,8 @@ function clSettings(B, v) {
         grp('bi-link-45deg', 'Link tạm của buổi',
           row('Duyệt xong tự tạo link tạm', 'Chỉ ghép các loại tài liệu theo cấu trúc chương trình', sw('csK', c.autoLink)) +
           row('Hạn dùng link', 'Tính từ lúc tạo', num('csD', c.linkDays, 'ngày', 1, 365)) +
-          row('Đánh số trang', 'Tắt = giữ nguyên như file gốc (không chèn “1 / 22”)', sw('csN', c.pnum))) +
+          row('Đánh số trang', 'Tắt = giữ nguyên như file gốc (không chèn “1 / 22”)', sw('csN', c.pnum)) +
+          '<div class="cs-row cs-lkall"><div class="cs-rt"><b>Lớp có cài đặt link riêng</b><small id="csAllN">' + clLkAllT() + '</small></div><div class="cs-rc"><button type="button" class="btn sm" id="csAll"><i class="bi bi-arrow-repeat"></i>Áp dụng cho tất cả các lớp</button></div></div>') +
         grp('bi-printer', 'Quyền in của gia sư',
           row('Link của buổi cho phép in', 'Tắt = gia sư / phụ huynh chỉ xem. Áp dụng cho link tạo / cập nhật sau khi lưu', sw('csLP', c.linkPrint)) +
           row('Gia sư tự tạo link tối đa', 'Quản trị / giáo vụ không bị giới hạn. Link in được có thêm nút “Ghép file in”', '<select class="inp cs-sel" id="csTM">' +
@@ -15012,13 +15063,29 @@ function clSettings(B, v) {
           row('Chạy tự động & email nhắc mỗi sáng', 'Mỗi giờ: tạo buổi, xếp bài, tự duyệt (kể cả khi không ai mở app). 7 giờ: quản lý nhận việc chờ duyệt, gia sư nhận buổi đã phát', sw('csR', c.remind))) +
         '</div></div>';
     })();
+  const csVals = () => ({ lead: $('#csL', B).value, autoApprove: $('#csA', B).value, linkDays: $('#csD', B).value, autoLink: $('#csK', B).checked, autoFill: $('#csF', B).checked, pnum: $('#csN', B).checked, warnLeft: $('#csW', B).value, linkPrint: $('#csLP', B).checked, tutorLinkMax: $('#csTM', B).value, remind: $('#csR', B).checked, gate: $('#csG', B).checked });
+  const csSave = vals => {
+    CL.d.classes.forEach(k => { k.manual = vals.autoFill ? 0 : 1; });      // (1.44.10) Tự xếp bài là cài đặt chung
+    Object.assign(CL.d.cfg, { lead: Number(vals.lead) || CL.d.cfg.lead, linkDays: Number(vals.linkDays) || CL.d.cfg.linkDays, autoApprove: Number(vals.autoApprove) || 0, autoLink: vals.autoLink, autoFill: vals.autoFill, pnum: vals.pnum, warnLeft: Number(vals.warnLeft) || 0, linkPrint: vals.linkPrint, tutorLinkMax: vals.tutorLinkMax, gate: vals.gate });
+    clQueue('classCfgSave', { values: vals }, { key: 'clcfg', label: 'Cài đặt lớp gia sư', merge: (a, b) => ({ values: Object.assign({}, a.values, b.values) }) }).then(r => { if (r) CL.d.cfg = r; });
+  };
   $('#csS', B).onclick = async e => {
-    try { const vals = { lead: $('#csL', B).value, autoApprove: $('#csA', B).value, linkDays: $('#csD', B).value, autoLink: $('#csK', B).checked, autoFill: $('#csF', B).checked, pnum: $('#csN', B).checked, warnLeft: $('#csW', B).value, linkPrint: $('#csLP', B).checked, tutorLinkMax: $('#csTM', B).value, remind: $('#csR', B).checked, gate: $('#csG', B).checked };
-      CL.d.classes.forEach(k => { k.manual = vals.autoFill ? 0 : 1; });      // (1.44.10) Tự xếp bài là cài đặt chung
-      Object.assign(CL.d.cfg, { lead: Number(vals.lead) || CL.d.cfg.lead, autoApprove: Number(vals.autoApprove) || 0, autoLink: vals.autoLink, autoFill: vals.autoFill, pnum: vals.pnum, warnLeft: Number(vals.warnLeft) || 0, linkPrint: vals.linkPrint, tutorLinkMax: vals.tutorLinkMax, gate: vals.gate });
-      toast('Đã lưu cài đặt');
-      clQueue('classCfgSave', { values: vals }, { key: 'clcfg', label: 'Cài đặt lớp gia sư', merge: (a, b) => ({ values: Object.assign({}, a.values, b.values) }) }).then(r => { if (r) CL.d.cfg = r; }); }
+    try { csSave(csVals()); toast('Đã lưu cài đặt'); }
     catch (er) { fail(er); }
+  };
+  // (1.57.1) áp dụng cho tất cả: xoá cài đặt link riêng của mọi lớp. Cài đặt đang sửa dở trên trang được lưu trước — áp dụng đúng cái đang thấy
+  $('#csAll', B).onclick = async () => {
+    const vals = csVals(), C = CL.d.cfg, n = CL.d.classes.filter(k => k.linkcfg).length;
+    const dirty = Number(vals.linkDays) !== Number(C.linkDays) || vals.autoLink !== C.autoLink || vals.pnum !== C.pnum || vals.linkPrint !== C.linkPrint;
+    if (!n && !dirty) return toast('Mọi lớp đang theo cài đặt chung — không có gì cần áp dụng', 'info');
+    const sum = clLinkSum({ days: Number(vals.linkDays) || C.linkDays, print: vals.linkPrint, pnum: vals.pnum, auto: vals.autoLink });
+    if (!await ask((n ? 'Cài đặt link riêng của ' + n + ' lớp sẽ bị thay bằng cài đặt chung.' : 'Chưa có lớp nào đặt riêng — chỉ lưu cài đặt chung.') + '\nMọi lớp sẽ dùng: ' + sum + '.' + (dirty ? '\nCài đặt bạn vừa sửa trên trang này cũng được lưu.' : '') + '\nLink đã có giữ nguyên hạn dùng.', { title: 'Áp dụng cho tất cả các lớp?', icon: 'bi-arrow-repeat', ok: 'Áp dụng' })) return;
+    try {
+      if (dirty) csSave(vals);
+      if (n) { CL.d.classes.forEach(k => { k.linkcfg = null; }); clQueue('classLinkCfgAll', { at: Date.now() }, { label: 'Áp dụng cài đặt link cho mọi lớp' }); }
+      $('#csAllN', B).textContent = clLkAllT();
+      toast(n ? 'Đã áp dụng cho tất cả — ' + n + ' lớp về theo cài đặt chung' : 'Đã lưu — mọi lớp theo cài đặt chung');
+    } catch (er) { fail(er); }
   };
   B.onclick = e => { const s = e.target.closest('[data-st]'); if (s) clStruct(progById(s.dataset.st), () => clSettings(B, v)); };
   const drop = $('#ciDrop', B), fi = $('#ciF', B);
