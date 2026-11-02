@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-02T09:11:10.116Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-02T11:04:37.076Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -6300,7 +6300,7 @@ const NAV_DEF = [
   /* Quản trị Kiến Task (1.43): một tab gom Phân quyền · Thống kê bảng · Cài đặt (nhắc việc, dữ liệu mẫu) — mục con hiện theo quyền */
   { r: 'tasks/admin', t: 'Quản trị', i: 'bi-shield-check', g: 'lib', cap: ['tasks.roles', 'tasks.boards', 'tasks.remind', 'tasks.manage'], m: /^tasks\/(admin|roles|boards)/ },
   { r: 'guide', t: 'Hướng dẫn', i: 'bi-book', g: 'team' },
-  { r: 'trash', t: 'Thùng rác', i: 'bi-trash3', g: 'admin', cap: ['classes.manage', 'settings.manage', 'sources.manage', 'programs.manage', 'users.manage', 'links.manage', 'book.manage', 'tasks.tab.board'] },
+  { r: 'trash', t: 'Thùng rác', i: 'bi-trash3', g: 'admin', cap: ['classes.view', 'classes.manage', 'settings.manage', 'sources.manage', 'programs.manage', 'users.manage', 'links.manage', 'book.manage', 'tasks.tab.board'] },
   { r: 'activity', t: 'Hoạt động', i: 'bi-activity', g: 'admin', cap: 'activity.view' },
   { r: 'sources', t: 'Nguồn dữ liệu', i: 'bi-hdd-network', g: 'lib', cap: 'sources.manage' },
   { r: 'who', t: 'Ai xem được', i: 'bi-person-lock', g: 'lib', cap: 'sources.manage' },      // (1.44.14) bảng thống kê quyền xem thật theo thư mục / chương trình / người
@@ -6963,7 +6963,7 @@ const ROUTES = {
   tasks:    { t: 'Kiến Task', i: 'bi-kanban', fn: (a, v) => viewTasks(a, v), arg: 1, cls: 'tk-view', cap: TASK_TABS },
   book:     { t: 'Kiến Cẩm Nang', i: 'bi-journal-richtext', fn: (a, v) => viewBook(a, v), arg: 1, cls: 'bk-view', cap: ['book.view', 'book.manage'] },
   apps:     { t: 'Apps', i: 'bi-grid-3x3-gap', fn: (a, v) => viewApps(a, v) },
-  trash:    { t: 'Thùng rác', i: 'bi-trash3', fn: (a, v) => viewTrash(a, v) },      // (1.57) ai cũng mở được: mỗi người thấy mục mình xoá + mục thuộc quyền quản lý (Trash.gs › trashCan_)
+  trash:    { t: 'Thùng rác', i: 'bi-trash3', fn: (a, v) => viewTrash(a, v) },      // (1.57) ai cũng mở được: mỗi người thấy mục mình xoá, Admin thấy hết (Trash.gs › trashCan_)
   today:    { t: 'Tổng quan', i: 'bi-grid-1x2', fn: (a, v) => viewHome(a, v), cap: ['classes.view', 'classes.manage'], ix: 1 }      // tổng quan của Kiến Chuyên môn (lịch tuần, việc cần làm, trao đổi) — 'home' là tổng quan của Thư viện
 };
 const VIEWS = {};
@@ -16282,13 +16282,19 @@ async function viewActivity(arg, v) {
 }
 </script>
 
+<style>
+.tr-q{ padding:10px 16px; border-bottom:1px solid var(--border) }
+.tr-busy{ display:flex; align-items:center; gap:10px } .tr-busy > span:nth-child(2){ flex:1; min-width:0 }
+.tr-err{ display:flex; gap:8px; color:var(--danger) } .tr-err span{ color:var(--ink) }
+.tr-r.hit{ background:var(--bg) } a.tr-r{ color:inherit; text-decoration:none } a.tr-r:hover{ background:var(--bg) }
+</style>
 <script>
 /* ══════════ THÙNG RÁC (1.57) — trang #trash: khôi phục / xoá hẳn · đặt số ngày giữ · tìm lớp xoá trước khi có Thùng rác trong lịch sử phiên bản Sheet (Trash.gs) ══════════ */
 const TR_DAYS = [3, 7, 14, 30];
 async function viewTrash(arg, v) {
   setTitle('Thùng rác', 'bi-trash3', [], v);
   v.innerHTML = miniLoader('Đang mở Thùng rác…');
-  let D = await rpc('trashList', {}, { quiet: true }), flt = '', H = null;
+  let D = await rpc('trashList', {}, { quiet: true }), flt = '', H = null, Q = '', scan = null;
   const dm = t => fmtDT(t);
   const left = t => { const d = Math.ceil((new Date(t).getTime() - Date.now()) / 864e5); return d > 1 ? 'còn ' + d + ' ngày' : 'còn dưới 1 ngày'; };
   const row = x => '<div class="tr-r" data-id="' + esc(x.id) + '"><span class="tr-ic"><i class="bi ' + esc(x.i) + '"></i></span><div class="tr-m"><b>' + esc(x.label) + '</b><small>' +
@@ -16309,24 +16315,55 @@ async function viewTrash(arg, v) {
   };
   /* tìm lớp đã xoá trước khi có Thùng rác */
   const histHtml = () => '<div class="card"><div class="card-h"><h2><i class="bi bi-clock-history"></i>Lớp xoá trước khi có Thùng rác</h2></div>' +
-    '<div class="tr-note">Sheet dữ liệu có lịch sử phiên bản của Google nên vẫn lấy lại được lớp, các buổi học và tiến trình học. Chọn lần xoá để tìm trong bản ngay trước đó.</div>' +
+    '<div class="tr-note">Sheet dữ liệu có lịch sử phiên bản của Google nên vẫn lấy lại được lớp, các buổi học và tiến trình học. Gõ tên bé hoặc mã lớp để tìm trong các bản cũ.</div>' +
+    '<div class="tr-url tr-q"><input class="inp" id="trQ" placeholder="VD: Hà Huy Minh Triết hoặc GS-TrietHHM" value="' + esc(Q) + '"><button class="btn sm pri" id="trQGo"><i class="bi bi-search"></i>Tìm</button></div>' +
     (D.old.length ? '<div class="tr-l">' + D.old.map((o, i) => '<div class="tr-r"><span class="tr-ic"><i class="bi bi-people"></i></span><div class="tr-m"><b>' + esc(o.detail || 'Xoá lớp') + '</b><small>Xoá bởi ' + esc(o.by || '—') + ' · ' + esc(dm(o.at)) + '</small></div><div class="tr-a"><button class="btn sm" data-h="' + i + '"><i class="bi bi-search"></i><span>Tìm lại</span></button></div></div>').join('') + '</div>' : '') +
     '<details class="tr-man"' + (D.old.length ? '' : ' open') + '><summary>Tự chép bản cũ của Sheet</summary><ol><li>Mở <b>Sheet dữ liệu</b> bằng tài khoản chủ › Tệp › Lịch sử phiên bản › Xem lịch sử phiên bản.</li><li>Chọn bản ngay trước lúc xoá › ⋮ › <b>Tạo bản sao</b>.</li><li>Dán link bản sao vào đây:</li></ol>' +
       '<div class="tr-url"><input class="inp" id="trUrl" placeholder="https://docs.google.com/spreadsheets/d/…"><button class="btn sm" id="trUrlGo"><i class="bi bi-search"></i>Tìm</button></div></details>' +
     '<div id="trHist">' + histRes() + '</div></div>';
-  const histRes = () => { if (!H) return '';
-    if (!H.items.length) return '<div class="tr-note"><b>Bản này không có lớp nào đang thiếu.</b> Thử chọn bản cũ hơn.</div>';
-    return '<div class="tr-note"><b>' + H.items.length + ' lớp có trong bản cũ mà hiện đã mất</b>' + (H.at ? ' · bản lúc ' + esc(dm(H.at)) : '') + '. Những thay đổi của lớp sau thời điểm bản này sẽ không có.</div>' +
-      '<div class="tr-l">' + H.items.map(c => '<label class="tr-r clk"><input type="checkbox" class="tr-ck" data-c="' + esc(c.id) + '" checked><div class="tr-m"><b>' + esc(c.student || c.code) + ' · ' + esc(c.code) + '</b><small>' + [c.grade, c.tutor, c.status].filter(Boolean).map(esc).join(' · ') + '</small><small>' + c.nSess + ' buổi · ' + c.nTaught + ' đã dạy · ' + c.nDone + ' bài đánh dấu đã học</small></div></label>').join('') + '</div>' +
+  const histRes = () => {
+    const lv = L => L && L.length ? '<div class="tr-note"><b>Lớp có tên này vẫn còn trên hệ thống:</b></div><div class="tr-l">' + L.map(liveRow).join('') + '</div>' : '';
+    if (scan) return lv(scan.live) + '<div class="tr-note tr-busy"><span class="mw-ring" aria-hidden="true"></span><span>' + esc(scan.msg) + '</span><button class="btn xs" id="trStop">Dừng</button></div>';
+    if (!H) return '';
+    if (H.err) return '<div class="tr-note tr-err"><i class="bi bi-exclamation-octagon"></i><span><b>Chưa tìm được.</b> ' + esc(H.err) + '<br>Có thể dùng cách <b>Tự chép bản cũ của Sheet</b> ở trên.</span></div>';
+    if (H.miss !== undefined) return lv(H.live) + '<div class="tr-note"><b>Không thấy “' + esc(Q) + '” trong ' + H.miss + ' bản cũ gần đây.</b>' + (H.seen && H.seen.length ? ' Các lớp khác đang thiếu: ' + H.seen.map(esc).join(', ') + '.' : '') + ' Thử tìm theo mã lớp, hoặc dùng cách <b>Tự chép bản cũ của Sheet</b>.</div>';
+    if (!H.items.length) return lv(H.live) + '<div class="tr-note"><b>Bản này không có lớp nào đang thiếu.</b> Thử chọn bản cũ hơn.</div>';
+    return lv(H.live) + '<div class="tr-note"><b>' + H.items.length + ' lớp có trong bản cũ mà hiện đã mất</b>' + (H.at ? ' · bản lúc ' + esc(dm(H.at)) : '') + '. Những thay đổi của lớp sau thời điểm bản này sẽ không có.</div>' +
+      '<div class="tr-l">' + H.items.map(c => '<label class="tr-r clk' + (c.hit ? ' hit' : '') + '"><input type="checkbox" class="tr-ck" data-c="' + esc(c.id) + '"' + (c.hit || c.id === H.pick ? ' checked' : '') + '><div class="tr-m"><b>' + esc(c.student || c.code) + ' · ' + esc(c.code) + '</b><small>' + [c.grade, c.tutor, c.status].filter(Boolean).map(esc).join(' · ') + '</small><small>' + c.nSess + ' buổi · ' + c.nTaught + ' đã dạy · ' + c.nDone + ' bài đánh dấu đã học</small></div></label>').join('') + '</div>' +
       '<div class="tr-f end"><button class="btn sm pri" id="trHistGo"><i class="bi bi-arrow-counterclockwise"></i>Khôi phục lớp đã chọn</button></div>'; };
+  const liveRow = c => '<a class="tr-r clk" href="' + esc(routeUrl('classes/c/' + c.id)) + '" data-r="classes/c/' + esc(c.id) + '"><span class="tr-ic"><i class="bi bi-people"></i></span><div class="tr-m"><b>' + esc(c.student || c.code) + ' · ' + esc(c.code) + '</b><small>' + [c.status, c.tutor].filter(Boolean).map(esc).join(' · ') + '</small></div></a>';
+  const histPaint = () => { const e = $('#trHist', v); if (e) e.innerHTML = histRes(); };
+  /** tìm theo tên: xem lần lượt từng bản cũ, thấy lớp khớp là dừng */
+  const search = async () => {
+    Q = $('#trQ', v).value.trim(); if (!Q) { toast('Gõ tên bé hoặc mã lớp', 'warn'); return $('#trQ', v).focus(); }
+    const job = scan = { msg: 'Đang lấy danh sách bản cũ của Sheet…' }; H = null; histPaint();
+    try {
+      const P = await rpc('trashHistPlan', { q: Q }, { quiet: true }), seen = {};
+      job.live = P.live;
+      for (let i = 0; i < P.plan.length; i++) {
+        if (scan !== job) return;
+        job.msg = 'Đang xem bản lúc ' + dm(P.plan[i].at) + ' (' + (i + 1) + '/' + P.plan.length + ') — mỗi bản khoảng một phút…'; histPaint();
+        const r = await rpc('trashHist', { rev: P.plan[i].id, q: Q }, { quiet: true });
+        if (scan !== job) return;
+        if (r.items.some(c => c.hit)) { scan = null; H = Object.assign(r, { live: P.live }); return histPaint(); }
+        r.items.forEach(c => { seen[c.student || c.code] = 1; });
+      }
+      scan = null; rpc('trashHistDone', {}, { quiet: true }).catch(() => {});
+      H = { live: P.live, miss: P.plan.length, seen: Object.keys(seen) };
+    } catch (er) { console.error(er); if (scan === job) { scan = null; H = { err: er.message }; const m = $('.tr-man', v); if (m) m.open = true; } }
+    histPaint();
+  };
   const find = async (b, p, wait) => {
     const stop = btnWait(b, wait);
-    try { H = await rpc('trashHist', p, { quiet: true }); stop(); paint(); const e = $('#trHist', v); if (e) e.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
-    catch (er) { stop(); fail(er); const m = $('.tr-man', v); if (m) m.open = true; }
+    try { H = await rpc('trashHist', p, { quiet: true }); H.pick = p.pick || ''; stop(); paint(); const e = $('#trHist', v); if (e) e.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+    catch (er) { console.error(er); stop(); H = { err: er.message }; paint(); const m = $('.tr-man', v); if (m) m.open = true; }
   };
   v.onclick = async e => {
     const c = e.target.closest('[data-k]'); if (c) { flt = c.dataset.k; return paint(); }
-    const h = e.target.closest('[data-h]'); if (h) return find(h, { at: D.old[Number(h.dataset.h)].at }, 'Đang tìm…');
+    const lr = e.target.closest('a[data-r]'); if (lr) { e.preventDefault(); return go(lr.dataset.r); }
+    if (e.target.closest('#trQGo')) return search();
+    if (e.target.closest('#trStop')) { scan = null; rpc('trashHistDone', {}, { quiet: true }).catch(() => {}); return histPaint(); }
+    const h = e.target.closest('[data-h]'); if (h) { const o = D.old[Number(h.dataset.h)]; return find(h, { at: o.at, pick: o.id }, 'Đang tìm…'); }
     if (e.target.closest('#trUrlGo')) { const u = $('#trUrl', v).value.trim(); if (!u) return toast('Dán link bản sao của Sheet', 'warn'); return find(e.target.closest('#trUrlGo'), { url: u }, 'Đang đọc…'); }
     const hg = e.target.closest('#trHistGo'); if (hg) {
       const ids = $$('.tr-ck', v).filter(x => x.checked).map(x => x.dataset.c); if (!ids.length) return toast('Chọn ít nhất một lớp', 'warn');
@@ -16353,6 +16390,7 @@ async function viewTrash(arg, v) {
     try { const r = await rpc('trashCfg', { days: Number(d) }, { quiet: true }); D.days = r.days; S.boot.trashDays = r.days; D = await rpc('trashList', {}, { quiet: true }); paint(); toast('Dữ liệu đã xoá được giữ ' + r.days + ' ngày'); }
     catch (er) { fail(er); paint(); }
   };
+  v.onkeydown = e => { if (e.key === 'Enter' && e.target.id === 'trQ') { e.preventDefault(); search(); } };
   paint();
 }
 </script>
