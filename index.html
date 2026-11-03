@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T07:52:20.363Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T08:14:56.985Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4305,6 +4305,8 @@ html.tk-noadd .tk-quick, html.tk-noadd .tk-qadd, html.tk-noadd #tkNew, html.tk-n
 .dro-inv{ display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:12px; border:1px dashed var(--border-strong) } .dro-link{ display:flex; gap:8px } .dro-link .inp{ flex:1; min-width:0; font-size:12px }
 .dro-invl{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--muted) } .dro-invl > div{ display:flex; align-items:center; gap:8px } .dro-invl span{ flex:1 }
 .gmo-now > i{ font-size:20px; color:var(--primary) } .gmo-now > div{ flex:1 1 220px; display:flex; flex-direction:column; gap:2px; min-width:0 } .gmo-now small{ color:var(--muted); font-size:12px }
+.kg-need{ display:flex; gap:12px; padding:12px 14px; border-radius:12px; background:var(--warn-bg,#FFF6E6); border:1px solid var(--warn-line,#F2D59B); color:var(--text); line-height:1.6; font-size:13px }
+.kg-need > i{ font-size:20px; color:var(--warn,#8A5200) } .kg-need > div{ flex:1; min-width:0 } .kg-need ul{ margin:4px 0 6px; padding-left:18px } .kg-need small{ display:block; color:var(--muted); font-size:12px } .kg-need a{ color:var(--primary); font-weight:600 }
 /* ══════════ ĐĂNG NHẬP: Tiếp tục với Google · hoặc · email ══════════ */
 .lg3 .lg-g{ display:flex; justify-content:center; min-height:44px; margin:2px 0 0 }
 .lg3 .gsi-btn{ max-width:400px; gap:8px; border-radius:10px }
@@ -10062,6 +10064,15 @@ async function setKgs(B) {
   const load = async () => { try { take(await rpc('kgsGet', {}, { quiet: true })); } catch (e) { B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'; } };
   const sw = (id, on, t, d) => '<label class="row" style="gap:10px;flex-wrap:nowrap;align-items:flex-start"><span class="sw"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><span></span></span><span><b>' + t + '</b><br><span class="small muted">' + d + '</span></span></label>';
   const evLabel = m => m < 60 ? m + ' phút' : (m / 60) + ' giờ';
+  /** tài khoản KGS thiếu quyền → liệt kê ô cần tick ở KGS › Phân quyền */
+  const need = s => {
+    const G = {}; ((s && s.need) || []).forEach(x => { const p = String(x).split(' › '); (G[p[0]] = G[p[0]] || []).indexOf(p[1]) < 0 && G[p[0]].push(p[1]); });
+    const L = Object.keys(G); if (!L.length) return '';
+    return '<div class="kg-need"><i class="bi bi-shield-exclamation"></i><div><b>Tài khoản KGS ' + esc(s.who || '') + ' còn thiếu quyền — một số việc chưa chạy được</b>' +
+      '<ul>' + L.map(f => '<li><b>' + esc(f) + '</b> · tick ô <b>' + G[f].map(esc).join('</b> và <b>') + '</b></li>').join('') + '</ul>' +
+      '<small>Cách bật: mở <a href="https://app.kiengiasu.edu.vn/admin/permissions" target="_blank" rel="noopener">KGS › Phân quyền</a> (cần tài khoản quản trị KGS) › tìm vai trò của tài khoản này (hoặc cấp riêng cho tài khoản ở thẻ cấp riêng) › tick các ô trên › chờ khoảng 1 phút rồi bấm <b>Đồng bộ ngay</b>. ' +
+      'Hoặc dán phiên của một tài khoản KGS quản trị (đủ quyền) ở Cách 2.</small></div></div>';
+  };
   const status = () => {
     const s = K.state, n = (s && s.n) || {};
     const tag = !s ? '<span class="tag">Chưa đồng bộ</span>' : s.ok ? '<span class="tag ok">Đang chạy</span>' : '<span class="tag red">' + (s.auth ? 'Hết phiên đăng nhập' : 'Lỗi') + '</span>';
@@ -10076,7 +10087,7 @@ async function setKgs(B) {
           ((s.fail || []).length ? '<small style="color:var(--warn,#8A5200)">' + s.fail.length + ' topic chưa đồng bộ được bên KGS: ' + esc(s.fail[0].err) + '</small>' : '') +
           ((s.nfail || []).length ? '<small style="color:var(--warn,#8A5200)">' + (n.pushFail || s.nfail.length) + ' buổi chưa ghi được sang KGS (thử lại lần sau): ' + esc(s.nfail[0].err) + '</small>' : '') +
           ((s.cfail || []).length ? '<small style="color:var(--warn,#8A5200)">Chưa đọc được danh sách lớp / gia sư bên KGS: ' + esc(s.cfail[0].err) + '</small>' : '') + '</div>' +
-          (K.cookie.has ? '<button class="btn sm" id="kgRun"><i class="bi bi-arrow-repeat"></i>Đồng bộ ngay</button>' : '') + '</div>'
+          (K.cookie.has ? '<button class="btn sm" id="kgRun"><i class="bi bi-arrow-repeat"></i>Đồng bộ ngay</button>' : '') + '</div>' + need(s)
         : '<div class="small muted">Chưa đồng bộ lần nào — dùng một trong hai cách bên dưới (hoặc cả hai).</div>') +
       '</div></div>';
   };
