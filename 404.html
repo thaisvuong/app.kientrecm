@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T17:10:32.332Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T21:16:44.202Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -3510,16 +3510,14 @@ html .cp-gd .btn{ height:26px; font-size:11.5px; font-weight:600; padding:0 9px;
 /* (1.64) KÉO HÌNH TỰ DO: giữ chuột trên hình rồi kéo tới chỗ mới (trước / sau đoạn bất kỳ, sang trang khác) — kéo về mép trái / phải = chữ chạy quanh;
    chấm cam ở góc = kéo đổi cỡ (không in) */
 .kg-img{ touch-action:none } .kg-img img{ -webkit-user-drag:none; user-select:none }
-.kg-img:hover{ cursor:grab } .kg-img.kg-moving{ opacity:.3 }
+.kg-img:hover{ cursor:grab }
 .kg-rs{ display:none; position:absolute; right:-5pt; bottom:-5pt; width:10pt; height:10pt; border-radius:50%; background:#ED5814; border:1.5pt solid #fff; box-shadow:0 0 0 .8pt #ED5814; cursor:nwse-resize; z-index:5 }
 .kg-img.p-phai .kg-rs{ right:auto; left:-5pt; cursor:nesw-resize }
 .kg-img.on .kg-rs, .kg-img:hover .kg-rs{ display:block }
-.cp-ghost{ position:fixed; z-index:9999; pointer-events:none; width:120px; border-radius:10px; overflow:hidden; background:#fff; box-shadow:0 10px 28px rgba(15,23,42,.28); outline:2px solid #ED5814; transform:translate(-50%, -50%) rotate(-2deg); opacity:.92 }
-.cp-ghost img{ display:block; width:100%; height:auto } .cp-ghost .ph{ display:grid; place-items:center; height:70px; background:#FEF6F0; color:#C2410C; font:700 11px Arial, sans-serif }
-.cp-ghost em{ position:absolute; left:6px; top:6px; padding:2px 8px; border-radius:999px; background:#1C2420; color:#fff; font:600 11px/1.5 var(--font-sans, Arial); font-style:normal; white-space:nowrap }
-.cp-drop{ position:fixed; z-index:9998; pointer-events:none; height:3px; border-radius:3px; background:#ED5814; box-shadow:0 0 0 2px rgba(237,88,20,.18) }
-.cp-drop::before, .cp-drop::after{ content:''; position:absolute; top:-3px; width:9px; height:9px; border-radius:50%; background:#ED5814 } .cp-drop::before{ left:-4px } .cp-drop::after{ right:-4px }
-.cp-zone{ position:fixed; z-index:9997; pointer-events:none; border-radius:6px; background:rgba(237,88,20,.07); border:1.5px dashed rgba(237,88,20,.55) }
+.kg-img.p-free{ position:absolute; margin:0; z-index:3; float:none } .kg-img.p-free.on{ z-index:6 }
+.cp-float{ position:fixed !important; z-index:9999; margin:0 !important; float:none !important; transform-origin:0 0; pointer-events:none; opacity:.78; outline:2pt solid #ED5814; outline-offset:2pt; box-shadow:0 12px 30px rgba(15,23,42,.25) }
+.cp-float.out{ opacity:.4; outline-color:#9AA39D }
+.kg-img.kg-moving{ visibility:hidden }
 .cp-szb{ position:fixed; z-index:9999; pointer-events:none; padding:3px 9px; border-radius:999px; background:#1C2420; color:#fff; font:700 12px/1.4 var(--font-sans, Arial); transform:translate(10px, 10px) }
 .cp-lay.cp-rsz, .cp-lay.cp-rsz *{ cursor:col-resize !important; user-select:none } .cp-lay.cp-rsz .cp-pages{ pointer-events:none }
 .kg-sheet{ contain:layout style }
@@ -4835,6 +4833,41 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .zb-r .zb-fg > .inp{ max-width:none }
 @media (max-width:640px){ .zb-r{ padding:12px } .zb-r .zb-rh{ flex-wrap:nowrap } .zb-r .zb-msb{ font-size:16px } .zb-fg{ grid-template-columns:1fr; gap:6px } .zb-fl{ line-height:1.4 } .zb-exr{ grid-template-columns:minmax(0, 1fr) 36px } .zb-exr .inp:first-child{ grid-column:1 / -1 } }
 
+/* (1.65.1) Chế độ hiển thị: Theo máy · Sáng · Tối */
+.ui-modes{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px }
+.ui-mode{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; padding:12px 14px; border:1px solid var(--border-strong); border-radius:12px; background:var(--surface); cursor:pointer; text-align:left; color:var(--ink) }
+.ui-mode i{ font-size:18px; color:var(--primary) } .ui-mode small{ color:var(--muted); font-size:12px; line-height:1.4 } .ui-mode:hover{ border-color:var(--primary) }
+.ui-mode[aria-checked="true"]{ border-color:var(--primary); box-shadow:0 0 0 3px var(--ring); background:var(--brand-50) }
+.ui-mode:focus-visible{ outline:2px solid var(--brand-600); outline-offset:2px }
+/* (1.65) Bot Zalo: quy tắc thu gọn · tìm · tạm dừng */
+.zb-rq{ position:relative; max-width:560px } .zb-rq > i{ position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; pointer-events:none } .zb-rq .inp{ padding-left:32px; width:100%; height:36px }
+.zb-r[hidden]{ display:none } .zb-r:not(.open){ padding-bottom:12px } .zb-r:not(.open) .zb-rh{ padding-bottom:0; border-bottom:0 }
+.zb-rh[data-rh]{ cursor:pointer } .zb-rtt{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px } .zb-rtt .zb-rt{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.zb-rtt small{ color:var(--muted); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .zb-rh .tag{ flex:none }
+.zb-r.off{ background:var(--surface-2) } .zb-r.off .zb-rt{ color:var(--muted) }
+.zb-ra{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding-top:10px; border-top:1px solid var(--border) } .zb-ra .sp{ flex:1 }
+/* (1.65) Thiết lập thông báo */
+.nt-bar{ display:flex; flex-wrap:wrap; align-items:center; gap:10px } .nt-bar .zb-rq{ flex:1 1 260px } .nt-bar .seg{ flex-wrap:wrap }
+.nt-g{ display:flex; flex-direction:column; gap:6px } .nt-g[hidden], .nt-r[hidden]{ display:none } .nt-gh{ font-size:11.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); padding:8px 2px 2px }
+.nt-r{ border:1px solid var(--border); border-radius:12px; background:var(--surface) } .nt-r.open{ border-color:var(--border-strong) }
+.nt-rh{ display:flex; align-items:center; gap:8px; padding:8px 10px } .nt-rh .tag{ flex:none }
+.nt-rn{ flex:1 1 auto; min-width:0; display:flex; align-items:flex-start; gap:8px; border:0; background:none; padding:2px 0; text-align:left; cursor:pointer; color:inherit; font:inherit }
+.nt-rn > i{ color:var(--muted); font-size:12px; margin-top:3px } .nt-rn > span{ display:flex; flex-direction:column; gap:2px; min-width:0 } .nt-rn b{ font-size:13px } .nt-rn small{ color:var(--muted); font-size:12px; line-height:1.4 }
+.nt-chs{ flex:none; display:flex; gap:6px }
+.nt-ch{ display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 10px; border:1px solid var(--border-strong); border-radius:999px; background:var(--surface); color:var(--muted); font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap }
+.nt-ch:hover{ border-color:#A8B5C7 } .nt-ch.on{ background:#E7F6EE; border-color:#9FD7B8; color:#0F6B3D } .nt-ch.on.warn{ background:#FFF4E0; border-color:#F5D9A8; color:#8A5200 }
+.nt-ch em{ font-style:normal; font-size:10.5px; font-weight:800; padding:1px 6px; border-radius:999px; background:rgba(15,107,61,.12) } .nt-ch.na{ opacity:.35; cursor:default; border-style:dashed }
+.nt-ch:focus-visible, .nt-rn:focus-visible{ outline:2px solid var(--brand-600); outline-offset:2px }
+.nt-rb{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:10px; padding:4px 12px 12px }
+.nt-who{ display:flex; flex-direction:column; align-items:flex-start; gap:7px; padding:10px 12px; border-radius:10px; background:var(--surface-2) }
+.nt-wh{ display:flex; align-items:center; gap:6px; font-size:12.5px } .nt-wh i{ color:var(--primary) }
+.nt-fl{ font-size:11.5px; font-weight:700; color:var(--muted); margin-top:2px } .nt-roles{ display:flex; flex-wrap:wrap; gap:6px 14px }
+.nt-us{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%; min-width:0 } .nt-us .sel{ flex:1 1 180px; width:100%; min-width:0; max-width:320px; height:30px; font-size:12.5px }
+.nt-who{ min-width:0 } .nt-who.off{ opacity:.75 } .nt-who.off .nt-wh b{ color:var(--muted) }
+.nt-chip{ display:inline-flex; align-items:center; gap:2px; padding:2px 4px 2px 10px; border-radius:999px; background:var(--surface); border:1px solid var(--border); font-size:12px }
+.nt-zl{ margin:0; padding-left:18px; font-size:12.5px; line-height:1.6 } .nt-ra{ grid-column:1 / -1; display:flex; align-items:center; gap:8px }
+@media (max-width:640px){ .nt-rh{ flex-wrap:wrap } .nt-chs{ width:100%; padding-left:20px } .nt-ch{ flex:1 1 0; justify-content:center; padding:0 6px } .nt-bar .seg{ width:100%; overflow-x:auto; flex-wrap:nowrap } }
+
 /* (1.57) Dải Hoàn tác · trang Thùng rác */
 #undos{ position:fixed; left:50%; bottom:64px; transform:translateX(-50%); z-index:801; display:flex; flex-direction:column; align-items:center; gap:6px; pointer-events:none; width:max-content; max-width:calc(100vw - 24px) }
 #undos .toast{ cursor:default; max-width:min(560px, calc(100vw - 24px)) }
@@ -4913,6 +4946,639 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 }
 </style>
 
+  <style>
+/* (1.65.1) CHẾ ĐỘ TỐI — Cài đặt › Giao diện & phím tắt (Sáng / Tối / Theo máy). Phần “sinh tự động” bên dưới do tools/dark-css.js tạo — KHÔNG sửa tay, sửa màu gốc rồi chạy lại. */
+html[data-mode="dark"]{ color-scheme:dark;
+  --brand-700:oklch(0.64 0.16 264); --brand-600:oklch(0.68 0.15 264); --brand-500:oklch(0.72 0.13 262); --brand-400:oklch(0.78 0.1 258);
+  --brand-100:#1F2C4D; --brand-50:#18223B; --brand-200:#2A3A63; --brand-950:#C9D8F2; --brand-900:#B5C8EC; --brand-800:#9DB6E6;
+  --page:#0E1420; --lightprimary:#1F2B45; --peach:#3A2418; --orange-ink:#FF9A6B; --orange:#F3663D;
+  --primary:oklch(0.6 0.17 264); --on-primary:#FFFFFF; --accent:oklch(0.68 0.15 264); --accent-soft:oklch(0.5 0.1 250);
+  --bg:#0E1420; --surface:#151C2B; --surface-2:#1A2234; --surface-3:#202A3E;
+  --border:#2A3448; --border-strong:#38455E; --ink:#E7EBF3; --ink-2:#BAC4D7; --muted:#8E9AB1;
+  --ok:#43C285; --warn:#E6A640; --danger:#F06A6E; --info:#73A3FF; --violet:#B08CFF;
+  --ring:oklch(0.68 0.15 264 / .38);
+  --sh-1:0 1px 3px 0 rgba(0,0,0,.45), 0 1px 2px 0 rgba(0,0,0,.3); --sh-2:0 4px 12px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.35); --sh-3:0 14px 34px rgba(0,0,0,.55), 0 4px 12px rgba(0,0,0,.35);
+  --sb-bg:var(--surface);
+}
+html[data-mode="dark"] .kg-sheet, html[data-mode="dark"] .pd2-page, html[data-mode="dark"] .sy-page{ color-scheme:light; --bg:oklch(0.972 0.012 250.4); --surface:#fff; --surface-2:oklch(0.985 0.006 250.4); --surface-3:oklch(0.97 0.014 254.604); --border:oklch(0.928 0.006 264.531); --border-strong:oklch(0.88 0.02 250.4);
+  --ink:oklch(0.145 0 0); --ink-2:oklch(0.373 0.034 259.733); --muted:oklch(0.5 0.03 250.4); --brand-700:oklch(0.424 0.199 265.638); --primary:oklch(0.424 0.199 265.638); --brand-50:oklch(0.97 0.014 254.604); --brand-100:oklch(0.93 0.035 260); color:var(--ink) }
+html[data-mode="dark"] a{ color:#8FB2FF }
+html[data-mode="dark"] #ov{ background:var(--bg) !important } html[data-mode="dark"] .ov-doc{ background:var(--surface-2); border-color:var(--border-strong) }      /* màn chờ khi mở app */
+html[data-mode="dark"] ::-webkit-scrollbar-thumb{ background:#3A4660; background-clip:padding-box }
+html[data-mode="dark"] img, html[data-mode="dark"] video{ filter:none }
+html[data-mode="dark"] iframe{ background:#fff }      /* PDF / Docs xem trong khung giữ nền giấy trắng */
+html[data-mode="dark"] input, html[data-mode="dark"] select, html[data-mode="dark"] textarea{ background-color:var(--surface-2); color:var(--ink) }
+html[data-mode="dark"] input::placeholder, html[data-mode="dark"] textarea::placeholder{ color:#6F7B93 }
+html[data-mode="dark"] [style*="background:#fff"], html[data-mode="dark"] [style*="background:#FFF"], html[data-mode="dark"] [style*="background: #fff"]{ background:var(--surface) !important }
+html[data-mode="dark"] [style*="color:#1E3A6E"], html[data-mode="dark"] [style*="color:#0F2A5C"]{ color:#AFC6F5 !important }
+/* ═══ sinh tự động ═══ */
+/* ── Styles.html ── */
+html[data-mode="dark"] ::-webkit-scrollbar-thumb{ background:#39414d }
+html[data-mode="dark"] .sb-logo{ background:linear-gradient(150deg, #1d1d1d38, rgba(255,255,255,.06)); border:1px solid #33333338 }
+html[data-mode="dark"] .nav-badge{ color:#fce6bf }
+html[data-mode="dark"] .btn:hover{ border-color:#4b525b; background:var(--surface) }
+html[data-mode="dark"] .btn.pri{ background:linear-gradient(135deg, #1A3B6C, var(--brand-600)) }
+html[data-mode="dark"] .btn.pri::after{ background:linear-gradient(90deg,transparent,#1d1d1d61,transparent) }
+html[data-mode="dark"] .inp:hover, html[data-mode="dark"] select.sel:hover, html[data-mode="dark"] .ta:hover{ border-color:#4b525b; background-color:var(--surface) }
+html[data-mode="dark"] .inp:focus, html[data-mode="dark"] select.sel:focus, html[data-mode="dark"] .ta:focus{ background-color:var(--surface) }
+html[data-mode="dark"] .seg-b[aria-pressed="true"]{ background:var(--surface) }
+html[data-mode="dark"] .badge{ background:color-mix(in srgb, var(--bc,#475569) 11%, var(--surface)); border:1px solid color-mix(in srgb, var(--bc,#475569) 24%, var(--border)) }
+html[data-mode="dark"] .kpi-i{ background:color-mix(in srgb, var(--kc) 10%, var(--surface)) }
+html[data-mode="dark"] .tl-ic{ background:color-mix(in srgb, var(--tc,#475569) 12%, var(--surface)) }
+html[data-mode="dark"] .login{ background:radial-gradient(120% 90% at 50% 20%, #1A3B6C 0%, #0C1E3A 55%, #08090C 100%) }
+html[data-mode="dark"] .login-card{ background:#1d1d1df7 }
+html[data-mode="dark"] .login-logo{ background:linear-gradient(135deg,#1A3B6C,var(--brand-500)) }
+html[data-mode="dark"] .sw span{ background:#373e48 }
+html[data-mode="dark"] .sw span::after{ background:var(--surface) }
+html[data-mode="dark"] .th-card{ background:var(--surface) }
+html[data-mode="dark"] .th-prev .b{ background:#20242b }
+html[data-mode="dark"] .th-prev .b i{ background:#2b3038 }
+html[data-mode="dark"] .tree-i.drop{ background:color-mix(in srgb, var(--brand-100) 80%, var(--surface)) }
+html[data-mode="dark"] .tree-i .tr-ac span:hover{ background:var(--surface) }
+html[data-mode="dark"] .modal-f .modal-wait{ color:#f5d19f }
+html[data-mode="dark"] .tb-search:hover{ background:var(--surface) }
+html[data-mode="dark"] .tb-search kbd{ background:var(--surface) }
+html[data-mode="dark"] .pal-i mark, html[data-mode="dark"] .fl-n mark, html[data-mode="dark"] .fc-t mark, html[data-mode="dark"] .ltbl mark, html[data-mode="dark"] .find-i mark{ background:color-mix(in srgb, var(--accent-soft) 45%, var(--surface)) }
+html[data-mode="dark"] .pal-f kbd{ background:var(--surface) }
+html[data-mode="dark"] .fic{ background:color-mix(in srgb, var(--fc,#475569) 11%, var(--surface)) }
+html[data-mode="dark"] .kd{ background:color-mix(in srgb, var(--kc,#475569) 10%, var(--surface)); border:1px solid color-mix(in srgb, var(--kc,#475569) 22%, var(--border)) }
+html[data-mode="dark"] .hero{ background:radial-gradient(130% 120% at 100% 0%, oklch(0.72 0.12 245 / .55) 0%, transparent 42%), linear-gradient(135deg, #132C55, var(--brand-700) 60%, var(--brand-600)) }
+html[data-mode="dark"] .hero-q{ background:var(--surface) }
+html[data-mode="dark"] .hero-chips button{ border:1px solid #33333347 }
+html[data-mode="dark"] .hero-chips button:hover{ background:#1d1d1d38 }
+html[data-mode="dark"] .spark i{ background:color-mix(in srgb, var(--brand-600) 70%, var(--surface)) }
+html[data-mode="dark"] .dcard .di{ color:#e9c16e; background:#3f3212 }
+html[data-mode="dark"] .fc-th{ background:linear-gradient(180deg, var(--surface-3), #252b34) }
+html[data-mode="dark"] .vw-tab:hover{ background:var(--surface) }
+html[data-mode="dark"] .pg-in{ background:var(--surface) }
+html[data-mode="dark"] .vw-pages{ background:#2b3038 }
+html[data-mode="dark"] .pg{ background:var(--surface) }
+html[data-mode="dark"] .pg .pn{ color:var(--muted) }
+html[data-mode="dark"] .pg.loading::after{ background:linear-gradient(90deg, transparent, #2b313999, transparent) }
+html[data-mode="dark"] .vw-text{ background:var(--surface) }
+html[data-mode="dark"] .find-i{ background:var(--surface) }
+html[data-mode="dark"] .src .si{ background:color-mix(in srgb, var(--sc,var(--brand-600)) 11%, var(--surface)) }
+html[data-mode="dark"] .probe-i{ background:var(--surface) }
+html[data-mode="dark"] .probe-i.bad{ border-color:#592d2e }
+html[data-mode="dark"] .rule-row input[type=color]{ background:var(--surface) }
+html[data-mode="dark"] .ic-pop{ background:var(--surface) }
+html[data-mode="dark"] .glass-row .gp{ background:radial-gradient(60% 70% at 20% 30%, var(--brand-400), transparent 70%), radial-gradient(60% 70% at 80% 70%, rgba(125,211,252,.9), transparent 70%), #222831 }
+html[data-mode="dark"] .glass-row .gp::after{ background:#1d1d1d8c; border:1px solid #333333cc }
+html[data-mode="dark"] .pe-n .fi{ color:#e9c16e }
+html[data-mode="dark"] .pe-l > .bi{ color:#e9c16e }
+html[data-mode="dark"] .pe-l.bad{ border-color:#592d2e; background:#330f0f }
+html[data-mode="dark"] .pk .fi{ color:#e9c16e }
+html[data-mode="dark"] .pk mark{ background:color-mix(in srgb, var(--accent-soft) 55%, var(--surface)) }
+html[data-mode="dark"] .nav-badge.warn{ color:#fce6bf }
+html[data-mode="dark"] .rchip.pend:not(.on){ color:#f2b280; border-color:#63502f; background:#392b11 }
+html[data-mode="dark"] .tag.ok{ background:#1f3429; border-color:#395545; color:#a9eecc }
+html[data-mode="dark"] .tag.warn{ background:#3f2f12; border-color:#63502f; color:#f9d195 }
+html[data-mode="dark"] .tag.red{ background:#361515; border-color:#562c2d; color:#e48c8e }
+html[data-mode="dark"] .lk-gh > i{ color:#e9c16e }
+html[data-mode="dark"] .cm-a0{ background:linear-gradient(160deg, var(--brand-500), #1A3B6C) }
+html[data-mode="dark"] .cm-a1{ background:#3f2f12; color:#f1b279 }
+html[data-mode="dark"] .cm-a2{ background:#1f3429; color:#a0efc7 }
+html[data-mode="dark"] .cm-a3{ background:#361515 }
+html[data-mode="dark"] .lk-dic{ background:linear-gradient(135deg, #1A3B6C, var(--brand-500)) }
+html[data-mode="dark"] .pn-page{ background:var(--surface) }
+html[data-mode="dark"] .mv-zo{ background:#1d1d1deb }
+html[data-mode="dark"] .mv-nav:hover{ background:#1d1d1d47 }
+html[data-mode="dark"] .cl-row.ok{ border-color:#395545; background:color-mix(in srgb, #1f3429 55%, var(--surface)) }
+html[data-mode="dark"] .cl-ti > button i{ color:#e9c16e }
+html[data-mode="dark"] .cl-ti.cur > button[data-pick]{ background:#1f3429 }
+html[data-mode="dark"] .cl-ub{ background:#1f3429 }
+html[data-mode="dark"] .cg td.miss{ background:#392b11 }
+html[data-mode="dark"] .cg-fh{ border:2px solid var(--border) }
+html[data-mode="dark"] .cg-in{ background:var(--surface) }
+html[data-mode="dark"] .cg-prog{ color:color-mix(in srgb, var(--pc) 80%, var(--ink)) }
+html[data-mode="dark"] .cl-plk.ok{ background:#1f3429; border-color:#395545; color:#a9eecc }
+html[data-mode="dark"] .cl-plk.mv{ background:#3f2f12; border-color:#635230; color:#f9d195 }
+html[data-mode="dark"] .r-easy{ --rc:#a0efc7; --rb:#1f3429 }
+html[data-mode="dark"] .r-ok{ --rc:#6f8ee4; --rb:#131f3a }
+html[data-mode="dark"] .r-hard{ --rc:#e18388; --rb:#361515 }
+html[data-mode="dark"] .pg-qk .qk-e button:hover{ background:#361515; color:#e18388 }
+html[data-mode="dark"] .pg-lk{ background:#3b2e11; border:1px solid #605230 }
+html[data-mode="dark"] .cl-rqb{ background:#3b2e11; border:1px solid #605230; color:#fadc9d }
+html[data-mode="dark"] .rq-n.bad{ background:#361515 }
+html[data-mode="dark"] .cl-ub.warn{ background:#413113; color:#f9d28d }
+html[data-mode="dark"] .cd-pgg i{ color:#e9c16e }
+html[data-mode="dark"] .cs-li.on{ background:#1f3429; border-color:#365242 }
+html[data-mode="dark"] .cd-s.ok{ background:color-mix(in srgb, #1f3429 50%, var(--surface)) }
+html[data-mode="dark"] .cl-np{ background:#392b11; border:1px solid #63502f; color:#f5d19f }
+html[data-mode="dark"] .cl-st.ok{ color:#a9eecc; background:#1f3429 }
+html[data-mode="dark"] .cl-st.warn{ color:#f9d195; background:#3f2f12 }
+html[data-mode="dark"] .cl-st.red{ color:#e48c8e; background:#361515 }
+html[data-mode="dark"] .cl-row.s-out, html[data-mode="dark"] .cl-row.s-taught{ border-color:#395545 }
+html[data-mode="dark"] .cl-ti > button[data-view] i{ color:#e9c16e }
+html[data-mode="dark"] .cl-ub.ok{ background:#1f3429; color:#a9eecc }
+html[data-mode="dark"] .cl-ub.warn{ background:#3f2f12; color:#f9d195 }
+html[data-mode="dark"] .cl-ub.red{ background:#361515; color:#e48c8e }
+html[data-mode="dark"] .cc-ck > i{ color:#e9c16e }
+html[data-mode="dark"] .cl-ti.cur .cc-ck{ background:#1f3429 }
+html[data-mode="dark"] .cc-gh > i{ color:#e9c16e }
+html[data-mode="dark"] .ch-new::before, html[data-mode="dark"] .ch-new::after{ background:#611f1f }
+html[data-mode="dark"] .ch-m.atme:not(.mine) .ch-bb{ background:#4e4318 }
+html[data-mode="dark"] .ch-at.me{ color:#f2b280 }
+html[data-mode="dark"] .ch-m.mine .ch-at{ background:#1d1d1d38 }
+html[data-mode="dark"] .ob-pill.sync{ color:#f09c79; border-color:#654927; background:#382610 }
+html[data-mode="dark"] .ob-pill.warn{ color:#f4c98a; border-color:#70622c; background:#3a3613 }
+html[data-mode="dark"] .ob-pill.bad{ color:#e58080; border-color:#5b2424; background:#331212 }
+html[data-mode="dark"] .mn-gh > i{ color:#e9c16e }
+html[data-mode="dark"] .ql-d i{ color:#e9c16e }
+html[data-mode="dark"] .ql-done{ border:1px solid #366e4a; background:#15331e }
+html[data-mode="dark"] .ql-done .row i{ color:#8be9ae }
+html[data-mode="dark"] .cl-rw{ background:#393111 }
+html[data-mode="dark"] .cl-rw > summary{ color:#efbda2 }
+html[data-mode="dark"] .cl-rw > summary > i:first-child{ color:#f3b56c }
+html[data-mode="dark"] .cl-rwp{ border:1px solid #70622c }
+html[data-mode="dark"] .cl-rwc em{ color:#f2b280 }
+html[data-mode="dark"] .cl-rwtag.on{ background:#4e4318; color:#efb693 }
+html[data-mode="dark"] .ct-tab.on em{ background:#1d1d1d38 }
+html[data-mode="dark"] .ct-tab.s-prev i{ color:#f3b56c }
+html[data-mode="dark"] .ct-tab.s-out i, html[data-mode="dark"] .ct-tab.s-taught i{ color:#8be9ae }
+html[data-mode="dark"] .ac-on .ac-st{ color:#9eeabb }
+html[data-mode="dark"] .ac-idle .ac-st{ color:#f2b280 }
+html[data-mode="dark"] .ac-sync.warn{ color:#f09c79 }
+html[data-mode="dark"] .ac-sync.bad{ color:#e58080 }
+html[data-mode="dark"] .gd-tip.warn{ background:#393111 }
+html[data-mode="dark"] .gd-tip.warn > i{ color:#f3b56c }
+html[data-mode="dark"] .gd-paper{ background:var(--surface) }
+html[data-mode="dark"] .gd-paper i{ background:#2b2d32 }
+html[data-mode="dark"] .gd-paper i:nth-child(1){ background:#18234e }
+html[data-mode="dark"] .acc-b.p{ color:#8be9ae }
+html[data-mode="dark"] .acc-b.r{ color:#f3b56c }
+html[data-mode="dark"] .ht-urg{ background:#3d1414; color:#e58080 }
+html[data-mode="dark"] .ht-s.over{ background:#3d1414 }
+html[data-mode="dark"] .ht-s.today{ background:#463114 }
+html[data-mode="dark"] .ht-s.today b{ color:#ef9464 }
+html[data-mode="dark"] .ht-s.tom{ background:#504b18 }
+html[data-mode="dark"] .ht-s.tom b{ color:#f4c98a }
+html[data-mode="dark"] .ht-n.over{ background:#3d1414; color:#e58080 }
+html[data-mode="dark"] .ht-n.today{ background:#463114; color:#f09c79 }
+html[data-mode="dark"] .ht-n.tom{ background:#504b18; color:#efc79a }
+html[data-mode="dark"] .ht-d.over{ background:#3d1414; color:#e58080 }
+html[data-mode="dark"] .ht-d.today{ background:#463114; color:#f09c79 }
+html[data-mode="dark"] .ht-e.warn{ background:#393111 }
+html[data-mode="dark"] .ht-e.warn i:first-child{ color:#f3b56c }
+html[data-mode="dark"] .ht-e.bad{ background:#331212; border-color:#662a2a }
+html[data-mode="dark"] .ht-ok i{ color:#8be9ae }
+html[data-mode="dark"] .lg-detect.no{ background:#393111 }
+html[data-mode="dark"] .lg-detect.no > i{ color:#f3b56c }
+html[data-mode="dark"] .lg-guest > i:first-child{ background:#1d252d; color:#b1bbc8 }
+html[data-mode="dark"] .guest-bar{ background:#393111; color:#efbda2 }
+html[data-mode="dark"] .guest-bar > i{ color:#f3b56c }
+html[data-mode="dark"] .tp-x{ color:#e58080 }
+html[data-mode="dark"] .sc-r.bad{ border-color:#662a2a; background:#331212 }
+html[data-mode="dark"] .sc-r.bad .sc-du{ color:#e58080 }
+html[data-mode="dark"] .cg-dup{ background:#3d1414; color:#e58080 }
+html[data-mode="dark"] .ca-dup{ color:#f2b280 }
+html[data-mode="dark"] .gd-fs.ap::after{ background:#413113; color:#f9d28d }
+html[data-mode="dark"] .pv-bar{ background:#101937; border-color:#2a3466; color:#a3a1d9 }
+html[data-mode="dark"] .kc-ev.s-draft .kc-s, html[data-mode="dark"] .kc-ev.s-none .kc-s{ color:#f2b280 }
+html[data-mode="dark"] .gd-selbar{ background:#101c37; border:1px solid #27345a; color:#9aade4 }
+html[data-mode="dark"] .cc-note{ background:#393111; border:1px solid #70622c }
+html[data-mode="dark"] .cc-note .cc-h i{ color:#f3b56c }
+html[data-mode="dark"] .cc-note .ta{ background:var(--surface) }
+html[data-mode="dark"] .cl-lnote{ color:#efb693 }
+html[data-mode="dark"] .cl-lnote i{ color:#f3b56c }
+html[data-mode="dark"] .nt-c{ color:#e58080; background:#3d1414 }
+html[data-mode="dark"] .nt-ic.ok{ background:#1f3429 }
+html[data-mode="dark"] .nt-ic.bad{ background:#361515 }
+html[data-mode="dark"] .pv-w .sw-s{ background:#18234e }
+html[data-mode="dark"] .pv-w .sw-s::after{ background:var(--surface) }
+html[data-mode="dark"] .pv-bar.w{ background:#382610 !important; border-color:#77542f !important; color:#ecb3a0 !important }
+html[data-mode="dark"] .pv-bar.w > i{ color:#ef9464 }
+html[data-mode="dark"] .cd-del:hover{ background:#361515 !important }
+html[data-mode="dark"] .cl-rmh{ background:#361515; color:#e5a0a0 }
+html[data-mode="dark"] .sk{ background:linear-gradient(90deg, #222834 25%, #1b222d 37%, #222834 63%) }
+html[data-mode="dark"] .row-done{ background:#153622 !important }
+html[data-mode="dark"] .row-done.bad{ background:#331212 !important }
+html[data-mode="dark"] .danger-zone{ background:#331212; border:1px solid #5b2424 }
+html[data-mode="dark"] .danger-zone b{ color:#e69191 }
+html[data-mode="dark"] .danger-zone small{ color:#e5a0a0 }
+@media (max-width:820px){
+html[data-mode="dark"] .tabbar{ background:#1d1d1ddb; border:1px solid #333333e6 }
+}
+html[data-mode="dark"] .cd-av{ background:linear-gradient(135deg, var(--pc, var(--brand-600)), color-mix(in srgb, var(--pc, var(--brand-600)) 55%, var(--surface))) }
+html[data-mode="dark"] .an-tag.must{ background:#361515; color:#e48c8e }
+html[data-mode="dark"] .tp-ap.off{ background:#392b11; border-color:#63502f }
+html[data-mode="dark"] .tp-ap.off b i{ color:#f2b280 }
+html[data-mode="dark"] .cl-row.s-none{ border-color:#562f31 !important }
+html[data-mode="dark"] .ct-day.on em{ background:#1d1d1d38 }
+html[data-mode="dark"] .mk-gray{ --mk-fg:var(--muted); --mk-bg:#222428; --mk-bd:#2b2d32 }
+html[data-mode="dark"] .mk-blue{ --mk-bg:#102137; --mk-bd:#193352 }
+html[data-mode="dark"] .mk-amber{ --mk-fg:#f3b56c; --mk-bg:#393111 }
+html[data-mode="dark"] .mk-green{ --mk-fg:#8be9ae; --mk-bg:#15331e; --mk-bd:#215332 }
+html[data-mode="dark"] .mk-red{ --mk-bg:#331212; --mk-bd:#4c1717 }
+html[data-mode="dark"] .mk-violet{ --mk-bg:#150f34; --mk-bd:#1e1545 }
+html[data-mode="dark"] .cl-flgs .fs, html[data-mode="dark"] .cl-flgk .fs{ color:#ef9464 }
+html[data-mode="dark"] .pr-low{ background:#4e4318; color:#efb693 }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) body{ background:var(--surface) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) ::-webkit-scrollbar-thumb{ background:var(--surface-3) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .sb-user{ background:var(--surface); border:1px solid var(--border) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .sb-btn{ border-color:var(--border-strong); background:var(--surface); color:var(--ink-2) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .nav-i[aria-current="page"] i{ color:var(--ink) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .tb{ border-bottom:1px solid var(--border) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .tb-t1 > i{ color:var(--ink) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .card{ border-color:var(--border) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .btn{ background:var(--surface); border-color:var(--border-strong); color:var(--ink) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .btn:hover{ background:var(--surface) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .btn.pri:hover{ background:#1A3B6C }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .fbtn{ border-color:var(--border-strong); color:var(--ink) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .inp, html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .ta, html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .sel{ border-color:var(--border-strong) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .search .inp{ background:var(--surface-2) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .search .inp:focus{ background:var(--surface); border-color:var(--border-strong) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .modal-f{ background:var(--surface) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .menu{ border-color:var(--border) }
+html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .cl-row{ border-color:var(--border) }
+html[data-mode="dark"] .row-done{ background:#193021 !important }
+html[data-mode="dark"] .fl-s + .fl-s{ border-top:1px solid var(--border) }
+html[data-mode="dark"] .fl-h{ color:var(--muted) }
+html[data-mode="dark"] .fl-i{ color:var(--ink) }
+html[data-mode="dark"] .fl-i:hover{ background:var(--surface-2) }
+html[data-mode="dark"] .fl-i > i:first-child{ color:var(--ink-2) }
+html[data-mode="dark"] .fl-i em{ color:var(--muted) }
+html[data-mode="dark"] .fl-l.g .fl-i{ border:1px solid var(--border-strong) }
+html[data-mode="dark"] .ct-mo{ border:1px solid var(--border-strong); color:var(--ink) }
+html[data-mode="dark"] .ct-al{ border:1px solid var(--border); background:var(--surface); color:var(--ink-2) }
+html[data-mode="dark"] .ct-al:hover{ background:var(--surface-2) }
+html[data-mode="dark"] .ct-al.warn{ background:#3c3011; border-color:#625128; color:#f9d195 }
+html[data-mode="dark"] .cl-row.s-draft{ border-color:var(--border) }
+@media (max-width:820px){
+html[data-mode="dark"] .ct-scroll .cl-row, html[data-mode="dark"] .cd-sess .cl-row, html[data-mode="dark"] .cl-sec > .cl-row{ border-bottom:1px solid var(--border) !important; background:var(--surface) !important }
+html[data-mode="dark"] .ct-scroll .cl-row.row-done{ background:#193021 !important }
+}
+html[data-mode="dark"] .zl-pop{ background:var(--surface) }
+html[data-mode="dark"] .zl-b{ background:var(--surface-2); color:var(--ink) }
+html[data-mode="dark"] .cq-ht small{ color:var(--muted) }
+html[data-mode="dark"] .cq-h .ibtn{ color:var(--ink) }
+html[data-mode="dark"] .cq-a{ background:var(--surface-3); color:var(--ink) }
+html[data-mode="dark"] .cq-a:hover{ background:var(--surface-3) }
+html[data-mode="dark"] .cq-st{ border-top:1px solid var(--border); border-bottom:1px solid var(--border) }
+html[data-mode="dark"] .cq-s span{ color:var(--muted) }
+html[data-mode="dark"] .cq-sw{ border-bottom:1px solid var(--border) }
+html[data-mode="dark"] .cq-sw small{ color:var(--muted) }
+html[data-mode="dark"] .cq-r{ border-bottom:1px solid var(--border) }
+html[data-mode="dark"] .cq-l{ color:var(--muted) }
+html[data-mode="dark"] .cq-in{ color:var(--ink) }
+html[data-mode="dark"] .cq-in:hover{ background:var(--surface) }
+html[data-mode="dark"] .cq-in:focus{ background:var(--surface-2) }
+html[data-mode="dark"] .cq-pb > i{ color:var(--muted) }
+html[data-mode="dark"] .cq-t{ color:var(--ink-2) }
+html[data-mode="dark"] .cq-nh{ color:var(--muted) }
+html[data-mode="dark"] .cq-n{ color:var(--ink) }
+html[data-mode="dark"] .cq-n:hover{ background:var(--surface) }
+html[data-mode="dark"] .cq-nd small{ color:var(--muted) }
+@media (max-width:820px){
+html[data-mode="dark"] .modal.cq::before{ background:var(--surface-3) }
+}
+html[data-mode="dark"] .modal.cchat > .modal-h h3 i{ color:var(--ink) }
+html[data-mode="dark"] .ccx-d{ color:var(--muted) }
+html[data-mode="dark"] .ccx-n{ color:var(--muted) }
+html[data-mode="dark"] .ccx-t{ background:var(--surface-3); color:var(--ink) }
+html[data-mode="dark"] .ccx-m.bad .ccx-t{ background:#361515; color:#e48c8e }
+html[data-mode="dark"] .ccx-m.del .ccx-t{ border:1px solid var(--border) }
+html[data-mode="dark"] .ccx-e{ color:var(--muted) }
+html[data-mode="dark"] .ccx-e b{ color:var(--ink) }
+html[data-mode="dark"] .ccx-f{ border-top:1px solid var(--border) }
+html[data-mode="dark"] .ccx-f textarea{ border:1px solid var(--border-strong); background:var(--surface); color:var(--ink) }
+html[data-mode="dark"] .cg-sw{ background:var(--surface-3) }
+html[data-mode="dark"] .cg-sw i{ background:var(--surface) }
+html[data-mode="dark"] .cg-st{ border:1px solid var(--border); background:var(--surface); color:var(--ink-2) }
+html[data-mode="dark"] .cg-st b{ color:var(--ink) }
+html[data-mode="dark"] .cg-st:hover{ background:var(--surface) }
+html[data-mode="dark"] .me-h small{ color:var(--muted) }
+html[data-mode="dark"] .me-f{ border-top:1px solid var(--border) }
+html[data-mode="dark"] .me-r{ border-bottom:1px solid var(--border) }
+html[data-mode="dark"] .me-r > span{ color:var(--muted) }
+html[data-mode="dark"] .an-new > i{ color:var(--ink) }
+html[data-mode="dark"] .an-fig{ border:1px solid var(--border); background:var(--surface) }
+html[data-mode="dark"] .anx-t{ color:var(--ink) }
+html[data-mode="dark"] .anx-b{ color:var(--ink) }
+html[data-mode="dark"] .anx-im{ border:1px solid var(--border); background:var(--surface-2) }
+html[data-mode="dark"] .anx-sp{ border:3px solid #333333b3 }
+html[data-mode="dark"] .anx-tb{ color:var(--muted) }
+html[data-mode="dark"] .anx-tb:hover{ background:var(--surface-2); color:var(--ink) }
+html[data-mode="dark"] .anx-opt{ border-top:1px solid var(--border) }
+html[data-mode="dark"] .anx-sum{ color:var(--muted) }
+html[data-mode="dark"] .fbtn.on, html[data-mode="dark"]:where(html:not([data-theme]):not([data-glass])) .fbtn.on{ background:var(--surface-2); color:var(--ink) }
+html[data-mode="dark"] .fbtn.on > i{ color:var(--ink) }
+html[data-mode="dark"] .pvw-p{ background:var(--surface) }
+html[data-mode="dark"] .pvw-z{ background:#1d1d1df0 }
+html[data-mode="dark"] .pvw-p > span{ background:#1d1d1dd9 }
+html[data-mode="dark"] .cp-sv .h .bi-bookmark-star-fill{ color:#f7ca64 }
+html[data-mode="dark"] .view.cp-view .btn.xs:hover, html[data-mode="dark"] .view.cp-view .cp-foot .btn.sm:hover, html[data-mode="dark"] .view.cp-view .cp-bar .btn:hover{ color:#f09c79 }
+html[data-mode="dark"] .view.cp-view .btn.cp-del{ background:#331512; border-color:#5e3430; color:#e88982 }
+html[data-mode="dark"] .view.cp-view .btn.cp-del:hover{ background:#3d1a15; color:#e88982 }
+html[data-mode="dark"] .cp-how{ background:#382110; border:1px solid #64432d; color:#ecb3a0 }
+html[data-mode="dark"] .cp-how b{ color:#f09c79 }
+html[data-mode="dark"] .cp-ib:active{ background:#452914; color:#f09c79 }
+html[data-mode="dark"] .cp-menu button:hover{ background:#3b2311; color:#f09c79 }
+html[data-mode="dark"] .cp-gd .btn.cp-del{ background:#331512; border-color:#5e3430; color:#e88982 }
+html[data-mode="dark"] .cp-stat em{ color:#f09c79 }
+html[data-mode="dark"] .cp-lint{ color:#eca78f; background:#382110; border-color:#64432d }
+html[data-mode="dark"] .cp-gi{ background:var(--surface) }
+html[data-mode="dark"] .hm-hero{ background:radial-gradient(120% 140% at 100% 0%, oklch(0.72 0.12 245 / .5) 0%, transparent 45%), linear-gradient(135deg, #132C55, var(--brand-700) 58%, var(--brand-600)) }
+html[data-mode="dark"] .hm-pill{ background:#174025; color:#9eeabb }
+html[data-mode="dark"] .hm-ks > div:nth-child(2) b{ color:#ef9464 }
+html[data-mode="dark"] .hm-ks > div:nth-child(3) b{ color:#a0efc7 }
+html[data-mode="dark"] .hm-top .sec-h i{ color:#ef9464 }
+html[data-mode="dark"] .hm-rk.r1{ color:#efbda2 }
+html[data-mode="dark"] .hm-rk.r2{ background:linear-gradient(135deg,#2b2d32,#9CA3AF); color:#cbd4e0 }
+html[data-mode="dark"] .hm-rk.r3{ background:linear-gradient(135deg,#5f401c,#C2410C) }
+html[data-mode="dark"] .bd-hint.ok{ color:#9eeabb; background:#15331e }
+html[data-mode="dark"] .bd-fhk{ border:1.5px solid var(--border) }
+html[data-mode="dark"] .bd-r.ch .bd-c{ background:#393111 }
+html[data-mode="dark"] .bd-r.fil{ background:#101937 }
+html[data-mode="dark"] .bd-r.dov{ background:#174025 }
+html[data-mode="dark"] .bd-r.dov2{ background:#15331e }
+html[data-mode="dark"] .bd-ch{ background:#153622; border:1px solid #2c5c3d; color:#b7eacc }
+html[data-mode="dark"] .bd-ch.ext{ background:#102137; border-color:#253e5e; color:#9aade4 }
+html[data-mode="dark"] .bd-ch.x{ background:#150f34; border-color:#2c2356; color:#b394e5 }
+html[data-mode="dark"] .bd-ch.dup{ background:#331212; border-color:#5b2424; color:#e69191 }
+html[data-mode="dark"] .bd-fh{ border:2px solid var(--border) }
+html[data-mode="dark"] .bd-it.nx{ border-color:#366e4a }
+html[data-mode="dark"] .bd-u.nx{ color:#9eeabb }
+html[data-mode="dark"] .cc-la.on{ color:#9eeabb; background:#174025 }
+html[data-mode="dark"] .hm-pill.red{ background:#3d1414; color:#e58080 }
+html[data-mode="dark"] .hm-ar.late{ border-color:#5b2424; background:#331212 }
+html[data-mode="dark"] .hm-late{ color:#e58080; background:#3d1414 }
+html[data-mode="dark"] .hm-free.ok i{ color:#8be9ae }
+html[data-mode="dark"] .am-w{ color:#9eeabb }
+html[data-mode="dark"] .cc-lr .lb-it:has(.cc-la.on){ background:#15331e; border-color:#366e4a }
+html[data-mode="dark"] .lb-cp{ color:#f2b280; background:#4e4318 }
+html[data-mode="dark"] .cl-tagb{ background:#4e4318; color:#efb693 }
+html[data-mode="dark"] .am-nm .flabel i{ color:#f2b280 }
+html[data-mode="dark"] .am-ex{ background:#393111; border:1px solid #70622c }
+html[data-mode="dark"] .am-ex > i{ color:#f2b280 }
+html[data-mode="dark"] .am-dup{ background:#331212; border:1px solid #5b2424 }
+html[data-mode="dark"] .am-dl span{ background:var(--surface); border:1px solid #5b2424 }
+html[data-mode="dark"] .tg-i{ background:#4e4318; color:#f2b280 }
+html[data-mode="dark"] .btn.pri:hover{ background:#1A3B6C !important }
+html[data-mode="dark"] .btn.pri:active:not(:disabled){ background:#132C55 !important }
+@media (max-width:820px){
+html[data-mode="dark"] .tabbar{ background:#1d1d1df0 }
+}
+html[data-mode="dark"] .h0{ background:#1a1f2c }
+html[data-mode="dark"] .h1{ background:#222d3c }
+html[data-mode="dark"] .h2{ background:#323d4c }
+html[data-mode="dark"] .x-frame{ background:var(--surface) }
+html[data-mode="dark"] .hx-ic, html[data-mode="dark"] .hx-card .md-orb{ color:#9ebae3; background:#202834 }
+html[data-mode="dark"] .xa-ok{ color:#a2e8c2 }
+html[data-mode="dark"] .login-logo{ background:var(--kite) 54% 52%/auto 64% no-repeat, #172333 !important }
+html[data-mode="dark"] .btn.cl-lk:hover{ background:color-mix(in oklab, var(--primary) 14%, var(--surface)) }
+html[data-mode="dark"] .tn-k.bad{ background:#3d1414; border-color:#522121; color:#e58080 }
+html[data-mode="dark"] .tn-must{ color:#e58080; background:#3d1414 }
+html[data-mode="dark"] .vw-m .vw-risk{ color:#f9cd8d }
+html[data-mode="dark"] .vw-warn{ background:#3c2d11; color:#fad59d }
+html[data-mode="dark"] .lg-inv.no{ background:#393111 }
+html[data-mode="dark"] .lg-inv.no > i{ color:#f3b56c }
+html[data-mode="dark"] .cd-pge-h.pq{ background:#3b2c11; color:#f5d19f }
+html[data-mode="dark"] .cd-pge-h.pq > i{ color:#f3b56c }
+@media (max-width:820px){
+html[data-mode="dark"] .utbl tr:has(.btn[data-a="approve"]){ background:#392b11 }
+}
+html[data-mode="dark"] .gc-k.bug{ background:#361515; color:#e18388 }
+html[data-mode="dark"] .gc-k.idea{ background:#413113; color:#f9d28d }
+html[data-mode="dark"] .gc-k.ask{ background:#1f3429; color:#a9eecc }
+html[data-mode="dark"] .ask-n{ background:#453414; color:#f9cd8d }
+html[data-mode="dark"] .gc-r.unr, html[data-mode="dark"] .gc-card.unr, html[data-mode="dark"] .tl-i.unr{ border-color:#623132; background:#300e0e }
+html[data-mode="dark"] .gc-new{ color:#dd7a7f }
+html[data-mode="dark"] .tl-w .tl-d.sun b{ color:#dd7a7f }
+html[data-mode="dark"] .tl-w .tl-d.on i{ background:#1d1d1d59 }
+html[data-mode="dark"] .tl-w .tl-d.on i em{ background:var(--surface) }
+html[data-mode="dark"] .tl-w .tl-d.late{ border-color:#623132; background:#330f0f; color:#e18388 }
+html[data-mode="dark"] .tl-w .tl-d.late small{ color:#e18388 }
+html[data-mode="dark"] .tl-w .tl-g.late{ border-left-color:#623132 }
+html[data-mode="dark"] .tl-w .tl-g.late header{ color:#e18388 }
+html[data-mode="dark"] .tl-w .tl-g.late .tl-when{ color:#e18388 }
+html[data-mode="dark"] .vw-pk-t .spin{ border:2px solid #33333359; border-top-color:var(--border) }
+html[data-mode="dark"] .cl-pchip{ color:color-mix(in srgb, var(--pc, var(--primary)) 80%, var(--ink)) }
+html[data-mode="dark"] .cl-pchip.ok .pk{ color:#8be9ae }
+html[data-mode="dark"] .cl-pchip.mv{ border-color:#635230 }
+html[data-mode="dark"] .cl-pchip.mv .pk{ color:#f2b280 }
+html[data-mode="dark"] .cl-pchip.warn{ --pc:#f2b280 }
+html[data-mode="dark"] .rp-gl .lk{ color:#8be9ae }
+@media (max-width:600px){
+html[data-mode="dark"] .cd-prog .cl-pchip.warn{ color:#f2b280 }
+}
+html[data-mode="dark"] .gc-k.prog{ background:#101937; color:#928ed8 }
+html[data-mode="dark"] .rp-kp.ok > b{ color:#9eeabb }
+html[data-mode="dark"] .rp-kp.warn > b{ color:#f2b280 }
+html[data-mode="dark"] .rp-kp.red > b{ color:#e58080 }
+html[data-mode="dark"] .rp-gn small i{ color:#8be9ae }
+html[data-mode="dark"] .rp-rv.on{ border-color:#395545 }
+html[data-mode="dark"] .rp-rv.on .rp-rvi{ background:#1f3429; color:#9eeabb }
+html[data-mode="dark"] .rp-live{ color:#9eeabb; background:#1f3429 }
+html[data-mode="dark"] .rp-rvl b{ background:#3f2f12; color:#f9d195 }
+html[data-mode="dark"] .rv-p{ color:color-mix(in srgb, var(--pc) 80%, var(--ink)) }
+html[data-mode="dark"] .rv-ok.ok{ color:#9eeabb }
+html[data-mode="dark"] .rv-ok.mv{ color:#f2b280 }
+html[data-mode="dark"] .busy-hint .mw-ring{ border:2px solid #333333e6 }
+html[data-mode="dark"] .u-lim{ background:#3c2e11; color:#f5d19f }
+html[data-mode="dark"] .u-lim small{ color:#e3c99a }
+html[data-mode="dark"] .u-lim.off{ background:#153622; color:#ade9c4 }
+html[data-mode="dark"] .ucap-r em.blk{ color:#f2b280; background:#3d2a12 }
+html[data-mode="dark"] .aw-sum .warn b{ color:#f2b280 }
+html[data-mode="dark"] .aw-fi{ color:#e9c16e }
+html[data-mode="dark"] .aw-lk{ color:#f2b280 }
+html[data-mode="dark"] .aw-rc{ color:color-mix(in srgb, var(--rc) 80%, var(--ink)) }
+html[data-mode="dark"] .r-dirty{ background:#3d2a12; color:#f2b280 }
+html[data-mode="dark"] .aw-upc{ background:#11253b; color:#6f8ee4 }
+html[data-mode="dark"] .aw-upb:hover{ color:#6f8ee4 }
+html[data-mode="dark"] .aw-upb.on{ background:#11253b; border-color:#253e5e; color:#6f8ee4 }
+html[data-mode="dark"] .aw-kb:hover{ background:#361010; border-color:#542727 }
+html[data-mode="dark"] .aw-uph{ background:#102236; color:#9aade4 }
+html[data-mode="dark"] .aw-uph > i{ color:#6f8ee4 }
+html[data-mode="dark"] .aw-dn{ border:1px dashed #652f2f; background:#361010; color:#e88982 }
+html[data-mode="dark"] .aw-rt{ color:color-mix(in srgb, var(--rc) 80%, var(--ink)) }
+html[data-mode="dark"] .zb-msb:hover{ border-color:#4b525b; background:var(--surface) }
+html[data-mode="dark"] .zb-msb[aria-expanded="true"]{ background:var(--surface) }
+html[data-mode="dark"] .nt-ch:hover{ border-color:#4b525b }
+html[data-mode="dark"] .nt-ch.on{ background:#1f3429; border-color:#426150; color:#a9eecc }
+html[data-mode="dark"] .nt-ch.on.warn{ background:#3f2f12; border-color:#63502f; color:#f9d195 }
+html[data-mode="dark"] .cl-kgs.ok{ background:#1f3429; border-color:#395545; color:#a9eecc }
+html[data-mode="dark"] .cl-kgs.warn{ background:#3f2f12; border-color:#63502f; color:#f9d195 }
+html[data-mode="dark"] .cl-kgs.info{ background:#131f3a; border-color:#273659; color:#6f8ee4 }
+html[data-mode="dark"] .cd-kgs.bad{ background:#3f2f12; border-color:#63502f }
+html[data-mode="dark"] .cd-kgs.bad > i, html[data-mode="dark"] .cd-kgs.bad b{ color:#f9d195 }
+html[data-mode="dark"] .kr-pend{ background:#131f3a; color:#9aade4 }
+html[data-mode="dark"] .kr-pend.bad{ background:#3f2f12; color:#f9d195 }
+html[data-mode="dark"] .kr-bad{ color:#f9d195 }
+html[data-mode="dark"] .kr-tag.ok{ color:#a9eecc; background:#1f3429 }
+html[data-mode="dark"] .kr-tag.diff{ color:#f9d195; background:#453414 }
+html[data-mode="dark"] .kr-tag.empty{ color:#6f8ee4; background:#131f3a }
+html[data-mode="dark"] .kr-tb tr.s-diff td{ background:color-mix(in srgb, #3c2d11 60%, transparent) }
+html[data-mode="dark"] .kr-p.ok{ color:#a9eecc }
+html[data-mode="dark"] .kr-p.diff{ color:#f9d195 }
+html[data-mode="dark"] .kr-st.done{ color:#a9eecc; background:#1f3429 }
+html[data-mode="dark"] .kr-st.on{ color:#6f8ee4; background:#131f3a }
+html[data-mode="dark"] .kr-st.hold{ color:#b1bbc8; background:#20272e }
+html[data-mode="dark"] .kr-st.new{ background:#201338 }
+@media (max-width:900px){
+html[data-mode="dark"] .kr-tb tr.s-diff{ background:color-mix(in srgb, #3c2d11 60%, transparent) }
+}
+/* ── Tasks.html ── */
+html[data-mode="dark"] .tk-quick:hover{ background:#1d1d1d99 }
+html[data-mode="dark"] .tk-st.d{ background:#25362c }
+html[data-mode="dark"] .tk-ev.late{ background:#3b1e1a }
+html[data-mode="dark"] .tk-busy{ background:#3d2a12; color:#f5d19f }
+html[data-mode="dark"] .tk-pend{ background:#3d2a12; color:#f5d19f }
+html[data-mode="dark"] .tk-st.d{ background:#203729; color:#a2e8c2 }
+html[data-mode="dark"] .tk-qadd{ background:#1d1d1d8c }
+html[data-mode="dark"] .tk-delq-b{ background:#361515; color:#e18388 }
+html[data-mode="dark"] .tk-delq-bar{ background:#361515; color:#e5a0a0 }
+html[data-mode="dark"] .tk-delq-bar > i{ color:#e18388 }
+html[data-mode="dark"] .tk-delq-bar em{ color:#e69191 }
+html[data-mode="dark"] .tk-delq-bar small{ color:#c49595 }
+html[data-mode="dark"] .tk-delq-i{ color:#e18388 }
+html[data-mode="dark"] .tk-db tr.delq td{ background:#330f0f }
+html[data-mode="dark"] .tk-selbar .btn.ghost{ border-color:#3333334d }
+html[data-mode="dark"] .tk-tl .tl-r > i.dn span{ color:#b2eece }
+html[data-mode="dark"] .h0{ background:#1a1f2c }
+html[data-mode="dark"] .h1{ background:#222d3c }
+html[data-mode="dark"] .h2{ background:#323d4c }
+html[data-mode="dark"] .tk-db select.c.pill option{ background:var(--surface) }
+html[data-mode="dark"] .ks-0{ --pb:#22262e; --pc:#b4bcc9 }
+html[data-mode="dark"] .ks-1{ --pb:#202b3c; --pc:#9ebae3 }
+html[data-mode="dark"] .ks-2{ --pb:#3d2412; --pc:#ec9c7f }
+html[data-mode="dark"] .ks-3{ --pb:#413113; --pc:#f9d195 }
+html[data-mode="dark"] .ks-4{ --pb:#283548; --pc:#aac5e9 }
+html[data-mode="dark"] .ks-5{ --pb:#47281a; --pc:#ecab8f }
+html[data-mode="dark"] .ks-d{ --pb:#1f3429; --pc:#a9eecc }
+html[data-mode="dark"] .tk-db .p-urgent{ --pb:#361515; --pc:#e18388 }
+html[data-mode="dark"] .tk-db .p-high{ --pb:#3d2412; --pc:#ec9c7f }
+html[data-mode="dark"] .tk-db .p-med{ --pb:#22262e; --pc:#b4bcc9 }
+html[data-mode="dark"] .tk-db .p-low{ --pb:#1f2227 }
+html[data-mode="dark"] .sel.ks option{ background:var(--surface) }
+html[data-mode="dark"] .tk-ty{ --tyc:var(--surface) }
+html[data-mode="dark"] .tk-ty.ty-doc{ background:#22262e; --tyc:#b4bcc9 }
+html[data-mode="dark"] .tk-db.tree tr.lv-epic td{ background:#1a2431; border-bottom-color:#343e4e }
+html[data-mode="dark"] .tk-c-fin{ border:1px dashed #456051; background:#1f3429; color:#a9eecc }
+html[data-mode="dark"] .tk-prog.ok{ background:#1f3429; color:#a9eecc }
+html[data-mode="dark"] .tk-dfh{ background:#3c2e11; color:#f5d19f }
+html[data-mode="dark"] .tk-dfh i{ color:#f7ca64 }
+html[data-mode="dark"] .tk-card.mir{ background:linear-gradient(180deg, #0f1c34, var(--surface)) }
+html[data-mode="dark"] .tk-c-mir, html[data-mode="dark"] .tk-c-sh{ color:#8ba7d9 }
+html[data-mode="dark"] .tk-c-sh{ color:#a3efe9 }
+html[data-mode="dark"] .tk-mir-i{ color:#8ba7d9 }
+html[data-mode="dark"] .tk-db tr.mir td{ background:#0f1c32 }
+html[data-mode="dark"] .tk-mir-bar{ background:#101e37; color:#aabee4 }
+html[data-mode="dark"] .tk-mir-bar > i{ color:#8ba7d9 }
+html[data-mode="dark"] .tk-dv > i{ color:#f2c767 }
+html[data-mode="dark"] .tk-df > i{ color:#df7b7e }
+html[data-mode="dark"] .tk-dfo{ color:#a9eecc; background:#1f3429 }
+html[data-mode="dark"] .tk-up-f > i{ color:#df7b7e }
+html[data-mode="dark"] .tk-up-k i{ color:#f2c767 }
+html[data-mode="dark"] .tk-up-hint{ background:#101937 }
+html[data-mode="dark"] .tk-up-hint.ok{ background:#1f3429; color:#a9eecc }
+html[data-mode="dark"] .tk-up-hint.err{ background:#361515; color:#e59092 }
+html[data-mode="dark"] .tk-up-dup{ background:#3c2d11 }
+html[data-mode="dark"] .tk-up-own i{ color:#a0efc7 }
+html[data-mode="dark"] .tpl-pic .bi-star-fill, html[data-mode="dark"] .tpl-star{ color:#f3b56c }
+html[data-mode="dark"] .tpl-due.hand{ background:#362310 }
+html[data-mode="dark"] .tk-lkw.p{ background:#3d2a12; color:#f9cd8d }
+/* ── Book.html ── */
+html[data-mode="dark"] .bk-tag.draft{ background:#3d2a12; color:#f9cd8d }
+html[data-mode="dark"] .bk-tag.ok{ background:#174025; color:#ade9c4 }
+html[data-mode="dark"] .bk-tag.no{ background:#3d1414; color:#e69191 }
+html[data-mode="dark"] .bk-pgi.q .n{ background:#3d2a12; color:#f9cd8d }
+html[data-mode="dark"] .bk-qo.right .inp{ background:#15331e }
+html[data-mode="dark"] .bk-th i{ background:#323a47 }
+html[data-mode="dark"] .bk-th-text i:last-child{ background:repeating-linear-gradient(#323a47 0 3px, transparent 3px 6px) }
+html[data-mode="dark"] .bk-th-two i{ background:repeating-linear-gradient(#323a47 0 3px, transparent 3px 6px) !important }
+html[data-mode="dark"] .bk-th-quote i:first-child{ background:#272e3a }
+html[data-mode="dark"] .bk-th-steps i, html[data-mode="dark"] .bk-th-steps i:first-child{ background:var(--surface); border:1px solid #3b4350 }
+html[data-mode="dark"] .bk-th-three i, html[data-mode="dark"] .bk-th-three i:first-child{ background:repeating-linear-gradient(#323a47 0 3px, transparent 3px 6px) }
+html[data-mode="dark"] .bk-th-compare i:first-child{ background:#215332 }
+html[data-mode="dark"] .bk-th-compare i:nth-child(2){ background:#4c1717 }
+html[data-mode="dark"] .bk-edcols.bk-lay-compare .bk-edc:first-child .bk-rte{ background:#132f1b }
+html[data-mode="dark"] .bk-edcols.bk-lay-compare .bk-edc:last-child .bk-rte{ background:#320e0e }
+html[data-mode="dark"] .bk-edcols.bk-lay-compare .bk-edc:first-child .bk-edl{ color:#9eeabb }
+html[data-mode="dark"] .bk-edcols.bk-lay-compare .bk-edc:last-child .bk-edl{ color:#e58080 }
+html[data-mode="dark"] .bk-ib button.on{ background:#1d1d1d38 }
+html[data-mode="dark"] .bk-ib .sep{ background:#1d1d1d33 }
+html[data-mode="dark"] .bk-ih{ border:2px solid var(--border) }
+/* ── BookCore.html ── */
+html[data-mode="dark"] .bk-rt blockquote{ background:#3b2e11; color:#fbdfad }
+html[data-mode="dark"] .bk-rt mark{ background:#60551c }
+html[data-mode="dark"] .bk-o.ok{ background:#15331e }
+html[data-mode="dark"] .bk-o.bad{ background:#331212 }
+html[data-mode="dark"] .bk-why.ok{ background:#15331e; color:#b7eacc }
+html[data-mode="dark"] .bk-why.bad{ background:#331212; color:#e5a0a0 }
+html[data-mode="dark"] .bk-cmp.ok{ background:#15331e; border-color:#2c5c3d }
+html[data-mode="dark"] .bk-cmp.no{ background:#331212; border-color:#5b2424 }
+html[data-mode="dark"] .bk-cmp.ok .bk-cmph{ color:#9eeabb }
+html[data-mode="dark"] .bk-cmp.no .bk-cmph{ color:#e58080 }
+/* ── ImgEdit.html ── */
+html[data-mode="dark"] .dw-stage{ background:repeating-conic-gradient(#22272d 0% 25%, #1c2026 0% 50%) 50% / 20px 20px }
+html[data-mode="dark"] .swc{ border:2px solid var(--border) }
+html[data-mode="dark"] .swc.none{ background:linear-gradient(135deg, var(--surface) 45%, #E11 45%, #E11 55%, var(--surface) 55%) }
+/* ── Syllabus.html ── */
+html[data-mode="dark"] .sy-hd::after{ border-bottom:1.3pt solid var(--border-strong) }
+html[data-mode="dark"] .sy-ft{ border-top:.7pt solid var(--border) }
+html[data-mode="dark"] .sy-ft b{ color:#a9f8c7 }
+html[data-mode="dark"] .sy-kpi > div{ border:.7pt solid var(--border) }
+html[data-mode="dark"] .sy-ki{ background:#27352a; color:#a9f8c7 }
+html[data-mode="dark"] .sy-kpi .o .sy-ki{ background:#422718 }
+html[data-mode="dark"] .sy-kpi b{ color:#a9f8c7 }
+html[data-mode="dark"] .sy-kpi small{ color:var(--ink-2) }
+html[data-mode="dark"] .sy-h{ border-bottom:.8pt solid var(--border-strong) }
+html[data-mode="dark"] .sy-h b{ color:var(--ink) }
+html[data-mode="dark"] .sy-h small{ color:var(--muted) }
+html[data-mode="dark"] .sy-info{ border:.7pt solid var(--border) }
+html[data-mode="dark"] .sy-ii{ background:#27352a; color:#a9f8c7 }
+html[data-mode="dark"] .sy-pm{ background:var(--surface) }
+html[data-mode="dark"] .sy-pl b{ color:var(--ink-2) }
+html[data-mode="dark"] .sy-pl small{ color:var(--muted) }
+html[data-mode="dark"] .sy-lg{ color:var(--ink-2) }
+html[data-mode="dark"] .sy-bi{ background:#27352a; color:#a9f8c7 }
+html[data-mode="dark"] .sy-band b{ color:#a9f8c7 }
+html[data-mode="dark"] .sy-band small{ color:var(--muted) }
+html[data-mode="dark"] .sy-band.rev .sy-bi{ background:#3b1b1b; color:#de7d80 }
+html[data-mode="dark"] .sy-band.rev b{ color:#de7d80 }
+html[data-mode="dark"] .sy-r{ border-bottom:.7pt solid var(--border) }
+html[data-mode="dark"] .sy-c1 b{ color:#a9f8c7 }
+html[data-mode="dark"] .sy-c1 small{ color:var(--muted) }
+html[data-mode="dark"] .sy-c3{ background:#392515 }
+html[data-mode="dark"] .sy-tt{ color:#b9f1cd }
+html[data-mode="dark"] .sy-r.hot .sy-c2, html[data-mode="dark"] .sy-r.hot .sy-c3{ background:#341818 }
+html[data-mode="dark"] .sy-r.hot .sy-tt{ color:#de7d80 }
+html[data-mode="dark"] .sy-end span{ background:var(--surface); color:#a9f8c7 }
+html[data-mode="dark"] .sy-cover{ background:#341f12 }
+html[data-mode="dark"] .sy-cv-m{ color:#b9f1cd }
+html[data-mode="dark"] .sy-cv-hl{ background:linear-gradient(transparent 58%, #47281a 58%, #47281a 100%) }
+html[data-mode="dark"] .sy-cv-p{ color:var(--ink-2) }
+html[data-mode="dark"] .sy-cv-chips span{ background:var(--surface); color:var(--ink-2) }
+html[data-mode="dark"] .sy-cv-chips b{ color:var(--ink) }
+html[data-mode="dark"] .sy-cv-pin em{ background:var(--surface) }
+/* ── Upload.html ── */
+html[data-mode="dark"] .upx-warn{ background:#3c2d11; color:#fad59d }
+html[data-mode="dark"] .upx-warn > i{ color:#f3b56c }
+html[data-mode="dark"] .upx-bsel > i:first-child{ color:#f7ce5e }
+html[data-mode="dark"] .upx-bo > i:first-child{ color:#f7ce5e }
+html[data-mode="dark"] .upx-box > i{ color:#f7ce5e }
+html[data-mode="dark"] .upx-c > .bi-folder-fill, html[data-mode="dark"] .upx-c > .bi-folder2-open{ color:#f7ce5e }
+html[data-mode="dark"] .upx-k > i{ color:#f7ce5e }
+html[data-mode="dark"] .upx-qi.done{ background:#1a2c22 }
+html[data-mode="dark"] .upx-qi.err{ background:#320f0f }
+html[data-mode="dark"] .upx-qi.dup{ background:#35290f }
+html[data-mode="dark"] .upx-ok{ color:#a9eecc !important }
+html[data-mode="dark"] .upx-err{ color:#e88982 !important }
+html[data-mode="dark"] .upx-dup{ color:#f9cd8d !important }
+html[data-mode="dark"] .upx-pl.ok{ background:#1f3429; color:#a9eecc }
+html[data-mode="dark"] .upx-pl.err{ background:#361515; color:#e88982 }
+html[data-mode="dark"] .upx-pl.warn{ background:#453414; color:#f9cd8d }
+html[data-mode="dark"] .upx-bulk.warn{ background:#35290f; border-color:#64522f }
+html[data-mode="dark"] .upx-bulk.warn > i{ color:#f9cd8d }
+html[data-mode="dark"] .upx-bulk.bad{ background:#320f0f; border-color:#562c2c }
+html[data-mode="dark"] .upx-bulk.bad > i{ color:#e88982 }
+html[data-mode="dark"] .upx-own{ color:#a9eecc; background:#1f3429 }
+html[data-mode="dark"] .up-fr i{ color:#f7ce5e }
+</style>
+
+  <script>/* (1.65.1) chế độ tối: bật TRƯỚC khi vẽ trang (không nháy sáng) — 'dark' · 'light' · 'auto' (theo máy, mặc định) */
+  (function () { try { var m = JSON.parse(localStorage.getItem('ktcm.uiMode') || '"auto"'); if (m === 'dark' || (m !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.setAttribute('data-mode', 'dark'); } catch (e) {} })();</script>
 </head>
 <body>
 <div id="sab"></div>
@@ -4966,6 +5632,7 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
       </button>
       <div class="tb-right" id="tbRight"></div>
       <button type="button" class="ibtn tb-apps" id="tbApps" onclick="modMenu(this)" title="Ứng dụng — đổi nhanh sang Kiến Task, Thư viện, Lớp gia sư…" aria-label="Ứng dụng" hidden><i class="bi bi-grid-3x3-gap"></i></button>
+      <button type="button" class="ibtn tb-mode" id="tbMode" onclick="uiModeToggle()" title="Chế độ tối / sáng" aria-label="Chế độ tối / sáng"><i class="bi bi-moon-stars"></i></button>
       <button type="button" class="ibtn tb-bell" id="ntBtn" onclick="ntOpen(this)" title="Thông báo" aria-label="Thông báo"><i class="bi bi-bell"></i><em id="ntN" hidden></em></button>
       <button type="button" class="ob-pill ok" id="obPill" onclick="obPanel()"><i class="ob-dot"></i><span>Đã đồng bộ</span></button>
     </header>
@@ -6136,7 +6803,7 @@ function ntSeen(route) {
   const xs = NT.list.filter(x => !x.read && x.route && (x.route === route || route.indexOf(x.route + '/') === 0) && x.route !== 'home');
   if (xs.length) ntRead(xs, { ids: xs.map(x => x.id) });
 }
-const NT_IC = { 'push.test': ['bi-send', 'ok'], 'class.removed': ['bi-trash', 'bad'], 'req.new': ['bi-inboxes', ''], 'req.approved': ['bi-check2-circle', 'ok'], 'req.rejected': ['bi-x-circle', 'bad'], 'sess.approved': ['bi-send-check', 'ok'], 'class.assigned': ['bi-person-video3', ''], 'user.approved': ['bi-person-check', 'ok'], 'access.granted': ['bi-shield-check', ''] };
+const NT_IC = { 'push.test': ['bi-send', 'ok'], 'class.removed': ['bi-trash', 'bad'], 'req.new': ['bi-inboxes', ''], 'req.approved': ['bi-check2-circle', 'ok'], 'req.rejected': ['bi-x-circle', 'bad'], 'sess.approved': ['bi-send-check', 'ok'], 'class.assigned': ['bi-person-video3', ''], 'user.approved': ['bi-person-check', 'ok'], 'access.granted': ['bi-shield-check', ''], 'user.pending': ['bi-person-plus', ''], 'class.daily': ['bi-clipboard-data', ''] };
 /** thông báo thuộc ứng dụng đang mở (hoặc không thuộc ứng dụng nào) */
 function ntApp(x) { return x.app || modOf(x.route) || '_'; }
 function ntMine(x) { const a = ntApp(x); return a === '_' || !S.mod || a === S.mod; }
@@ -6334,6 +7001,21 @@ const THEMES = {
 };
 function applyGlass(on) { document.documentElement.removeAttribute('data-glass'); }      // giao diện 4: bộ nhận diện Kiến Trẻ cố định — không còn kính mờ / bộ màu khác
 function glassPref() { const g = lsGet('glass', null); return g === null ? S.boot && S.boot.glass === 'on' : !!g; }
+/* (1.65.1) CHẾ ĐỘ TỐI: 'auto' (theo máy — mặc định) · 'dark' · 'light'. Lưu trên máy (uiMode); Index.html bật sẵn trước khi vẽ. Màu tối ở Dark.html (tools/dark-css.js) */
+function uiMode() { const m = lsGet('uiMode', 'auto'); return m === 'dark' || m === 'light' ? m : 'auto'; }
+const UI_DARK_MQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+function uiModeApply() {
+  const m = uiMode(), on = m === 'dark' || (m === 'auto' && !!UI_DARK_MQ && UI_DARK_MQ.matches);
+  if (on) document.documentElement.setAttribute('data-mode', 'dark'); else document.documentElement.removeAttribute('data-mode');
+  const b = document.getElementById('tbMode'); if (b) { b.innerHTML = '<i class="bi ' + (on ? 'bi-sun' : 'bi-moon-stars') + '"></i>'; b.title = on ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'; b.setAttribute('aria-label', b.title); }
+  const mt = document.querySelector('meta[name="theme-color"]'); if (mt) mt.setAttribute('content', on ? '#0E1420' : '#ffffff');
+  return on;
+}
+function uiModeSet(m) { lsSet('uiMode', m); uiModeApply(); document.dispatchEvent(new CustomEvent('uimode')); }
+/** nút trên thanh trên: đổi qua lại sáng ↔ tối (đang theo máy thì chọn hẳn chế độ ngược lại) */
+function uiModeToggle() { const on = document.documentElement.getAttribute('data-mode') === 'dark'; uiModeSet(on ? 'light' : 'dark'); toast(on ? 'Đã chuyển sang chế độ sáng' : 'Đã chuyển sang chế độ tối', 'ok', 1800); }
+if (UI_DARK_MQ) { const f = () => { if (uiMode() === 'auto') uiModeApply(); }; if (UI_DARK_MQ.addEventListener) UI_DARK_MQ.addEventListener('change', f); else if (UI_DARK_MQ.addListener) UI_DARK_MQ.addListener(f); }
+setTimeout(uiModeApply, 0);
 function applyTheme(t) {
   t = THEMES[t] ? t : 'kientre';
   document.documentElement.removeAttribute('data-theme');
@@ -6404,6 +7086,7 @@ const NAV_DEF = [
   { r: 'admin/general', t: 'Chung & truy cập', i: 'bi-sliders', g: 'admin', cap: 'settings.manage', m: /^admin\/general/ },
   { r: 'admin/menu', t: 'Menu & tab', i: 'bi-layout-sidebar', g: 'admin', cap: 'settings.manage', m: /^admin\/menu/ },
   { r: 'admin/system', t: 'Hệ thống', i: 'bi-cpu', g: 'admin', cap: 'settings.manage', m: /^admin\/system/ },
+  { r: 'admin/notif', t: 'Thiết lập thông báo', i: 'bi-bell', g: 'admin', cap: 'settings.manage', m: /^admin\/notif/ },      // (1.65) loại thông báo → app / mail / Zalo
   { r: 'admin/zalo', t: 'Bot Zalo', i: 'bi-robot', g: 'admin', cap: 'settings.manage', m: /^admin\/zalo/ },      // (1.53) thông báo vào nhóm Zalo
   { r: 'admin/audit', t: 'Nhật ký', i: 'bi-journal-text', g: 'admin', cap: 'audit.view', m: /^admin\/audit/ },
   { r: 'settings', t: 'Cài đặt', i: 'bi-gear', g: 'admin' },
@@ -9923,7 +10606,7 @@ function invResult(res) {
 /* Cài đặt tách theo ứng dụng: mod = các ứng dụng có tab này (không ghi = mọi ứng dụng). Cá nhân & Giao diện là của người dùng nên ở đâu cũng có. */
 const SET_TABS = [
   { k: 'me', t: 'Cá nhân', i: 'bi-person-circle' },
-  { k: 'theme', t: 'Phím tắt', i: 'bi-keyboard' },
+  { k: 'theme', t: 'Giao diện & phím tắt', i: 'bi-circle-half' },      // (1.65.1) chế độ tối
   { k: 'notify', t: 'Thông báo & cài app', i: 'bi-bell', auth: 1 },
   { k: 'cal', t: 'Đồng bộ lịch', i: 'bi-calendar2-week', auth: 1, mod: ['tutor', 'task'] },      // lịch dạy + việc Kiến Task → Google Calendar / iPhone (đường dẫn .ics riêng)      // mọi người đã đăng nhập, ở mọi ứng dụng (bật / tắt thông báo đẩy là theo từng máy)
   { k: 'tasks', t: 'Nhắc việc', i: 'bi-envelope-check', cap: 'tasks.remind', mod: ['task'] },
@@ -9934,6 +10617,7 @@ const SET_TABS = [
   { k: 'rules', t: 'Quy tắc trích xuất', i: 'bi-magic', cap: 'sources.manage', mod: ['lib'] },
   { k: 'access', t: 'Quyền xem tài liệu', i: 'bi-shield-lock', cap: 'sources.manage', mod: ['lib'] },
   { k: 'system', t: 'Hệ thống', i: 'bi-cpu', cap: 'settings.manage', mod: ['sys'] },
+  { k: 'notif', t: 'Thiết lập thông báo', i: 'bi-bell', cap: 'settings.manage', mod: ['sys'] },      // (1.65) mỗi loại thông báo → app / mail / Zalo, ai nhận
   { k: 'zalo', t: 'Bot Zalo', i: 'bi-robot', cap: 'settings.manage', mod: ['sys'] },      // (1.53) gửi thông báo vào nhóm Zalo
   { k: 'audit', t: 'Nhật ký', i: 'bi-journal-text', cap: 'audit.view', mod: ['sys'] }
 ];
@@ -9963,7 +10647,7 @@ async function viewSettings(arg, v, solo) {
     setTitle(T.t, T.i, solo ? [] : [{ t: (modInfo(S.mod) || {}).t || S.boot.app, r: homeRoute() }, { t: 'Cài đặt', r: 'settings' }], v);
     if ((T.k === 'general' || T.k === 'rules' || T.k === 'system') && !cfg) { B.innerHTML = miniLoader('Đang tải cài đặt…'); cfg = can('settings.manage') ? await rpc('getSettings', {}, { quiet: true }) : { values: { kindRules: IX.kinds }, defaults: { kindRules: IX.kinds } }; }
     if (cur === 'rules' && !IX.loaded) { B.innerHTML = miniLoader('Đang tải danh mục tài liệu…'); await needIndex(); }
-    ({ tasks: setTasks, taskstore: setTaskStore, taskdemo: setTaskDemo, me: setMe, notify: setNotify, cal: B => calSyncBox(B), theme: setTheme, access: setAccess, menu: setMenu, general: setGeneral, rules: setRules, system: setSystem, zalo: setZalo, kgs: setKgs, audit: setAudit })[cur](B, cfg, c => { cfg = c; });
+    ({ tasks: setTasks, taskstore: setTaskStore, taskdemo: setTaskDemo, me: setMe, notify: setNotify, cal: B => calSyncBox(B), theme: setTheme, access: setAccess, menu: setMenu, general: setGeneral, rules: setRules, system: setSystem, notif: setNotif, zalo: setZalo, kgs: setKgs, audit: setAudit })[cur](B, cfg, c => { cfg = c; });
   };
   if (!solo) $('#stN', v).onclick = e => {
     const m = e.target.closest('#stMo'); if (m) return openMenu(m, tabs.filter((t, i) => i >= 2 && t.k !== cur).map(t => ({ t: t.t, i: t.i, fn: () => go('settings/' + t.k) })));
@@ -9972,17 +10656,129 @@ async function viewSettings(arg, v, solo) {
   await draw();
 }
 
+/* ══════════ THIẾT LẬP THÔNG BÁO (1.65) — Quản trị › Thiết lập thông báo ══════════
+   Mỗi loại thông báo → kênh nhận: Trong app · Mail · Zalo (bật nhiều kênh cùng lúc). App / mail: giữ “người liên quan” như trước và/hoặc thêm vai trò, người cụ thể.
+   Zalo: gửi theo quy tắc ở Bot Zalo (nhóm nào nhận). Máy chủ: NotifyHub.gs (Settings.ntRoute; loại chưa chỉnh = mặc định như trước 1.65).
+   MỞ TỨC THÌ: vẽ ngay bản lưu trên máy, tải ngầm bản mới · mọi thay đổi đổi ngay trên màn hình, lưu ngầm qua hàng đợi · đặt lại mặc định có Hoàn tác. */
+async function setNotif(B) {
+  let D = null, q = '', fg = lsGet('ntGrp', ''), only = false, op = lsGet('ntOpen', {}) || {};
+  const CK = 'ntView:' + ((S.me && S.me.email) || ''), busyQ = () => OB.q.some(x => x.fn === 'ntRouteSave');
+  const CH = { app: ['Trong app', 'bi-bell'], mail: ['Mail', 'bi-envelope'], zalo: ['Zalo', 'bi-chat-dots'] };
+  const keep = () => { try { const c = Object.assign({}, D); delete c._cache; lsSet(CK, c); } catch (e) {} };
+  const take = d => { if (!d) return; if (D && busyQ()) { d.ev.forEach(e => { const o = D.ev.find(x => x.k === e.k); if (o) e.cur = o.cur; }); } D = d; if (!d._cache) keep(); paint(); };
+  const load = async () => { try { const d = await rpc('ntRouteGet', {}, { quiet: true }); if (B.isConnected && !(D && busyQ())) take(d); }
+    catch (e) { if (!D) B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'; else fail(e); } };
+  const cp = o => JSON.parse(JSON.stringify(o));
+  const eff = e => e.cur || e.d;      // cấu hình đang dùng: đã chỉnh, hoặc mặc định
+  const short = e => { const G = (D.grp.find(g => g.k === e.g) || {}).t || ''; return e.t.indexOf(G + ' · ') === 0 ? e.t.slice(G.length + 3) : e.t; };
+  const uName = em => (D.users.find(u => u.e === em) || { n: em }).n, rName = id => (D.roles.find(r => r.id === id) || { t: id }).t;
+  /** lưu một loại (đổi ngay trên màn hình, gửi ngầm) */
+  const save = (e, cfg, label) => {
+    const old = e.cur ? cp(e.cur) : null; e.cur = cfg ? cp(cfg) : null; keep(); paint();
+    queueRpc('ntRouteSave', cfg ? { ev: e.k, cfg: cfg } : { ev: e.k, reset: 1 }, { key: 'ntr:' + e.k, label: 'Thiết lập thông báo · ' + (label || short(e)), merge: (a, b) => b })
+      .then(d => { if (d && d.ev && !busyQ() && B.isConnected) take(d); }, er => { fail(er); e.cur = old; paint(); load(); });
+  };
+  const change = (e, fx, label) => { const c = cp(eff(e)); fx(c); save(e, c, label); };
+  const hit = e => (!fg || e.g === fg) && (!only || e.cur) && (!q || q.split(/\s+/).every(w => (e.t + ' ' + e.who + ' ' + (D.zb.rules[e.k] || []).map(r => r.name + ' ' + r.g.join(' ')).join(' ')).toLowerCase().indexOf(w) >= 0));
+  const zr = e => D.zb.rules[e.k] || [];
+  const pill = (e, ch) => {
+    if (e.ch[ch] < 0) return '<span class="nt-ch na" title="Loại này không có kênh ' + CH[ch][0].toLowerCase() + '"><i class="bi ' + CH[ch][1] + '"></i><span>' + CH[ch][0] + '</span></span>';
+    const C = eff(e)[ch] || { on: 0 }, nx = ch === 'zalo' ? 0 : (C.r || []).length + (C.u || []).length, live = zr(e).filter(r => !r.off && r.g.length).length;
+    const warn = C.on && ch === 'zalo' && (!D.zb.has || !live), tip = ch === 'zalo' ? (C.on ? (!D.zb.has ? 'Chưa kết nối bot Zalo' : live ? 'Gửi theo ' + live + ' quy tắc ở Bot Zalo' : 'Chưa có quy tắc ở Bot Zalo — chưa gửi') : 'Không gửi Zalo')
+      : C.on ? (C.def ? 'Người liên quan' : 'Không gửi người liên quan') + (nx ? ' + ' + nx + ' vai trò / người' : '') : 'Tắt';
+    return '<button type="button" class="nt-ch' + (C.on ? ' on' : '') + (warn ? ' warn' : '') + '" data-ch="' + ch + '" aria-pressed="' + !!C.on + '" title="' + esc(CH[ch][0] + ': ' + tip) + '"><i class="bi ' + CH[ch][1] + '"></i><span>' + CH[ch][0] + '</span>' +
+      (C.on && nx ? '<em>+' + nx + '</em>' : '') + (C.on && ch === 'zalo' && live ? '<em>' + live + '</em>' : '') + '</button>';
+  };
+  /** người nhận của kênh app / mail: người liên quan + vai trò + người cụ thể */
+  const who = (e, ch) => {
+    if (e.ch[ch] < 0) return '';
+    const C = eff(e)[ch], dis = '', h = '<div class="nt-who' + (C.on ? '' : ' off') + '"><div class="nt-wh"><i class="bi ' + CH[ch][1] + '"></i><b>' + CH[ch][0] + '</b>' + (C.on ? '' : '<span class="tag">Đang tắt — chọn người nhận là tự bật</span>') + '</div>';
+    if (e.solo) return h + '<label class="zb-ck"><input type="checkbox" data-def="' + ch + '"' + (C.def ? ' checked' : '') + dis + '><span>' + esc(e.who || 'Người liên quan') + '</span></label><small class="muted">Tin riêng từng người — không thêm người nhận khác.</small></div>';
+    const ro = D.roles.map(r => '<label class="zb-ck"><input type="checkbox" data-role="' + ch + '" value="' + esc(r.id) + '"' + ((C.r || []).indexOf(r.id) >= 0 ? ' checked' : '') + dis + '><span>' + esc(r.t) + '</span></label>').join('');
+    const us = (C.u || []).map(u => '<span class="nt-chip">' + esc(uName(u)) + '<button type="button" class="ibtn xs" data-uout="' + ch + '" data-u="' + esc(u) + '" aria-label="Bỏ ' + esc(uName(u)) + '"' + dis + '><i class="bi bi-x"></i></button></span>').join('');
+    const left = D.users.filter(u => (C.u || []).indexOf(u.e) < 0);
+    return h + (e.who ? '<label class="zb-ck"><input type="checkbox" data-def="' + ch + '"' + (C.def ? ' checked' : '') + dis + '><span>Người liên quan: ' + esc(e.who) + '</span></label>' : '<small class="muted">Loại này không có người nhận mặc định — chọn vai trò / người bên dưới.</small>') +
+      '<div class="nt-fl">Thêm theo vai trò</div><div class="nt-roles">' + (ro || '<small class="muted">Chưa có vai trò</small>') + '</div>' +
+      '<div class="nt-fl">Thêm người cụ thể</div><div class="nt-us">' + us + '<select class="sel sm" data-uin="' + ch + '"' + dis + ' aria-label="Thêm người nhận"><option value="">+ Thêm người…</option>' + left.map(u => '<option value="' + esc(u.e) + '">' + esc(u.n + ' · ' + u.e) + '</option>').join('') + '</select></div></div>';
+  };
+  const zbox = e => { if (e.ch.zalo < 0) return ''; const L = zr(e), on = (eff(e).zalo || {}).on;
+    return '<div class="nt-who' + (on ? '' : ' off') + '"><div class="nt-wh"><i class="bi bi-chat-dots"></i><b>Zalo</b>' + (on ? '' : '<span class="tag">Đang tắt</span>') + '</div>' +
+      (!D.zb.has ? '<small class="muted">Chưa kết nối bot Zalo.</small>' : L.length ? '<ul class="nt-zl">' + L.map(r => '<li><b>' + esc(r.name || 'Quy tắc') + '</b> → ' + esc(r.g.join(', ') || 'chưa chọn nhóm') + (r.off ? ' <span class="tag">Tạm dừng</span>' : '') + '</li>').join('') + '</ul>'
+        : '<small class="muted">Chưa có quy tắc — chưa gửi vào nhóm nào.</small>') +
+      '<button type="button" class="btn xs ghost" data-go="admin/zalo"><i class="bi bi-robot"></i>' + (L.length ? 'Sửa ở Bot Zalo' : 'Thêm quy tắc ở Bot Zalo') + '</button></div>'; };
+  const row = e => { const o = !!op[e.k], none = !['app', 'mail', 'zalo'].some(ch => e.ch[ch] >= 0 && (eff(e)[ch] || {}).on);
+    return '<div class="nt-r' + (o ? ' open' : '') + '" data-k="' + e.k + '"' + (hit(e) ? '' : ' hidden') + '><div class="nt-rh"><button type="button" class="nt-rn" data-tg aria-expanded="' + o + '"><i class="bi bi-chevron-' + (o ? 'down' : 'right') + '"></i><span><b>' + esc(short(e)) + '</b>' +
+      '<small>' + (e.who ? 'Mặc định: ' + esc(e.who) : 'Chưa có người nhận mặc định') + '</small></span></button>' +
+      (none ? '<span class="tag red" title="Không kênh nào bật — loại này không gửi tới ai">Không gửi</span>' : '') + (e.cur ? '<span class="tag">Đã chỉnh</span>' : '') +
+      '<div class="nt-chs">' + pill(e, 'app') + pill(e, 'mail') + pill(e, 'zalo') + '</div></div>' +
+      (o ? '<div class="nt-rb">' + who(e, 'app') + who(e, 'mail') + zbox(e) +
+        '<div class="nt-ra">' + (e.cur ? '<button type="button" class="btn xs ghost" data-reset><i class="bi bi-arrow-counterclockwise"></i>Đặt lại mặc định</button>' : '<small class="muted">Đang dùng mặc định (như trước khi có trang này).</small>') + '</div></div>' : '') + '</div>'; };
+  const paint = () => {
+    if (!B.isConnected || !D) return; const y = window.scrollY, f = document.activeElement && document.activeElement.id === 'ntQ';
+    const n = D.ev.filter(e => e.cur).length;
+    B.innerHTML = '<div class="card"><div class="card-h"><h2><i class="bi bi-bell"></i>Thiết lập thông báo</h2><span class="sp"></span><span class="tag">' + D.ev.length + ' loại' + (n ? ' · ' + n + ' đã chỉnh' : '') + '</span></div><div class="card-b stack">' +
+      '<p class="small" style="margin:0;line-height:1.6">Mỗi loại thông báo gửi qua kênh nào: <b>Trong app</b> (chuông + thông báo đẩy) · <b>Mail</b> · <b>Zalo</b> — bật nhiều kênh cùng lúc. Bấm tên loại để chọn <b>ai nhận</b>: giữ người liên quan như trước và/hoặc thêm theo vai trò, người cụ thể. ' +
+        'Zalo gửi vào nhóm theo quy tắc ở <a href="#" data-go="admin/zalo">Bot Zalo</a>. Thay đổi <b>tự lưu</b>; loại chưa chỉnh giữ đúng như trước. Mail mã đăng nhập và mail lời mời luôn gửi, không chỉnh ở đây.</p>' +
+      (D.zb.has ? '' : '<div class="small" style="color:var(--warn,#8A5200)"><i class="bi bi-info-circle"></i> Chưa kết nối bot Zalo — kênh Zalo (màu cam) chưa gửi được. Kết nối ở <a href="#" data-go="admin/zalo">Bot Zalo</a>.</div>') +
+      '<div class="nt-bar"><div class="zb-rq"><i class="bi bi-search"></i><input class="inp" id="ntQ" type="search" placeholder="Tìm loại thông báo, người nhận, quy tắc Zalo…" value="' + esc(q) + '" autocomplete="off"></div>' +
+        '<div class="seg" role="group" aria-label="Nhóm">' + [{ k: '', t: 'Tất cả' }].concat(D.grp).map(g => '<button type="button" class="seg-b" data-fg="' + g.k + '" aria-pressed="' + (fg === g.k) + '">' + esc(g.t) + '</button>').join('') + '</div>' +
+        '<label class="zb-ck"><input type="checkbox" id="ntOnly"' + (only ? ' checked' : '') + '><span>Chỉ loại đã chỉnh</span></label></div>' +
+      D.grp.map(g => { const L = D.ev.filter(e => e.g === g.k); const vis = L.filter(hit).length;
+        return '<div class="nt-g" data-g="' + g.k + '"' + (vis ? '' : ' hidden') + '><div class="nt-gh">' + esc(g.t) + '</div>' + L.map(row).join('') + '</div>'; }).join('') +
+      '<div class="small muted" id="ntNone"' + (D.ev.some(hit) ? ' hidden' : '') + '>Không có loại nào khớp.</div></div></div>';
+    window.scrollTo(0, y); if (f) { const i = $('#ntQ', B); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
+  };
+  const refilter = () => { $$('.nt-r', B).forEach(el => { const e = D.ev.find(x => x.k === el.dataset.k); el.hidden = !(e && hit(e)); });
+    $$('.nt-g', B).forEach(g => { g.hidden = !g.querySelector('.nt-r:not([hidden])'); }); const no = $('#ntNone', B); if (no) no.hidden = D.ev.some(hit); };
+  B.onclick = e => {
+    const lk = e.target.closest('[data-go]'); if (lk) { e.preventDefault(); return go(lk.dataset.go); }
+    const t = e.target.closest('button'); if (!t || t.disabled) return;
+    if (t.dataset.fg != null) { fg = t.dataset.fg; lsSet('ntGrp', fg); $$('[data-fg]', B).forEach(b => b.setAttribute('aria-pressed', b === t)); return refilter(); }
+    const r = t.closest('.nt-r'), ev = r && D.ev.find(x => x.k === r.dataset.k); if (!ev) return;
+    if (t.hasAttribute('data-tg')) { if (op[ev.k]) delete op[ev.k]; else op[ev.k] = 1; lsSet('ntOpen', op); return paint(); }
+    if (t.dataset.ch) { const ch = t.dataset.ch; return change(ev, c => { c[ch].on = c[ch].on ? 0 : 1; }, short(ev) + ' · ' + CH[ch][0] + ((eff(ev)[ch] || {}).on ? ' tắt' : ' bật')); }
+    if (t.dataset.uout) { const ch = t.dataset.uout, u = t.dataset.u; return change(ev, c => { c[ch].u = (c[ch].u || []).filter(x => x !== u); }); }
+    if (t.hasAttribute('data-reset')) { const old = cp(ev.cur); save(ev, null, short(ev) + ' · mặc định');
+      toast('Đã đặt “' + short(ev) + '” về mặc định', 'ok', 6000, '', { t: 'Hoàn tác', fn: () => save(ev, old, short(ev) + ' · hoàn tác') }); }
+  };
+  B.onchange = e => {
+    const s = e.target; if (s.id === 'ntOnly') { only = s.checked; return refilter(); }
+    const r = s.closest('.nt-r'), ev = r && D.ev.find(x => x.k === r.dataset.k); if (!ev) return;
+    if (s.dataset.def) { const ch = s.dataset.def; return change(ev, c => { c[ch].def = s.checked ? 1 : 0; if (s.checked) c[ch].on = 1; }); }      // chọn thêm người nhận khi kênh đang tắt → tự bật kênh
+    if (s.dataset.role) { const ch = s.dataset.role; return change(ev, c => { const L = c[ch].r = c[ch].r || [], i = L.indexOf(s.value); if (s.checked && i < 0) L.push(s.value); if (!s.checked && i >= 0) L.splice(i, 1); if (s.checked) c[ch].on = 1; }); }
+    if (s.dataset.uin && s.value) { const ch = s.dataset.uin, u = s.value; return change(ev, c => { c[ch].u = (c[ch].u || []).concat([u]); c[ch].on = 1; }); }
+  };
+  B.oninput = e => { if (e.target.id === 'ntQ') { q = e.target.value.trim().toLowerCase(); refilter(); } };
+  const c0 = lsGet(CK, null);
+  if (c0 && Array.isArray(c0.ev)) { c0._cache = 1; take(c0); load(); }      // bản lần trước hiện ngay, bản mới về thì thay
+  else { B.innerHTML = miniLoader('Đang tải thiết lập thông báo…'); await load(); }
+}
+
 /* ══════════ BOT ZALO (1.53) — Quản trị › Bot Zalo ══════════
    Kết nối bot (Bot Token của Zalo Bot Platform) · nơi nhận (nhóm / tin riêng, dò bằng tin @nhắc bot) · gửi loại thông báo nào vào nhóm nào.
-   Máy chủ: ZaloBot.gs (token chỉ ở Script Properties, trình duyệt chỉ thấy 4 ký tự cuối). */
+   Máy chủ: ZaloBot.gs (token chỉ ở Script Properties, trình duyệt chỉ thấy 4 ký tự cuối).
+   (1.65) MỞ TỨC THÌ như Đồng bộ KGS: vẽ ngay bản lưu lần trước trên máy (không có token — máy chủ không gửi token về), tải ngầm bản mới thay vào.
+   Quy tắc: đặt tên · tìm theo tên / loại / nhóm · thu gọn từng quy tắc · tạm dừng · nhân bản. Mọi thay đổi đổi ngay trên màn hình rồi lưu ngầm qua hàng đợi
+   (tiến trình ở nút Đồng bộ góc trên) — không còn nút “Lưu quy tắc”. Xoá quy tắc / nhóm → Thùng rác, có dải Hoàn tác. */
 async function setZalo(B) {
-  let Z = null, R = [], dirty = false, swap = false, pick = '';      // pick = ô chọn thả xuống đang mở ('<quy tắc>:<g|u|r>')
+  let Z = null, R = [], swap = false, pick = '', q = '';      // pick = ô chọn thả xuống đang mở ('<quy tắc>:<g|u|r>') · q = ô tìm quy tắc
+  const CK = 'zbView:' + ((S.me && S.me.email) || ''), OPK = 'zbOpen:' + ((S.me && S.me.email) || ''), busyQ = () => OB.q.some(x => /^zbot/.test(x.fn));
+  let open = lsGet(OPK, {}) || {};      // quy tắc đang mở rộng (mã quy tắc → 1)
   const evOf = k => Z.ev.find(e => e.k === k) || { t: k };
   const gName = id => (Z.groups.find(g => g.id === id) || { name: '(đã xoá)' }).name;
-  const take = z => { Z = z; R = JSON.parse(JSON.stringify(z.rules)); dirty = false; paint(); };
-  const load = async () => { try { take(await rpc('zbotGet', {}, { quiet: true })); } catch (e) { B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'; } };
+  const keep = () => { try { const c = Object.assign({}, Z, { rules: R }); delete c._cache; lsSet(CK, c); } catch (e) {} };
+  /** nhận bản máy chủ. Còn thao tác quy tắc đang gửi → giữ quy tắc trên màn hình (lệnh gửi xong sẽ trả bản mới) */
+  const take = z => { if (!z) return; const mine = Z && busyQ(); Z = z; if (!mine) R = JSON.parse(JSON.stringify(z.rules)); else Z.rules = R; if (!z._cache) keep(); paint(); };
+  const load = async () => { try { const z = await rpc('zbotGet', {}, { quiet: true }); if (!B.isConnected) return; if (Z && busyQ()) return; take(z); }
+    catch (e) { if (!Z) B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'; else fail(e); } };
+  const clean = () => R.map(r => Object.assign({}, r, { extra: (r.extra || []).filter(x => x.t.trim() || x.u.trim()) }));
+  /** lưu ngầm cả danh sách quy tắc (gộp các thay đổi liên tiếp thành một lần gửi) */
+  const save = label => { if (!Z) return; keep(); queueRpc('zbotRules', { rules: clean(), hour: Z.hour }, { key: 'zbrules', label: 'Bot Zalo · ' + (label || 'quy tắc'), merge: (a, b) => b })
+    .then(z => { if (z && z.rules && !busyQ() && B.isConnected) take(z); }, e => { fail(e); rpc('zbotGet', {}, { quiet: true }).then(z => { R = JSON.parse(JSON.stringify(z.rules)); Z = null; take(z); }, () => {}); }); };
+  const saveSoon = debounce(save, 700);
   const kindI = k => k === 'PRIVATE' ? 'bi-person-fill' : 'bi-people-fill';
   const steps = L => '<ol class="lg-steps">' + L.map(x => '<li>' + x + '</li>').join('') + '</ol>';
+  const rid = () => 'zr' + (Math.random().toString(36).slice(2) + '00000000').slice(0, 8);
   /* tên gợi ý cho nơi nhận mới = câu @nhắc bot bỏ phần tên bot: tên bot = phần đầu chung của các câu bắt đầu bằng @ (≥ 2 câu),
      hoặc phần đầu đã học được lần thêm nhóm trước (câu “@Bot X Nhóm A” lưu tên “Nhóm A” → tên bot là “@Bot X ”) */
   const botPre = () => { const L = Z.seen.map(s => String(s.text || '')).filter(t => t[0] === '@'); let p = lsGet('zbPre', '');
@@ -9993,7 +10789,8 @@ async function setZalo(B) {
     const bot = Z.bot || {}, form = !Z.has || swap;
     return '<div class="card"><div class="card-h"><h2><i class="bi bi-robot"></i>Bot Zalo</h2><span class="sp"></span>' +
       (Z.has ? (Z.err ? '<span class="tag red">Lỗi kết nối</span>' : '<span class="tag ok">Đã kết nối</span>') : '<span class="tag">Chưa kết nối</span>') + '</div><div class="card-b stack">' +
-      '<p class="small" style="margin:0;line-height:1.6">Gửi thông báo của app (việc mới, việc xong, yêu cầu của gia sư, nhắc việc mỗi sáng…) vào <b>nhóm Zalo</b> qua bot của bạn — mỗi loại vào đúng nhóm bạn chọn. Thông báo trong app và mail vẫn như cũ.</p>' +
+      '<p class="small" style="margin:0;line-height:1.6">Gửi thông báo của app (việc mới, việc được cập nhật, việc xong, yêu cầu của gia sư, nhắc việc mỗi sáng…) vào <b>nhóm Zalo</b> qua bot của bạn — mỗi loại vào đúng nhóm bạn chọn. ' +
+        'Loại nào gửi qua app / mail / Zalo: <a href="#" data-go="admin/notif">Thiết lập thông báo</a>.</p>' +
       (Z.has ? '<div class="gmo-now"><i class="bi bi-robot"></i><div><b>' + esc(bot.name || 'Bot Zalo') + '</b><small>Bot Token …' + esc(Z.tail) + (bot.at ? ' · kết nối ' + esc(fmtDT(bot.at)) : '') + '</small>' +
           (Z.err ? '<small style="color:var(--danger)">' + esc(Z.err) + '</small>' : '') + (bot.groups === 0 ? '<small style="color:var(--warn,#8A5200)">Zalo báo bot này chưa được bật tham gia nhóm — nếu không mời được vào nhóm, kiểm tra trong Zalo Bot Creator.</small>' : '') + '</div>' +
           '<button class="btn sm" id="zbSw"><i class="bi bi-key"></i>' + (swap ? 'Thôi' : 'Đổi token') + '</button><button class="btn sm ghost" id="zbOff"><i class="bi bi-plug"></i>Ngắt</button></div>' : '') +
@@ -10007,7 +10804,8 @@ async function setZalo(B) {
       '</div></div>';
   };
   const groups = () => !Z.has ? '' : '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-people"></i>Nhóm nhận thông báo</h2><span class="sp"></span><span class="tag">' + Z.groups.length + ' nơi nhận</span></div><div class="card-b stack">' +
-    (Z.groups.length ? '<div class="zb-gl">' + Z.groups.map(g => '<div class="zb-g"><i class="bi ' + kindI(g.kind) + '"></i><div><b>' + esc(g.name) + '</b><small>' + (g.kind === 'PRIVATE' ? 'Tin nhắn riêng với bot' : 'Nhóm Zalo') + ' · thêm ' + esc(fmtD(g.at)) + '</small></div>' +
+    (Z.groups.length ? '<div class="zb-gl">' + Z.groups.map(g => '<div class="zb-g"><i class="bi ' + kindI(g.kind) + '"></i><div><b>' + esc(g.name) + '</b><small>' + (g.kind === 'PRIVATE' ? 'Tin nhắn riêng với bot' : 'Nhóm Zalo') + ' · thêm ' + esc(fmtD(g.at)) +
+        ' · ' + R.filter(r => r.g.indexOf(g.id) >= 0).length + ' quy tắc</small></div>' +
         '<button class="btn sm" data-zt="' + g.id + '"><i class="bi bi-send"></i>Gửi thử</button><button class="ibtn sm" data-zn="' + g.id + '" title="Đổi tên" aria-label="Đổi tên"><i class="bi bi-pencil"></i></button>' +
         '<button class="ibtn sm" data-zx="' + g.id + '" title="Xoá" aria-label="Xoá"><i class="bi bi-trash"></i></button></div>').join('') + '</div>'
       : '<div class="small muted">Chưa có nhóm nào — làm theo 3 bước bên dưới để thêm.</div>') +
@@ -10040,61 +10838,77 @@ async function setZalo(B) {
         L.map(x => '<label class="zb-ck" data-q="' + esc((x.t + ' ' + x.s).toLowerCase()) + '"><input type="checkbox" data-mc="' + esc(x.id) + '"' + (on.indexOf(x.id) >= 0 ? ' checked' : '') + '><i class="bi ' + x.i + '"></i><span>' + esc(x.t) + '</span><small>' + esc(x.s) + '</small></label>').join('') +
         (L.length ? '' : '<div class="small muted" style="padding:6px">Chưa có mục nào</div>') +
         '<div class="zb-mpf"><button type="button" class="btn xs ghost" data-msall>Chọn tất cả</button><button type="button" class="btn xs ghost" data-msnone>Bỏ hết</button><span class="sp"></span><button type="button" class="btn xs pri" data-msok>Xong</button></div></div>' : '') + '</div>'; };
-  /* (1.54) mỗi quy tắc: loại · bảng (Kiến Task) · GỬI VÀO = ô chọn thả xuống tick nhiều nhóm · KÈM LINK theo loại · LINK THÊM (tên + địa chỉ) · DÒNG ĐẦU TIN · Gửi thử */
+  /** (1.65) chữ để tìm của một quy tắc: tên · loại · tên nhóm · bảng */
+  const hay = r => [r.name, evOf(r.ev).t, r.g.map(gName).join(' '), r.board ? (Z.boards.find(b => b.id === r.board) || {}).name : ''].join(' ').toLowerCase();
+  const hit = r => !q || q.split(/\s+/).every(w => hay(r).indexOf(w) >= 0);
+  /** ô chọn loại: chia theo nhóm (Kiến Task · Lớp gia sư · …) */
+  const eopt = cur => { const G = (Z.grp || []).concat([{ k: '', t: 'Khác' }]), o = e => '<option value="' + e.k + '"' + (e.k === cur ? ' selected' : '') + '>' + esc(e.t) + '</option>';
+    return G.map(g => { const L = Z.ev.filter(e => (g.k ? e.g === g.k : !(Z.grp || []).some(x => x.k === e.g))); return L.length ? '<optgroup label="' + esc(g.t) + '">' + L.map(o).join('') + '</optgroup>' : ''; }).join(''); };
+  /* (1.54) mỗi quy tắc: TÊN · loại · bảng (Kiến Task) · GỬI VÀO = ô chọn thả xuống tick nhiều nhóm · KÈM LINK theo loại · LINK THÊM (tên + địa chỉ) · DÒNG ĐẦU TIN · Gửi thử
+     (1.65) thu gọn: dòng đầu = số · tên (hoặc loại) · nhóm nhận · trạng thái — bấm để mở / đóng */
   const rules = () => {
-    if (!Z.has || !Z.groups.length) return '';
+    if (!Z.has) return '';
     const daily = R.some(r => evOf(r.ev).d);
     const bopt = cur => '<option value="">Mọi bảng chung</option>' + Z.boards.map(b => '<option value="' + esc(b.id) + '"' + (b.id === cur ? ' selected' : '') + '>' + esc(b.name) + (b.mine ? ' (bảng riêng · ' + esc(b.by.split('@')[0]) + ')' : '') + '</option>').join('');
-    const gsel = (r, i) => msel(i, 'g', r.g, 'Chọn nhóm nhận…');
     const WH = { taskRemind: 'Chỉ nhắc việc do những người này phụ trách (PIC)', req: 'Khi gia sư / người gửi yêu cầu thuộc nhóm này', sessReport: 'Khi gia sư báo thuộc nhóm này', classAsk: 'Chỉ lớp của các gia sư này',
       classDaily: 'Chỉ các lớp của gia sư thuộc nhóm này', account: 'Theo người đăng ký (vai trò họ chọn khi đăng ký)', ann: 'Khi người đăng thuộc nhóm này' };
+    const TBY = ev => /^task/.test(ev) && ev !== 'taskRemind';      // (1.56) việc Kiến Task: chọn xét theo PIC / người tạo / người thao tác
     const whoRow = (r, i) => { const w = r.who || { m: 'all' };
       return '<div class="zb-fg"><div class="zb-fl">Áp dụng cho</div><div class="zb-who"><select class="sel" data-f="wm" aria-label="Áp dụng cho">' + [['all', 'Tất cả mọi người'], ['users', 'Người cụ thể…'], ['roles', 'Vai trò cụ thể…']].map(o => '<option value="' + o[0] + '"' + (o[0] === w.m ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' +
         (w.m === 'users' ? msel(i, 'u', w.u || [], 'Chọn người…') : w.m === 'roles' ? msel(i, 'r', w.r || [], 'Chọn vai trò…') : '') +
         (w.m !== 'all' && TBY(r.ev) ? '<select class="sel" data-f="wb" aria-label="Xét theo">' + [['pic', 'Xét theo PIC (người phụ trách)'], ['creator', 'Xét theo người tạo việc'], ['actor', 'Xét theo người thao tác (tạo / chuyển / bình luận)'], ['any', 'Xét theo bất kỳ: PIC, người tạo hoặc người thao tác']]
           .map(o => '<option value="' + o[0] + '"' + (o[0] === (w.by || 'pic') ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' : '') +
         (w.m !== 'all' && WH[r.ev] ? '<small class="zb-wh">' + esc(WH[r.ev]) + '</small>' : '') + '</div></div>'; };
-    const TBY = ev => /^task/.test(ev) && ev !== 'taskRemind';      // (1.56) việc Kiến Task: chọn xét theo PIC / người tạo / người thao tác
     const lkOn = r => r.links || ((evOf(r.ev).lk || [])[0] ? [evOf(r.ev).lk[0][0]] : []);
     const lks = r => { const L = evOf(r.ev).lk || [], on = lkOn(r); return L.length ? L.map(x => '<label class="zb-ck"><input type="checkbox" data-lk="' + x[0] + '"' + (on.indexOf(x[0]) >= 0 ? ' checked' : '') + '><span>' + esc(x[1]) + '</span></label>').join('') : '<span class="small muted">Loại này không có link riêng</span>'; };
     const ext = r => (r.extra || []).map((x, j) => '<div class="zb-exr"><input class="inp" data-ex="' + j + '" data-k="t" maxlength="40" placeholder="Tên link, VD Sheet điểm danh" value="' + esc(x.t) + '"><input class="inp mono" data-ex="' + j + '" data-k="u" placeholder="https://…" value="' + esc(x.u) + '"><button type="button" class="ibtn sm" data-exx="' + j + '" title="Bỏ link" aria-label="Bỏ link"><i class="bi bi-x-lg"></i></button></div>').join('') +
       ((r.extra || []).length < 5 ? '<button type="button" class="btn xs ghost zb-exa" data-exa><i class="bi bi-plus-lg"></i>Thêm link</button>' : '');
-    return '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-signpost-split"></i>Gửi gì vào nhóm nào</h2></div><div class="card-b stack">' +
-      (R.length ? '<div class="zb-rl">' + R.map((r, i) => { const E = evOf(r.ev);
-        return '<div class="zb-r" data-i="' + i + '"><div class="zb-rh"><span class="zb-no">' + (i + 1) + '</span><b class="zb-rt">' + esc(E.t || 'Quy tắc') + '</b><span class="sp"></span>' +
-          '<button type="button" class="btn sm ghost" data-rt title="Gửi một tin mẫu theo quy tắc này vào các nhóm đã chọn"><i class="bi bi-send"></i>Gửi thử</button><button type="button" class="ibtn sm" data-rx title="Bỏ quy tắc" aria-label="Bỏ quy tắc"><i class="bi bi-x-lg"></i></button></div>' +
-          '<div class="zb-fg"><div class="zb-fl">Loại thông báo</div><select class="sel" data-f="ev" aria-label="Loại thông báo">' + Z.ev.map(e => '<option value="' + e.k + '"' + (e.k === r.ev ? ' selected' : '') + '>' + esc(e.t) + '</option>').join('') + '</select></div>' +
+    const state = r => r.off ? '<span class="tag">Tạm dừng</span>' : !r.g.length ? '<span class="tag warn">Chưa chọn nhóm</span>' : evOf(r.ev).on === 0 ? '<span class="tag warn" title="Kênh Zalo của loại này đang tắt ở Thiết lập thông báo">Kênh Zalo tắt</span>' : '';
+    const shown = R.filter(hit).length;
+    return '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-signpost-split"></i>Gửi gì vào nhóm nào</h2><span class="sp"></span><span class="tag" id="zbN">' + (q ? shown + ' / ' : '') + R.length + ' quy tắc</span></div><div class="card-b stack">' +
+      (R.length > 1 ? '<div class="zb-rq"><i class="bi bi-search"></i><input class="inp" id="zbQ" type="search" placeholder="Tìm quy tắc theo tên, loại thông báo, nhóm…" value="' + esc(q) + '" autocomplete="off"></div>' : '') +
+      (R.length ? '<div class="zb-rl">' + R.map((r, i) => { const E = evOf(r.ev), op = !!open[r.id];
+        return '<div class="zb-r' + (op ? ' open' : '') + (r.off ? ' off' : '') + '" data-i="' + i + '"' + (hit(r) ? '' : ' hidden') + '><div class="zb-rh" data-rh><span class="zb-no">' + (i + 1) + '</span>' +
+          '<div class="zb-rtt"><b class="zb-rt">' + esc(r.name || E.t || 'Quy tắc') + '</b><small>' + (r.name ? esc(E.t) + ' · ' : '') + (r.g.length ? esc(r.g.map(gName).join(', ')) : 'chưa chọn nhóm') + '</small></div>' + state(r) +
+          '<button type="button" class="ibtn sm" data-rtg title="' + (op ? 'Thu gọn' : 'Mở để sửa') + '" aria-label="' + (op ? 'Thu gọn' : 'Mở để sửa') + '" aria-expanded="' + op + '"><i class="bi bi-chevron-' + (op ? 'up' : 'down') + '"></i></button></div>' +
+          (!op ? '' :
+          '<div class="zb-fg"><div class="zb-fl">Tên quy tắc</div><input class="inp" data-f="name" maxlength="80" placeholder="(tuỳ chọn) VD: Việc Tuyển sinh → nhóm TS" value="' + esc(r.name || '') + '"></div>' +
+          '<div class="zb-fg"><div class="zb-fl">Loại thông báo</div><select class="sel" data-f="ev" aria-label="Loại thông báo">' + eopt(r.ev) + '</select></div>' +
+          (E.on === 0 ? '<div class="zb-fg"><div class="zb-fl"></div><small class="zb-wh" style="color:var(--warn,#8A5200)">Kênh Zalo của loại này đang <b>tắt</b> ở <a href="#" data-go="admin/notif">Thiết lập thông báo</a> — quy tắc chưa gửi.</small></div>' : '') +
           (E.b ? '<div class="zb-fg"><div class="zb-fl">Bảng</div><select class="sel" data-f="board" aria-label="Bảng">' + bopt(r.board) + '</select></div>' : '') +
-          '<div class="zb-fg"><div class="zb-fl">Gửi vào</div>' + gsel(r, i) + '</div>' + whoRow(r, i) +
+          '<div class="zb-fg"><div class="zb-fl">Gửi vào</div>' + (Z.groups.length ? msel(i, 'g', r.g, 'Chọn nhóm nhận…') : '<small class="zb-wh" style="line-height:36px">Chưa có nhóm — thêm nhóm ở thẻ trên</small>') + '</div>' + whoRow(r, i) +
           '<div class="zb-fg"><div class="zb-fl">Kèm link</div><div class="zb-lks">' + lks(r) + '</div></div>' +
           '<div class="zb-fg"><div class="zb-fl">Link thêm</div><div class="zb-ex">' + ext(r) + '</div></div>' +
-          '<div class="zb-fg"><div class="zb-fl">Dòng đầu tin</div><input class="inp" data-f="note" maxlength="200" placeholder="(tuỳ chọn) VD: Team Tuyển sinh xử lý trong ngày nhé" value="' + esc(r.note || '') + '"></div></div>'; }).join('') + '</div>'
+          '<div class="zb-fg"><div class="zb-fl">Dòng đầu tin</div><input class="inp" data-f="note" maxlength="200" placeholder="(tuỳ chọn) VD: Team Tuyển sinh xử lý trong ngày nhé" value="' + esc(r.note || '') + '"></div>' +
+          '<div class="zb-ra"><label class="zb-ck"><input type="checkbox" data-f="off"' + (r.off ? ' checked' : '') + '><span>Tạm dừng quy tắc này</span></label><span class="sp"></span>' +
+            '<button type="button" class="btn sm ghost" data-rt title="Gửi một tin mẫu theo quy tắc này vào các nhóm đã chọn"><i class="bi bi-send"></i>Gửi thử</button>' +
+            '<button type="button" class="btn sm ghost" data-rd title="Tạo bản sao của quy tắc này"><i class="bi bi-copy"></i>Nhân bản</button>' +
+            '<button type="button" class="btn sm ghost" data-rx title="Xoá quy tắc (vào Thùng rác, hoàn tác được)"><i class="bi bi-trash"></i>Xoá</button></div>') + '</div>'; }).join('') + '</div>' +
+          '<div class="small muted" id="zbNone"' + (q && !shown ? '' : ' hidden') + '>Không có quy tắc nào khớp — thử tên khác, hoặc xoá ô tìm.</div>'
         : '<div class="small muted">Chưa có quy tắc nào — bấm <b>Thêm quy tắc</b>, chọn loại thông báo và nhóm nhận.</div>') +
       '<div class="row"><button class="btn" id="zbAdd"><i class="bi bi-plus-lg"></i>Thêm quy tắc</button>' +
-        (daily ? '<label class="small" style="display:flex;align-items:center;gap:6px;white-space:nowrap">Tin buổi sáng gửi lúc <select class="sel" id="zbH">' + [5, 6, 7, 8, 9, 10, 11].map(h => '<option value="' + h + '"' + (h === Z.hour ? ' selected' : '') + '>' + h + ' giờ</option>').join('') + '</select></label>' : '') + '</div>' +
-      '<div class="small muted" style="line-height:1.6">Mỗi thông báo gửi <b>một tin</b> vào từng nhóm được chọn: dòng đầu tin (nếu có) · nội dung · các link đã tick. “Mọi bảng chung” không gồm bảng riêng — muốn báo việc của một bảng riêng, chọn đúng bảng đó. Sub-task chỉ báo khi xong hoặc có bình luận. Một nhóm khớp nhiều quy tắc cùng loại chỉ nhận một tin (theo quy tắc đứng trước).</div>' +
-      '<div class="row"><button class="btn pri" id="zbSave"' + (dirty ? '' : ' disabled') + '><i class="bi bi-check2"></i>Lưu quy tắc</button><span class="small" id="zbDirty" style="color:var(--warn,#8A5200)"' + (dirty ? '' : ' hidden') + '>Có thay đổi chưa lưu</span>' +
-        (daily ? '<button class="btn ghost" id="zbDay"' + (dirty ? ' hidden' : '') + '><i class="bi bi-sunrise"></i>Gửi thử tin buổi sáng</button>' : '') + '</div></div></div>';
+        (daily ? '<label class="small" style="display:flex;align-items:center;gap:6px;white-space:nowrap">Tin buổi sáng gửi lúc <select class="sel" id="zbH">' + [5, 6, 7, 8, 9, 10, 11].map(h => '<option value="' + h + '"' + (h === Z.hour ? ' selected' : '') + '>' + h + ' giờ</option>').join('') + '</select></label>' : '') +
+        (daily ? '<button class="btn ghost" id="zbDay"><i class="bi bi-sunrise"></i>Gửi thử tin buổi sáng</button>' : '') + '</div>' +
+      '<div class="small muted" style="line-height:1.6">Thay đổi <b>tự lưu</b> (tiến trình ở nút Đồng bộ góc trên). Mỗi thông báo gửi <b>một tin</b> vào từng nhóm được chọn: dòng đầu tin (nếu có) · nội dung · các link đã tick. “Mọi bảng chung” không gồm bảng riêng — muốn báo việc của một bảng riêng, chọn đúng bảng đó. Sub-task chỉ báo khi xong hoặc có bình luận. Một nhóm khớp nhiều quy tắc cùng loại chỉ nhận một tin (theo quy tắc đứng trước). Xoá quy tắc / nhóm → Thùng rác, hoàn tác được.</div>' +
+      '</div></div>';
   };
   const log = () => !Z.has || !Z.log.length ? '' : '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-clock-history"></i>Gửi gần đây</h2></div><div class="card-b"><div class="zb-log">' +
     Z.log.slice(0, 15).map(l => '<div><i class="bi ' + (l.ok ? 'bi-check-circle-fill" style="color:var(--ok,#0F6B3D)' : 'bi-x-circle-fill" style="color:var(--danger)') + '"></i><span class="small muted">' + esc(fmtDT(l.at)) + '</span><b>' + esc(gName(l.g)) + '</b>' +
       '<span class="small">' + esc(l.ev === 'test' ? 'Gửi thử' : evOf(l.ev).t) + (l.t && l.ev !== 'test' ? ' — ' + esc(l.t) : '') + '</span>' + (l.ok ? '' : '<span class="small" style="color:var(--danger)">' + esc(l.err) + '</span>') + '</div>').join('') + '</div></div></div>';
-  const paint = () => { if (!B.isConnected) return; const y = window.scrollY; B.innerHTML = conn() + groups() + rules() + log(); window.scrollTo(0, y); };
+  const paint = () => { if (!B.isConnected || !Z) return; const y = window.scrollY, f = document.activeElement && document.activeElement.id === 'zbQ'; B.innerHTML = conn() + groups() + rules() + log(); window.scrollTo(0, y);
+    if (f) { const i = $('#zbQ', B); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } } };
   const run = async (btn, wait, fn) => { const stop = btnWait(btn, wait); try { const z = await fn(); if (z) take(z); return z; } catch (er) { stop(); fail(er); } };
-  const keep = () => { const was = dirty; dirty = true; if (!was) paint(); };
-  /** đánh dấu có thay đổi mà KHÔNG vẽ lại (đang gõ trong ô thì không mất chỗ con trỏ) */
-  const mark = () => { dirty = true; const sv = $('#zbSave', B), d = $('#zbDirty', B), dy = $('#zbDay', B); if (sv) sv.disabled = false; if (d) d.hidden = false; if (dy) dy.hidden = true; };
-  const clean = () => R.map(r => Object.assign({}, r, { extra: (r.extra || []).filter(x => x.t.trim() || x.u.trim()) }));
+  const setOpen = (id, on) => { if (on) open[id] = 1; else delete open[id]; lsSet(OPK, open); };
   B.onclick = async e => {
+    const lk = e.target.closest('[data-go]'); if (lk) { e.preventDefault(); return go(lk.dataset.go); }
+    const head = e.target.closest('[data-rh]'); if (head && !e.target.closest('button')) { const r = R[Number(head.closest('.zb-r').dataset.i)]; if (r) { setOpen(r.id, !open[r.id]); pick = ''; paint(); } return; }
     const t = e.target.closest('button'); if (!t || t.disabled) return;
     if (t.id === 'zbGo') { const v = $('#zbT', B).value.trim(); if (!v) return toast('Dán Bot Token vào ô trước', 'info'); swap = false; const z = await run(t, 'Đang kiểm tra…', () => rpc('zbotToken', { token: v }, { quiet: true })); if (z) toast('Đã kết nối bot ' + ((z.bot && z.bot.name) || '')); return; }
     if (t.id === 'zbSw') { swap = !swap; return paint(); }
     if (t.id === 'zbOff') { if (!await ask('Ngắt bot Zalo? App thôi gửi tin vào mọi nhóm (danh sách nhóm và quy tắc vẫn giữ, kết nối lại là gửi tiếp).', { ok: 'Ngắt', danger: true })) return; return run(t, 'Đang ngắt…', () => rpc('zbotToken', { off: 1 }, { quiet: true })); }
-    if (t.id === 'zbScan') { if (dirty && !await ask('Quy tắc có thay đổi chưa lưu — dò nhóm sẽ bỏ các thay đổi đó. Tiếp tục?', { ok: 'Dò nhóm' })) return;
-      toast('App đang nghe 60 giây — vào nhóm Zalo @nhắc bot ngay bây giờ', 'info', 8000);
+    if (t.id === 'zbScan') { toast('App đang nghe 60 giây — vào nhóm Zalo @nhắc bot ngay bây giờ', 'info', 8000);
       const z = await run(t, 'Đang nghe… @nhắc bot trong nhóm ngay', () => rpc('zbotScan', { wait: 60 }, { quiet: true })); if (z) toast(z.got ? 'Bot nhận được ' + z.got + ' tin mới' + (z.seen.length ? ' — đặt tên rồi bấm Thêm' : '') : z.seen.length ? 'Không có tin mới — các nhóm dò được trước đó ở bên dưới' : 'Không nhận được tin nào trong 60 giây — bấm Dò lại rồi @nhắc bot ngay sau khi bấm', z.got ? 'ok' : 'info', 5000); return; }
     if (t.dataset.za) { const inp = $('[data-zs="' + CSS.escape(t.dataset.za) + '"]', B), nm = inp ? inp.value.trim() : ''; if (!nm) { inp && inp.focus(); return toast('Đặt tên cho nhóm trước', 'info'); }
-      if (dirty && !await ask('Quy tắc có thay đổi chưa lưu — thêm nhóm sẽ bỏ các thay đổi đó. Tiếp tục?', { ok: 'Thêm nhóm' })) return;
       { const s = Z.seen.find(x => x.chat === t.dataset.za), tx = String(s && s.text || '').trim(); if (tx[0] === '@' && tx.length > nm.length && tx.slice(-nm.length) === nm) lsSet('zbPre', tx.slice(0, -nm.length)); }      // học tên bot
       const z = await run(t, 'Đang thêm…', () => rpc('zbotGroup', { chat: t.dataset.za, name: nm }, { quiet: true })); if (z) toast('Đã thêm “' + nm + '”'); return; }
     if (t.id === 'zbMA') { const ch = $('#zbMC', B).value.trim(), nm = $('#zbMN', B).value.trim(); if (!ch || !nm) return toast('Nhập mã nhóm và tên nhóm', 'info');
@@ -10103,46 +10917,53 @@ async function setZalo(B) {
     if (t.dataset.zn) { const g = Z.groups.find(x => x.id === t.dataset.zn); if (!g) return;
       const m = modal({ title: 'Đổi tên nhóm', icon: 'bi-pencil', body: '<input class="inp" id="zbNm" maxlength="60" value="' + esc(g.name) + '">', foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', cls: 'pri', fn: () => {
         const nm = m.$('#zbNm').value.trim(); if (!nm) return false;
-        rpc('zbotGroup', { id: g.id, name: nm }, { quiet: true }).then(z => { const keepR = dirty ? R : null; take(z); if (keepR) { R = keepR; dirty = true; paint(); } toast('Đã đổi tên'); }).catch(fail); } }] });
+        g.name = nm; keep(); paint();      // (1.65) đổi ngay, lưu ngầm
+        queueRpc('zbotGroup', { id: g.id, name: nm }, { key: 'zbg:' + g.id, label: 'Bot Zalo · đổi tên nhóm', merge: (a, b) => b }).then(z => { if (!busyQ() && B.isConnected) take(z); }, er => { fail(er); load(); }); } }] });
       setTimeout(() => { const i = m.$('#zbNm'); if (i) { i.focus(); i.select(); } }, 30); return; }
-    if (t.dataset.zx) { const g = Z.groups.find(x => x.id === t.dataset.zx); if (!g || !await ask('Xoá “' + g.name + '” khỏi danh sách? App thôi gửi tin vào nhóm này (bot vẫn ở trong nhóm Zalo — muốn bot rời nhóm thì xoá bot trong nhóm).', { ok: 'Xoá', danger: true })) return;
-      return run(t, 'Đang xoá…', () => rpc('zbotGroup', { id: g.id, del: 1 }, { quiet: true })); }
-    if (t.id === 'zbAdd') { R.push({ ev: 'taskNew', board: '', g: Z.groups.length === 1 ? [Z.groups[0].id] : [], links: ['task'], extra: [], note: '' }); dirty = true; pick = Z.groups.length === 1 ? '' : (R.length - 1) + ':g'; return paint(); }
+    if (t.dataset.zx) { const g = Z.groups.find(x => x.id === t.dataset.zx); if (!g || !await ask('Xoá “' + g.name + '” khỏi danh sách? App thôi gửi tin vào nhóm này (bot vẫn ở trong nhóm Zalo — muốn bot rời nhóm thì xoá bot trong nhóm). Nhóm vào Thùng rác — hoàn tác được; các quy tắc vẫn giữ.', { ok: 'Xoá', danger: true })) return;
+      Z.groups = Z.groups.filter(x => x.id !== g.id); R.forEach(r => { r.g = r.g.filter(x => x !== g.id); }); keep(); paint();      // (1.65) xoá ngay trên màn hình, gửi ngầm
+      queueRpc('zbotGroup', { id: g.id, del: 1 }, { key: 'zbg:' + g.id, label: 'Bot Zalo · xoá nhóm ' + g.name, merge: (a, b) => b }).then(z => { if (!busyQ() && B.isConnected) take(z); }, er => { fail(er); load(); }); return; }
+    if (t.id === 'zbAdd') { const r = { id: rid(), name: '', ev: 'taskNew', board: '', g: Z.groups.length === 1 ? [Z.groups[0].id] : [], links: ['task'], extra: [], note: '', off: 0 };
+      R.push(r); setOpen(r.id, 1); q = ''; pick = Z.groups.length > 1 ? (R.length - 1) + ':g' : ''; paint(); save('thêm quy tắc');
+      const el = $('.zb-r[data-i="' + (R.length - 1) + '"]', B); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+    if (t.id === 'zbDay') { const z = await run(t, 'Đang gửi…', () => rpc('zbotTest', { daily: 1 }, { quiet: true })); if (z) toast(z.sent ? 'Đã gửi tin buổi sáng vào ' + z.sent + ' nhóm' : 'Hôm nay không có gì để báo (không có việc quá hạn / đến hạn, buổi chờ duyệt, lớp sắp hết bài)', z.sent ? 'ok' : 'info', 5000); return; }
     const row = t.closest('.zb-r'), ri = row ? Number(row.dataset.i) : -1, r = row && R[ri];
-    if (r && t.hasAttribute('data-rx')) { R.splice(ri, 1); dirty = true; pick = ''; return paint(); }
-    if (r && t.dataset.ms) { const k = ri + ':' + t.dataset.ms; pick = pick === k ? '' : k; return paint(); }
-    if (r && (t.hasAttribute('data-msall') || t.hasAttribute('data-msnone'))) { const k = pick.split(':')[1], A = msArr(r, k); A.splice(0, A.length); if (t.hasAttribute('data-msall')) msItems(k).forEach(x => A.push(x.id)); dirty = true; return paint(); }
-    if (t.hasAttribute('data-msok')) { pick = ''; return paint(); }
-    if (r && t.hasAttribute('data-exa')) { (r.extra = r.extra || []).push({ t: '', u: '' }); dirty = true; paint(); const L = $$('.zb-r[data-i="' + ri + '"] [data-k="t"]', B); if (L.length) L[L.length - 1].focus(); return; }
-    if (r && t.dataset.exx != null) { r.extra.splice(Number(t.dataset.exx), 1); dirty = true; return paint(); }
+    if (r && t.hasAttribute('data-rtg')) { setOpen(r.id, !open[r.id]); pick = ''; return paint(); }
+    if (r && t.hasAttribute('data-rx')) { R.splice(ri, 1); setOpen(r.id, 0); pick = ''; paint(); return save('xoá quy tắc ' + (r.name || evOf(r.ev).t)); }      // máy chủ cất vào Thùng rác → dải Hoàn tác
+    if (r && t.hasAttribute('data-rd')) { const c = JSON.parse(JSON.stringify(r)); c.id = rid(); c.name = (r.name || evOf(r.ev).t) + ' (bản sao)'; R.splice(ri + 1, 0, c); setOpen(c.id, 1); paint(); return save('nhân bản quy tắc'); }
+    if (r && t.dataset.ms) { const k = ri + ':' + t.dataset.ms; const was = pick; pick = pick === k ? '' : k; paint(); if (was) save(); return; }
+    if (r && (t.hasAttribute('data-msall') || t.hasAttribute('data-msnone'))) { const k = pick.split(':')[1], A = msArr(r, k); A.splice(0, A.length); if (t.hasAttribute('data-msall')) msItems(k).forEach(x => A.push(x.id)); paint(); return saveSoon(); }
+    if (t.hasAttribute('data-msok')) { pick = ''; paint(); return save(); }
+    if (r && t.hasAttribute('data-exa')) { (r.extra = r.extra || []).push({ t: '', u: '' }); paint(); const L = $$('.zb-r[data-i="' + ri + '"] [data-k="t"]', B); if (L.length) L[L.length - 1].focus(); return; }
+    if (r && t.dataset.exx != null) { r.extra.splice(Number(t.dataset.exx), 1); paint(); return save(); }
     if (r && t.hasAttribute('data-rt')) { if (!r.g.length) return toast('Quy tắc thứ ' + (ri + 1) + ' chưa chọn nhóm nhận', 'info');
       const stop = btnWait(t, 'Đang gửi…'); try { const z = await rpc('zbotTest', { rule: clean()[ri] }, { quiet: true }); Z.log = z.log; toast('Đã gửi tin mẫu vào ' + z.sent + ' nhóm — mở Zalo xem', 'ok', 4000); paint(); } catch (er) { stop(); fail(er); } return; }
-    if (t.id === 'zbSave') { const bad = R.findIndex(x => !x.g.length); if (bad >= 0) return toast('Quy tắc thứ ' + (bad + 1) + ' chưa chọn nhóm nhận', 'info');
-      const bw = R.findIndex(x => x.who && x.who.m !== 'all' && !(x.who.m === 'users' ? x.who.u : x.who.r || []).length); if (bw >= 0) return toast('Quy tắc thứ ' + (bw + 1) + ': chọn ' + (R[bw].who.m === 'users' ? 'người' : 'vai trò') + ' áp dụng, hoặc đổi về “Tất cả mọi người”', 'info');
-      const bu = R.findIndex(x => (x.extra || []).some(y => (y.t.trim() || y.u.trim()) && !/^https?:\/\/\S+$/.test(y.u.trim()))); if (bu >= 0) return toast('Quy tắc thứ ' + (bu + 1) + ': link thêm phải bắt đầu bằng https://', 'info');
-      pick = ''; const h = $('#zbH', B); const z = await run(t, 'Đang lưu…', () => rpc('zbotRules', { rules: clean(), hour: h ? Number(h.value) : Z.hour }, { quiet: true })); if (z) toast('Đã lưu ' + z.rules.length + ' quy tắc'); return; }
-    if (t.id === 'zbDay') { const z = await run(t, 'Đang gửi…', () => rpc('zbotTest', { daily: 1 }, { quiet: true })); if (z) toast(z.sent ? 'Đã gửi tin buổi sáng vào ' + z.sent + ' nhóm' : 'Hôm nay không có gì để báo (không có việc quá hạn / đến hạn, buổi chờ duyệt, lớp sắp hết bài)', z.sent ? 'ok' : 'info', 5000); }
   };
   B.onchange = e => {
-    const s = e.target; if (s.id === 'zbH') return keep();
+    const s = e.target; if (s.id === 'zbH') { Z.hour = Number(s.value); return save('giờ tin buổi sáng'); }
     const row = s.closest('.zb-r'), ri = row ? Number(row.dataset.i) : -1, r = row && R[ri]; if (!r) return;
     if (s.dataset.mc != null) { const k = pick.split(':')[1], A = msArr(r, k), i = A.indexOf(s.dataset.mc); if (s.checked && i < 0) A.push(s.dataset.mc); if (!s.checked && i >= 0) A.splice(i, 1);
-      const b = $('[data-ms="' + k + '"]', row); if (b) b.innerHTML = msBtn(k, A, b.dataset.ph); return mark(); }      // ô chọn vẫn mở, ô tìm giữ nguyên
-    if (s.dataset.f === 'wb') { r.who = Object.assign({ m: 'all', u: [], r: [] }, r.who, { by: s.value }); return mark(); }
-    if (s.dataset.f === 'wm') { r.who = Object.assign({ u: [], r: [] }, r.who, { m: s.value }); pick = s.value === 'users' ? ri + ':u' : s.value === 'roles' ? ri + ':r' : ''; dirty = true; return paint(); }
-    if (s.dataset.lk) { r.links = $$('[data-lk]', row).filter(x => x.checked).map(x => x.dataset.lk); return mark(); }
-    if (s.dataset.f === 'ev' || s.dataset.f === 'board') { r[s.dataset.f] = s.value; if (s.dataset.f === 'ev') { if (!evOf(r.ev).b) r.board = ''; const L = evOf(r.ev).lk || []; r.links = L[0] ? [L[0][0]] : []; } dirty = true; paint(); }
+      const b = $('[data-ms="' + k + '"]', row); if (b) b.innerHTML = msBtn(k, A, b.dataset.ph); return saveSoon(); }      // ô chọn vẫn mở, ô tìm giữ nguyên
+    if (s.dataset.f === 'off') { r.off = s.checked ? 1 : 0; paint(); return save(r.off ? 'tạm dừng quy tắc' : 'bật lại quy tắc'); }
+    if (s.dataset.f === 'wb') { r.who = Object.assign({ m: 'all', u: [], r: [] }, r.who, { by: s.value }); return save(); }
+    if (s.dataset.f === 'wm') { r.who = Object.assign({ u: [], r: [] }, r.who, { m: s.value }); pick = s.value === 'users' ? ri + ':u' : s.value === 'roles' ? ri + ':r' : ''; paint(); return save(); }      // để trống người / vai trò = máy chủ coi như tất cả
+    if (s.dataset.lk) { r.links = $$('[data-lk]', row).filter(x => x.checked).map(x => x.dataset.lk); return saveSoon(); }
+    if (s.dataset.f === 'ev' || s.dataset.f === 'board') { r[s.dataset.f] = s.value; if (s.dataset.f === 'ev') { if (!evOf(r.ev).b) r.board = ''; const L = evOf(r.ev).lk || []; r.links = L[0] ? [L[0][0]] : []; } paint(); return save(); }
   };
-  B.oninput = e => { const s = e.target, row = s.closest('.zb-r'), r = row && R[Number(row.dataset.i)]; if (!r) return;
-    if (s.hasAttribute('data-mq')) { const q = s.value.trim().toLowerCase(); $$('.zb-mp .zb-ck', row).forEach(l => { l.hidden = !!q && l.dataset.q.indexOf(q) < 0; }); return; }
-    if (s.dataset.f === 'note') { r.note = s.value; return mark(); }
-    if (s.dataset.ex != null) { const x = r.extra[Number(s.dataset.ex)]; if (x) { x[s.dataset.k] = s.value; mark(); } } };
-  // bấm ra ngoài ô chọn nhóm → đóng (đường đi của sự kiện còn giữ nút cũ dù trang vừa vẽ lại)
-  const outside = e => { if (!B.isConnected) return document.removeEventListener('click', outside); if (!pick) return; if (e.composedPath().some(n => n.classList && n.classList.contains('zb-ms'))) return; pick = ''; paint(); };
+  B.oninput = e => { const s = e.target;
+    if (s.id === 'zbQ') { q = s.value.trim().toLowerCase(); let n = 0; $$('.zb-r', B).forEach(el => { const r = R[Number(el.dataset.i)], h = !!r && hit(r); el.hidden = !h; if (h) n++; });
+      const tg = $('#zbN', B); if (tg) tg.textContent = (q ? n + ' / ' : '') + R.length + ' quy tắc'; const no = $('#zbNone', B); if (no) no.hidden = !(q && !n); return; }
+    const row = s.closest('.zb-r'), r = row && R[Number(row.dataset.i)]; if (!r) return;
+    if (s.hasAttribute('data-mq')) { const qq = s.value.trim().toLowerCase(); $$('.zb-mp .zb-ck', row).forEach(l => { l.hidden = !!qq && l.dataset.q.indexOf(qq) < 0; }); return; }
+    if (s.dataset.f === 'note' || s.dataset.f === 'name') { r[s.dataset.f] = s.value; if (s.dataset.f === 'name') { const tt = row.querySelector('.zb-rt'); if (tt) tt.textContent = s.value.trim() || evOf(r.ev).t; } return saveSoon(); }
+    if (s.dataset.ex != null) { const x = r.extra[Number(s.dataset.ex)]; if (x) { x[s.dataset.k] = s.value; if (!x.u.trim() || /^https?:\/\/\S+$/.test(x.u.trim())) saveSoon(); } } };      // link đang gõ dở (chưa đúng https://) thì chưa lưu
+  // bấm ra ngoài ô chọn → đóng và lưu (đường đi của sự kiện còn giữ nút cũ dù trang vừa vẽ lại)
+  const outside = e => { if (!B.isConnected) return document.removeEventListener('click', outside); if (!pick) return; if (e.composedPath().some(n => n.classList && n.classList.contains('zb-ms'))) return; pick = ''; paint(); save(); };
   document.addEventListener('click', outside);
   B.onkeydown = e => { if (e.key === 'Enter' && e.target.id === 'zbT') { e.preventDefault(); $('#zbGo', B).click(); } else if (e.key === 'Enter' && e.target.dataset.zs) { e.preventDefault(); const b = $('[data-za="' + CSS.escape(e.target.dataset.zs) + '"]', B); if (b) b.click(); } };
-  B.innerHTML = miniLoader('Đang tải bot Zalo…');
-  await load();
+  const c0 = lsGet(CK, null);
+  if (c0 && Array.isArray(c0.rules) && Array.isArray(c0.ev)) { c0._cache = 1; take(c0); load(); }      // bản lần trước hiện ngay, bản mới về thì thay
+  else { B.innerHTML = miniLoader('Đang tải bot Zalo…'); await load(); }
 }
 
 /* ══════════ ĐỒNG BỘ KIẾN GIA SƯ (1.58) — Kiến CM › Đồng bộ KGS ══════════
@@ -10873,8 +11694,13 @@ function setMe(B) {
     catch (er) { stop(); fail(er); }
   };
 }
-function setTheme(B, cfg) {      // bộ màu Kiến Trẻ là cố định (không còn chọn bộ màu / Liquid Glass) → tab này chỉ còn bảng phím tắt
-  B.innerHTML = '<div class="card st-keys"><div class="card-h"><h2><i class="bi bi-keyboard"></i>Phím tắt</h2></div><div class="card-b"><dl class="kv" style="grid-template-columns:150px 1fr">' +
+function setTheme(B, cfg) {      // bộ màu Kiến Trẻ là cố định (không còn chọn bộ màu / Liquid Glass) · (1.65.1) chế độ tối + bảng phím tắt
+  const M = [['auto', 'Theo máy', 'bi-circle-half', 'Tự đổi theo cài đặt sáng / tối của máy'], ['light', 'Sáng', 'bi-sun', 'Nền sáng'], ['dark', 'Tối', 'bi-moon-stars', 'Nền tối, đỡ chói khi làm buổi tối']];
+  const mode = () => '<div class="card"><div class="card-h"><h2><i class="bi bi-circle-half"></i>Chế độ hiển thị</h2></div><div class="card-b stack"><div class="ui-modes" role="radiogroup" aria-label="Chế độ hiển thị">' +
+    M.map(x => '<button type="button" class="ui-mode" role="radio" data-um="' + x[0] + '" aria-checked="' + (uiMode() === x[0]) + '"><i class="bi ' + x[2] + '"></i><b>' + x[1] + '</b><small>' + x[3] + '</small></button>').join('') +
+    '</div><small class="muted">Lưu trên máy này. Đổi nhanh bằng nút <i class="bi bi-moon-stars"></i> trên thanh trên. Trang giấy (Kiến Style, xem PDF) vẫn nền trắng như khi in.</small></div></div>';
+  B.onclick = e => { const b = e.target.closest('[data-um]'); if (!b) return; uiModeSet(b.dataset.um); $$('[data-um]', B).forEach(x => x.setAttribute('aria-checked', x === b)); };
+  B.innerHTML = mode() + '<div class="card st-keys" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-keyboard"></i>Phím tắt</h2></div><div class="card-b"><dl class="kv" style="grid-template-columns:150px 1fr">' +
     '<dt>Ctrl/⌘ + K hoặc /</dt><dd>Tìm nhanh tài liệu</dd><dt>← / →</dt><dd>Tài liệu trước / sau (trang xem)</dd><dt>+ / − / 0</dt><dd>Phóng to / thu nhỏ / vừa khung</dd>' +
     '<dt>F · Esc</dt><dd>Bật / thoát chế độ đọc</dd><dt>Ctrl/⌘ + \\</dt><dd>Thu gọn thanh bên</dd><dt>Alt + 1…9</dt><dd>Mở ứng dụng theo thứ tự · Alt + 0 về màn hình chính</dd></dl></div></div>';
 }
@@ -17648,13 +18474,15 @@ function cpPlace(b, ctx) {
 
 /* ══════════ DỰNG KHỐI ══════════ */
 const cpKey = id => cpFold(CP.doc && CP.doc.meta.tieude || '_') + '#' + id;
-function cpImgHtml(b, ctx) {
+/** free = dựng hình NỔI TRÊN CHỮ (cpLayout gắn vào trang sau khi xếp chữ); trong dòng chữ thì hình nổi không chiếm chỗ */
+function cpImgHtml(b, ctx, free) {
   const key = cpKey(b.id), r = CP.imgs[key] || {};
   if (r.off || (CP.hideEmpty && !r.src)) return '';                          // ô đã bỏ · xuất PDF bỏ hẳn ô chưa có ảnh (không để khoảng trắng)
-  const P = cpPlace(b, ctx);
+  if ((r.pos === 'free') !== !!free) return '';
+  const P = free ? Object.assign(cpPlace(b, ''), { pos: 'free' }) : cpPlace(b, ctx);
   const fit = r.fit || 'auto', rad = r.rad == null ? 10 : r.rad, bd = r.bd == null ? true : r.bd;
   const ar = fit === 'auto' && r.nw ? r.nw + '/' + r.nh : (P.ratio * 1000 | 0) + '/1000';
-  return '<div class="kg-img p-' + P.pos + (r.src ? ' has' : '') + (bd ? ' bd' : '') + (b.none && !r.src ? ' none' : '') + (CP.sel === key ? ' on' : '') + '" data-slot="' + esc(key) + '" data-pos="' + P.pos + '" style="width:' + P.pct + '%;--rad:' + rad + 'pt">' +
+  return '<div class="kg-img p-' + P.pos + (r.src ? ' has' : '') + (bd ? ' bd' : '') + (b.none && !r.src ? ' none' : '') + (CP.sel === key ? ' on' : '') + '" data-slot="' + esc(key) + '" data-pos="' + P.pos + '" style="' + (free ? 'width:' + (P.pct / 100 * CP_CW.root).toFixed(1) + 'pt;left:' + (+r.fx || 0).toFixed(1) + 'pt;top:' + (+r.fy || 0).toFixed(1) + 'pt' : 'width:' + P.pct + '%') + ';--rad:' + rad + 'pt">' +
     '<div class="kg-im" style="aspect-ratio:' + ar + '">' +
     (r.src ? '<img src="' + r.src + '" alt="" draggable="false" style="object-fit:' + (fit === 'contain' ? 'contain' : 'cover') + '">'
       : '<div class="kg-ph"><b><i class="bi bi-image"></i> HÌNH ' + esc(b.id) + '</b>' + (b.desc ? '<span>' + esc(b.desc) + '</span>' : '') + '<small></small></div>') + '</div>' +
@@ -17786,7 +18614,7 @@ const cpIsSub = b => !!b && b.t === 'p' && /^[a-zđ1-9][.)]\s/i.test(cpPlain(b.t
 /** ý con NGẮN chỉ để điền / đọc (không có chỗ làm bài riêng ngay sau) — xếp lưới hai cột được */
 const cpSubShort = (bs, k) => cpIsSub(bs[k]) && !bs[k].fm && !(bs[k + 1] && bs[k + 1].t === 'dong') && cpPlain(bs[k].text).length <= 40;
 /** vị trí của ô hình trong khối ('' = ô đã bỏ / không in) */
-const cpImgPos = (b, ctx) => { const r = CP.imgs[cpKey(b.id)] || {}; return r.off || (CP.hideEmpty && !r.src) ? '' : cpPlace(b, ctx).pos; };
+const cpImgPos = (b, ctx) => { const r = CP.imgs[cpKey(b.id)] || {}; return r.off || r.pos === 'free' || (CP.hideEmpty && !r.src) ? '' : cpPlace(b, ctx).pos; };
 /** các khối con → HTML từng khối. Môn tự nhiên: dãy ≥ 2 ý con ngắn liền nhau (a. … b. … c. …) gộp thành lưới HAI CỘT (.kg-subs).
     run = chỉ số đoạn sẽ nhận nhãn thẻ cùng dòng (đánh dấu data-run, không gộp vào lưới) */
 function cpKids(kids, ctx, run) {
@@ -18023,6 +18851,10 @@ function cpLayout(host) {
     cpClose(pg.body); pg = add(); carry.forEach(h => pg.body.appendChild(h)); q.unshift(el);
   }
   if (pages.length > 1 && !cpMovable(pages[pages.length - 1].body)) { pages.pop().el.remove(); }
+  // (1.64.1) hình NỔI TRÊN CHỮ (như “In front of text” của Google Docs): gắn thẳng lên trang đã chọn, đúng toạ độ — không đẩy chữ
+  cpAllSlots().forEach(b => { const r = CP.imgs[cpKey(b.id)] || {}; if (r.pos !== 'free') return;
+    const el = cpEl(cpImgHtml(b, '', true) || '<i></i>'); if (!el || !el.classList.contains('kg-img')) return;
+    el.dataset.ln = b.ln; $('.kg-page', pages[Math.max(1, Math.min(pages.length, +r.fp || 1)) - 1].el).appendChild(el); });
   // số trang: mặc định theo mẫu (xanh: “Trang 1/3” bên phải · navy: ô trống để điền tay); người dùng chọn vị trí / số bắt đầu / không in ở ô “Số trang”
   const P = CP.pn[cpFold(doc.meta.tieude || '_')] || {}, pos = P.pos || '', start = Math.max(1, parseInt(P.start, 10) || 1);
   const box = pos === 'box' || (!pos && !P.start && doc.tpl === 'gttdn');   // navy mặc định ô trống; đã gõ số bắt đầu thì in số
@@ -18054,13 +18886,13 @@ function cpSlotInfo() {
       const mm = x => Math.round(x / k * CP_MM);
       o.page = $$('.kg-page', v).indexOf(page) + 1; o.pos = el.dataset.pos;
       o.x = mm(r.left - pr.left); o.y = mm(r.top - pr.top); o.w = mm(r.width); o.h = mm(r.height);
-      o.pct = Math.round(parseFloat(getComputedStyle(el).width) / parseFloat(getComputedStyle(el.parentElement).width) * 100);
+      o.pct = o.pos === 'free' ? Math.round(parseFloat(getComputedStyle(el).width) / (CP_CW.root * CP_PT) * 100) : Math.round(parseFloat(getComputedStyle(el).width) / parseFloat(getComputedStyle(el.parentElement).width) * 100);
       const s = $('.kg-ph small', el); if (s) s.textContent = o.w + ' × ' + o.h + ' mm';
     }
     return o;
   });
 }
-const CP_POS = { trai: 'bên trái, chữ chạy quanh', phai: 'bên phải, chữ chạy quanh', giua: 'giữa', day: 'tràn bề ngang' };
+const CP_POS = { trai: 'bên trái, chữ chạy quanh', phai: 'bên phải, chữ chạy quanh', giua: 'giữa', day: 'tràn bề ngang', free: 'nổi trên chữ' };
 function cpSlotsPaint() {
   const v = CP.v, box = $('#cpSlots', v); if (!box) return;
   const L = CP.slots = cpSlotInfo(), empty = L.filter(o => !(CP.imgs[o.key] || {}).src).length;
@@ -18077,7 +18909,7 @@ function cpSlotsPaint() {
         '<small>' + (r.off ? 'Đã bỏ ô này — không in' : o.page ? 'Trang ' + o.page + ' · ' + CP_POS[o.pos] + ' · ' + o.w + ' × ' + o.h + ' mm (' + o.pct + '%) · cách mép trên ' + o.y + ' mm' : 'Không hiện trên trang') + (b.page ? ' · gốc tr.' + esc(b.page) : '') + (b.none ? ' · bản gốc chưa có hình' : '') + '</small>' +
         '<div class="cp-sc">' + (r.off ? '<button class="btn xs cp-go" data-a="on"><i class="bi bi-arrow-counterclockwise"></i>Khôi phục ô</button>' : '' +
           '<button class="btn xs' + (r.src ? '' : ' cp-go') + '" data-a="pick"><i class="bi bi-upload"></i>' + (r.src ? 'Đổi ảnh' : 'Chọn ảnh') + '</button>' +
-          '<select class="sel cp-mini" data-a="pos" title="Vị trí">' + [['', 'Tự đặt'], ['phai', 'Bên phải'], ['trai', 'Bên trái'], ['giua', 'Giữa'], ['day', 'Tràn ngang']].map(x => '<option value="' + x[0] + '"' + ((r.pos || '') === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select>' +
+          '<select class="sel cp-mini" data-a="pos" title="Vị trí">' + [['', 'Tự đặt'], ['free', 'Nổi trên chữ'], ['phai', 'Bên phải'], ['trai', 'Bên trái'], ['giua', 'Giữa'], ['day', 'Tràn ngang']].map(x => '<option value="' + x[0] + '"' + ((r.pos || '') === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select>' +
           '<select class="sel cp-mini" data-a="fit" title="Cách đặt ảnh vào khung">' + [['auto', 'Khung theo ảnh'], ['cover', 'Cắt vừa khung'], ['contain', 'Giữ trọn ảnh']].map(x => '<option value="' + x[0] + '"' + ((r.fit || 'auto') === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select>' +
           '<select class="sel cp-mini" data-a="rad" title="Bo góc">' + [[0, 'Góc vuông'], [6, 'Bo nhẹ'], [10, 'Bo góc'], [16, 'Bo tròn']].map(x => '<option value="' + x[0] + '"' + ((r.rad == null ? 10 : r.rad) === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select>' +
           '<label class="cp-ck" title="Khung viền quanh hình"><input type="checkbox" data-a="bd"' + (r.bd == null || r.bd ? ' checked' : '') + '>Khung</label>' +
@@ -18417,7 +19249,7 @@ function viewCompose(arg, v) {
         '<div class="cp-bar cp-tb" id="cpBar"><button class="cp-ib" data-ins="undo" title="Hoàn tác (Ctrl + Z)"><i class="bi bi-arrow-counterclockwise"></i></button><button class="cp-ib" data-ins="redo" title="Làm lại (Ctrl + Y)"><i class="bi bi-arrow-clockwise"></i></button><span class="cp-sep"></span><button class="cp-ib" data-ins="dam" title="In đậm chữ đang bôi đen"><i class="bi bi-type-bold"></i></button><button class="cp-ib" data-ins="ngh" title="In nghiêng chữ đang bôi đen"><i class="bi bi-type-italic"></i></button><button class="cp-ib" data-ins="gc" title="Gạch chân chữ đang bôi đen"><i class="bi bi-type-underline"></i></button><span class="cp-sep"></span><button class="cp-ib" data-ins="al-trai" title="Căn trái (dòng đang chọn / các dòng đang bôi đen)"><i class="bi bi-text-left"></i></button><button class="cp-ib" data-ins="al-giua" title="Căn giữa"><i class="bi bi-text-center"></i></button><button class="cp-ib" data-ins="al-phai" title="Căn phải"><i class="bi bi-text-right"></i></button><button class="cp-ib" data-ins="al-deu" title="Căn đều hai bên (mặc định)"><i class="bi bi-justify"></i></button><span class="cp-sep"></span><button class="cp-ib" data-ins="ind-" title="Giảm lùi dòng"><i class="bi bi-text-indent-right"></i></button><button class="cp-ib" data-ins="ind+" title="Tăng lùi dòng (lùi vào trong)"><i class="bi bi-text-indent-left"></i></button><button class="cp-ib" data-ins="li" title="Gạch đầu dòng cho các dòng đang chọn"><i class="bi bi-list-ul"></i></button><button class="cp-ib" data-ins="br" title="Ngắt xuống dòng tại con trỏ (vẫn cùng đoạn)"><i class="bi bi-arrow-return-left"></i></button><button class="cp-ib" data-ins="clr" title="Xoá định dạng (đậm, nghiêng, gạch chân, căn lề, lùi dòng) của các dòng đang chọn"><i class="bi bi-eraser"></i></button><span class="cp-sep"></span><span class="cp-dd"><button class="btn xs" id="cpInsBtn" title="Chèn hình, chỗ làm bài, câu hỏi, ghi nhớ, sang trang"><i class="bi bi-plus-lg"></i>Chèn<i class="bi bi-chevron-down" style="font-size:10px"></i></button><span class="cp-menu" id="cpInsMenu" hidden><button data-ins="hinh"><i class="bi bi-image"></i>Ô hình</button><button data-ins="dong"><i class="bi bi-list"></i>Chỗ làm bài (dòng kẻ)</button><button data-ins="the"><i class="bi bi-patch-question"></i>Câu hỏi / bài tập</button><button data-ins="nho"><i class="bi bi-bookmark-star"></i>Khung ghi nhớ</button><button data-ins="trang"><i class="bi bi-file-break"></i>Ngắt sang trang mới</button></span></span><small>Bấm vào một đoạn trên trang A4 → dòng mã của đoạn đó được tô sáng ở đây. Bôi đen chữ / dòng rồi bấm nút để định dạng.</small></div><textarea class="ta cp-ta" id="cpCode" spellcheck="false" placeholder="Dán mã KGS (kết quả AI trả về) vào đây…\n\n@mon: TIẾNG VIỆT 3\n@chude: Gia đình\n@buoi: 21\n@tieude: MÓN QUÀ ĐẶC BIỆT\n\n## HOẠT ĐỘNG 1 | KHỞI ĐỘNG\n### NHIỆM VỤ 1 | Em đọc truyện…"></textarea>' +
         '<div class="cp-foot"><button class="btn sm cp-del" id="cpNew" title="Xoá mã, hình đã chèn và mọi chỉnh tay cũ — bắt đầu phiếu mới sạch"><i class="bi bi-eraser"></i>Làm mới</button><button class="btn sm ghost" id="cpSample"><i class="bi bi-file-earmark-text"></i>Xem mẫu</button><button class="btn sm ghost" id="cpHelp"><i class="bi bi-question-circle"></i>Cú pháp</button><span class="sp"></span><button class="btn sm pri" id="cpApply"><i class="bi bi-magic"></i>Áp dụng</button></div></div>' +
       '<div class="cp-pane" data-p="saved" hidden><div class="cp-saved" id="cpSaved"></div></div>' +
-      '<div class="cp-pane" data-p="img" hidden><div class="cp-slots" id="cpSlots"></div><div class="cp-foot cp-tip"><i class="bi bi-lightbulb"></i><span>Bấm ô hình trên trang để chọn ảnh · kéo thả ảnh vào ô · hoặc chọn ô rồi dán (⌘/Ctrl + V). Vị trí & bề rộng app tự tính — chỉnh tay nếu cần.</span></div></div>' +
+      '<div class="cp-pane" data-p="img" hidden><div class="cp-slots" id="cpSlots"></div><div class="cp-foot cp-tip"><i class="bi bi-lightbulb"></i><span>Bấm ô hình trên trang để chọn ảnh · kéo thả ảnh vào ô · hoặc chọn ô rồi dán (⌘/Ctrl + V). Kéo hình trên trang để đặt tự do (nổi trên chữ như Google Docs) · chấm cam ở góc để đổi cỡ.</span></div></div>' +
     '</aside><div class="cp-split" id="cpSplit" title="Kéo để đổi độ rộng ô Mã"><i></i></div>' +
     '<section class="cp-prev"><div class="cp-stat" id="cpStat"></div><div class="cp-pages" id="cpPages"></div></section></div>';
   const ta = $('#cpCode', v); ta.value = CP.code;
@@ -18559,13 +19391,13 @@ function viewCompose(arg, v) {
       if (n === n0) return; CP.rows[cpFold(CP.doc.meta.tieude || '_') + '#d' + di] = n; lsSet('cp.rows', CP.rows); cpRender(); toast('Chỗ viết: ' + n + ' dòng', 'ok', 1200); };
     h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up);
   });
-  /* (1.64) KÉO HÌNH TỰ DO + kéo chấm cam ở góc để đổi cỡ */
+  /* (1.64.1) KÉO HÌNH TỰ DO (nổi trên chữ) + kéo chấm cam ở góc để đổi cỡ */
   pages.addEventListener('pointerdown', e => {
     if (e.button !== 0 || e.target.closest('.kg-tools, .kg-drag')) return;
     const s = e.target.closest('.kg-img'); if (!s) return;
     e.preventDefault();
     if (e.target.closest('.kg-rs')) return cpResizeImg(e, s);
-    cpDragImg(e, s, ta, apply);
+    cpDragImg(e, s);
   });
   pages.addEventListener('dragstart', e => { if (e.target.closest && e.target.closest('.kg-img')) e.preventDefault(); });
   pages.addEventListener('dragover', e => { const s = e.target.closest('.kg-img'); if (s) { e.preventDefault(); s.classList.add('drop'); } });
@@ -18617,7 +19449,7 @@ function viewCompose(arg, v) {
   sl.addEventListener('change', e => {
     const a = e.target.closest('[data-a]'), row = e.target.closest('.cp-sl'); if (!a || !row) return;
     const key = row.dataset.k;
-    if (a.dataset.a === 'pos') cpSet(key, { pos: a.value || null });
+    if (a.dataset.a === 'pos') { if (a.value === 'free') cpSet(key, cpFreeHere(key)); else cpSet(key, { pos: a.value || null }); }
     if (a.dataset.a === 'fit') cpSet(key, { fit: a.value === 'auto' ? null : a.value });
     if (a.dataset.a === 'rad') cpSet(key, { rad: +a.value === 10 ? null : +a.value });
     if (a.dataset.a === 'bd') cpSet(key, { bd: a.checked ? null : false });
@@ -18710,97 +19542,76 @@ function cpSvPaint() {
       : '<div class="empty"><i class="bi bi-clock-history"></i>Chưa có mã nào được lưu.<small>' + (c.auto ? 'Dán / sửa mã ở tab Mã — app tự lưu lại ở đây.' : 'Bật “Tự lưu khi soạn” hoặc bấm “Lưu bản này”.') + '</small></div>');
 }
 
-/* ══════════ (1.64) KÉO HÌNH TỰ DO ══════════
-   Giữ chuột trên một hình (đã có ảnh hay ô trống) rồi kéo: vạch cam cho biết hình sẽ nằm TRƯỚC / SAU đoạn nào (kể cả sang trang khác);
-   thả ở 1/3 trái / phải của trang = chữ chạy quanh bên trái / phải, ở giữa = giữ kiểu đặt giữa / tràn ngang.
-   Thả → dòng [HÌNH n] trong ô Mã chuyển tới đúng chỗ đó (hoàn tác được), vị trí trái / phải lưu như chọn ở tab Vị trí hình. */
-const CP_ZONE = { trai: '◧ Bên trái · chữ chạy quanh', phai: 'Bên phải · chữ chạy quanh ◨', giua: 'Ở giữa', day: 'Tràn ngang', '': 'Tự đặt' };
-/** dòng mã ngay SAU khối có số dòng ln (cùng cấp): dòng của khối kế tiếp · khối cuối trong thẻ → dòng “:::” đóng thẻ · khối cuối phiếu → cuối mã */
-function cpAfterLn(ln, lines) {
-  let hit = null;
-  (function walk(bs, parent) { for (let i = 0; i < bs.length && !hit; i++) { const b = bs[i]; if (b.ln === ln) { hit = { bs: bs, i: i, parent: parent }; return; } if (b.kids) walk(b.kids, b); } })(CP.doc ? CP.doc.blocks : [], null);
-  if (!hit) return Math.min(lines.length, ln + 1);
-  for (let k = hit.i + 1; k < hit.bs.length; k++) if (hit.bs[k].ln != null && hit.bs[k].ln > ln) return hit.bs[k].ln;
-  if (hit.parent) { let d = 0; for (let k = hit.parent.ln; k < lines.length; k++) { const x = lines[k].trim(); if (/^:::\s*\S/.test(x)) d++; else if (/^:::\s*$/.test(x) && !--d) return k; } }
-  return lines.length;
+/* ══════════ (1.64.1) KÉO HÌNH TỰ DO — kiểu “In front of text” của Google Docs ══════════
+   Giữ chuột trên hình rồi kéo: chính hình đó (đúng cỡ thật, hơi trong để thấy chữ bên dưới) đi theo chuột, CHỮ ĐỨNG YÊN trong lúc kéo.
+   Thả → hình NỔI TRÊN CHỮ tại đúng chỗ đó (r.pos = 'free', r.fp = trang, r.fx / r.fy = toạ độ pt trên trang); sang trang khác được.
+   Muốn trả hình về trong dòng chữ (chữ chạy quanh / ở giữa…) → tab Vị trí hình, ô vị trí. Có Hoàn tác, Esc huỷ. */
+/** đổi một ô hình đang nằm trong dòng chữ thành hình nổi, giữ nguyên chỗ & cỡ đang thấy (chọn “Nổi trên chữ” ở tab Vị trí hình) */
+function cpFreeHere(key) {
+  const el = CP.v && $('.kg-img[data-slot="' + CSS.escape(key) + '"]', CP.v), k = CP.k || 1;
+  if (!el) return { pos: 'free', fp: 1, fx: 42, fy: 120 };
+  const pg = el.closest('.kg-page'), pr = pg.getBoundingClientRect(), r = el.getBoundingClientRect();
+  return { pos: 'free', fp: $$('.kg-page', CP.v).indexOf(pg) + 1, fx: (r.left - pr.left) / k / CP_PT, fy: (r.top - pr.top) / k / CP_PT, w: Math.max(10, Math.min(100, Math.round(r.width / k / CP_PT / CP_CW.root * 100))) };
 }
-function cpDragImg(e, s, ta, apply) {
-  const pages = $('#cpPages', CP.v), key = s.dataset.slot, src = +s.dataset.ln, r0 = Object.assign({}, CP.imgs[key]);
-  const x0 = e.clientX, y0 = e.clientY, pid = e.pointerId;
-  let on = false, gh = null, dl = null, zn = null, tgt = null, px = x0, py = y0, loop = 0, LV = [];
-  const sc = () => pages.scrollHeight > pages.clientHeight + 2 ? pages : ($('.cp-lay', CP.v) || pages);
+function cpDragImg(e, s) {
+  const key = s.dataset.slot, k = CP.k || 1, r0 = Object.assign({}, CP.imgs[key]), pid = e.pointerId, x0 = e.clientX, y0 = e.clientY;
+  const pages = $('#cpPages', CP.v), sc = pages.scrollHeight > pages.clientHeight + 2 ? pages : ($('.cp-lay', CP.v) || pages);
+  let on = false, cl = null, bd = null, loop = 0, px = x0, py = y0, sy0 = 0, R = null, hit = null;
   const start = () => {
-    on = true; s.classList.add('kg-moving'); document.body.classList.add('cp-dragging');
+    on = true; R = s.getBoundingClientRect(); sy0 = sc.scrollTop;
+    // bản sao đúng cỡ thật đi theo chuột; hình gốc ẩn nhưng vẫn giữ chỗ → chữ không nhảy trong lúc kéo
+    cl = s.cloneNode(true); cl.classList.remove('on'); cl.classList.add('cp-float');
+    Object.assign(cl.style, { width: (R.width / k) + 'px', left: R.left + 'px', top: R.top + 'px', transform: 'scale(' + k + ')' });
+    $$('.kg-tools, .kg-rs', cl).forEach(x => x.remove());
+    bd = document.createElement('div'); bd.className = 'cp-szb';
+    document.body.append(cl, bd); s.classList.add('kg-moving'); document.body.classList.add('cp-dragging');
     try { s.setPointerCapture(pid); } catch (er) {}
-    LV = $$('[data-ln]', pages).filter(el => el !== s && !el.closest('.kg-img') && !el.querySelector('[data-ln]'));
-    gh = document.createElement('div'); gh.className = 'cp-ghost'; gh.innerHTML = (r0.src ? '<img src="' + r0.src + '" alt="">' : '<div class="ph">HÌNH ' + esc(key.split('#').pop()) + '</div>') + '<em></em>';
-    dl = document.createElement('div'); dl.className = 'cp-drop'; zn = document.createElement('div'); zn.className = 'cp-zone';
-    document.body.append(zn, dl, gh);
-    const tick = () => { if (!on) return;
-      const box = sc(), hr = box.getBoundingClientRect();      // gần mép trên / dưới vùng xem → tự cuộn
-      if (py < hr.top + 48) box.scrollTop -= Math.ceil((hr.top + 48 - py) / 4); else if (py > hr.bottom - 48) box.scrollTop += Math.ceil((py - hr.bottom + 48) / 4);
-      calc(); loop = requestAnimationFrame(tick); };
+    const tick = () => { if (!on) return; const hr = sc.getBoundingClientRect();      // gần mép trên / dưới vùng xem → tự cuộn
+      if (py < hr.top + 40) sc.scrollTop -= Math.ceil((hr.top + 40 - py) / 4); else if (py > hr.bottom - 40) sc.scrollTop += Math.ceil((py - hr.bottom + 40) / 4);
+      move(); loop = requestAnimationFrame(tick); };
     loop = requestAnimationFrame(tick);
   };
-  const none = msg => { tgt = null; dl.style.display = zn.style.display = 'none'; gh.querySelector('em').textContent = msg; };
-  const calc = () => {
-    gh.style.left = px + 'px'; gh.style.top = py + 'px';
-    const page = document.elementsFromPoint(px, py).map(x => x.closest && x.closest('.kg-page')).find(Boolean);
-    if (!page) return none('Kéo vào trang A4');
-    const br = $('.kg-body', page).getBoundingClientRect();
-    let best = null, bs = Infinity;
-    LV.forEach(el => { if (!page.contains(el)) return; const r = el.getBoundingClientRect(); if (!r.height) return;
-      const dy = py < r.top ? r.top - py : py > r.bottom ? py - r.bottom : 0, dx = px < r.left ? r.left - px : px > r.right ? px - r.right : 0, d = dy + dx * 0.35;
-      if (d < bs) { bs = d; best = { el: el, r: r }; } });
-    if (!best) return none('Trang này chưa có đoạn nào');
-    const before = py < (best.r.top + best.r.bottom) / 2, fx = (px - br.left) / br.width;
-    const pos = fx < 0.3 ? 'trai' : fx > 0.7 ? 'phai' : /^(|giua|day)$/.test(r0.pos || '') ? (r0.pos || '') : 'giua';
-    tgt = { el: best.el, before: before, pos: pos };
-    dl.style.display = ''; dl.style.left = best.r.left + 'px'; dl.style.width = best.r.width + 'px'; dl.style.top = (before ? best.r.top - 3 : best.r.bottom + 1) + 'px';
-    if (pos === 'trai' || pos === 'phai') { const w = br.width * 0.36; zn.style.display = ''; zn.style.left = (pos === 'trai' ? br.left : br.right - w) + 'px'; zn.style.width = w + 'px'; zn.style.top = ((before ? best.r.top : best.r.bottom) + 4) + 'px'; zn.style.height = Math.max(36, Math.min(best.r.height, 160)) + 'px'; }
-    else zn.style.display = 'none';
-    gh.querySelector('em').textContent = CP_ZONE[pos];
+  const move = () => {
+    const L = R.left + px - x0, T = R.top + py - y0;
+    cl.style.left = L + 'px'; cl.style.top = T + 'px';
+    const cx = L + R.width / 2, cy = T + Math.min(R.height / 2, 30);
+    const pg = $$('.kg-page', CP.v).find(p => { const q = p.getBoundingClientRect(); return cx >= q.left && cx <= q.right && cy >= q.top && cy <= q.bottom; });
+    if (!pg) { hit = null; cl.classList.add('out'); bd.textContent = 'Kéo vào trang A4'; }
+    else { const q = pg.getBoundingClientRect(), W = q.width / k, H = q.height / k, w = R.width / k, h = R.height / k;
+      const fx = Math.max(0, Math.min(W - w, (L - q.left) / k)), fy = Math.max(0, Math.min(H - Math.min(h, H), (T - q.top) / k));
+      hit = { fp: $$('.kg-page', CP.v).indexOf(pg) + 1, fx: fx / CP_PT, fy: fy / CP_PT }; cl.classList.remove('out');
+      bd.textContent = 'Trang ' + hit.fp + ' · cách trái ' + Math.round(fx * CP_MM) + ' mm · cách trên ' + Math.round(fy * CP_MM) + ' mm'; }
+    bd.style.left = px + 'px'; bd.style.top = py + 'px';
   };
   const end = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); removeEventListener('keydown', esc_, true); };
-  const mv = ev => { if (ev.pointerId !== pid) return; px = ev.clientX; py = ev.clientY; if (!on && Math.hypot(px - x0, py - y0) > 6) start(); if (on) calc(); };
+  const mv = ev => { if (ev.pointerId !== pid) return; px = ev.clientX; py = ev.clientY; if (!on && Math.hypot(px - x0, py - y0) > 5) start(); if (on) move(); };
   const up = ev => {
     if (ev && ev.pointerId != null && ev.pointerId !== pid) return;
     end(); if (!on) return;
-    on = false; cancelAnimationFrame(loop); [gh, dl, zn].forEach(x => x && x.remove()); s.classList.remove('kg-moving'); document.body.classList.remove('cp-dragging');
+    on = false; cancelAnimationFrame(loop); cl.remove(); bd.remove(); s.classList.remove('kg-moving'); document.body.classList.remove('cp-dragging');
     CP.dragAt = Date.now();
-    if (!ev || ev.type === 'pointercancel' || !tgt) return;
-    drop();
+    if (!ev || ev.type === 'pointercancel' || !hit) return;
+    const w = Math.max(10, Math.min(100, Math.round(R.width / k / CP_PT / CP_CW.root * 100)));
+    CP.sel = key; cpSet(key, Object.assign({ pos: 'free', w: w }, hit));
+    toast(r0.pos === 'free' ? 'Đã dời hình' : 'Hình nổi trên chữ — kéo tới đâu nằm đúng chỗ đó', 'ok', 3000, null,
+      { t: 'Hoàn tác', fn: () => cpSet(key, { pos: r0.pos || null, fp: r0.fp == null ? null : r0.fp, fx: r0.fx == null ? null : r0.fx, fy: r0.fy == null ? null : r0.fy, w: r0.w || null }) });
   };
-  const esc_ = ev => { if (ev.key === 'Escape') { ev.preventDefault(); tgt = null; up(null); } };
+  const esc_ = ev => { if (ev.key === 'Escape') { ev.preventDefault(); hit = null; up(null); } };
   addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up); addEventListener('keydown', esc_, true);
-  function drop() {
-    const old = ta.value, L = old.split('\n'), ln = +tgt.el.dataset.ln;
-    if (!/^\s*(?:\{[^{}\n]*\}\s*)*\[\s*h[ìi]nh/i.test(L[src] || '')) return toast('Chưa tìm thấy dòng mã của hình này — bấm Áp dụng rồi kéo lại', 'warn');
-    let T = tgt.before ? ln : cpAfterLn(ln, L);
-    const moved = T !== src && T !== src + 1, newPos = tgt.pos !== (r0.pos || '');
-    if (!moved && !newPos) return;
-    if (newPos) cpSet(key, { pos: tgt.pos || null }, true);
-    const put = val => { ta.focus(); if (document.activeElement === ta) { ta.select(); if (document.execCommand('insertText', false, val)) { ta.blur(); return; } } ta.value = val; };   // giữ được Ctrl + Z trong ô Mã
-    if (moved) { const line = L.splice(src, 1)[0]; if (T > src) T--; L.splice(T, 0, line); put(L.join('\n')); }
-    CP.sel = key; apply();
-    const el = $('.kg-img[data-slot="' + CSS.escape(key) + '"]', CP.v);
-    const undo = { t: 'Hoàn tác', fn: () => { if (moved) put(old); cpSet(key, { pos: r0.pos || null }, true); apply(); } };
-    if (el && (tgt.pos === 'trai' || tgt.pos === 'phai') && el.dataset.pos !== tgt.pos) toast('Hình đặt ở giữa vì ngay sau hình không có đoạn chữ để chạy quanh — kéo hình tới trước một đoạn chữ', 'info', 5000, null, undo);
-    else toast(moved ? 'Đã chuyển hình tới chỗ mới' + (newPos ? ' · ' + CP_ZONE[tgt.pos].replace(/[◧◨]/g, '').trim().toLowerCase() : '') : 'Hình: ' + CP_ZONE[tgt.pos].replace(/[◧◨]/g, '').trim().toLowerCase(), 'ok', 3000, null, undo);
-    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
 }
-/** kéo chấm cam ở góc hình → đổi bề rộng (bậc 5%, 15–100% khối chứa); hình đặt giữa giãn đều hai bên */
+/** kéo chấm cam ở góc hình → đổi bề rộng. Hình trong dòng chữ: bậc 5% khối chứa (hình giữa giãn đều hai bên); hình nổi: bậc 1%, góc trên trái đứng yên */
 function cpResizeImg(e, s) {
-  const key = s.dataset.slot, pos = s.dataset.pos, pw = s.parentElement.getBoundingClientRect().width || 1, w0 = s.getBoundingClientRect().width, x0 = e.clientX, pid = e.pointerId;
-  const f = pos === 'giua' ? 2 : 1, sg = pos === 'phai' ? -1 : 1;
+  const key = s.dataset.slot, pos = s.dataset.pos, free = pos === 'free', k = CP.k || 1, x0 = e.clientX, pid = e.pointerId;
+  const pw = free ? CP_CW.root * CP_PT * k : s.parentElement.getBoundingClientRect().width || 1, w0 = s.getBoundingClientRect().width;
+  const f = pos === 'giua' ? 2 : 1, sg = pos === 'phai' ? -1 : 1, step = free ? 1 : 5;
   let pct = Math.round(w0 / pw * 100);
   try { s.setPointerCapture(pid); } catch (er) {}
   s.classList.remove('p-day'); document.body.classList.add('cp-dragging');
   const bd = document.createElement('div'); bd.className = 'cp-szb'; bd.style.left = e.clientX + 'px'; bd.style.top = e.clientY + 'px'; bd.textContent = pct + '%'; document.body.appendChild(bd);
   const mv = ev => { if (ev.pointerId !== pid) return;
-    pct = Math.max(15, Math.min(100, Math.round((w0 + sg * f * (ev.clientX - x0)) / pw * 20) * 5));
-    s.style.width = pct + '%'; bd.style.left = ev.clientX + 'px'; bd.style.top = ev.clientY + 'px'; bd.textContent = pct + '% · rộng ' + Math.round(pw * pct / 100 / (CP.k || 1) * CP_MM) + ' mm'; };
+    pct = Math.max(free ? 8 : 15, Math.min(100, Math.round((w0 + sg * f * (ev.clientX - x0)) / pw * 100 / step) * step));
+    s.style.width = free ? (pct / 100 * CP_CW.root).toFixed(1) + 'pt' : pct + '%';
+    bd.style.left = ev.clientX + 'px'; bd.style.top = ev.clientY + 'px'; bd.textContent = pct + '% · rộng ' + Math.round(pw * pct / 100 / k * CP_MM) + ' mm'; };
   const up = ev => { if (ev.pointerId !== pid) return;
     removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
     bd.remove(); document.body.classList.remove('cp-dragging'); CP.dragAt = Date.now();
@@ -20471,6 +21282,13 @@ button.tk-loose{ margin-top:16px; padding:5px 8px 5px 4px; border:0; border-radi
 .tk-lvw .seg-b{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap } .tk-lvw .seg-b i{ font-size:13px }
 .tk-lvs button[aria-pressed="true"]{ background:var(--lightprimary); color:var(--primary); box-shadow:inset 0 0 0 1.5px var(--primary) }
 .tk-dx{ display:contents } .tk-mv, .tk-bar2{ display:none }
+/* (1.65.1) chip bộ lọc thêm (người tạo, ngày…) dưới thanh công cụ */
+.tk-cfs{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:-4px 0 12px }
+.tk-cf{ display:inline-flex; align-items:center; border:1px solid var(--brand-200, #C9D6F2); background:var(--brand-50, #EEF3FC); border-radius:999px; overflow:hidden }
+.tk-cf button{ border:0; background:none; color:var(--primary); font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; height:28px; padding:0 4px 0 10px }
+.tk-cf button.x{ padding:0 8px 0 4px; color:var(--muted) } .tk-cf button.x:hover{ color:var(--danger) } .tk-cf button:focus-visible{ outline:2px solid var(--brand-600); outline-offset:-2px }
+.tk-cfa{ display:inline-flex; align-items:center; gap:4px; height:28px; padding:0 10px; border:1px dashed var(--border-strong); border-radius:999px; background:none; color:var(--ink-2); font:inherit; font-size:12.5px; cursor:pointer }
+.tk-cfa.ghost{ border-color:transparent; color:var(--muted) } .tk-cfa:hover{ border-color:var(--primary); color:var(--primary) }
 .tk-lane .tk-key{ white-space:nowrap }      /* mã epic trên tiêu đề làn không bị bẻ “GT5- / 1” trên điện thoại */
 .tk-bar .tk-pill.pick{ min-width:min(190px, 40%) }      /* tên bảng không bị các nút khác bóp còn “Gi…” */
 @media (min-width:821px) and (max-width:1440px){ .tk-dx .tk-tree .seg-b span, .tk-dx .tk-mgw .seg-b span{ display:none } .tk-dx .tk-tree .seg-b i, .tk-dx .tk-mgw .seg-b i{ margin:0 } }      /* máy tính hẹp: Phân cấp / Phẳng chỉ còn biểu tượng (rê chuột xem tên) */
@@ -20604,7 +21422,44 @@ button.tk-loose{ margin-top:16px; padding:5px 8px 5px 4px; border:0; border-radi
    tasks/backlog = sprint + backlog + epic · tasks/mine = việc của tôi · tasks/cal = lịch theo hạn · tasks/sum = báo cáo
    tasks/p/<dự án> · tasks/t/<việc> = mở thẳng. Dữ liệu tải một lần (taskBoot), lọc / kéo thả tại trình duyệt, thay đổi gửi ngầm.
    ══════════════════════════════════════════════════════════════ */
-const TK = { t0: '', zoom: lsGet('tkZoom', 'w'), rng: String(lsGet('tkRng', '') || lsGet('tkPer', 30) || '30'), rngA: String(lsGet('tkRngA', '') || ''), rngB: String(lsGet('tkRngB', '') || ''), d: null, proj: lsGet('tkProj', ''), q: '', who: '', quick: '', group: lsGet('tkGroup', ''), epic: '', at: 0, month: '', sort: { k: '', d: 1 }, tree: lsGet('tkTree', true) !== false, fold: lsGet('tkFold', {}) || {}, addAt: '', addTy: lsGet('tkAddTy', {}) || {}, add: {}, sel: {}, subOpen: {}, kidOpen: {}, kidTy: {}, pick: [].concat(lsGet('tkPick', []) || []), laneFold: lsGet('tkLaneFold', {}) || {}, selMode: false, cq: [], cqRun: false, ord: 0, ui: null, lv: { epic: 'epic', sub: 'sub' }[lsGet('tkLv2', 'task')] || 'task', loose: lsGet('tkLoose', true) !== false, merge: lsGet('tkMerge', false) === true };
+/* (1.65.1) BỘ LỌC THÊM — bấm “+ Thêm bộ lọc” trong nút Bộ lọc: người tạo · hạn · ngày tạo · cập nhật · hoàn thành · ưu tiên · cột · nhãn · loại việc · đợt.
+   TK.cf = [{ f: trường, v: giá trị }] (các bộ lọc cùng áp: phải khớp hết) · nhớ trên máy (tkCf). Ngày: 'today' · số ngày ('7', '30') · 'late' · 'none' · 'r:<từ>:<đến>' (khoảng). */
+const TK_CF = { by: ['Người tạo', 'bi-person-plus'], due: ['Hạn', 'bi-calendar-event'], cre: ['Ngày tạo', 'bi-calendar-plus'], upd: ['Cập nhật gần đây', 'bi-clock-history'], done: ['Ngày hoàn thành', 'bi-calendar-check'],
+  pri: ['Ưu tiên', 'bi-flag'], st: ['Trạng thái (cột)', 'bi-columns-gap'], lbl: ['Nhãn', 'bi-tag'], ty: ['Loại việc', 'bi-ui-checks'], sp: ['Đợt làm việc', 'bi-flag-fill'] };
+const TK_CFD = { due: [['late', 'Quá hạn'], ['today', 'Hôm nay'], ['7', '7 ngày tới'], ['30', '30 ngày tới'], ['none', 'Chưa đặt hạn']], cre: [['today', 'Hôm nay'], ['7', '7 ngày qua'], ['30', '30 ngày qua']],
+  upd: [['today', 'Hôm nay'], ['7', '7 ngày qua'], ['30', '30 ngày qua']], done: [['today', 'Hôm nay'], ['7', '7 ngày qua'], ['30', '30 ngày qua'], ['none', 'Chưa hoàn thành']] };
+const tkDay = s => { if (!s) return ''; const d = new Date(s); return isNaN(d) ? String(s).slice(0, 10) : tkYmd(d); };
+/** khoảng ngày: v = 'today' · số ngày (fut: tới / qua) · 'r:<từ>:<đến>' */
+function tkCfDay(d, v, fut, td) {
+  if (v === 'none') return !d; if (!d) return false;
+  if (v[0] === 'r') { const p = v.split(':'); return (!p[1] || d >= p[1]) && (!p[2] || d <= p[2]); }
+  if (v === 'today') return d === td;
+  const lim = tkYmd(new Date(Date.now() + (fut ? 1 : -1) * (Number(v) || 0) * 864e5)); return fut ? d >= td && d <= lim : d >= lim && d <= td;
+}
+function tkCfOk(t, x, td) {
+  switch (x.f) {
+    case 'by': return String(t.reporter || '').toLowerCase() === x.v;
+    case 'due': return x.v === 'late' ? !tkShut(t) && !!t.due && t.due < td : tkCfDay(t.due || '', x.v, true, td);
+    case 'cre': return tkCfDay(tkDay(t.createdAt), x.v, false, td);
+    case 'upd': return tkCfDay(tkDay(t.updatedAt || t.createdAt), x.v, false, td);
+    case 'done': return x.v === 'none' ? !t.doneAt : tkCfDay(tkDay(t.doneAt), x.v, false, td);
+    case 'pri': return (t.priority || 'med') === x.v;
+    case 'st': return (tkCol(t).t || '') === x.v;
+    case 'lbl': return (t.labels || []).indexOf(x.v) >= 0;
+    case 'ty': return (t.type || 'task') === x.v;
+    case 'sp': return x.v === 'none' ? !t.sprintId : t.sprintId === x.v;
+  }
+  return true;
+}
+const tkCfDmy = d => d ? d.split('-').reverse().join('/') : '…';
+/** chữ hiện cho một bộ lọc: “Người tạo: An” */
+function tkCfTxt(x) {
+  const F = TK_CF[x.f] || [x.f], o = (TK_CFD[x.f] || []).find(y => y[0] === x.v);
+  const v = o ? o[1] : x.v[0] === 'r' && TK_CFD[x.f] ? tkCfDmy(x.v.split(':')[1]) + ' – ' + tkCfDmy(x.v.split(':')[2]) : x.f === 'by' ? tkUser(x.v) : x.f === 'pri' ? (TK_PRI[x.v] || [x.v])[0] : x.f === 'ty' ? (TK_TYPE[x.v] || [x.v])[0]
+    : x.f === 'sp' ? (x.v === 'none' ? 'Chưa vào đợt' : ((TK.d && TK.d.sprints || []).find(s => s.id === x.v) || { name: x.v }).name) : x.v;
+  return F[0] + ': ' + v;
+}
+const TK = { cf: [].concat(lsGet('tkCf', []) || []).filter(x => x && typeof x.f === 'string' && typeof x.v === 'string'), t0: '', zoom: lsGet('tkZoom', 'w'), rng: String(lsGet('tkRng', '') || lsGet('tkPer', 30) || '30'), rngA: String(lsGet('tkRngA', '') || ''), rngB: String(lsGet('tkRngB', '') || ''), d: null, proj: lsGet('tkProj', ''), q: '', who: '', quick: '', group: lsGet('tkGroup', ''), epic: '', at: 0, month: '', sort: { k: '', d: 1 }, tree: lsGet('tkTree', true) !== false, fold: lsGet('tkFold', {}) || {}, addAt: '', addTy: lsGet('tkAddTy', {}) || {}, add: {}, sel: {}, subOpen: {}, kidOpen: {}, kidTy: {}, pick: [].concat(lsGet('tkPick', []) || []), laneFold: lsGet('tkLaneFold', {}) || {}, selMode: false, cq: [], cqRun: false, ord: 0, ui: null, lv: { epic: 'epic', sub: 'sub' }[lsGet('tkLv2', 'task')] || 'task', loose: lsGet('tkLoose', true) !== false, merge: lsGet('tkMerge', false) === true };
 const TK_PRI = { urgent: ['Khẩn', 'bi-chevron-double-up', 1], high: ['Cao', 'bi-chevron-up', 1], med: ['Vừa', 'bi-dash-lg', 0], low: ['Thấp', 'bi-chevron-down', 0] };
 const TK_TYPE = { task: ['Task', 'bi-check2-square'], bug: ['Lỗi', 'bi-bug'], idea: ['Ý tưởng', 'bi-lightbulb'], doc: ['Tài liệu', 'bi-file-earmark-text'], epic: ['Epic', 'bi-lightning-charge'] };
 function tkYmd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
@@ -21485,6 +22340,7 @@ async function viewTasks(arg, v) {
   const match = t => {
     const w = fold(TK.q).split(/\s+/).filter(Boolean), td = tkToday();
     return w.every(x => fold(t.key + ' ' + t.title + ' ' + t.labels.join(' ') + ' ' + tkWho(t).map(tkUser).join(' ') + (t.ref && t.ref.src === 'tutor' ? ' ' + (t.ref.clsName || '') + ' ' + (t.ref.prog || '') : '')).indexOf(x) >= 0) && (!TK.who || tkWho(t).indexOf(TK.who) >= 0) && (!TK.epic || t.epicId === TK.epic) &&
+      (!TK.cf.length || TK.cf.every(x => tkCfOk(t, x, td))) &&      // (1.65.1) bộ lọc thêm
       (!TK.quick || (TK.quick === 'me' ? tkWho(t).indexOf(D().me) >= 0 : TK.quick === 'late' ? !tkShut(t) && t.due && t.due < td : TK.quick === 'none' ? !tkWho(t).length : TK.quick === 'new' ? Date.now() - new Date(t.updatedAt || t.createdAt).getTime() < 2 * 864e5 : true));
   };
   // bản trước 1.30: “Chọn bảng hiện…” (tkPick, chỉ nhớ trên máy) → thành NHÓM BẢNG “Bảng đã chọn” (một lần)
@@ -21550,7 +22406,7 @@ async function viewTasks(arg, v) {
   /* thanh công cụ MỘT dòng: chọn bảng · tìm · nút Bộ lọc (bấm mới hiện các lựa chọn, số trên nút = số bộ lọc đang bật) · Kanban / Bảng dữ liệu */
   const ktree = () => mode === 'board' && !!TK.tree && TK.lv !== 'epic';      // Kanban PHÂN CẤP: Task chia làn theo Epic · Sub-task chia làn theo Task cha (dùng chung công tắc Phân cấp / Phẳng với Bảng dữ liệu)
   const grpNow = () => (ktree() || (TK.group === 'parent' && TK.lv !== 'sub') || (TK.group === 'epic' && TK.lv === 'epic') ? '' : TK.group);      // nhóm theo task cha chỉ có nghĩa khi xem Sub-task
-  const fltN = () => (TK.quick ? 1 : 0) + (TK.who ? 1 : 0) + (TK.epic ? 1 : 0) + (grpNow() && mode === 'board' ? 1 : 0);
+  const fltN = () => (TK.quick ? 1 : 0) + (TK.who ? 1 : 0) + (TK.epic ? 1 : 0) + (grpNow() && mode === 'board' ? 1 : 0) + TK.cf.length;
   const bar = o => {
     o = o || {};
     const P = shown(), cnt = {}; D().tasks.forEach(t => { if (!tkShut(t) && t.type !== 'epic') cnt[t.projectId] = (cnt[t.projectId] || 0) + 1; });
@@ -21564,7 +22420,10 @@ async function viewTasks(arg, v) {
     return '<div class="tk-bar"><button class="tk-pill pick" data-pick aria-haspopup="menu" title="Chọn bảng"><i class="bi ' + ic + '"></i><b>' + esc(curP ? curP.name : g ? g.name : 'Tất cả bảng') + '</b><span class="n">' + open + '</span><i class="bi bi-chevron-down"></i></button>' + (curP && curP.scope === 'team' ? tkPeople(curP) : '') + (curP && curP.link && (own(curP) || (curP.scope === 'team' && (lead(curP) || C().admin))) ? '<button type="button" class="tk-lkchip" data-blink title="' + esc(tkWhoTxt(curP.link.who) + ' — bấm để đổi / ngắt') + '"><i class="bi bi-broadcast"></i><span>' + esc((tkProj(curP.link.to) || {}).name || 'Bảng chung') + '</span>' + (Array.isArray(curP.link.who) ? '<i class="bi bi-person-lock"></i>' : '') + '</button>' : '') + (curP && curP.pend ? '<span class="tk-pend" title="Bảng đã dùng được ngay — app đang lưu, đừng tắt trang"><i class="bi bi-cloud-arrow-up"></i>Đang lưu</span>' : '') + '<span class="tk-sp"></span>' +
       (o.noFilter ? '' : '<div class="search tk-find tk-q' + (TK.q ? ' has' : '') + '"><i class="bi bi-search"></i><input class="inp" id="tkQ" placeholder="Tìm việc…" aria-label="Tìm việc" value="' + esc(TK.q) + '"></div>' +
         '<button type="button" class="tk-fbtn' + (n ? ' on' : '') + '" data-filter aria-haspopup="menu" title="Bộ lọc" aria-label="Bộ lọc' + (n ? ' · đang bật ' + n : '') + '"><i class="bi bi-funnel' + (n ? '-fill' : '') + '"></i>' + (n ? '<em>' + n + '</em>' : '') + '</button>') +
-      (o.views ? '<span class="tk-dx">' + (o.extra || '') + views + '</span>' + mv : (o.extra || '')) + '</div>' + (o.row2 ? '<div class="tk-bar2">' + o.row2 + '</div>' : '');
+      (o.views ? '<span class="tk-dx">' + (o.extra || '') + views + '</span>' + mv : (o.extra || '')) + '</div>' + (o.row2 ? '<div class="tk-bar2">' + o.row2 + '</div>' : '') +
+      (!o.noFilter && TK.cf.length ? '<div class="tk-cfs" role="group" aria-label="Bộ lọc thêm">' + TK.cf.map((x, i) => '<span class="tk-cf"><button type="button" data-cfe="' + i + '" title="Đổi giá trị"><i class="bi ' + (TK_CF[x.f] || ['', 'bi-funnel'])[1] + '"></i>' + esc(tkCfTxt(x)) + '</button>' +
+        '<button type="button" class="x" data-cfx="' + i + '" aria-label="Bỏ bộ lọc ' + esc(tkCfTxt(x)) + '"><i class="bi bi-x"></i></button></span>').join('') +
+        '<button type="button" class="tk-cfa" data-cfadd><i class="bi bi-plus-lg"></i>Thêm bộ lọc</button><button type="button" class="tk-cfa ghost" data-cfclr>Bỏ hết</button></div>' : '');
   };
   /** điện thoại: bảng chọn KIỂU XEM — mỗi nhóm một lựa chọn, mục đang dùng có dấu ● (giống Bộ lọc) */
   const viewMenu = () => {
@@ -21590,9 +22449,32 @@ async function viewTasks(arg, v) {
         fn: again(Object.keys(GR).filter(k => k !== 'parent' || TK.lv === 'sub').map(k => ({ t: GR[k], i: ck(TK.group === k), fn: () => { TK.group = k; lsSet('tkGroup', k); paint(); } }))) },
       { t: 'Epic', d: TK.epic && tkEpic(TK.epic) ? tkEpic(TK.epic).title : 'Mọi epic', i: 'bi-lightning-charge', hidden: !D().tasks.some(t => t.type === 'epic' && (!curProj() || t.projectId === curProj().id)),
         fn: again([{ t: 'Mọi epic', i: ck(!TK.epic), fn: () => { TK.epic = ''; paint(); } }].concat(D().tasks.filter(t => t.type === 'epic' && (!curProj() || t.projectId === curProj().id)).map(e2 => ({ t: e2.title, d: e2.key, i: ck(TK.epic === e2.id), fn: () => { TK.epic = e2.id; paint(); } })))) }]
-      .concat(fltN() ? ['-', { t: 'Xoá mọi bộ lọc', i: 'bi-x-lg', fn: () => { TK.quick = TK.who = TK.epic = TK.group = ''; lsSet('tkGroup', ''); paint(); } }] : []);
+      .concat(['-'], TK.cf.map((x, i) => ({ t: tkCfTxt(x), d: 'Bấm để đổi giá trị', i: 'bi-check-circle-fill', fn: () => cfPick(x.f, i, a) })),
+        [{ t: 'Thêm bộ lọc', d: 'Người tạo, hạn, ngày tạo, cập nhật, ưu tiên, nhãn…', i: 'bi-plus-lg', fn: () => cfAdd(a) }])
+      .concat(fltN() ? ['-', { t: 'Xoá mọi bộ lọc', i: 'bi-x-lg', fn: () => { TK.quick = TK.who = TK.epic = TK.group = ''; TK.cf = []; lsSet('tkCf', []); lsSet('tkGroup', ''); paint(); } }] : []);
     openMenu(a, L);
   };
+  /* (1.65.1) BỘ LỌC THÊM: chọn trường → chọn giá trị (ngày: có “Chọn khoảng ngày…”) · i = vị trí bộ lọc đang sửa (không có = thêm mới) */
+  const cfSet = (f, val, i) => { const x = { f: f, v: String(val) }; if (i != null && TK.cf[i]) TK.cf[i] = x; else TK.cf.push(x); lsSet('tkCf', TK.cf); paint(); };
+  const cfAdd = a => openMenu($('[data-filter]', v) || a, Object.keys(TK_CF).map(f => ({ t: TK_CF[f][0], i: TK_CF[f][1], fn: () => cfPick(f, null, a) })));
+  const cfVals = f => {
+    const okP = {}; shown().forEach(p => { okP[p.id] = 1; }); const L0 = D().tasks.filter(t => okP[t.projectId]), uniq = A => A.filter((x, i) => x && A.indexOf(x) === i);
+    if (TK_CFD[f]) return TK_CFD[f].map(x => ({ v: x[0], t: x[1] })).concat([{ v: 'r', t: 'Chọn khoảng ngày…', i: 'bi-calendar-range' }]);
+    if (f === 'by') return uniq(L0.map(t => String(t.reporter || '').toLowerCase())).map(e2 => ({ v: e2, t: tkUser(e2) })).sort((x, y) => x.t.localeCompare(y.t, 'vi'));
+    if (f === 'pri') return Object.keys(TK_PRI).map(k => ({ v: k, t: TK_PRI[k][0], i: TK_PRI[k][1] }));
+    if (f === 'st') return uniq([].concat(...shown().map(p => p.cols.map(c => c.t)))).map(x => ({ v: x, t: x }));
+    if (f === 'lbl') return uniq([].concat(...L0.map(t => t.labels || []))).sort((x, y) => x.localeCompare(y, 'vi')).map(x => ({ v: x, t: x }));
+    if (f === 'ty') return Object.keys(TK_TYPE).filter(k => k !== 'epic').map(k => ({ v: k, t: TK_TYPE[k][0], i: TK_TYPE[k][1] }));
+    if (f === 'sp') return [{ v: 'none', t: 'Chưa vào đợt' }].concat(D().sprints.filter(s => okP[s.projectId] && s.status !== 'done').map(s => ({ v: s.id, t: s.name, d: (tkProj(s.projectId) || {}).name })));
+    return [];
+  };
+  const cfRange = (f, i) => { const cur = i != null && TK.cf[i] && TK.cf[i].v[0] === 'r' ? TK.cf[i].v.split(':') : [];
+    const m = modal({ title: TK_CF[f][0] + ' — chọn khoảng ngày', icon: 'bi-calendar-range', body: '<div class="row" style="gap:10px;flex-wrap:wrap"><label class="fg" style="flex:1 1 140px"><span class="flabel">Từ ngày</span><input class="inp" type="date" id="cfA" value="' + esc(cur[1] || '') + '"></label>' +
+      '<label class="fg" style="flex:1 1 140px"><span class="flabel">Đến ngày</span><input class="inp" type="date" id="cfB" value="' + esc(cur[2] || '') + '"></label></div><small class="muted">Để trống một ô = không giới hạn phía đó.</small>',
+      foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Áp dụng', cls: 'pri', fn: () => { const A = m.$('#cfA').value, Bd = m.$('#cfB').value; if (!A && !Bd) { toast('Chọn ít nhất một ngày', 'info'); return false; } cfSet(f, 'r:' + (A <= Bd || !Bd || !A ? A + ':' + Bd : Bd + ':' + A), i); } }] }); };
+  const cfPick = (f, i, a) => { const L = cfVals(f), cur = i != null && TK.cf[i] ? TK.cf[i].v : null, ck = on => (on ? 'bi-check-circle-fill' : 'bi-circle');
+    openMenu($('[data-filter]', v) || a, (L.length ? L.map(x => ({ t: x.t, d: x.d, i: x.v === 'r' ? x.i : ck(cur === x.v || (x.v === 'r' && cur && cur[0] === 'r')), fn: () => x.v === 'r' ? cfRange(f, i) : cfSet(f, x.v, i) })) : [{ t: 'Chưa có giá trị nào để lọc', i: 'bi-info-circle', fn: () => {} }])
+      .concat(i != null ? ['-', { t: 'Bỏ bộ lọc này', i: 'bi-x-lg', danger: 1, fn: () => { TK.cf.splice(i, 1); lsSet('tkCf', TK.cf); paint(); } }] : [])); };
   const empty = () => '<div class="card"><div class="empty"><i class="bi bi-kanban"></i><b>Chưa có dự án nào</b><span>' + (C().team ? 'Tạo bảng chung cho team hoặc bảng riêng cho mình rồi bắt đầu giao việc.' : 'Bạn chưa thuộc bảng chung nào' + (C().personal ? ' — tạo bảng riêng cho mình, hoặc' : ' —') + ' nhờ TL / quản trị thêm bạn vào bảng chung.') + '</span>' +
     '<div class="row" style="justify-content:center">' + (C().personal ? '<button class="btn pri" data-newp><i class="bi bi-lock"></i>Tạo bảng riêng</button>' : '') + (C().team ? '<button class="btn" id="tkFirst"><i class="bi bi-people"></i>Tạo bảng chung</button>' : '') + (C().demo ? '<button class="btn ghost" data-go="settings/taskdemo"><i class="bi bi-magic"></i>Thử với dữ liệu mẫu</button>' : '') + '</div>' + '</div></div>';
   const sprintHero = (p, sp) => {
@@ -22366,6 +23248,11 @@ async function viewTasks(arg, v) {
     const bn = mode === 'boards' && e.target.closest('.tk-bsn'); if (bn) { TK.proj = bn.dataset.p; TK.epic = ''; lsSet('tkProj', TK.proj); return go('tasks'); }      // Thống kê bảng → mở bảng đó
     const pb = e.target.closest('[data-p]'); if (pb) { TK.proj = pb.dataset.p; TK.epic = ''; lsSet('tkProj', TK.proj); return paint(); }
     const fb = e.target.closest('[data-filter]'); if (fb) return filterMenu(fb);
+    { const ce = e.target.closest('[data-cfe]'), cx = e.target.closest('[data-cfx]');      // (1.65.1) chip bộ lọc thêm: đổi giá trị · bỏ · thêm · bỏ hết
+      if (cx) { TK.cf.splice(Number(cx.dataset.cfx), 1); lsSet('tkCf', TK.cf); return paint(); }
+      if (ce) { const i = Number(ce.dataset.cfe); return TK.cf[i] && cfPick(TK.cf[i].f, i, ce); }
+      if (e.target.closest('[data-cfadd]')) return cfAdd(e.target.closest('[data-cfadd]'));
+      if (e.target.closest('[data-cfclr]')) { TK.cf = []; lsSet('tkCf', []); return paint(); } }
     const swb = e.target.closest('[data-sumwho]'); if (swb) { const ck = on => (on ? 'bi-check-circle-fill' : 'bi-circle'), okP = {}; (pf() ? [tkProj(pf())] : shown()).forEach(x => { if (x) okP[x.id] = 1; }); const n = {};
       D().tasks.forEach(t => { if (okP[t.projectId] && t.type !== 'epic' && mirOk(t)) tkWho(t).forEach(e2 => { n[e2] = (n[e2] || 0) + 1; }); });
       return openMenu(swb, [{ t: 'Cả nhóm', d: 'Mọi người', i: ck(!TK.sumWho), fn: () => { TK.sumWho = ''; paint(); } }, '-'].concat(Object.keys(n).sort((a, b) => tkUser(a).localeCompare(tkUser(b), 'vi')).map(e2 => ({ t: tkUser(e2), d: n[e2] + ' việc', i: ck(TK.sumWho === e2), fn: () => { TK.sumWho = e2; paint(); } })))); }
