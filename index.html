@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T16:29:52.103Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T17:10:32.332Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -2221,6 +2221,8 @@ html.kb .app, html.kb .main{ height:var(--vvh) !important }
 .acc-modes{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px }
 .acc-m{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:var(--surface); text-align:left; cursor:pointer; color:var(--ink-2) }
 .acc-m i{ font-size:16px; color:var(--brand-600) } .acc-m b{ font-size:13px; color:var(--ink) } .acc-m small{ font-size:11px; color:var(--muted); line-height:1.4 }
+.acc-sub{ display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-2, #F8FAFC); font-size:12.5px; line-height:1.45 }
+.acc-sub input{ margin-top:2px; flex:none }      /* (1.63.2) áp dụng cho cả thư mục con */
 .acc-m.on{ border-color:var(--brand-600); background:var(--brand-50); box-shadow:0 0 0 1px var(--brand-600) inset }
 .vchips{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:6px }
 /* ô chọn có tìm kiếm (selSearch) · ô chọn người được xem (viewerChips) */
@@ -5014,7 +5016,7 @@ function busy(on, fn) {
 const WORK_LABEL = {
   index: 'Đang tải chỉ mục thư viện', fileData: 'Đang mở tài liệu', scanStart: 'Đang chuẩn bị quét', probeSource: 'Đang kiểm tra link',
   addSources: 'Đang thêm nguồn', reextract: 'Đang áp dụng lại quy tắc', testRules: 'Đang xem thử quy tắc', saveSettings: 'Đang lưu cài đặt',
-  deleteSource: 'Đang xoá nguồn', saveUser: 'Đang lưu người dùng', fulltext: 'Đang tìm trong nội dung'
+  deleteSource: 'Đang xoá nguồn', libFileDelete: 'Đang xoá tài liệu', saveUser: 'Đang lưu người dùng', fulltext: 'Đang tìm trong nội dung'
 };
 const WK = { list: [], t0: 0, timer: 0, tick: 0 };
 /* Không còn hộp "Đang xử lý… vui lòng không đóng trang" che màn hình: mọi việc đang gửi lên máy chủ chỉ hiện
@@ -5357,7 +5359,8 @@ async function trashAfter() {
   if (S.route === 'trash') { if (typeof CL !== 'undefined') CL.v = ''; return reloadIndex().catch(() => {}); }
   await refreshView();
 }
-function trashDone(label, r) { toast('Đã khôi phục: ' + label, 'ok', 4000, r && r.classId ? 'classes/c/' + r.classId : ''); }
+function trashDone(label, r) { if (r && (r.kind === 'libfile' || r.kind === 'access')) { if (r.kind === 'libfile') LIBDEL.at = 0; reloadIndex().then(() => refreshView()).catch(() => {}); }      // (1.63.2) tệp / quyền xem Thư viện trở lại → tải lại chỉ mục
+  toast('Đã khôi phục: ' + label, 'ok', 4000, r && r.classId ? 'classes/c/' + r.classId : ''); }
 /** (1.44) PHẢN HỒI TỨC THÌ: việc vừa bấm trả Promise mà quá 180 ms chưa xong (VD tải dữ liệu rồi mới mở hộp) → hiện viên “Đang mở …” có vòng quay ở giữa trên màn hình
     tới khi xong — người dùng biết là đã bấm, không bấm lại. Việc xong ngay thì không hiện gì. */
 const BUSY = new Set();      // các viên “Đang mở …” đang chờ — hộp thoại vừa hiện (modal) là việc đã mở xong → tắt hết
@@ -5645,6 +5648,7 @@ function buildIndex(d) {
   };
   IX.sources.forEach(s => count(rootKey(s.id)));
   IX.loaded = true;
+  setTimeout(() => libDelLoad(), 0);      // (1.63.2) quyền xoá tệp (nút Xoá trong menu / trang xem)
 }
 /* ══════════ ẨN THƯ MỤC KHỎI THƯ VIỆN CỦA MÌNH (1.39) ══════════
    Ai cũng tự ẩn được thư mục / nguồn không cần (VD giáo viên Tiếng Anh ẩn tài liệu Toán được công khai) — chỉ đổi cách hiện của riêng người đó,
@@ -7879,6 +7883,37 @@ function folderMenu(anchor, scope, pt) {
   if (pt) { const a = document.createElement('span'); a.style.cssText = 'position:fixed;width:1px;height:1px;left:' + pt.x + 'px;top:' + pt.y + 'px'; document.body.appendChild(a); openMenu(a, items); a.remove(); }
   else openMenu(anchor, items);
 }
+/* ══════════ XOÁ TÀI LIỆU TỪ THƯ VIỆN (1.63.2) ══════════
+   Quản lý nguồn xoá được mọi tệp · người được upload vào một thư mục xoá được tệp trong thư mục đó (và thư mục con).
+   Xoá → Thùng rác (Hoàn tác 60 giây, khôi phục trong N ngày) + thùng rác Google Drive. Máy chủ (UpFolders.gs › libFileDelete) kiểm lại quyền. */
+const LIBDEL = { at: 0, all: 0, dirs: new Set(), p: null };
+function libDelLoad(force) {
+  if (!S.me || S.me.guest) return Promise.resolve();
+  if (!force && (LIBDEL.p || Date.now() - LIBDEL.at < 300000)) return LIBDEL.p || Promise.resolve();
+  if (can('sources.manage')) { LIBDEL.all = 1; LIBDEL.at = Date.now(); return Promise.resolve(); }
+  LIBDEL.p = rpc('libDelScope', {}, { quiet: true }).then(r => { LIBDEL.all = r.all ? 1 : 0; LIBDEL.dirs = new Set(r.dirs || []); LIBDEL.at = Date.now(); })
+    .catch(() => {}).finally(() => { LIBDEL.p = null; });
+  return LIBDEL.p;
+}
+/** tệp này người đang dùng xoá được không (theo thư mục được upload, kể cả thư mục cha) */
+function canDelFile(f) {
+  if (!f || !S.me || S.me.guest) return false;
+  if (LIBDEL.all || can('sources.manage')) return true;
+  if (!LIBDEL.dirs.size) return false;
+  for (let k = f.fid, g = 0; k && g < 60; k = (IX.dirs[k] || {}).pid, g++) if (LIBDEL.dirs.has(k)) return true;
+  const s = IX.src[f.sid]; return !!(s && LIBDEL.dirs.has(s.folderId));
+}
+async function libDelFiles(L) {
+  L = (L || []).filter(Boolean); if (!L.length) return;
+  const nm = L.length === 1 ? '“' + L[0].name + '”' : L.length + ' tài liệu';
+  if (!await ask('Xoá ' + nm + ' khỏi Thư viện?\nTệp được chuyển vào Thùng rác (và thùng rác Google Drive) — khôi phục được ở Thùng rác trong thời gian giữ.', { title: 'Xoá tài liệu', icon: 'bi-trash3', ok: 'Xoá', danger: 1 })) return;
+  let r; try { r = await rpc('libFileDelete', { ids: L.map(f => f.id) }); } catch (e) { return fail(e); }
+  (r.fail || []).forEach(x => toast('Không xoá được “' + x.name + '”: ' + x.err, 'err', 8000));
+  if (!(r.ok || []).length) return;
+  const gone = new Set(r.ok), here = S.route.match(/^file\/(.+)$/), back = here && gone.has(here[1]) ? IX.byId[here[1]] : null;
+  await reloadIndex();
+  if (back) go('library/' + (back.fid || back.sid)); else refreshView();
+}
 document.addEventListener('contextmenu', e => {
   const d = e.target.closest('.lib-view [data-dir], .lib-tree [data-scope]');
   if (!d) return;
@@ -8559,8 +8594,10 @@ async function viewFile(id, v) {
         '<dt>Nguồn</dt><dd><a data-go="library/' + f.sid + '">' + esc(src.name || '') + '</a></dd>' +
         '<dt>Thư mục</dt><dd>' + (dirs.length ? dirs.map(d => '<a data-go="library/' + d.id + '">' + esc(d.name) + '</a>').join(' / ') : '—') + '</dd>' +
         '</dl><div class="vs-acts">' + (can('download') ? '<a class="btn sm" target="_blank" href="' + driveUrl(f.id) + '"><i class="bi bi-google"></i>Mở trên Drive</a>' : '') +
-        (can('links.manage') && LINKABLE[f.type] ? '<button class="btn sm pri" data-ql="' + f.id + '"><i class="bi bi-link-45deg"></i>Tạo link tạm</button>' : '') + (can('sources.manage') ? '<button class="btn sm" data-accf="' + f.id + '"><i class="bi bi-shield-lock"></i>Quyền xem</button>' : '') + '<a class="btn sm" target="_blank" rel="noopener" href="' + esc(linkOf('file/' + f.id)) + '"><i class="bi bi-box-arrow-up-right"></i>Mở tab mới</a><button class="btn sm" id="sLink"><i class="bi bi-link-45deg"></i>Link trong app</button>' + (can('download') ? '<button class="btn sm" id="sDrv"><i class="bi bi-clipboard"></i>Link Drive</button>' : '') + '</div>';
+        (can('links.manage') && LINKABLE[f.type] ? '<button class="btn sm pri" data-ql="' + f.id + '"><i class="bi bi-link-45deg"></i>Tạo link tạm</button>' : '') + (can('sources.manage') ? '<button class="btn sm" data-accf="' + f.id + '"><i class="bi bi-shield-lock"></i>Quyền xem</button>' : '') + '<a class="btn sm" target="_blank" rel="noopener" href="' + esc(linkOf('file/' + f.id)) + '"><i class="bi bi-box-arrow-up-right"></i>Mở tab mới</a><button class="btn sm" id="sLink"><i class="bi bi-link-45deg"></i>Link trong app</button>' + (can('download') ? '<button class="btn sm" id="sDrv"><i class="bi bi-clipboard"></i>Link Drive</button>' : '') +
+        (canDelFile(f) ? '<button class="btn sm" id="sDel" style="color:var(--danger)" title="Xoá khỏi Thư viện — vào Thùng rác, khôi phục được"><i class="bi bi-trash3"></i>Xoá</button>' : '') + '</div>';      // (1.63.2)
       $('#sLink', P).onclick = () => copyText(linkOf('file/' + f.id));
+      if ($('#sDel', P)) $('#sDel', P).onclick = () => libDelFiles([f]);
       if ($('#sDrv', P)) $('#sDrv', P).onclick = () => copyText(driveUrl(f.id), 'Đã sao chép link Drive (người nhận cần có quyền trên Drive)');
     } else if (sideTab === 'find') {
       P.innerHTML = '<div class="search"><i class="bi bi-search"></i><input class="inp" id="fQ" placeholder="Tìm chữ trong tài liệu này…" value="' + esc(findQ) + '"></div><div class="find-r" id="fR"></div>';
@@ -8610,7 +8647,8 @@ async function viewFile(id, v) {
     $('#vPr', v) ? { t: 'In', i: 'bi-printer', fn: () => $('#vPr', v).click() } : null,
     $('#vDl', v) ? { t: 'Tải về', i: 'bi-download', fn: () => $('#vDl', v).click() } : null,
     { t: 'Mở trong tab mới', i: 'bi-box-arrow-up-right', fn: () => window.open($('#vNewTab', v).href, '_blank') },
-    { t: 'Chế độ đọc', i: 'bi-arrows-fullscreen', fn: () => toggleReading() }]);
+    { t: 'Chế độ đọc', i: 'bi-arrows-fullscreen', fn: () => toggleReading() },
+    canDelFile(f) ? { t: 'Xoá', d: 'Vào Thùng rác — khôi phục được', i: 'bi-trash3', fn: () => libDelFiles([f]) } : null]);      // (1.63.2)
 
   /* ── thanh công cụ trang ── */
   const pIn = $('#pIn', v);
@@ -10116,10 +10154,19 @@ async function setKgs(B) {
   const steps = L => '<ol class="lg-steps">' + L.map(x => '<li>' + x + '</li>').join('') + '</ol>';
   // (1.62.2) đang đồng bộ trên máy chủ (Đồng bộ ngay / Gửi ngay chạy nền) → hỏi lại mỗi 5 giây tới khi xong
   let pt = 0;
-  const take = k => { const was = K && K.run; K = k; paint(); clearTimeout(pt);
-    if (K.run) pt = setTimeout(() => { if (B.isConnected) rpc('kgsGet', {}, { quiet: true }).then(take, () => {}); }, 5000);
-    else if (was) toast(K.state && K.state.ok ? 'Đồng bộ KGS xong' : 'Đồng bộ KGS lỗi — xem mục trên', K.state && K.state.ok ? 'ok' : 'warn'); };
-  const load = async () => { try { take(await rpc('kgsGet', {}, { quiet: true })); } catch (e) { B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'; } };
+  // (1.63.3) MỞ TỨC THÌ: vẽ ngay bản lưu lần trước trên máy (bỏ mã kết nối — bí mật), tải ngầm bản mới thay vào.
+  // Thao tác (bật / tắt, chọn, xoá, huỷ…) đổi ngay trên màn hình rồi gửi ngầm qua hàng đợi — tiến trình hiện ở nút Đồng bộ góc trên, không phải chờ.
+  const CK = 'kgsView:' + ((S.me && S.me.email) || ''), busyQ = () => OB.q.some(x => /^kgs/.test(x.fn));
+  const keep = () => { try { const c = Object.assign({}, K); delete c.code; c._code = !!K.code; lsSet(CK, c); } catch (e) {} };
+  const take = k => { const was = K && K.run; if (K && K.code && k && !k.code && k._cache) k.code = K.code; K = k; if (!k._cache) keep(); paint(); clearTimeout(pt);
+    if (K.run) pt = setTimeout(() => { if (B.isConnected) rpc('kgsGet', {}, { quiet: true }).then(fresh, () => {}); }, 5000);
+    else if (was && !k._cache) toast(K.state && K.state.ok ? 'Đồng bộ KGS xong' : 'Đồng bộ KGS lỗi — xem mục trên', K.state && K.state.ok ? 'ok' : 'warn'); };
+  const fresh = k => { if (!B.isConnected || !k) return; if (busyQ()) return; take(k); };      // còn thao tác đang gửi → giữ bản trên màn hình, lệnh gửi xong sẽ trả bản mới
+  /** đổi ngay trên màn hình (fx sửa K) rồi gửi ngầm; xong thì nhận bản máy chủ */
+  const now = (fx, fn, p, label, key, done) => { if (fx) { fx(K); keep(); paint(); }
+    queueRpc(fn, p || {}, { label: 'Đồng bộ KGS · ' + label, key: key || '', merge: key ? (a, b) => Object.assign({}, a, b) : undefined })
+      .then(k => { if (k && k.cfg) { if (!busyQ()) take(k); if (done) done(k); } }, e => { fail(e); rpc('kgsGet', {}, { quiet: true }).then(take, () => {}); }); };
+  const load = async () => { try { const k = await rpc('kgsGet', {}, { quiet: true }); if (K) fresh(k); else take(k); } catch (e) { B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'; } };
   const sw = (id, on, t, d) => '<label class="row" style="gap:10px;flex-wrap:nowrap;align-items:flex-start"><span class="sw"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><span></span></span><span><b>' + t + '</b><br><span class="small muted">' + d + '</span></span></label>';
   const evLabel = m => m < 60 ? m + ' phút' : (m / 60) + ' giờ';
   /** tài khoản KGS thiếu quyền → liệt kê ô cần tick ở KGS › Phân quyền */
@@ -10156,7 +10203,7 @@ async function setKgs(B) {
       (!K.extAt ? '<span class="tag">Chưa cài</span>' : bad ? '<span class="tag red">' + (K.state.auth ? 'Hết phiên — đăng nhập lại KGS' : 'Lỗi') + '</span>'
         : '<span class="tag' + (live ? ' ok' : '') + '">' + (live ? 'Đang hoạt động' : 'Liên lạc lần cuối ' + esc(ago(K.extAt))) + '</span>') + '</div><div class="card-b stack">' +
       '<p class="small" style="margin:0;line-height:1.6">Máy tính có Chrome đang đăng nhập Google vào KGS tự đồng bộ ' + esc(evLabel(K.cfg.every)) + ' một lần — không cần mật khẩu, không lưu phiên ở máy chủ. Máy tắt / Chrome đóng thì tạm dừng, mở lại tự đồng bộ bù. Điện thoại chỉ cần mở web này.</p>' +
-      (K.code ? '<div class="fg"><label class="flabel">Mã kết nối</label><div class="row" style="flex-wrap:nowrap"><input class="inp mono" id="kgCode" readonly value="' + esc(K.code) + '" style="flex:1;min-width:0">' +
+      (K.code || K._code ? '<div class="fg"><label class="flabel">Mã kết nối</label><div class="row" style="flex-wrap:nowrap"><input class="inp mono" id="kgCode" readonly value="' + esc(K.code || '•••• đang tải…') + '" style="flex:1;min-width:0">' +
           '<button class="btn pri" id="kgCopy"><i class="bi bi-copy"></i>Chép</button></div><small class="muted">Như mật khẩu: ai có mã này gửi được lịch vào app. Lộ mã → bấm Tạo mã mới (tiện ích cần dán lại).</small></div>' +
           '<div class="row"><button class="btn sm ghost" id="kgKey"><i class="bi bi-arrow-clockwise"></i>Tạo mã mới</button></div>'
         : '<div class="row"><button class="btn pri" id="kgKey"><i class="bi bi-key"></i>Tạo mã kết nối</button></div>') +
@@ -10251,7 +10298,7 @@ async function setKgs(B) {
   };
   const paint = () => { B.innerHTML = status() + ext() + ck() + opts() + road() + pmap() + data(); };
   const run = async (btn, wait, fn) => { const stop = btnWait(btn, wait); try { const k = await fn(); if (k) take(k); return k; } catch (er) { stop(); fail(er); } };
-  const save = o => rpc('kgsCfg', o, { quiet: true }).then(take, fail);
+  const save = o => now(k => { Object.assign(k.cfg, o); }, 'kgsCfg', o, 'cài đặt', 'kgsCfg');
   B.onchange = e => {
     const t = e.target;
     if (t.id === 'kgSched') save({ sched: t.checked ? 1 : 0 });
@@ -10260,27 +10307,28 @@ async function setKgs(B) {
     else if (t.id === 'kgPush') save({ push: t.checked ? 1 : 0 });
     else if (t.id === 'kgFollow') save({ follow: t.checked ? 1 : 0 });
     else if (t.dataset.sj) { const L = $$('[data-sj]', B).filter(x => x.checked).map(x => x.dataset.sj); if (!L.length) { t.checked = true; return toast('Chọn ít nhất một môn', 'info'); } save({ subj: L }); }
-    else if (t.dataset.pm) { const k = t.dataset.pm.split('|'); rpc('kgsPmapSet', { pid: k[0], g: Number(k[1]), programId: t.value }, { quiet: true }).then(x => { take(x); toast('Đã lưu ghép chương trình', 'ok'); }, fail); }
-    else if (t.dataset.hold) rpc('kgsHoldSet', { programId: t.dataset.hold, topicId: t.value }, { quiet: true }).then(k => { take(k); toast(t.value ? 'Đã chọn topic giữ chỗ' : 'Đã bỏ topic giữ chỗ', 'ok'); }, fail);
+    else if (t.dataset.pm) { const k = t.dataset.pm.split('|'), v = t.value; now(K => { (K.pmap || []).forEach(r => { if (r.pid === k[0] && String(r.g) === k[1]) { r.manual = v; r.cur = v === '-' ? '' : v || r.guess; } }); }, 'kgsPmapSet', { pid: k[0], g: Number(k[1]), programId: v }, 'ghép chương trình', 'pm:' + t.dataset.pm); }
+    else if (t.dataset.hold) { const id = t.dataset.hold, v = t.value; now(K => { (K.progs || []).forEach(g => { if (g.id === id) g.hold = v; }); }, 'kgsHoldSet', { programId: id, topicId: v }, 'topic giữ chỗ', 'hold:' + id); }
     else if (t.id === 'kgEv') save({ every: Number(t.value) });
   };
   B.onkeydown = e => { if (e.key === 'Enter' && e.target.id === 'kgCk') { e.preventDefault(); $('#kgCkGo', B).click(); } };
   B.onclick = async e => {
     const t = e.target.closest('button'); if (!t || t.disabled) return;
-    if (t.id === 'kgCopy') return copyText(K.code, 'Đã chép mã kết nối — dán vào tiện ích KGS Sync');
-    if (t.id === 'kgKey') { if (K.code && !await ask('Tạo mã kết nối mới? Mã cũ hết dùng được — tiện ích trên các máy phải dán mã mới.', { ok: 'Tạo mã mới' })) return; return run(t, 'Đang tạo…', () => rpc('kgsKey', {}, { quiet: true })); }
+    if (t.id === 'kgCopy') return !K.code ? toast('Đang tải mã — thử lại sau một giây', 'info') : copyText(K.code, 'Đã chép mã kết nối — dán vào tiện ích KGS Sync');
+    if (t.id === 'kgKey') { if (K._code && !K.code) return toast('Đang tải — thử lại sau một giây', 'info'); if (K.code && !await ask('Tạo mã kết nối mới? Mã cũ hết dùng được — tiện ích trên các máy phải dán mã mới.', { ok: 'Tạo mã mới' })) return; return run(t, 'Đang tạo…', () => rpc('kgsKey', {}, { quiet: true })); }
     if (t.id === 'kgCkGo') { const v = $('#kgCk', B).value.trim(); if (!v) return toast('Dán phiên vào ô trước', 'info'); const k = await run(t, 'Đang thử gọi KGS…', () => rpc('kgsCookie', { cookie: v }, { quiet: true })); if (k) toast('Phiên dùng được' + (k.who ? ' · ' + k.who : '') + ' — bấm Đồng bộ ngay hoặc chờ lịch tự chạy', 'ok', 5000); return; }
-    if (t.id === 'kgCkOff') { if (!await ask('Xoá phiên KGS đã dán? Máy chủ thôi tự đồng bộ (tiện ích Chrome vẫn chạy nếu có).', { ok: 'Xoá phiên', danger: true })) return; return run(t, 'Đang xoá…', () => rpc('kgsCookie', { off: 1 }, { quiet: true })); }
-    if (t.id === 'kgRun') { const k = await run(t, 'Đang bắt đầu…', () => rpc('kgsRunBg', {}, { quiet: true })); if (k) toast('Đang đồng bộ trên máy chủ — có thể đóng tab', 'info'); else load(); return; }
-    if (t.id === 'kgDrop') return run(t, 'Đang bỏ…', () => rpc('kgsDrop', {}, { quiet: true }));
-    if (t.id === 'kgMailGo') return run(t, 'Đang lưu…', () => rpc('kgsCfg', { mail: $('#kgMail', B).value }, { quiet: true })).then(k => k && toast('Đã lưu email Giáo vụ', 'ok'));
-    if (t.id === 'kgHoldAuto') { if (!await ask('Tạo một thư mục Drive dùng chung “' + 'KGS · Buổi tự do — topic giữ chỗ (không xoá)' + '” và thêm topic “Buổi tự do · giữ chỗ (không xoá)” vào kho của các khoá còn thiếu bên KGS?\nChạy ở lần đồng bộ tới (cần quyền KGS: Tài liệu giảng dạy › Tạo mới).', { ok: 'Tạo' })) return;
-      const k = await run(t, 'Đang tạo thư mục…', () => rpc('kgsHoldAuto', {}, { quiet: true })); if (k) toast('Đã tạo thư mục — topic giữ chỗ được thêm vào ' + (k.made || 0) + ' khoá ở lần đồng bộ tới' + (k.run ? ' (đang chạy)' : ''), 'ok', 6000); return; }
-    if (t.id === 'kgWantAll') { if (!await ask('Sắp lại lộ trình bên KGS của ' + (K.drift || []).length + ' lớp cho khớp từng buổi với bài gán ở Kiến CM?\nTopic đã học giữ nguyên; buổi trống thành topic giữ chỗ. Gửi ở lần đồng bộ tới (hoặc bấm Đồng bộ ngay).', { ok: 'Gửi tất cả' })) return;
-      const k = await run(t, 'Đang sắp…', () => rpc('kgsWantAll', {}, { quiet: true })); if (k) toast('Đã đưa ' + (k.queued || 0) + ' lộ trình vào hàng chờ gửi KGS', 'ok'); return; }
+    if (t.id === 'kgCkOff') { if (!await ask('Xoá phiên KGS đã dán? Máy chủ thôi tự đồng bộ (tiện ích Chrome vẫn chạy nếu có).', { ok: 'Xoá phiên', danger: true })) return; return now(K => { K.cookie = { has: false, tail: '', at: '' }; }, 'kgsCookie', { off: 1 }, 'xoá phiên'); }
+    if (t.id === 'kgRun') return now(K => { K.run = { at: new Date().toISOString(), wait: 1 }; }, 'kgsRunBg', {}, 'đồng bộ ngay');      // máy chủ chạy nền — trang tự cập nhật khi xong
+    if (t.id === 'kgDrop') return now(K => { K.queue = 0; }, 'kgsDrop', {}, 'bỏ hàng chờ topic');
+    if (t.id === 'kgMailGo') { const v = $('#kgMail', B).value; return now(K => { K.cfg.mail = v; }, 'kgsCfg', { mail: v }, 'email Giáo vụ', 'kgsCfg'); }
+    if (t.id === 'kgHoldAuto') { if (!await ask('Tạo một thư mục Drive dùng chung “KGS · Buổi tự do — topic giữ chỗ (không xoá)” và thêm topic “Buổi tự do · giữ chỗ (không xoá)” vào kho của các khoá còn thiếu bên KGS?\nChạy ngầm ở lần đồng bộ (cần quyền KGS: Tài liệu giảng dạy › Tạo mới).', { ok: 'Tạo' })) return;
+      return now(K => { K.holdMk = (K.progs || []).filter(g => !g.hold).length; }, 'kgsHoldAuto', {}, 'tạo topic giữ chỗ'); }
+    if (t.id === 'kgWantAll') { if (!await ask('Sắp lại lộ trình bên KGS của ' + (K.drift || []).length + ' lớp cho khớp từng buổi với bài gán ở Kiến CM?\nTopic đã học giữ nguyên; buổi trống thành topic giữ chỗ. Gửi ngầm ở lần đồng bộ tới (hoặc bấm Đồng bộ ngay).', { ok: 'Gửi tất cả' })) return;
+      return now(K => { K.drift = []; }, 'kgsWantAll', {}, 'gửi lộ trình theo Kiến CM', '', k => toast('Đã đưa ' + (k.queued || 0) + ' lộ trình vào hàng chờ gửi KGS', 'ok')); }
   };
-  B.innerHTML = miniLoader('Đang tải đồng bộ KGS…');
-  await load();
+  const c0 = lsGet(CK, null);
+  if (c0 && c0.cfg) { c0._cache = 1; take(c0); load(); }      // bản lần trước hiện ngay, bản mới về thì thay
+  else { B.innerHTML = miniLoader('Đang tải đồng bộ KGS…'); await load(); }
 }
 
 /* ══════════ THÔNG BÁO ĐẨY (khi app ở màn hình chính) ══════════
@@ -10366,25 +10414,40 @@ async function accessDlg(id, kind, name, done) {
     try { rules = await rpc('accessList', {}, { quiet: true }); ACC_C.L = rules; ACC_C.at = Date.now(); } catch (e) { w.close(); return fail(e); }
     if (w.closed) return; w.close();
   }
-  const cur = rules.find(r => r.targetId === id) || { mode: '', viewers: [], note: '' };
+  const cur = rules.find(r => r.targetId === id) || { mode: '', viewers: [], note: '', allow: [], deny: [] };
+  const who = L => (L || []).map(v => v.indexOf('role:') === 0 ? roleOf(v.slice(5)).label : v).join(', ');
   // luật đang được kế thừa từ thư mục cha (nếu có)
   let inh = null;
   if (!cur.mode) { const f = kind === 'file' ? IX.files.find(x => x.id === id) : null; let k = f ? f.fid || rootKey(f.sid) : kind === 'dir' ? (IX.dirs[id] || {}).pid || rootKey((IX.dirs[id] || {}).sid) : '', g = 0;
-    while (k && g++ < 60 && !inh) { const r = rules.find(x => x.targetId === k); if (r) inh = r; else k = k.indexOf('root:') === 0 ? '' : ((IX.dirs[k] || {}).pid || rootKey((IX.dirs[k] || {}).sid)); } }
+    while (k && g++ < 60 && !inh) { const r = rules.find(x => x.targetId === k && x.mode); if (r) inh = r; else k = k.indexOf('root:') === 0 ? '' : ((IX.dirs[k] || {}).pid || rootKey((IX.dirs[k] || {}).sid)); } }
+  // (1.63.2) thư mục / tệp BÊN TRONG đang có quyền riêng → hỏi có áp dụng luôn cho chúng không (mặc định có: bỏ quyền riêng bên trong, cả nhánh theo mục này)
+  const inside = {};
+  if (kind !== 'file') { const walk = (k, g) => { if (g > 60) return; (IX.byDir[k] || []).forEach(f => { inside[f.id] = 1; }); (IX.kids[k] || []).forEach(d => { inside[d.id] = 1; walk(d.id, g + 1); }); }; walk(id, 0); }
+  const subR = rules.filter(r => r.targetId !== id && inside[r.targetId]);
+  const ovHere = (cur.allow || []).length || (cur.deny || []).length;
   let mode = cur.mode;
   const m = modal({ title: 'Quyền xem · ' + name, icon: 'bi-shield-lock', size: 'lg', body: '<div class="stack">' +
-      '<div class="small muted">' + (kind === 'file' ? 'Tài liệu' : 'Thư mục (áp dụng cho mọi thư mục con và tệp bên trong, trừ chỗ có quyền riêng)') + '</div>' +
-      (inh ? '<div class="gd-tip"><i class="bi bi-arrow-down-right"></i><div>Đang kế thừa từ <b>' + esc(inh.name) + '</b>: ' + (inh.mode === 'public' ? 'Công khai' : 'Chỉ ' + esc(inh.viewers.map(v => v.indexOf('role:') === 0 ? roleOf(v.slice(5)).label : v).join(', '))) + '. Chọn bên dưới để đặt quyền riêng cho mục này.</div></div>' : '') +
+      '<div class="small muted">' + (kind === 'file' ? 'Tài liệu' : 'Thư mục — áp dụng cho mọi thư mục con và tệp bên trong') + '</div>' +
+      (inh ? '<div class="gd-tip"><i class="bi bi-arrow-down-right"></i><div>Đang kế thừa từ <b>' + esc(inh.name) + '</b>: ' + (inh.mode === 'public' ? 'Công khai' : 'Chỉ ' + esc(who(inh.viewers))) + '. Chọn bên dưới để đặt quyền riêng cho mục này.</div></div>' : '') +
       '<div class="acc-modes" id="acM">' + ACC_MODES.map(o => '<button type="button" class="acc-m' + (o[0] === mode ? ' on' : '') + '" data-m="' + o[0] + '"><i class="bi ' + o[2] + '"></i><b>' + o[1] + '</b><small>' + o[3] + '</small></button>').join('') + '</div>' +
-      '<div class="fg" id="acV"' + (mode === 'restrict' ? '' : ' hidden') + '><label class="flabel">Ai được xem</label><div class="vchips" id="acC"></div><textarea class="ta" id="acT" rows="2" placeholder="Thêm email, cách nhau bởi dấu phẩy · role:giaovu">' + esc(cur.viewers.join(', ')) + '</textarea></div>' +
+      '<div class="fg" id="acV"' + (mode === 'restrict' ? '' : ' hidden') + '><label class="flabel">Ai được xem</label><div class="vchips" id="acC"></div><textarea class="ta" id="acT" rows="2" placeholder="Thêm email, cách nhau bởi dấu phẩy · role:giaovu">' + esc((cur.viewers.length ? cur.viewers : cur.allow || []).join(', ')) + '</textarea></div>' +
+      (ovHere ? '<div class="gd-tip"><i class="bi bi-person-gear"></i><div>Ở mục này đang có ' + ((cur.allow || []).length ? '<b>thêm tay</b> ' + esc(who(cur.allow)) : '') + ((cur.allow || []).length && (cur.deny || []).length ? ' · ' : '') + ((cur.deny || []).length ? '<b>gỡ tay</b> ' + esc(who(cur.deny)) : '') +
+        ' (trang Ai xem được). Khi lưu, quyền chọn ở trên sẽ <b>thay</b> các thêm / gỡ tay này (vẫn khôi phục được ở Thùng rác).' +
+        '<label class="chk" style="margin-top:6px"><input type="checkbox" id="acKeep"> Giữ các thêm / gỡ tay này</label></div></div>' : '') +
+      (subR.length ? '<label class="chk acc-sub"><input type="checkbox" id="acSub" checked> <span><b>Áp dụng cho cả thư mục con</b> — bỏ quyền riêng của ' + subR.length + ' mục bên trong: ' +
+        esc(subR.slice(0, 4).map(r => r.name).join(', ')) + (subR.length > 4 ? '…' : '') + '<small class="muted" style="display:block">Bỏ chọn nếu muốn các mục đó giữ quyền riêng (VD thư mục đáp án chỉ giáo vụ xem)</small></span></label>' : '') +
       '<div class="fg"><label class="flabel">Ghi chú (tuỳ chọn)</label><input class="inp" id="acN" value="' + esc(cur.note || '') + '" placeholder="VD: Đáp án — chỉ giáo vụ"></div></div>',
     foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu quyền xem', i: 'bi-check2', cls: 'pri', fn: async () => {
       const viewers = m.$('#acT').value.split(/[,;\s]+/).filter(Boolean);
       if (mode === 'restrict' && !viewers.length) { toast('Chọn ít nhất một vai trò hoặc email được xem', 'warn'); return false; }
+      const sub = !!(m.$('#acSub') && m.$('#acSub').checked), keep = !!(m.$('#acKeep') && m.$('#acKeep').checked);
       // hiện nhãn quyền ngay, lưu ngầm rồi tính lại chỉ mục
       IX.acc = IX.acc || {}; if (mode) IX.acc[id] = mode === 'public' ? 'p' : 'r'; else delete IX.acc[id];
-      ACC_C.at = 0; toast('Đã lưu quyền xem “' + name + '”'); done && done(); go(S.route, { nohist: 1, refresh: 1 });
-      queueRpc('accessSave', { targetId: id, kind: kind, mode: mode, viewers: viewers, note: m.$('#acN').value }, { key: 'acc:' + id, label: 'Quyền xem · ' + name, merge: (a, b) => b }).then(() => reloadIndex()).catch(() => {});
+      if (sub) subR.forEach(r => { delete IX.acc[r.targetId]; });
+      ACC_C.at = 0; toast('Đã lưu quyền xem “' + name + '”' + (sub ? ' · áp dụng cho cả ' + subR.length + ' mục bên trong' : '')); go(S.route, { nohist: 1, refresh: 1 });
+      // (1.63.2) done (VD trang Ai xem được tính lại) chạy SAU khi máy chủ lưu xong — trước đây chạy ngay → bảng tính lại theo quyền cũ, tưởng chưa áp dụng
+      queueRpc('accessSave', { targetId: id, kind: kind, mode: mode, viewers: viewers, note: m.$('#acN').value, sub: sub ? 1 : 0, ov: keep ? 'keep' : '' }, { key: 'acc:' + id, label: 'Quyền xem · ' + name, merge: (a, b) => b })
+        .then(() => { ACC_C.at = 0; reloadIndex(); done && done(); }).catch(() => {});
     } }] });
   viewerChips(m.$('#acC'), m.$('#acT'));
   m.$('#acM').onclick = e => { const b = e.target.closest('[data-m]'); if (!b) return; mode = b.dataset.m; m.$$('.acc-m').forEach(x => x.classList.toggle('on', x === b)); m.$('#acV').hidden = mode !== 'restrict'; };
@@ -10593,12 +10656,12 @@ function awPeople(key, B) {
     // nút upload: bật / tắt được khi quyền nằm ở CHÍNH thư mục này; được từ thư mục cha / vai trò thì báo nguồn
     const upBtn = (who, idxs) => { if (!upOk) return '<span></span>'; const on = idxs.length && idxs.every(i => U.indexOf(i) >= 0), mine = own.indexOf(who) >= 0;
       if (on && !mine) return '<span class="aw-upb on dis" title="Được upload từ thư mục cha hoặc theo vai trò — tắt ở đó"><i class="bi bi-cloud-arrow-up-fill"></i>Upload</span>';
-      return '<button class="aw-upb' + (on ? ' on' : '') + '" data-upt="' + esc(who) + '" data-on="' + (on ? 0 : 1) + '" title="' + (on ? 'Đang được upload — bấm để tắt' : 'Chỉ xem — bấm để cho upload') + '"><i class="bi bi-cloud-arrow-up' + (on ? '-fill' : '') + '"></i>Upload</button>'; };
+      return '<button class="aw-upb' + (on ? ' on' : '') + '" data-upt="' + esc(who) + '" data-on="' + (on ? 0 : 1) + '" title="' + (on ? 'Đang được upload + xoá tài liệu — bấm để tắt' : 'Chỉ xem — bấm để cho upload + xoá tài liệu') + '"><i class="bi bi-cloud-arrow-up' + (on ? '-fill' : '') + '"></i>Upload</button>'; };
     const urow = (i, kick) => { const u = d.users[i]; return '<div class="aw-pl"><span class="av sm">' + esc(initials(u[1] || u[0])) + '</span><span><b>' + esc(u[1]) + '</b><small>' + esc(u[0]) + ' · ' + u[2].map(r => awRole(r).label).join(', ') + '</small></span>' +
       '<span class="aw-acts">' + upBtn(u[0], [i]) + (tid && kick ? '<button class="aw-kb" data-kick="' + esc(u[0]) + '" data-key="' + esc(tid) + '" data-nm="' + esc(nm) + '" title="Gỡ khỏi người xem"><i class="bi bi-x-lg"></i>Gỡ</button>' : '<span></span>') + '</span></div>'; };
     const onlyUp = U.filter(i => set.indexOf(i) < 0);
     m.$('#awPm').innerHTML =
-      (upOk ? '<div class="aw-uph"><i class="bi bi-cloud-arrow-up"></i><span><b>' + U.length + ' người được upload</b> vào thư mục này (Thư viện › Upload file) · bấm <b>Upload</b> ở từng người / vai trò để bật / tắt — không đổi quyền xem</span></div>' : '') +
+      (upOk ? '<div class="aw-uph"><i class="bi bi-cloud-arrow-up"></i><span><b>' + U.length + ' người được upload</b> vào thư mục này (Thư viện › Upload file) — người được upload cũng <b>xoá</b> được tài liệu ở đây (vào Thùng rác) · bấm <b>Upload</b> ở từng người / vai trò để bật / tắt — không đổi quyền xem</span></div>' : '') +
       (!set.length ? '<div class="empty small"><i class="bi bi-shield-lock"></i>Chỉ quản trị xem được mục này</div>' : '') +
       G.roles.map(g => { const r = awRole(g.r), mem = d.R[g.r].filter(i => set.indexOf(i) >= 0);
         return '<details class="aw-pg"><summary><span class="aw-rc" style="--rc:' + r.color + '"><span class="aw-ri"><i class="bi ' + r.icon + '"></i></span>' + esc(r.label) + '<em>' + (g.all ? g.of : g.n + '/' + g.of) + '</em></span><span class="sp"></span><span class="aw-acts">' +
@@ -10660,7 +10723,7 @@ function awAdd(key, B) {
   const has = () => { const s = isP ? (AW.d.P[key.slice(2)] || {}).set || [] : AW.d.setOf(key); const o = {}; s.forEach(i => { o[i] = 1; }); return o; };
   const roles = (S.boot.roles || []).filter(r => r.id !== 'admin');
   let q = '';
-  const m = modal({ title: 'Thêm người xem · ' + nm, icon: 'bi-person-plus', size: 'lg', body: '<div class="aw-ad"><label class="search"><i class="bi bi-search"></i><input class="inp" id="awAq" placeholder="Tìm vai trò / người — tên, email…" autocomplete="off"></label><label class="aw-upo"><input type="checkbox" id="awUp"><span><b>Cũng cho upload file vào thư mục này</b><small>Mặc định chỉ thêm quyền XEM. Bật ô này thì người / vai trò được thêm cũng tải lên được (Thư viện › Upload file — file đứng tên tài khoản chủ). Gỡ người xem thì gỡ luôn quyền upload.</small></span></label>' +
+  const m = modal({ title: 'Thêm người xem · ' + nm, icon: 'bi-person-plus', size: 'lg', body: '<div class="aw-ad"><label class="search"><i class="bi bi-search"></i><input class="inp" id="awAq" placeholder="Tìm vai trò / người — tên, email…" autocomplete="off"></label><label class="aw-upo"><input type="checkbox" id="awUp"><span><b>Cũng cho upload file vào thư mục này</b><small>Mặc định chỉ thêm quyền XEM. Bật ô này thì người / vai trò được thêm cũng tải lên được (Thư viện › Upload file — file đứng tên tài khoản chủ) và xoá được tài liệu trong thư mục (vào Thùng rác). Gỡ người xem thì gỡ luôn quyền upload.</small></span></label>' +
     '<div class="aw-al" id="awAl"></div></div>',
     foot: [{ t: 'Xong', cls: 'pri' }] });
   const paint = () => {
@@ -12151,9 +12214,12 @@ document.addEventListener('contextmenu', e => {
     { t: 'Mở trong tab mới', i: 'bi-box-arrow-up-right', fn: () => window.open(linkOf('file/' + f.id), '_blank') },
     { t: 'Tạo link tạm & sao chép', d: 'Ai có link đều xem được tới khi hết hạn', i: 'bi-link-45deg', fn: () => quickLinkFile(f), hidden: !can('links.manage') || !LINKABLE[f.type] },
     { t: 'Sao chép link mở trong app', i: 'bi-share', fn: () => copyText(linkOf('file/' + f.id), 'Đã sao chép link') },
-    { t: 'Quyền xem tài liệu…', d: 'Công khai · hoặc chỉ một số vai trò', i: 'bi-shield-lock', fn: () => accessDlg(f.id, 'file', f.name), hidden: !can('sources.manage') }
+    { t: 'Quyền xem tài liệu…', d: 'Công khai · hoặc chỉ một số vai trò', i: 'bi-shield-lock', fn: () => accessDlg(f.id, 'file', f.name), hidden: !can('sources.manage') },
+    canDelFile(f) ? '-' : null,
+    { t: 'Xoá', d: 'Vào Thùng rác — khôi phục được', i: 'bi-trash3', fn: () => libDelFiles([f]), hidden: !canDelFile(f) }      // (1.63.2) quản lý nguồn · người được upload vào thư mục
   ]);
   a.remove();
+  libDelLoad();
 });
 </script>
 
@@ -13119,7 +13185,16 @@ async function clKgsRoad(c) {
           toast(!q ? 'KGS đã nhận lộ trình mới — so sánh từng buổi đã đọc lại' : q.err ? 'KGS chưa nhận: ' + q.err : 'Đã đồng bộ nhưng KGS chưa nhận bản sắp — kiểm tra quyền Lộ trình học › Chỉnh sửa', !q ? 'ok' : 'warn', 8000); }
       } catch (e) {}
       poll(); }, 4000); };
-  const load = async () => { try { R = await rpc('kgsLaneGet', { classId: c.id }, { quiet: true }); setTimeout(poll); if (li >= R.lanes.length) li = 0; init(); paint(); } catch (e) { B().innerHTML = '<div class="lk-empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div>'; } };
+  // (1.63.3) mở tức thì: bản lần trước của lớp này hiện ngay, bản mới tải ngầm thay vào (đang sửa dở / còn lệnh đang gửi thì giữ nguyên)
+  const CKL = 'kgsLane:' + c.id, busyQ = () => OB.q.some(x => /^kgsLane/.test(x.fn));
+  const keepR = () => { try { lsSet(CKL, R); } catch (e) {} };
+  const gotR = R2 => { if (!R2 || !m.el.isConnected) return; if (R && (Object.keys(dirty).length || busyQ())) return; R = R2; keepR(); if (li >= R.lanes.length) li = 0; init(); paint(); setTimeout(poll); };
+  /** đổi ngay trên màn hình rồi gửi ngầm (tiến trình ở nút Đồng bộ) — xong thì nhận bản máy chủ */
+  const later = (fn, p, label) => queueRpc(fn, p, { label: 'Lộ trình KGS · ' + label + ' · ' + clName(c) }).then(R2 => { if (R2 && R2.lanes && !busyQ() && !Object.keys(dirty).length) { R = R2; keepR(); init(); paint(); setTimeout(poll); } return R2; },
+    e => { fail(e); rpc('kgsLaneGet', { classId: c.id }, { quiet: true }).then(R2 => { R = R2; keepR(); init(); paint(); }, () => {}); });
+  const R0 = lsGet(CKL, null);
+  if (R0 && R0.lanes) { R = R0; init(); setTimeout(() => paint()); }
+  const load = async () => { try { const R2 = await rpc('kgsLaneGet', { classId: c.id }, { quiet: true }); if (!R) { R = R2; keepR(); if (li >= R.lanes.length) li = 0; init(); paint(); setTimeout(poll); } else gotR(R2); } catch (e) { if (R) return; B().innerHTML = '<div class="lk-empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div>'; } };
   const fs2src = l => { const o = {}; libOf(l).forEach(t => { if (t.f) o[t.f] = t.id; }); l.topics.forEach(t => { if (t.f) o[t.f] = t.src; }); return o; };
   const name = f => clDirName(f) || '(bài khác)';
   /** dự kiến topic KGS gắn cho từng buổi sắp tới theo danh sách đang sắp (KGS gắn lần lượt: topic chưa học xong × số buổi còn lại) */
@@ -13191,11 +13266,14 @@ async function clKgsRoad(c) {
         '<div class="small muted kr-note">Lưu = như bấm Lưu ở trang lộ trình KGS: lộ trình của bé tách khỏi mẫu, topic đã học giữ nguyên, KGS gắn lại topic cho các buổi chưa học. Buổi nháp ở đây đang theo topic KGS sẽ đổi theo; bài chọn tay / đã duyệt giữ nguyên.</div></section></div>';
   };
   const edit = fn => { const l = lane(); E[l.spId] = fn(E[l.spId].slice()); dirty[l.spId] = 1; paint(); };
-  const save = async () => {
+  const save = () => {      // (1.63.3) lưu tức thì: khung “Đang chờ gửi” hiện ngay, lệnh lưu chạy ngầm
     const L = R.lanes.filter(l => dirty[l.spId]); if (!L.length) { toast('Chưa có thay đổi nào để gửi', 'info'); return false; }
-    try { for (const l of L) R = await rpc('kgsLaneSave', Object.assign({ spId: l.spId, items: E[l.spId].map(t => ({ id: t.id || '', src: t.src || '', len: t.len })) }, FROM[l.spId] ? { from: FROM[l.spId] } : {}), { quiet: true }); }
-    catch (e) { fail(e); return false; }
-    init(); paint(); toast('Đã lưu — lộ trình được gửi sang KGS ở lần đồng bộ tới (≤ ' + R.every + ' phút)', 'ok', 5000); return false;
+    const who = (S.me && S.me.email) || '', at = new Date().toISOString();
+    L.forEach(l => { const items = E[l.spId].map(t => ({ id: t.id || '', src: t.src || '', len: t.len })), fr = FROM[l.spId] || '';
+      l.pend = { at: at, by: who, items: items.map(t => t.id ? { id: t.id, sourceTopicId: t.src, length: t.len } : { sourceTopicId: t.src, length: t.len }), err: '', from: fr };
+      delete dirty[l.spId];
+      later('kgsLaneSave', Object.assign({ spId: l.spId, items: items }, fr ? { from: fr } : {}), 'lưu'); });
+    keepR(); init(); paint(); toast('Đã lưu — gửi sang KGS ở lần đồng bộ tới (≤ ' + R.every + ' phút)' + (R.ck ? ', hoặc bấm Gửi ngay' : ''), 'ok', 5000); return false;
   };
   m.el.addEventListener('click', async e => {
     const t = e.target.closest('button, [data-li]'); if (!t || t.disabled || !R) return;
@@ -13204,11 +13282,12 @@ async function clKgsRoad(c) {
     if (t.id === 'krUndo') { const l = lane(); E[l.spId] = l.pend ? fromPend(l) : l.topics.map(x => Object.assign({ key: x.id }, x)); delete dirty[l.spId]; delete FROM[l.spId]; return paint(); }
     if (t.id === 'krSend') {      // (1.62.2) máy chủ gửi nền — đóng tab vẫn gửi; hộp tự cập nhật khi xong
       t.disabled = true; t.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang gửi…';
-      try { R = await rpc('kgsLaneSend', { classId: c.id }, { quiet: true }); watch = lane().spId; paint(); poll(); toast('Đang gửi sang KGS trên máy chủ — có thể đóng tab, xem lại ở đây hoặc Kiến CM › Đồng bộ KGS', 'info', 6000); }
-      catch (er) { fail(er); paint(); }
+      R.run = { at: new Date().toISOString(), wait: 1 }; watch = lane().spId; paint();
+      later('kgsLaneSend', { classId: c.id }, 'gửi ngay').then(() => poll());
+      toast('Đang gửi sang KGS trên máy chủ — có thể đóng tab, xem lại ở đây hoặc Kiến CM › Đồng bộ KGS', 'info', 6000);
       return;
     }
-    if (t.id === 'krDrop') { if (!await ask('Huỷ bản sắp đang chờ gửi sang KGS? Lộ trình bên KGS giữ như hiện tại.', { ok: 'Huỷ bản chờ', danger: true })) return; try { R = await rpc('kgsLaneDrop', { spId: lane().spId, classId: c.id }, { quiet: true }); init(); paint(); } catch (er) { fail(er); } return; }
+    if (t.id === 'krDrop') { if (!await ask('Huỷ bản sắp đang chờ gửi sang KGS? Lộ trình bên KGS giữ như hiện tại.', { ok: 'Huỷ bản chờ', danger: true })) return; const l = lane(); l.pend = null; delete FROM[l.spId]; keepR(); init(); paint(); later('kgsLaneDrop', { spId: l.spId, classId: c.id }, 'huỷ bản chờ'); return; }
     if (t.dataset.add) { const v = m.$('#krSel').value; if (!v) return toast('Chọn topic trước', 'info'); const z = R.lib.find(x => x.id === v);
       return edit(T => { const n = { key: 'n-' + v + '-' + Date.now().toString(36), id: '', src: v, name: z.name, len: 1, status: 'NEW', used: 0, f: z.f, lib: z.lib }; if (t.dataset.add === 'end') T.push(n); else { let i = 0; while (i < T.length && (T[i].status === 'DONE' || T[i].used > 0)) i++; T.splice(i, 0, n); } return T; }); }
     const li2 = t.closest('[data-k]'); if (!li2) return; const k = li2.dataset.k;
