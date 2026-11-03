@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T08:14:56.985Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T08:36:33.427Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -13039,7 +13039,8 @@ async function clKgsRoad(c) {
       const ok2 = pr === undefined ? '' : !pr ? '<span class="kr-p none">— hết lộ trình —</span>' : '<span class="kr-p ' + (pf && fs.indexOf(pf) >= 0 ? 'ok' : fs.length ? 'diff' : '') + '">' + esc(pr.name) + '</span>';
       return '<tr class="' + (x.date < today ? 'past' : '') + '"><td><b>' + dd.ws + ' ' + dd.dm + '</b>' + (x.status === 'taught' ? '<small>đã dạy</small>' : '') + '</td><td>' + (x.kt ? (x.kt.n ? esc(x.kt.n) : '<span class="muted">—</span>') : '<span class="muted">chưa đọc</span>') + '</td><td>' + kc + '</td>' +
         '<td>' + (st ? clKgsMark(x) : '') + '</td>' + (P ? '<td>' + ok2 + '</td>' : '') + '</tr>'; }).join('');
-    const pend = l.pend && !dt ? '<div class="kr-pend' + (l.pend.err ? ' bad' : '') + '"><i class="bi ' + (l.pend.err ? 'bi-exclamation-triangle' : 'bi-hourglass-split') + '"></i><span>' + (l.pend.err ? '<b>KGS chưa nhận bản sắp này:</b> ' + esc(l.pend.err) + ' — sẽ thử lại ở lần đồng bộ sau.' : '<b>Đang chờ gửi sang KGS</b> (lưu ' + esc(fmtDT(l.pend.at)) + (l.pend.by ? ' · ' + esc(l.pend.by.split('@')[0]) : '') + '). Lần đồng bộ tới (≤ ' + R.every + ' phút) KGS nhận rồi đọc lại.') + '</span><button type="button" class="btn xs ghost" id="krDrop">Huỷ bản chờ</button></div>' : '';
+    const pend = l.pend && !dt ? '<div class="kr-pend' + (l.pend.err ? ' bad' : '') + '"><i class="bi ' + (l.pend.err ? 'bi-exclamation-triangle' : 'bi-hourglass-split') + '"></i><span>' + (l.pend.err ? '<b>KGS chưa nhận bản sắp này:</b> ' + esc(l.pend.err) + ' — sẽ thử lại ở lần đồng bộ sau.' : '<b>Đang chờ gửi sang KGS</b> (lưu ' + esc(fmtDT(l.pend.at)) + (l.pend.by ? ' · ' + esc(l.pend.by.split('@')[0]) : '') + '). ' + (R.ck ? 'Bấm <b>Gửi ngay</b>, hoặc để lần đồng bộ tới (≤ ' + R.every + ' phút) tự gửi.' : 'Lần đồng bộ tới (≤ ' + R.every + ' phút, tiện ích Chrome) KGS nhận rồi đọc lại.')) + '</span>' +
+      (R.ck ? '<button type="button" class="btn xs pri" id="krSend"><i class="bi bi-send"></i>' + (l.pend.err ? 'Gửi lại' : 'Gửi ngay') + '</button>' : '') + '<button type="button" class="btn xs ghost" id="krDrop">Huỷ bản chờ</button></div>' : '';
     B().innerHTML = (R.lanes.length > 1 ? '<div class="seg kr-ln">' + R.lanes.map((x, i) => '<button type="button" class="seg-b" data-li="' + i + '" aria-pressed="' + (i === li) + '">' + esc(x.student || x.studentCode) + ' · ' + esc(x.program) + (dirty[x.spId] ? ' •' : '') + '</button>').join('') + '</div>' : '') +
       '<div class="kr-sub small muted">' + esc([l.student, l.studentCode, l.program].filter(Boolean).join(' · ')) + (l.appliesFrom ? ' · áp dụng từ ' + esc(l.appliesFrom.split('-').reverse().join('/')) : '') + (R.at ? ' · đọc từ KGS ' + esc(ago(R.at)) : '') + '</div>' + pend +
       '<div class="kr-lay"><section class="kr-c"><div class="kr-h"><b>So sánh từng buổi</b><small>' + (nBad ? '<span class="kr-bad">' + nBad + ' buổi sắp tới lệch</span>' : 'Buổi sắp tới khớp KGS') + '</small></div>' +
@@ -13062,6 +13063,14 @@ async function clKgsRoad(c) {
     if (t.dataset.li != null) { li = Number(t.dataset.li); return paint(); }
     if (t.id === 'krAr') return arrange();
     if (t.id === 'krUndo') { const l = lane(); E[l.spId] = l.pend ? fromPend(l) : l.topics.map(x => Object.assign({ key: x.id }, x)); delete dirty[l.spId]; return paint(); }
+    if (t.id === 'krSend') {
+      const sp = lane().spId; t.disabled = true; t.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang gửi…';
+      try { R = await rpc('kgsLaneSend', { classId: c.id }, { quiet: true }); init(); paint();
+        const q = (R.lanes.find(x => x.spId === sp) || {}).pend;
+        toast(!q ? 'KGS đã nhận lộ trình mới' : q.err ? 'KGS chưa nhận: ' + q.err : 'Đã đồng bộ nhưng KGS chưa nhận — thử lại sau', !q ? 'ok' : 'warn');
+      } catch (er) { fail(er); paint(); }
+      return;
+    }
     if (t.id === 'krDrop') { if (!await ask('Huỷ bản sắp đang chờ gửi sang KGS? Lộ trình bên KGS giữ như hiện tại.', { ok: 'Huỷ bản chờ', danger: true })) return; try { R = await rpc('kgsLaneDrop', { spId: lane().spId, classId: c.id }, { quiet: true }); init(); paint(); } catch (er) { fail(er); } return; }
     if (t.dataset.add) { const v = m.$('#krSel').value; if (!v) return toast('Chọn topic trước', 'info'); const z = R.lib.find(x => x.id === v);
       return edit(T => { const n = { key: 'n-' + v, id: '', src: v, name: z.name, len: 1, status: 'NEW', used: 0, f: z.f, lib: z.lib }; if (t.dataset.add === 'end') T.push(n); else { let i = 0; while (i < T.length && (T[i].status === 'DONE' || T[i].used > 0)) i++; T.splice(i, 0, n); } return T; }); }
