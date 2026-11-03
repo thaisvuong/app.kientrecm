@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T12:50:00.022Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T15:18:25.224Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -13029,15 +13029,16 @@ function clKgsChip(c) {
 async function clKgsRoad(c) {
   const m = modal({ title: 'Lộ trình Kiến Gia Sư · ' + clName(c), icon: 'bi-signpost-split', size: 'xl kr-m', sticky: true, body: '<div id="krB">' + miniLoader('Đang tải lộ trình bên KGS…') + '</div>',
     foot: [{ t: 'Đóng', cls: 'ghost' }, { t: 'Lưu & gửi sang KGS', i: 'bi-send', cls: 'pri', fn: () => save() }] });
-  let R = null, li = 0, E = {}, dirty = {};
-  const today = CL.d.today, B = () => m.$('#krB');
+  let R = null, li = 0, E = {}, dirty = {}, FROM = {};      // FROM[lộ trình] = ngày áp dụng lại (KGS rải lại topic từ buổi đó)
+  const today = CL.d.today, B = () => m.$('#krB'), dmy = d => d ? String(d).split('-').reverse().join('/').slice(0, 5) : '';
   const sess = () => { const L = clSess(c.id).filter(x => x.date >= clAdd(today, -14)); return L.filter(x => x.kid).concat(L.filter(x => !x.kid && x.spare)); };      // buổi KGS rồi tới buổi dư
   const lane = () => R && R.lanes[li];
   const libOf = l => R.lib.filter(t => t.programId === l.programId);
   const fromPend = l => { const by = {}; l.topics.forEach(t => { by[t.id] = t; }); const lb = {}; libOf(l).forEach(t => { lb[t.id] = t; });
-    return l.pend.items.map(it => { const t = it.id && by[it.id]; if (t) return Object.assign({ key: t.id }, t, { len: it.length });
+    const re = !!l.pend.from;
+    return l.pend.items.map(it => { const t = it.id && by[it.id]; if (t) return Object.assign({ key: t.id }, t, { len: it.length }, re ? { status: t.status === 'DONE' ? 'REDO' : t.status, used: 0 } : {});
       const z = lb[it.sourceTopicId] || { name: '(topic ' + it.sourceTopicId + ')' }; return { key: 'n-' + it.sourceTopicId + '-' + Math.random().toString(36).slice(2, 7), id: '', src: it.sourceTopicId, name: z.name, len: it.length, status: 'NEW', used: 0, f: z.f || '', lib: z.lib || 0 }; }); };
-  const init = () => { E = {}; dirty = {}; R.lanes.forEach(l => { E[l.spId] = l.pend ? fromPend(l) : l.topics.map(t => Object.assign({ key: t.id }, t)); }); };
+  const init = () => { E = {}; dirty = {}; FROM = {}; R.lanes.forEach(l => { E[l.spId] = l.pend ? fromPend(l) : l.topics.map(t => Object.assign({ key: t.id }, t)); }); };
   const load = async () => { try { R = await rpc('kgsLaneGet', { classId: c.id }, { quiet: true }); if (li >= R.lanes.length) li = 0; init(); paint(); } catch (e) { B().innerHTML = '<div class="lk-empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div>'; } };
   const fs2src = l => { const o = {}; libOf(l).forEach(t => { if (t.f) o[t.f] = t.id; }); l.topics.forEach(t => { if (t.f) o[t.f] = t.src; }); return o; };
   const name = f => clDirName(f) || '(bài khác)';
@@ -13047,13 +13048,14 @@ async function clKgsRoad(c) {
   /** sắp lộ trình theo bài đã xếp ở Kiến CM: topic đã học giữ nguyên → topic đang học → topic theo thứ tự các buổi sắp tới (độ dài = số buổi) → topic còn lại */
   /** (1.62) máy chủ tính sẵn lộ trình theo đúng từng buổi ở Kiến CM (theo mã thư mục topic; buổi trống = topic giữ chỗ; buổi dư nối tiếp) */
   const fromWant = l => { const by = {}, pool = {}; l.topics.forEach(t => { by[t.id] = t; }); const lb = {}; libOf(l).forEach(t => { lb[t.id] = t; });
-    return l.want.items.map((it, i) => { const t = it.id && by[it.id]; if (t) return Object.assign({ key: t.id }, t, { len: it.len });
+    const re = !!l.want.from;      // áp dụng lại: topic KGS đã tự tính “Đã học” được học lại từ buổi đó
+    return l.want.items.map((it, i) => { const t = it.id && by[it.id]; if (t) return Object.assign({ key: t.id }, t, { len: it.len }, re ? { status: t.status === 'DONE' ? 'REDO' : t.status, used: 0 } : {});
       const z = lb[it.src] || { name: '(topic ' + it.src + ')' }; return { key: 'n-' + it.src + '-' + i, id: '', src: it.src, name: z.name, len: it.len, status: 'NEW', used: 0, f: z.f || '', lib: z.lib || 0, hold: it.src === l.hold ? 1 : 0 }; }); };
   const arrange = () => {
     const l = lane();
     if (l.want) {
       if (l.want.same && !dirty[l.spId] && !l.pend) return toast('Lộ trình bên KGS đã khớp từng buổi với bài gán ở Kiến CM', 'ok');
-      E[l.spId] = fromWant(l); dirty[l.spId] = 1; paint();
+      E[l.spId] = fromWant(l); dirty[l.spId] = 1; if (l.want.from) FROM[l.spId] = l.want.from; else delete FROM[l.spId]; paint();
       return toast('Đã sắp đúng từng buổi theo bài gán ở Kiến CM' + (l.want.warn.length ? ' · ' + l.want.warn.join(' · ') : '') + '. Xem cột Dự kiến rồi bấm Lưu & gửi', l.want.warn.length ? 'info' : 'ok', l.want.warn.length ? 10000 : 5000);
     }
     const T = E[l.spId], f2s = fs2src(l), lb = {}; libOf(l).forEach(t => { lb[t.id] = t; });
@@ -13076,7 +13078,7 @@ async function clKgsRoad(c) {
     if (!R.lanes.length) { B().innerHTML = '<div class="lk-empty"><i class="bi bi-signpost-split"></i><b>Chưa có lộ trình KGS cho lớp này</b><span>' + (R.on ? 'Học sinh của lớp chưa được gán lộ trình bên Kiến Gia Sư, hoặc chưa đồng bộ lần nào từ khi lên bản 1.60.' : 'Chưa bật đồng bộ Kiến Gia Sư (Quản trị › Đồng bộ KGS).') + '</span></div>'; return; }
     const l = lane(), T = E[l.spId], dt = !!dirty[l.spId], P = dt || l.pend ? predict(T) : null, f2s = fs2src(l);
     const S = sess(), nBad = S.filter(x => x.date >= today && clKgsSt(x) === 'diff').length, lb = libOf(l).filter(t => !T.some(x => x.src === t.id));
-    const chip = t => l.hold && t.src === l.hold && t.status !== 'DONE' ? '<em class="kr-st hold">Giữ chỗ · buổi trống</em>' : t.status === 'DONE' ? '<em class="kr-st done">Đã học</em>' : t.status === 'NEW' ? '<em class="kr-st new">Thêm mới</em>' : t.used > 0 ? '<em class="kr-st on">Đang học ' + t.used + '/' + t.len + '</em>' : '';
+    const chip = t => t.status === 'REDO' ? '<em class="kr-st on">Học lại từ ' + esc(dmy(FROM[l.spId])) + '</em>' : l.hold && t.src === l.hold && t.status !== 'DONE' ? '<em class="kr-st hold">Giữ chỗ · buổi trống</em>' : t.status === 'DONE' ? '<em class="kr-st done">Đã học</em>' : t.status === 'NEW' ? '<em class="kr-st new">Thêm mới</em>' : t.used > 0 ? '<em class="kr-st on">Đang học ' + t.used + '/' + t.len + '</em>' : '';
     const nDone = T.filter(t => t.status === 'DONE').length;
     const row = (t, i) => { const lock = t.status === 'DONE', first = i <= nDone, last = i === T.length - 1;
       return '<li class="kr-t' + (lock ? ' done' : '') + '" data-k="' + esc(t.key) + '"><span class="kr-i">' + (i + 1) + '</span><span class="kr-n"><b title="' + esc(t.name) + '">' + esc(t.name) + '</b>' + chip(t) + (t.src && !t.lib && !lock ? '<em class="kr-st gray" title="Thư mục topic chưa có trong Thư viện — Kiến CM chưa xếp được bài này vào buổi">chưa có ở Thư viện</em>' : '') + '</span>' +
@@ -13092,13 +13094,16 @@ async function clKgsRoad(c) {
       return '<tr class="' + (x.date < today ? 'past' : '') + (st ? ' s-' + st : '') + '"><td class="kr-d"><b>' + dd.ws + ' ' + dd.dm + '</b>' + (x.status === 'taught' ? '<small>đã dạy</small>' : '') + tag + '</td>' +
         '<td data-l="KGS">' + (x.kt ? (x.kt.n ? esc(x.kt.n) : '<span class="muted">—</span>') : '<span class="muted">chưa đọc</span>') + '</td><td data-l="Kiến CM">' + kc + '</td>' +
         (P ? '<td data-l="Dự kiến">' + ok2 + '</td>' : '') + '</tr>'; }).join('');
-    const pend = l.pend && !dt ? '<div class="kr-pend' + (l.pend.err ? ' bad' : '') + '"><i class="bi ' + (l.pend.err ? 'bi-exclamation-triangle' : 'bi-hourglass-split') + '"></i><span>' + (l.pend.err ? '<b>KGS chưa nhận bản sắp này:</b> ' + esc(l.pend.err) + ' — sẽ thử lại ở lần đồng bộ sau.' : '<b>Đang chờ gửi sang KGS</b> (lưu ' + esc(fmtDT(l.pend.at)) + (l.pend.by ? ' · ' + esc(l.pend.by.split('@')[0]) : '') + '). ' + (R.ck ? 'Bấm <b>Gửi ngay</b>, hoặc để lần đồng bộ tới (≤ ' + R.every + ' phút) tự gửi.' : 'Lần đồng bộ tới (≤ ' + R.every + ' phút, tiện ích Chrome) KGS nhận rồi đọc lại.')) + '</span>' +
+    if (l.pend && l.pend.from && !FROM[l.spId]) FROM[l.spId] = l.pend.from;
+    // KGS tự tính “Đã học” theo các buổi đã qua nhưng ở Kiến CM chưa dạy → nhắc gửi lại lộ trình áp dụng từ buổi sắp tới
+    const reTip = l.want && l.want.from && !dt && !l.pend ? '<div class="kr-pend bad"><i class="bi bi-exclamation-triangle"></i><span><b>Lộ trình KGS đi trước Kiến CM.</b> ' + esc(l.want.warn[0] || '') + '. Bấm <b>Sắp theo bài ở Kiến CM</b> rồi <b>Lưu &amp; gửi sang KGS</b> — làm hết ở đây, không cần mở KGS.</span></div>' : '';
+    const pend = l.pend && !dt ? '<div class="kr-pend' + (l.pend.err ? ' bad' : '') + '"><i class="bi ' + (l.pend.err ? 'bi-exclamation-triangle' : 'bi-hourglass-split') + '"></i><span>' + (l.pend.err ? '<b>KGS chưa nhận bản sắp này:</b> ' + esc(l.pend.err) + ' — sẽ thử lại ở lần đồng bộ sau.' : '<b>Đang chờ gửi sang KGS</b>' + (l.pend.from ? ' · áp dụng lại từ ' + esc(dmy(l.pend.from)) : '') + ' (lưu ' + esc(fmtDT(l.pend.at)) + (l.pend.by ? ' · ' + esc(l.pend.by.split('@')[0]) : '') + '). ' + (R.ck ? 'Bấm <b>Gửi ngay</b>, hoặc để lần đồng bộ tới (≤ ' + R.every + ' phút) tự gửi.' : 'Lần đồng bộ tới (≤ ' + R.every + ' phút, tiện ích Chrome) KGS nhận rồi đọc lại.')) + '</span>' +
       (R.ck ? '<button type="button" class="btn xs pri" id="krSend"><i class="bi bi-send"></i>' + (l.pend.err ? 'Gửi lại' : 'Gửi ngay') + '</button>' : '') + '<button type="button" class="btn xs ghost" id="krDrop">Huỷ bản chờ</button></div>' : '';
     B().innerHTML = (R.lanes.length > 1 ? '<div class="seg kr-ln">' + R.lanes.map((x, i) => '<button type="button" class="seg-b" data-li="' + i + '" aria-pressed="' + (i === li) + '">' + esc(x.student || x.studentCode) + ' · ' + esc(x.program) + (dirty[x.spId] ? ' •' : '') + '</button>').join('') + '</div>' : '') +
-      '<div class="kr-sub small muted">' + esc([l.student, l.studentCode, l.program].filter(Boolean).join(' · ')) + (l.appliesFrom ? ' · áp dụng từ ' + esc(l.appliesFrom.split('-').reverse().join('/')) : '') + (R.at ? ' · đọc từ KGS ' + esc(ago(R.at)) : '') + '</div>' + pend +
+      '<div class="kr-sub small muted">' + esc([l.student, l.studentCode, l.program].filter(Boolean).join(' · ')) + (l.appliesFrom ? ' · áp dụng từ ' + esc(l.appliesFrom.split('-').reverse().join('/')) : '') + (R.at ? ' · đọc từ KGS ' + esc(ago(R.at)) : '') + '</div>' + reTip + pend +
       '<div class="kr-lay"><section class="kr-c"><div class="kr-h"><b>So sánh từng buổi</b><small>' + (nBad ? '<span class="kr-bad">' + nBad + ' buổi sắp tới lệch</span>' : 'Buổi sắp tới khớp KGS') + '</small></div>' +
         '<div class="kr-tw"><table class="kr-tb' + (P ? ' p' : '') + '"><thead><tr><th class="kr-d">Buổi</th><th>Topic bên KGS</th><th>Bài ở Kiến CM</th>' + (P ? '<th>Dự kiến sau khi lưu</th>' : '') + '</tr></thead><tbody>' + (cmp || '<tr><td colspan="4" class="muted">Chưa có buổi nào lấy từ KGS</td></tr>') + '</tbody></table></div></section>' +
-      '<section class="kr-c"><div class="kr-h"><b>Lộ trình bên KGS</b><small>' + T.length + ' topic · ' + T.reduce((a, t) => a + t.len, 0) + ' buổi' + (dt ? ' · <span class="kr-bad">chưa lưu</span>' : '') + '</small><span class="sp"></span>' +
+      '<section class="kr-c"><div class="kr-h"><b>Lộ trình bên KGS</b><small>' + T.length + ' topic · ' + T.reduce((a, t) => a + t.len, 0) + ' buổi' + (dt ? ' · <span class="kr-bad">chưa lưu' + (FROM[l.spId] ? ' · áp dụng lại từ ' + esc(dmy(FROM[l.spId])) : '') + '</span>' : '') + '</small><span class="sp"></span>' +
           '<button type="button" class="btn xs" id="krAr" title="Đưa các bài đã xếp cho buổi sắp tới ở Kiến CM thành thứ tự lộ trình bên KGS"><i class="bi bi-magic"></i>Sắp theo bài ở Kiến CM</button>' + (dt ? '<button type="button" class="btn xs ghost" id="krUndo">Bỏ thay đổi</button>' : '') + '</div>' +
         '<ol class="kr-ls">' + T.map(row).join('') + '</ol>' +
         (lb.length || l.hold ? '<div class="kr-add"><select class="sel" id="krSel"><option value="">Thêm topic từ kho của khoá…</option>' + (l.hold ? '<option value="' + esc(l.hold) + '">— Buổi trống (topic giữ chỗ) —</option>' : '') + lb.filter(t => t.id !== l.hold).map(t => '<option value="' + esc(t.id) + '">' + esc(t.name) + (t.lib ? '' : ' (chưa có ở Thư viện)') + '</option>').join('') + '</select><button type="button" class="btn xs" data-add="top">Thêm lên đầu</button><button type="button" class="btn xs" data-add="end">Thêm xuống cuối</button></div>' : '') +
@@ -13107,7 +13112,7 @@ async function clKgsRoad(c) {
   const edit = fn => { const l = lane(); E[l.spId] = fn(E[l.spId].slice()); dirty[l.spId] = 1; paint(); };
   const save = async () => {
     const L = R.lanes.filter(l => dirty[l.spId]); if (!L.length) { toast('Chưa có thay đổi nào để gửi', 'info'); return false; }
-    try { for (const l of L) R = await rpc('kgsLaneSave', { spId: l.spId, items: E[l.spId].map(t => ({ id: t.id || '', src: t.src || '', len: t.len })) }, { quiet: true }); }
+    try { for (const l of L) R = await rpc('kgsLaneSave', Object.assign({ spId: l.spId, items: E[l.spId].map(t => ({ id: t.id || '', src: t.src || '', len: t.len })) }, FROM[l.spId] ? { from: FROM[l.spId] } : {}), { quiet: true }); }
     catch (e) { fail(e); return false; }
     init(); paint(); toast('Đã lưu — lộ trình được gửi sang KGS ở lần đồng bộ tới (≤ ' + R.every + ' phút)', 'ok', 5000); return false;
   };
@@ -13115,7 +13120,7 @@ async function clKgsRoad(c) {
     const t = e.target.closest('button, [data-li]'); if (!t || t.disabled || !R) return;
     if (t.dataset.li != null) { li = Number(t.dataset.li); return paint(); }
     if (t.id === 'krAr') return arrange();
-    if (t.id === 'krUndo') { const l = lane(); E[l.spId] = l.pend ? fromPend(l) : l.topics.map(x => Object.assign({ key: x.id }, x)); delete dirty[l.spId]; return paint(); }
+    if (t.id === 'krUndo') { const l = lane(); E[l.spId] = l.pend ? fromPend(l) : l.topics.map(x => Object.assign({ key: x.id }, x)); delete dirty[l.spId]; delete FROM[l.spId]; return paint(); }
     if (t.id === 'krSend') {
       const sp = lane().spId; t.disabled = true; t.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang gửi…';
       try { R = await rpc('kgsLaneSend', { classId: c.id }, { quiet: true }); init(); paint();
