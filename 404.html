@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-04T16:45:05.480Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-04T17:38:40.265Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4908,7 +4908,7 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .kr-tb{ table-layout:fixed } .kr-tb th.kr-d{ width:104px }
 .kr-tb td{ padding:7px 8px; border-bottom:1px solid var(--border); vertical-align:top; overflow-wrap:break-word; word-break:normal; line-height:1.45 }
 .kr-tag{ display:inline-block; margin-top:4px; font-size:10.5px; font-weight:600; line-height:17px; padding:0 7px; border-radius:999px; white-space:nowrap }
-.kr-tag.ok{ color:#0F6B3D; background:#E7F6EE } .kr-tag.diff{ color:#8A5200; background:#FFF1D6 } .kr-tag.empty{ color:#1D4ED8; background:#E8EFFE } .kr-tag.none{ color:var(--muted); background:var(--surface-3) }
+.kr-tag.past{ color:var(--muted); background:var(--surface-3) } .kr-tag.ok{ color:#0F6B3D; background:#E7F6EE } .kr-tag.diff{ color:#8A5200; background:#FFF1D6 } .kr-tag.empty{ color:#1D4ED8; background:#E8EFFE } .kr-tag.none{ color:var(--muted); background:var(--surface-3) }
 .kr-tb tr.s-diff td{ background:color-mix(in srgb, #FFF6E6 60%, transparent) } .kr-tb td.kr-d .kr-tag{ display:table } .kr-tb td small{ display:block; color:var(--muted); font-size:10.5px } .kr-tb tr.past td{ opacity:.6 } .kr-tb td:first-child{ white-space:nowrap }
 .kr-p{ font-weight:600 } .kr-p.ok{ color:#0F6B3D } .kr-p.diff{ color:#8A5200 } .kr-p.none{ color:var(--muted); font-weight:500 }
 .kr-ls{ list-style:none; margin:0; padding:6px; flex:1; min-height:0; overflow:auto; display:flex; flex-direction:column; gap:4px }
@@ -11127,7 +11127,7 @@ async function setKgs(B) {
   };
   /* (1.66.2) tab Báo cáo: tình trạng từng lớp (bài gán sắp tới so với topic KGS) + các lượt đồng bộ gần nhất */
   let tab = lsGet('kgsTab', 'sync'), Rp = null, RpBusy = false, RpF = '';
-  const RP_ST = { reject: ['red', 'bi-x-octagon', 'KGS từ chối', 'Sửa theo lý do rồi bấm Gửi lại trong hộp Lộ trình của lớp.'], drift: ['warn', 'bi-arrow-left-right', 'Lệch khoá', 'Giáo vụ đổi khoá bên KGS; tới khi khớp, Kiến CM chưa gửi lộ trình.'], done: ['warn', 'bi-flag', 'KGS đã tính Đã học', 'Topic đã tính xong bên KGS nên không xếp lại vào buổi sắp tới.'],
+  const RP_ST = { reject: ['red', 'bi-x-octagon', 'KGS từ chối', 'Sửa theo lý do rồi bấm Gửi lại trong hộp Lộ trình của lớp.'], drift: ['warn', 'bi-arrow-left-right', 'Lệch khoá', 'Giáo vụ đổi khoá bên KGS; tới khi khớp, Kiến CM chưa gửi lộ trình.'], stuck: ['warn', 'bi-slash-circle', 'KGS không đổi', 'KGS nhận bản gửi nhưng không đổi gì nên app ngừng gửi lại. Xử lý ngay bên KGS (thường là topic đã tính Đã học); đổi bài gán thì app tự gửi lại.'], done: ['warn', 'bi-flag', 'KGS đã tính Đã học', 'Topic đã tính xong bên KGS nên không xếp lại vào buổi sắp tới.'],
     out: ['warn', 'bi-box-arrow-up-right', 'Bài ngoài kho topic', 'Bài không có trong kho topic của khoá bên KGS.'], multi: ['', 'bi-people', 'Nhiều học sinh', 'Sắp tay trong hộp Lộ trình của lớp.'], pend: ['', 'bi-hourglass-split', 'Chờ gửi', 'Gửi ở lượt đồng bộ tới.'], wait: ['', 'bi-arrow-repeat', 'Đang lệch', 'Tự gửi ở các lượt đồng bộ tới (nếu bật Tự gửi lộ trình).'], ok: ['ok', 'bi-check2-circle', 'Khớp', ''], empty: ['', 'bi-dash-circle', 'Chưa gán bài', ''] };
   const rpLoad = async () => { if (RpBusy) return; RpBusy = true; try { Rp = await rpc('kgsReport', {}, { quiet: true }); } catch (e) { Rp = { error: e.message, runs: [], cls: [] }; } RpBusy = false; if (B.isConnected && tab === 'report') paint(); };
   const rpRun = r => { const n = r.n || {}, rd = r.roads || [], rOk = rd.filter(x => x.ok).length, rNo = rd.length - rOk;
@@ -11135,7 +11135,7 @@ async function setKgs(B) {
     if (rd.length) sum.push('gửi ' + rOk + ' lộ trình' + (rNo ? ', ' + rNo + ' bị từ chối' : '')); if (n.extOld) sum.push('tiện ích bản cũ, bỏ qua lịch');
     return '<details class="adv"><summary><i class="bi bi-chevron-right"></i><span><span class="tag' + (r.ok ? ' ok' : ' red') + '">' + (r.ok ? 'Xong' : 'Lỗi') + '</span> <b>' + esc(fmtDT(r.at)) + '</b> · ' + esc(r.via === 'lane' ? 'Gửi ngay một lớp' : VIA[r.via] || r.via || '—') + (sum.length ? ' · ' + esc(sum.join(' · ')) : r.ok ? ' · không có thay đổi' : '') + '</span></summary><div class="small" style="line-height:1.7;margin-top:6px">' +
       (r.err ? '<div style="color:var(--danger)">' + esc(r.err) + '</div>' : '') + (n.sjSkip || n.sjNone ? '<div class="muted">Bỏ qua ' + (n.sjSkip || 0) + ' buổi khác môn · ' + (n.sjNone || 0) + ' buổi chưa khai môn vẫn giữ</div>' : '') +
-      rd.map(x => '<div><span class="tag">' + esc(x.c) + '</span> ' + (x.ok ? (x.cr ? 'Đã tạo lộ trình mới' : 'Đã lưu lộ trình') : '<span style="color:var(--danger)">KGS từ chối: ' + esc(x.err || '') + '</span>') + '</div>').join('') + (!r.err && !rd.length && !n.sjSkip && !n.sjNone ? '<div class="muted">Không gửi lộ trình nào.</div>' : '') + '</div></details>'; };
+      rd.map(x => '<div><span class="tag">' + esc(x.c) + '</span> ' + (x.ok ? (x.cr ? 'Đã tạo lộ trình mới' : x.ch ? 'Đã lưu lộ trình' : 'KGS nhận nhưng không đổi gì') : '<span style="color:var(--danger)">KGS từ chối: ' + esc(x.err || '') + '</span>') + '</div>').join('') + (!r.err && !rd.length && !n.sjSkip && !n.sjNone ? '<div class="muted">Không gửi lộ trình nào.</div>' : '') + '</div></details>'; };
   const report = () => {
     if (!Rp) return '<div class="card"><div class="card-b">' + miniLoader('Đang tính tình trạng từng lớp…') + '</div></div>';
     if (Rp.error) return '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được báo cáo</b><span>' + esc(Rp.error) + '</span></div></div>';
@@ -14014,15 +14014,16 @@ async function clPrintAll(c, btn) {
 function clKgsSt(x) {
   const k = x && x.kt; if (!k || x.status === 'off') return '';
   const fs = x.folders || [];
-  return !k.n ? 'none' : k.f && fs.indexOf(k.f) >= 0 ? 'ok' : fs.length || (x.extra || []).length ? 'diff' : 'empty';
+  const st = !k.n ? 'none' : k.f && fs.indexOf(k.f) >= 0 ? 'ok' : fs.length || (x.extra || []).length ? 'diff' : 'empty';
+  return (st === 'diff' || st === 'empty') && x.date < CL.d.today ? 'past' : st;      // (1.66.5) buổi đã qua: KGS giữ topic đã tính, không sửa từ đây → chỉ ghi nhận, không báo lệch
 }
-const CL_KGS = { ok: ['ok', 'bi-check2-circle', 'Khớp KGS'], diff: ['warn', 'bi-arrow-left-right', 'KGS: '], empty: ['info', 'bi-signpost', 'KGS: '], none: ['gray', 'bi-dash-circle', 'KGS chưa gắn topic'] };
+const CL_KGS = { ok: ['ok', 'bi-check2-circle', 'Khớp KGS'], diff: ['warn', 'bi-arrow-left-right', 'KGS: '], empty: ['info', 'bi-signpost', 'KGS: '], none: ['gray', 'bi-dash-circle', 'KGS chưa gắn topic'], past: ['gray', 'bi-clock-history', 'Đã qua · KGS ghi khác'] };
 function clKgsMark(x) {
   if (x && x.spare) return '<span class="cl-kgs gray" title="Lớp lấy lịch từ Kiến Gia Sư: buổi này chưa có bên KGS (bài gán dư). Gia sư chưa thấy; KGS thêm buổi mới thì buổi dư sớm nhất nhận buổi đó, giữ nguyên bài"><i class="bi bi-hourglass"></i><span>Dư · chờ KGS có buổi</span></span>';
   const sj = x && x.ksj ? '<span class="cl-kgs ' + (x.ksjw ? 'warn' : 'gray') + '" title="Môn của buổi này bên Kiến Gia Sư' + (x.ksjw ? ' — môn không áp dụng, buổi đã dạy nên giữ lại làm lịch sử' : '') + '"><i class="bi bi-book"></i><span>' + esc(x.ksj) + '</span></span> ' : '';      // (1.66) môn của buổi
   const st = clKgsSt(x); if (!st) return sj;
   const k = x.kt, t = CL_KGS[st];
-  const tip = st === 'ok' ? 'Bài ở đây trùng topic Kiến Gia Sư gắn cho buổi này: ' + k.n : st === 'diff' ? 'Kiến Gia Sư gắn topic khác cho buổi này: ' + k.n + ' — mở Lộ trình Kiến Gia Sư để so sánh / sắp lại'
+  const tip = st === 'past' ? 'Buổi đã qua: Kiến Gia Sư ghi topic ' + k.n + '. Kiến CM không sửa topic của buổi đã qua, các buổi sau không bị ảnh hưởng.' : st === 'ok' ? 'Bài ở đây trùng topic Kiến Gia Sư gắn cho buổi này: ' + k.n : st === 'diff' ? 'Kiến Gia Sư gắn topic khác cho buổi này: ' + k.n + ' — mở Lộ trình Kiến Gia Sư để so sánh / sắp lại'
     : st === 'empty' ? 'Kiến Gia Sư gắn topic: ' + k.n + (k.f ? '' : ' (thư mục topic chưa có trong Thư viện)') : 'Kiến Gia Sư chưa gắn topic cho buổi này' + (k.r ? ': ' + k.r : '');
   return sj + '<span class="cl-kgs ' + t[0] + '" title="' + esc(tip) + '"><i class="bi ' + t[1] + '"></i><span>' + esc(t[2] + (st === 'diff' || st === 'empty' ? k.n : '')) + '</span></span>';
 }
@@ -14115,7 +14116,7 @@ async function clKgsRoad(c) {
       const kc = x.status === 'off' ? '<span class="muted">Nghỉ</span>' : fs.length ? fs.map(f => esc(name(f))).join(' · ') : (x.extra || []).length ? '<span class="muted">' + x.extra.length + ' tệp</span>' : '<span class="muted">Chưa có bài</span>';
       const ok2 = pr === undefined ? '' : !pr ? '<span class="kr-p none">— hết lộ trình —</span>' : '<span class="kr-p ' + (pf && fs.indexOf(pf) >= 0 ? 'ok' : fs.length ? 'diff' : '') + '">' + esc(pr.name) + '</span>';
       // nhãn gọn (tên topic KGS đã có ở cột bên cạnh) · data-l = nhãn cột khi điện thoại xếp thành thẻ
-      const tag = st ? '<span class="kr-tag ' + st + '">' + { ok: 'Khớp', diff: 'Lệch', empty: 'Trống ở Kiến CM', none: 'KGS chưa gắn' }[st] + '</span>' : '';
+      const tag = st ? '<span class="kr-tag ' + st + '">' + { ok: 'Khớp', diff: 'Lệch', empty: 'Trống ở Kiến CM', none: 'KGS chưa gắn', past: 'Đã qua · KGS ghi khác' }[st] + '</span>' : '';
       return '<tr class="' + (x.date < today ? 'past' : '') + (st ? ' s-' + st : '') + '"><td class="kr-d"><b>' + dd.ws + ' ' + dd.dm + '</b>' + (x.status === 'taught' ? '<small>đã dạy</small>' : '') + tag + '</td>' +
         '<td data-l="KGS">' + (x.kt ? (x.kt.n ? esc(x.kt.n) : '<span class="muted">—</span>') : '<span class="muted">chưa đọc</span>') + '</td><td data-l="Kiến CM">' + kc + '</td>' +
         (P ? '<td data-l="Dự kiến">' + ok2 + '</td>' : '') + '</tr>'; }).join('');
