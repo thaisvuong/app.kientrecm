@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-03T21:16:44.202Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-04T06:14:03.213Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -11061,8 +11061,9 @@ async function setKgs(B) {
     sw('kgRoad', K.cfg.road, 'Xếp bài theo lộ trình KGS', 'Buổi chưa có bài nhận topic kế tiếp trong lộ trình của học sinh (thư mục topic phải có trong Thư viện). Tắt = xếp theo chương trình của lớp như cũ.') +
     sw('kgCls', K.cfg.cls, 'Tự thêm lớp GS- từ KGS + gán gia sư', 'Lớp mã GS-… đang học bên KGS mà chưa có ở đây → tự thêm (học sinh, khối, thứ / giờ) và gán gia sư theo email ở mục Nhân sự của KGS — gia sư chưa có tài khoản thì tự cấp. KGS chưa có email gia sư → lớp vẫn thêm, báo ở mục Cần xử lý. Lớp đã gán gia sư khác thì giữ nguyên, chỉ báo.') +
     sw('kgPush', K.cfg.push, 'Ghi bài đã duyệt sang KGS', 'Buổi đã duyệt / đã dạy có bài → dòng “Tài liệu khác (Kiến Chuyên môn): tên bài — link” trong Lưu ý buổi học của đúng buổi bên KGS. Đổi bài thì ghi đè, bỏ bài thì gỡ dòng đó; ghi chú khác của buổi giữ nguyên.') +
-    '<div class="fg"><label class="flabel">Môn áp dụng</label><div class="kg-sj">' + Object.keys(K.subjs || { MATH: 'Toán' }).map(k => '<label class="chk"><input type="checkbox" data-sj="' + k + '"' + ((K.cfg.subj || ['MATH']).indexOf(k) >= 0 ? ' checked' : '') + '> ' + esc(K.subjs[k]) + '</label>').join('') + '</div>' +
-      '<small class="muted">Kho topic và lộ trình bên KGS có nhiều môn (vd. Toán lẫn Tiếng Anh) — Kiến CM chỉ đọc / gửi lộ trình, topic của các môn được tích. Hiện Kiến CM dùng cho Toán; thêm môn khi cần.</small></div>' +
+    '<div class="fg"><label class="flabel">Môn áp dụng' + (K.cfg.subjOpen ? '' : ' <span class="tag"><i class="bi bi-lock-fill"></i> Đang khoá</span>') + '</label><div class="kg-sj">' + Object.keys(K.subjs || { MATH: 'Toán' }).map(k => { const on = (K.cfg.subj || ['MATH']).indexOf(k) >= 0, lk = !K.cfg.subjOpen; return '<label class="chk"' + (lk && !on ? ' style="opacity:.5"' : '') + (lk ? ' title="Đang khoá — admin mở khoá mới đổi được"' : '') + '><input type="checkbox" data-sj="' + k + '"' + (on ? ' checked' : '') + (lk ? ' disabled' : '') + '> ' + esc(K.subjs[k]) + '</label>'; }).join('') + '</div>' +
+      '<small class="muted">KGS có nhiều môn (vd. Toán lẫn Tiếng Anh) — Kiến CM chỉ lấy buổi học, lộ trình, topic của các môn được tích; buổi môn khác không vào Kiến CM. ' + (K.cfg.subjOpen ? 'Đang mở khoá.' : 'Hiện chỉ áp dụng Toán, các môn khác đang khoá.') + '</small>' +
+      (S.me.isAdmin ? '<div style="margin-top:6px"><button type="button" class="btn xs" id="kgSjLock"><i class="bi ' + (K.cfg.subjOpen ? 'bi-lock' : 'bi-unlock') + '"></i>' + (K.cfg.subjOpen ? 'Khoá lại, chỉ áp dụng Toán' : 'Mở khoá môn (admin)') + '</button></div>' : '') + '</div>' +
     '<div class="fg"><label class="flabel">Email Giáo vụ nhận báo lớp lệch khoá</label><div class="row" style="flex-wrap:nowrap"><input class="inp" id="kgMail" placeholder="giaovu@…, người khác@… (để trống = chỉ báo trong app / Bot Zalo)" value="' + esc(K.cfg.mail || '') + '" style="flex:1;min-width:0"><button class="btn sm" id="kgMailGo">Lưu</button></div>' +
       '<small class="muted">Báo qua Bot Zalo: Kiến CM › Bot Zalo › thêm quy tắc loại “Đồng bộ KGS · lớp lệch khoá”.</small></div>' +
     sw('kgFollow', K.cfg.follow, 'Tự gửi lộ trình theo bài gán ở Kiến CM', 'Sau mỗi lần đồng bộ: lớp có lộ trình KGS lệch với bài gán ở đây → tự sắp lại lộ trình bên KGS đúng từng buổi (theo mã thư mục topic; buổi trống = topic giữ chỗ; buổi dư nối tiếp) rồi gửi ở lần đồng bộ sau. Tắt = chỉ gửi khi bấm Lưu & gửi trong hộp Lộ trình hoặc Gửi tất cả bên dưới.') +
@@ -11074,6 +11075,10 @@ async function setKgs(B) {
     return '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-diagram-3"></i>Dữ liệu đã nhận</h2></div><div class="card-b stack">' +
       '<div class="small" style="line-height:1.7"><b>' + K.cls.length + '</b> lớp đang lấy lịch từ KGS · <b>' + K.roads + '</b> lộ trình khớp lớp · <b>' + K.lib + '/' + K.topics + '</b> topic có trong Thư viện' +
         (K.queue ? ' · <b>' + K.queue + '</b> topic chờ đồng bộ bên KGS <button class="btn xs ghost" id="kgDrop">Bỏ hàng chờ</button>' : '') + '</div>' +
+      (N.sjSkip ? '<div class="small" style="line-height:1.6"><i class="bi bi-funnel"></i> Bỏ qua <b>' + N.sjSkip + '</b> buổi khác môn áp dụng' + (N.sjBy ? ' (' + Object.keys(N.sjBy).map(s => esc((K.subjs || {})[s] || s) + ': ' + N.sjBy[s]).join(' · ') + ')' : '') + (N.sjNone ? ' · <b>' + N.sjNone + '</b> buổi bên KGS chưa khai môn vẫn giữ' : '') + '</div>' : N.sjNone ? '<div class="small muted"><i class="bi bi-funnel"></i> ' + N.sjNone + ' buổi bên KGS chưa khai môn vẫn giữ</div>' : '') +
+      (K.state.sjr ? '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Lần lọc môn gần nhất: gỡ ' + K.state.sjr.drop + ' buổi khác môn, dời ' + K.state.sjr.move + ' bài sang buổi đúng môn' + (K.state.sjr.spare ? ', ' + K.state.sjr.spare + ' bài thành buổi dư' : '') + '</summary><div class="small" style="line-height:1.8;margin-top:6px">' + (K.state.sjr.kept ? '<div class="muted">Giữ lại ' + K.state.sjr.kept + ' buổi khác môn đã dạy (lịch sử).</div>' : '') + (K.state.sjr.cls || []).map(c => '<span class="tag">' + esc(c) + '</span>').join(' ') + '<div class="muted" style="margin-top:4px">Bài gán cũ của các buổi nằm trong Thùng rác, khôi phục được trong thời hạn giữ.</div></div></details>' : '') +
+      (N.extOld ? '<div class="small" style="color:var(--warn,#8A5200);line-height:1.6"><i class="bi bi-exclamation-triangle"></i> Tiện ích Chrome KGS Sync bản cũ chưa gửi môn của buổi nên chưa lấy lịch từ tiện ích — cập nhật tiện ích (bản 1.4.0).</div>' : '') +
+      (K.rq || (K.state.rfail || []).length ? '<div class="kg-need"><i class="bi bi-send"></i><div><b>' + (K.rq || 0) + ' lộ trình đang chờ gửi sang KGS</b>' + ((K.state.rfail || []).length ? '<ul>' + K.state.rfail.slice(0, 6).map(f => '<li>' + esc(f.err) + '</li>').join('') + '</ul><small>KGS từ chối các bản trên — xem lý do, sửa rồi đồng bộ lại. Lý do quyền thì cấp quyền ở KGS › Phân quyền rồi dán lại phiên.</small>' : '') + '</div></div>' : '') +
       (K.topics && K.lib < K.topics ? '<div class="small" style="color:var(--warn,#8A5200);line-height:1.6">' + (K.topics - K.lib) + ' topic chưa có trong Thư viện nên chưa xếp vào buổi được — thêm thư mục chứa các topic (thư mục Drive của KGS) làm nguồn ở Thư viện › Nguồn dữ liệu rồi quét.</div>' : '') +
       (K.cls.length ? '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Lớp đang lấy lịch</summary><div class="small" style="line-height:1.8;margin-top:6px">' + K.cls.map(c => '<span class="tag">' + esc(c.code) + (c.student ? ' · ' + esc(c.student) : '') + '</span>').join(' ') + '</div></details>' : '') +
       (warn.length ? '<details class="adv" open><summary><i class="bi bi-chevron-right"></i> <span style="color:var(--warn,#8A5200)">Cần xử lý: ' + warn.length + ' lớp chưa khớp gia sư với KGS</span></summary><div class="small" style="line-height:1.7;margin-top:6px">' +
@@ -11141,6 +11146,12 @@ async function setKgs(B) {
     if (t.id === 'kgCkOff') { if (!await ask('Xoá phiên KGS đã dán? Máy chủ thôi tự đồng bộ (tiện ích Chrome vẫn chạy nếu có).', { ok: 'Xoá phiên', danger: true })) return; return now(K => { K.cookie = { has: false, tail: '', at: '' }; }, 'kgsCookie', { off: 1 }, 'xoá phiên'); }
     if (t.id === 'kgRun') return now(K => { K.run = { at: new Date().toISOString(), wait: 1 }; }, 'kgsRunBg', {}, 'đồng bộ ngay');      // máy chủ chạy nền — trang tự cập nhật khi xong
     if (t.id === 'kgDrop') return now(K => { K.queue = 0; }, 'kgsDrop', {}, 'bỏ hàng chờ topic');
+    if (t.id === 'kgSjLock') {      // (1.66) mở khoá môn áp dụng: gõ xác nhận — máy chủ kiểm admin chủ hệ thống
+      if (K.cfg.subjOpen) { if (!await ask('Khoá lại, chỉ áp dụng môn Toán? Lần đồng bộ sau, buổi môn khác sẽ được gỡ khỏi Kiến CM.', { ok: 'Khoá lại' })) return; return run(t, 'Đang khoá…', () => rpc('kgsSubjLock', { open: 0 }, { quiet: true })); }
+      const m2 = modal({ title: 'Mở khoá môn áp dụng', icon: 'bi-unlock', body: '<p class="small" style="line-height:1.6;margin:0 0 8px">Mở khoá thì quản trị chọn được thêm môn; lần đồng bộ sau Kiến CM sẽ lấy cả buổi học, lộ trình của môn đó. Chỉ admin chủ hệ thống được mở. Gõ <b>MỞ KHOÁ</b> để xác nhận.</p><input class="inp" id="kgSjCf" autocomplete="off">',
+        foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Mở khoá', i: 'bi-unlock', cls: 'pri', fn: () => { const v = m2.$('#kgSjCf').value; run(t, 'Đang mở khoá…', () => rpc('kgsSubjLock', { open: 1, confirm: v }, { quiet: true })); } }] });
+      return;
+    }
     if (t.id === 'kgMailGo') { const v = $('#kgMail', B).value; return now(K => { K.cfg.mail = v; }, 'kgsCfg', { mail: v }, 'email Giáo vụ', 'kgsCfg'); }
     if (t.id === 'kgHoldAuto') { if (!await ask('Tạo một thư mục Drive dùng chung “KGS · Buổi tự do — topic giữ chỗ (không xoá)” và thêm topic “Buổi tự do · giữ chỗ (không xoá)” vào kho của các khoá còn thiếu bên KGS?\nChạy ngầm ở lần đồng bộ (cần quyền KGS: Tài liệu giảng dạy › Tạo mới).', { ok: 'Tạo' })) return;
       return now(K => { K.holdMk = (K.progs || []).filter(g => !g.hold).length; }, 'kgsHoldAuto', {}, 'tạo topic giữ chỗ'); }
@@ -13976,11 +13987,12 @@ function clKgsSt(x) {
 const CL_KGS = { ok: ['ok', 'bi-check2-circle', 'Khớp KGS'], diff: ['warn', 'bi-arrow-left-right', 'KGS: '], empty: ['info', 'bi-signpost', 'KGS: '], none: ['gray', 'bi-dash-circle', 'KGS chưa gắn topic'] };
 function clKgsMark(x) {
   if (x && x.spare) return '<span class="cl-kgs gray" title="Lớp lấy lịch từ Kiến Gia Sư: buổi này chưa có bên KGS (bài gán dư). Gia sư chưa thấy; KGS thêm buổi mới thì buổi dư sớm nhất nhận buổi đó, giữ nguyên bài"><i class="bi bi-hourglass"></i><span>Dư · chờ KGS có buổi</span></span>';
-  const st = clKgsSt(x); if (!st) return '';
+  const sj = x && x.ksj ? '<span class="cl-kgs ' + (x.ksjw ? 'warn' : 'gray') + '" title="Môn của buổi này bên Kiến Gia Sư' + (x.ksjw ? ' — môn không áp dụng, buổi đã dạy nên giữ lại làm lịch sử' : '') + '"><i class="bi bi-book"></i><span>' + esc(x.ksj) + '</span></span> ' : '';      // (1.66) môn của buổi
+  const st = clKgsSt(x); if (!st) return sj;
   const k = x.kt, t = CL_KGS[st];
   const tip = st === 'ok' ? 'Bài ở đây trùng topic Kiến Gia Sư gắn cho buổi này: ' + k.n : st === 'diff' ? 'Kiến Gia Sư gắn topic khác cho buổi này: ' + k.n + ' — mở Lộ trình Kiến Gia Sư để so sánh / sắp lại'
     : st === 'empty' ? 'Kiến Gia Sư gắn topic: ' + k.n + (k.f ? '' : ' (thư mục topic chưa có trong Thư viện)') : 'Kiến Gia Sư chưa gắn topic cho buổi này' + (k.r ? ': ' + k.r : '');
-  return '<span class="cl-kgs ' + t[0] + '" title="' + esc(tip) + '"><i class="bi ' + t[1] + '"></i><span>' + esc(t[2] + (st === 'diff' || st === 'empty' ? k.n : '')) + '</span></span>';
+  return sj + '<span class="cl-kgs ' + t[0] + '" title="' + esc(tip) + '"><i class="bi ' + t[1] + '"></i><span>' + esc(t[2] + (st === 'diff' || st === 'empty' ? k.n : '')) + '</span></span>';
 }
 /** đầu trang lớp: số buổi sắp tới lệch topic KGS — bấm mở hộp lộ trình */
 function clKgsChip(c) {
@@ -14108,9 +14120,10 @@ async function clKgsRoad(c) {
     if (t.id === 'krUndo') { const l = lane(); E[l.spId] = l.pend ? fromPend(l) : l.topics.map(x => Object.assign({ key: x.id }, x)); delete dirty[l.spId]; delete FROM[l.spId]; return paint(); }
     if (t.id === 'krSend') {      // (1.62.2) máy chủ gửi nền — đóng tab vẫn gửi; hộp tự cập nhật khi xong
       t.disabled = true; t.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang gửi…';
-      R.run = { at: new Date().toISOString(), wait: 1 }; watch = lane().spId; paint();
-      later('kgsLaneSend', { classId: c.id }, 'gửi ngay').then(() => poll());
-      toast('Đang gửi sang KGS trên máy chủ — có thể đóng tab, xem lại ở đây hoặc Kiến CM › Đồng bộ KGS', 'info', 6000);
+      // (1.63.4) máy chủ gửi + đọc lại ngay cho riêng lớp này (vài giây); đóng tab giữa chừng thì máy chủ vẫn làm xong
+      const sp = lane().spId; R.run = { at: new Date().toISOString(), wait: 0 }; paint();
+      later('kgsLaneSend', { classId: c.id }, 'gửi ngay').then(R2 => { if (!R2 || !R2.lanes) return; const q = (R2.lanes.find(x => x.spId === sp) || {}).pend;
+        toast(!q ? 'KGS đã nhận lộ trình mới — so sánh từng buổi đã đọc lại' : q.err ? 'KGS chưa nhận: ' + q.err : 'KGS chưa nhận bản sắp — thử lại', !q ? 'ok' : 'warn', 7000); });
       return;
     }
     if (t.id === 'krDrop') { if (!await ask('Huỷ bản sắp đang chờ gửi sang KGS? Lộ trình bên KGS giữ như hiện tại.', { ok: 'Huỷ bản chờ', danger: true })) return; const l = lane(); l.pend = null; delete FROM[l.spId]; keepR(); init(); paint(); later('kgsLaneDrop', { spId: l.spId, classId: c.id }, 'huỷ bản chờ'); return; }
@@ -16974,7 +16987,7 @@ function clBoard(c, focusId) {
   const nm = id => clDirName(id) || fn[id] || '(không còn trong thư viện)';
   const shortSt = s => ({ taught: 'Đã dạy', out: 'Đã phát', prev: 'Đã duyệt', draft: 'Chờ duyệt', none: 'Trống', off: 'Nghỉ' })[s.k] || s.t;
   // dòng: mọi buổi của lớp (đã dạy / nghỉ chỉ để xem) — buổi đã dạy quá 30 ngày ẩn bớt
-  let rows = all.filter(x => !(x.status === 'taught' && x.date < clAdd(D.today, -30))).map(x => ({ id: x.id, date: x.date, time: x.time || '', ed: clEditable(x), self: clSelf(x), rel: !!x.released, st: clState(x), orig: clCont(x), cur: clCont(x) }));
+  let rows = all.filter(x => !(x.status === 'taught' && x.date < clAdd(D.today, -30))).map(x => ({ id: x.id, date: x.date, time: x.time || '', sj: x.ksj || '', ed: clEditable(x), self: clSelf(x), rel: !!x.released, st: clState(x), orig: clCont(x), cur: clCont(x) }));
   let foc = focusId ? rows.findIndex(r => r.id === focusId) : -1;
   if (foc < 0) foc = rows.findIndex(r => r.ed && r.date >= D.today); if (foc < 0) foc = rows.findIndex(r => r.ed); if (foc < 0) foc = 0;
   let sel = new Set([foc]), anchor = foc, fill = null, drag = null, src = lsGet('bdSrc', 'prog'), fillMode = lsGet('bdFill', 'series'), one = false;
@@ -17032,7 +17045,7 @@ function clBoard(c, focusId) {
   const rowH = (r, i) => {
     const dd = clDay(r.date, D.today), ch = changed(r), fl = fill && i > fill.s && i <= fill.t && r.ed;
     return '<div class="bd-r' + (r.ed ? '' : ' lock') + (sel.has(i) ? ' sel' : '') + (i === foc ? ' foc' : '') + (ch ? ' ch' : '') + (fl ? ' fil' : '') + (dd.diff === 0 ? ' today' : dd.diff < 0 ? ' past' : '') + '" data-i="' + i + '">' +
-      '<span class="bd-d"><b>' + dd.ws + ' ' + dd.dm + '</b><small>' + esc(r.time ? scRange(r.time)[0] : dd.rel) + '</small></span>' +
+      '<span class="bd-d"><b>' + dd.ws + ' ' + dd.dm + '</b><small>' + esc(r.time ? scRange(r.time)[0] : dd.rel) + (r.sj ? ' · ' + esc(r.sj) : '') + '</small></span>' +
       '<div class="bd-c">' + chips(r, i) + (r.ed && i === foc && !fill ? '<i class="bd-fh" title="Kéo xuống để ' + (fillMode === 'copy' ? 'chép nội dung này' : 'xếp tiếp các bài sau') + ' cho các buổi bên dưới"></i>' : '') + '</div>' +
       '<span class="bd-s cl-st ' + (r.add ? 'blue' : r.st.c) + '" title="' + esc(r.st.t) + '"><i class="bi ' + (r.add ? 'bi-plus-circle' : r.st.i) + '"></i><span>' + (r.add ? 'Buổi mới' : shortSt(r.st)) + '</span>' + (ch ? '<em class="bd-dot" title="Đã sửa — chưa lưu"></em>' : '') + '</span></div>';
   };
