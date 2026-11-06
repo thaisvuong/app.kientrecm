@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-04T17:38:40.265Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-06T04:25:16.510Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7041,6 +7041,7 @@ const NAV_DEF = [
      tut = chỉ gia sư · cap classes.manage = chỉ quản lý · tm = tên tab khi là quản lý */
   { r: 'today', t: 'Tổng quan', tt: 'Trang chủ', ti: 'bi-house-door', i: 'bi-grid-1x2', g: 'lib', cap: ['classes.view', 'classes.manage'] },      // tt / ti = tên, biểu tượng khi là gia sư: “Trang chủ” gom bài dạy, tin trung tâm, tin nhắn, yêu cầu trên một trang
   { r: 'classes', t: 'Duyệt & phát', i: 'bi-send-check', g: 'lib', cap: 'classes.manage', m: /^classes(\/todo)?$/ },
+  { r: 'approve', t: 'Duyệt bài', i: 'bi-send-check', g: 'lib', cap: 'classes.approve', nm: 'classes.manage' },      // (1.67) Approve.html — người chỉ có quyền Duyệt bài (VD Asst) · nm = ẩn khi có quyền này (quản lý duyệt ở Duyệt & phát)
   { r: 'classes/list', t: 'Lớp học', tm: 'Danh sách lớp', i: 'bi-people', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/(list|c)(\/|$)/ },
   { r: 'classes/todo', t: 'Buổi học', i: 'bi-calendar2-check', g: 'lib', cap: 'classes.view', tut: 1, m: /^classes(\/todo)?$/ },
   { r: 'classes/tutors', t: 'Gia sư', i: 'bi-person-badge', g: 'lib', cap: 'classes.manage', m: /^classes\/tutors/ },
@@ -7099,7 +7100,7 @@ const GROUPS = { lib: 'Thư viện', team: 'Hỗ trợ', admin: 'Quản trị' }
    Web app chia thành các ứng dụng (danh mục ở máy chủ: MODULES trong Code.gs → S.boot.mods; người này được vào những ứng dụng nào: S.me.apps).
    Mỗi trang thuộc một ứng dụng; thanh bên chỉ hiện tab của ứng dụng đang mở + các tab dùng chung (Thông tin, Hướng dẫn, Cài đặt).
    Mở một trang của ứng dụng khác (link, thông báo…) → tự chuyển sang ứng dụng đó. Thêm ứng dụng: thêm vào MODULES + MOD_ROUTES. */
-const MOD_ROUTES = { tutor: ['today', 'classes', 'guide'], lib: ['home', 'library', 'programs', 'recent', 'links', 'upload', 'sources', 'who'], redesign: ['compose', 'syllabus'], task: ['tasks'], book: ['book'], sys: ['activity', 'users', 'xapps', 'admin'] };      // Nguồn dữ liệu thuộc Thư viện: nạp nguồn ngay tại nơi dùng tài liệu
+const MOD_ROUTES = { tutor: ['today', 'classes', 'approve', 'guide'], lib: ['home', 'library', 'programs', 'recent', 'links', 'upload', 'sources', 'who'], redesign: ['compose', 'syllabus'], task: ['tasks'], book: ['book'], sys: ['activity', 'users', 'xapps', 'admin'] };      // Nguồn dữ liệu thuộc Thư viện: nạp nguồn ngay tại nơi dùng tài liệu
 const MOD_LAST = lsGet('modLast', {});
 /* trang dùng chung giữa các ứng dụng: Chương trình có ở cả Kiến Chuyên môn (lớp gia sư học theo chương trình) lẫn Thư viện (nơi dựng chương trình từ tài liệu) —
    mở từ ứng dụng nào thì ở lại ứng dụng đó, cùng một dữ liệu */
@@ -7113,7 +7114,7 @@ function myMods() { const a = (S.me && S.me.apps) || []; return ((S.boot && S.bo
 function modInfo(id) { return ((S.boot && S.boot.mods) || []).find(m => m.id === id) || null; }
 /** trang mở đầu của một ứng dụng theo quyền */
 function modHome(id) {
-  if (id === 'tutor') return 'today';
+  if (id === 'tutor') return !canAny(['classes.view', 'classes.manage']) && can('classes.approve') ? 'approve' : 'today';      // (1.67) chỉ có quyền Duyệt bài → vào thẳng tab Duyệt bài
   if (id === 'lib') return canAny(['library.view', '@pub']) ? 'home' : canAny(['programs.view', 'programs.manage', '@prog']) ? 'programs' : canAny(['@up']) ? 'upload' : 'library';
   if (id === 'redesign') return 'compose';
   if (id === 'task') return 'tasks';
@@ -7419,7 +7420,7 @@ function navLayout(L) {
   return { groups: groups, items: items };
 }
 /** thứ tự cố định các tab của Kiến Chuyên môn (quản lý): Hướng dẫn kế cuối, Cài đặt lớp cuối — không phụ thuộc bố cục menu đã lưu từ trước khi tách tab */
-const CM_ORDER = ['today', 'classes', 'classes/list', 'classes/tutors', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'classes/stats', 'classes/perms', 'guide', 'classes/settings'];
+const CM_ORDER = ['today', 'approve', 'classes', 'classes/list', 'classes/tutors', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'classes/stats', 'classes/perms', 'guide', 'classes/settings'];
 /** các tab người này thấy, đúng thứ tự (gia sư: thứ tự công việc) */
 function navItems(lay) {
   lay = lay || navLayout();
@@ -7427,7 +7428,7 @@ function navItems(lay) {
   const mgr = can('classes.manage');
   const tut = isTutor();
   let items = lay.items.map(x => (x.tm && mgr && x.t === x.dt ? Object.assign({}, x, { t: x.tm }) : tut && x.tt && x.t === x.dt ? Object.assign({}, x, { t: x.tt, i: x.ti }) : x))
-    .filter(x => !x.hide && canAny(x.cap) && (!x.on || (S.boot && S.boot[x.on])) && (!x.off || !(S.boot && S.boot[x.off])) && (!x.tut || tut) && !(x.nt && tut) && (!modOf(x.r) || !S.mod || modOf(x.r) === S.mod) && (!x.multi || nMods > 1 || tutApps()));
+    .filter(x => !x.hide && canAny(x.cap) && !(x.nm && can(x.nm)) && (!x.on || (S.boot && S.boot[x.on])) && (!x.off || !(S.boot && S.boot[x.off])) && (!x.tut || tut) && !(x.nt && tut) && (!modOf(x.r) || !S.mod || modOf(x.r) === S.mod) && (!x.multi || nMods > 1 || tutApps()));
   if (!isTutor() && S.mod === 'tutor') { const at = [], sub = []; items.forEach((x, i) => { if (CM_ORDER.indexOf(x.r) >= 0) { at.push(i); sub.push(x); } }); sub.sort((a, b) => CM_ORDER.indexOf(a.r) - CM_ORDER.indexOf(b.r)); items = items.slice(); at.forEach((i, k) => { items[i] = sub[k]; }); }
   if (isTutor()) items = items.slice().sort((a, b) => { const ia = TUT_ORDER.indexOf(a.r), ib = TUT_ORDER.indexOf(b.r); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
   return items;
@@ -7448,7 +7449,7 @@ function buildNav(L) {
     h += L2.map((x, k) => (x.pg && (k === 0 || L2[k - 1].pg !== x.pg) ? (k && L2[k - 1].pg ? '</div>' : '') + '<button type="button" class="nav-i nav-grp" data-pg="' + esc(x.pg) + '" aria-expanded="' + !(shut[x.pg] && !L2.some(y => y.pg === x.pg && y.r === cur)) + '" title="' + esc(x.pg) + '"><i class="bi ' + esc(x.pgi || 'bi-folder2') + '"></i><span class="nav-t">' + esc(x.pg) + '</span><i class="bi bi-chevron-down nav-cv"></i></button><div class="nav-sub">'
         : !x.pg && k && L2[k - 1].pg ? '</div>' : '') +
       '<a class="nav-i' + (x.pg ? ' nav-k' : '') + (modOf(x.r) ? '' : ' c' + (x === L2.find(y => !modOf(y.r)) ? ' c1' : '')) + '" data-r="' + x.r + '" href="' + esc(routeUrl(x.r)) + '" title="' + esc(x.pg ? x.pg + ' · ' + x.t : x.t) + '"><i class="bi ' + esc(x.i) + '"></i><span class="nav-t">' + esc(x.t) + '</span>' +
-      (x.r === 'library' ? '<span class="nav-badge" id="navN">' + fmtN(IX.files.length) + '</span>' : '') + (x.r === 'classes' || x.r === 'classes/todo' ? '<span class="nav-badge warn" id="navT" title="Buổi học cần gán bài"' + (S.boot.todo ? '' : ' hidden') + '>' + (S.boot.todo || 0) + '</span>' : '') + (x.r === 'info' ? '<span class="nav-badge" id="navI" hidden></span>' : '') + (x.r === 'today' && isTutor() ? '<span class="nav-badge warn" id="navTd" hidden></span>' : '') + (x.r === 'classes/reqs' || x.r === 'classes/notes' ? '<span class="nav-badge warn" id="navR" hidden></span>' : '') + (x.r === 'classes/inbox' ? '<span class="nav-badge warn" id="navC" hidden></span>' : '') + (x.r === 'users' && S.boot.pending ? '<span class="nav-badge warn" id="navP" title="Tài khoản chờ duyệt">' + S.boot.pending + '</span>' : '') + '</a>').join('') + (L2.length && L2[L2.length - 1].pg ? '</div>' : '');
+      (x.r === 'library' ? '<span class="nav-badge" id="navN">' + fmtN(IX.files.length) + '</span>' : '') + (x.r === 'approve' ? '<span class="nav-badge warn" id="navA" title="Buổi chờ duyệt"' + (S.boot.appr ? '' : ' hidden') + '>' + (S.boot.appr || 0) + '</span>' : '') + (x.r === 'classes' || x.r === 'classes/todo' ? '<span class="nav-badge warn" id="navT" title="Buổi học cần gán bài"' + (S.boot.todo ? '' : ' hidden') + '>' + (S.boot.todo || 0) + '</span>' : '') + (x.r === 'info' ? '<span class="nav-badge" id="navI" hidden></span>' : '') + (x.r === 'today' && isTutor() ? '<span class="nav-badge warn" id="navTd" hidden></span>' : '') + (x.r === 'classes/reqs' || x.r === 'classes/notes' ? '<span class="nav-badge warn" id="navR" hidden></span>' : '') + (x.r === 'classes/inbox' ? '<span class="nav-badge warn" id="navC" hidden></span>' : '') + (x.r === 'users' && S.boot.pending ? '<span class="nav-badge warn" id="navP" title="Tài khoản chờ duyệt">' + S.boot.pending + '</span>' : '') + '</a>').join('') + (L2.length && L2[L2.length - 1].pg ? '</div>' : '');
   });
   $('#sbNav').innerHTML = h;
   NAV_ITEMS = items;
@@ -7723,6 +7724,7 @@ const ROUTES = {
   recent:   { t: 'Mới cập nhật', i: 'bi-stars', fn: (a, v) => viewRecent(a, v), cap: 'library.view', ix: 1 },
   file:     { t: 'Xem tài liệu', i: 'bi-file-earmark-pdf', fn: (a, v) => viewFile(a, v), nav: 'library', nocache: 1, cls: 'vw-view', ix: 1 },
   classes:  { t: 'Lớp gia sư', i: 'bi-person-video3', fn: (a, v) => viewClasses(a, v), arg: 1, cls: 'cl-view', cap: ['classes.view', 'classes.manage'], ix: 1 },
+  approve:  { t: 'Duyệt bài', i: 'bi-send-check', fn: (a, v) => viewAppr(a, v), cap: ['classes.approve', 'classes.manage'] },      // (1.67) Approve.html
   links:    { t: 'Link tạm', i: 'bi-link-45deg', fn: (a, v) => viewLinks(a, v), arg: 1, cls: 'lk-view', cap: 'links.manage', ix: 1 },
   upload:   { t: 'Upload file', i: 'bi-cloud-arrow-up', fn: (a, v) => viewUpload(a, v), arg: 1, cap: ['sources.manage', '@up'] },
   compose:  { t: 'Soạn phiếu', i: 'bi-file-earmark-richtext', fn: (a, v) => viewCompose(a, v), arg: 1, cls: 'cp-view', cap: 'compose.use' },
@@ -17423,6 +17425,142 @@ function hmTutorCard() {
   return '<div class="card-h"><h2><i class="bi bi-person-badge"></i>Gia sư cần nhắc</h2><span class="hm-pill">' + nT + ' gia sư</span><span class="sp"></span><button class="btn xs ghost" data-go="classes/tutors">Gia sư<i class="bi bi-arrow-right"></i></button></div><div class="card-b hm-tu">' +
     (L.length ? L.map(o => '<div class="hm-tr2"><span class="av sm">' + esc(initials(o.name)) + '</span><span class="hm-tn2"><b>' + zlName(o.name, o.em) + '</b><small>' + o.cls.size + ' lớp' + (o.today ? ' · ' + o.today + ' buổi hôm nay' : '') + '</small></span><em class="hm-late">' + o.late + ' buổi quên “Đã dạy”</em></div>').join('')
       : '<div class="hm-free ok"><i class="bi bi-check2-circle"></i>Mọi gia sư đã xác nhận đủ các buổi đã qua</div>') + '</div>';
+}
+</script>
+
+<style>
+/* (1.67) DUYỆT BÀI — tab riêng cho người chỉ có quyền Duyệt bài (classes.approve). Chỉ dùng token màu → chế độ tối tự khớp, không cần sinh lại Dark.html */
+.ap-bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+.ap-bar .search{ flex:1 1 220px; max-width:340px }
+.ap-day{ margin:18px 2px 8px; font-size:12.5px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; display:flex; gap:8px; align-items:center }
+.ap-day b{ color:var(--ink) } .ap-day .ap-rel{ font-weight:600; text-transform:none; letter-spacing:0 }
+.ap-row{ display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:start; padding:12px 14px; border:1px solid var(--border); border-radius:var(--r-l); background:var(--surface); margin-bottom:8px }
+.ap-row.on{ border-color:color-mix(in oklab, var(--ok) 45%, var(--border)) }
+.ap-ck{ margin-top:3px; width:18px; height:18px; accent-color:var(--primary) }
+.ap-ck:disabled{ opacity:.35 }
+.ap-m{ min-width:0 }
+.ap-t{ display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline }
+.ap-t b{ font-size:15px; color:var(--ink) } .ap-t small{ color:var(--muted) }
+.ap-les{ margin-top:6px; display:flex; flex-wrap:wrap; gap:6px }
+.ap-les span{ font-size:12.5px; padding:3px 9px; border-radius:999px; background:var(--surface-3); color:var(--ink-2); border:1px solid var(--border) }
+.ap-les span.x{ border-style:dashed }
+.ap-note{ margin-top:6px; font-size:12.5px; color:var(--ink-2); display:flex; gap:6px } .ap-note i{ color:var(--warn) }
+.ap-st{ font-size:11.5px; font-weight:800; padding:3px 9px; border-radius:999px; white-space:nowrap }
+.ap-st.d{ background:color-mix(in oklab, var(--warn) 14%, transparent); color:var(--warn) }
+.ap-st.a{ background:color-mix(in oklab, var(--ok) 14%, transparent); color:var(--ok) }
+.ap-act{ display:flex; flex-direction:column; gap:6px; align-items:flex-end }
+.ap-act .row{ display:flex; gap:6px }
+.ap-by{ font-size:11.5px; color:var(--muted); text-align:right }
+.ap-foot{ position:sticky; bottom:0; z-index:2; margin-top:12px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--r-l); background:var(--surface); box-shadow:var(--sh-2); display:flex; gap:10px; align-items:center }
+.ap-foot .sp{ flex:1 } .ap-foot label, .ap-foot .btn{ white-space:nowrap }
+.ap-files{ display:flex; flex-direction:column; gap:6px }
+.ap-file{ display:flex; gap:10px; align-items:center; padding:8px 10px; border:1px solid var(--border); border-radius:var(--r-m) }
+.ap-file > span:not(.fic){ flex:1; min-width:0 } .ap-file small{ display:block; color:var(--muted) }
+@media (max-width:820px){ .ap-foot{ bottom:calc(80px + max(var(--sab) - 18px, 0px)) } }      /* nằm trên thanh tab nổi của điện thoại */
+@media (max-width:640px){
+  .ap-row{ grid-template-columns:auto 1fr }
+  .ap-act{ grid-column:1 / -1; flex-direction:row; justify-content:space-between; align-items:center }
+}
+</style>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   (1.67) DUYỆT BÀI — người được cấp quyền “Duyệt bài cho buổi học” (classes.approve) mà không quản lý lớp (VD Asst).
+   · Máy chủ: apprList (buổi chờ duyệt / đã duyệt chưa dạy của mọi lớp đang học, 14 ngày trước → hạn xếp bài trước) · apprFiles (tệp vào link của buổi)
+     · sessionApprove (duyệt / bỏ duyệt — chung với Duyệt & phát).
+   · Chỉ duyệt / bỏ duyệt: không sửa lớp, không gán bài. Buổi còn trống bài không hiện (cần quản lý gán bài trước).
+   · Người quản lý mọi lớp (classes.manage) không thấy tab này — họ duyệt ở Duyệt & phát như cũ.
+   ══════════════════════════════════════════════════════════════ */
+const AP = { d: null, st: 'draft', q: '', sel: new Set() };
+function apCk() { return 'apCache:' + (S.me && S.me.email) + (S.as ? '#' + S.as : ''); }
+async function apLoad() { const d = await rpc('apprList', {}, { quiet: true }); AP.d = d; lsSet(apCk(), d); apBadge(); return d; }
+function apBadge() { if (!AP.d) return; const n = AP.d.list.filter(x => x.status === 'draft').length; S.boot.appr = n; const b = $('#navA'); if (b) { b.textContent = n; b.hidden = !n; } }
+function apCls(id) { return (AP.d.classes || []).find(c => c.id === id) || {}; }
+
+async function viewAppr(arg, v) {
+  setTitle('Duyệt bài', 'bi-send-check', [{ t: S.boot.app, r: 'approve' }], v);
+  const cached = lsGet(apCk(), null);
+  if (cached && cached.list) { AP.d = cached; apLoad().then(() => apPaint(v)).catch(() => {}); }
+  else { v.innerHTML = miniLoader('Đang tải các buổi chờ duyệt…'); try { await apLoad(); } catch (e) { v.innerHTML = '<div class="card"><div class="empty" style="padding:40px"><i class="bi bi-exclamation-triangle"></i>' + esc(e.message) + '</div></div>'; return; } }
+  v._onShow = () => apLoad().then(() => apPaint(v)).catch(() => {});
+  apPaint(v);
+}
+
+function apPaint(v) {
+  if (!AP.d || !v.isConnected) return;
+  const D = AP.d, t = D.today, w = fold(AP.q).split(/\s+/).filter(Boolean);
+  const hit = x => { const c = apCls(x.classId); return !w.length || w.every(z => fold([c.name, c.code, c.tutor, c.prog, c.grade, x.les.join(' '), x.extra.join(' '), x.tags.join(' ')].join(' ')).indexOf(z) >= 0); };
+  const all = D.list.filter(hit), nD = all.filter(x => x.status === 'draft').length, nA = all.length - nD;
+  const L = all.filter(x => AP.st === 'all' || x.status === (AP.st === 'draft' ? 'draft' : 'approved'));
+  [...AP.sel].forEach(id => { if (!L.some(x => x.id === id && x.status === 'draft')) AP.sel.delete(id); });
+  const seg = (k, txt, n) => '<button class="seg-b" data-st="' + k + '" aria-pressed="' + (AP.st === k) + '">' + txt + ' <span class="lk-n">' + n + '</span></button>';
+  let last = '', h = '';
+  L.forEach(x => {
+    if (x.date !== last) { last = x.date; const dd = clDay(x.date, t); h += '<div class="ap-day"><b>' + dd.w + ' ' + dd.dm + '</b><span class="ap-rel">' + dd.rel + '</span></div>'; }
+    const c = apCls(x.classId), dr = x.status === 'draft';
+    h += '<div class="ap-row' + (AP.sel.has(x.id) ? ' on' : '') + '" data-id="' + x.id + '">' +
+      '<input type="checkbox" class="ap-ck" data-ck="' + x.id + '"' + (dr ? '' : ' disabled') + (AP.sel.has(x.id) ? ' checked' : '') + ' aria-label="Chọn buổi ' + esc(c.name || '') + '">' +
+      '<div class="ap-m"><div class="ap-t"><b>' + esc(c.name || c.code || 'Lớp') + '</b><small>' + esc([x.time, c.grade, c.prog, c.tutor && 'GS ' + c.tutor].filter(Boolean).join(' · ')) + '</small></div>' +
+        '<div class="ap-les">' + x.les.map(n => '<span>' + esc(n) + '</span>').join('') + x.extra.map(n => '<span class="x" title="Tệp thêm">' + esc(n) + '</span>').join('') + '</div>' +
+        (x.tags.length ? '<div class="ap-note"><i class="bi bi-bookmark"></i><span>' + esc(x.tags.join(' + ')) + '</span></div>' : '') +
+        (x.lnote ? '<div class="ap-note"><i class="bi bi-sticky"></i><span>' + esc(x.lnote) + '</span></div>' : '') + '</div>' +
+      '<div class="ap-act"><span class="ap-st ' + (dr ? 'd">Chờ duyệt' : 'a">Đã duyệt') + '</span>' +
+        (!dr && (x.by || x.at) ? '<span class="ap-by">' + esc([x.by, x.at && clDay(String(x.at).slice(0, 10), t).dm].filter(Boolean).join(' · ')) + '</span>' : '') +
+        '<div class="row"><button class="btn xs ghost" data-pv="' + x.id + '"><i class="bi bi-eye"></i>Xem</button>' +
+        (dr ? '<button class="btn xs pri" data-ok="' + x.id + '"><i class="bi bi-check2"></i>Duyệt</button>' : '<button class="btn xs ghost" data-undo="' + x.id + '"><i class="bi bi-arrow-counterclockwise"></i>Bỏ duyệt</button>') + '</div></div></div>';
+  });
+  const nSel = AP.sel.size, nDv = L.filter(x => x.status === 'draft').length;
+  v.innerHTML = '<div class="card"><div class="card-h"><div class="ap-bar"><div class="seg" id="apSt">' + seg('draft', 'Chờ duyệt', nD) + seg('ok', 'Đã duyệt', nA) + seg('all', 'Tất cả', all.length) + '</div>' +
+      '<div class="search"><i class="bi bi-search"></i><input class="inp" id="apQ" placeholder="Tìm học sinh, gia sư, bài…" value="' + esc(AP.q) + '" autocomplete="off"></div></div></div>' +
+    '<div class="card-b small muted"><i class="bi bi-info-circle"></i> Buổi đã có bài, từ 14 ngày trước tới hạn xếp bài trước của từng lớp. Duyệt xong gia sư nhận được nội dung (lớp bật tự tạo link thì có link ngay). ' +
+      'Bạn chỉ duyệt / bỏ duyệt — đổi bài, sửa lớp nhờ quản lý lớp.' + (D.view ? '' : ' Xem trước tài liệu cần thêm quyền <b>Xem thư viện</b> (nhờ Quản trị bật).') + '</div></div>' +
+    (L.length ? h : '<div class="card" style="margin-top:12px"><div class="empty" style="padding:40px"><i class="bi bi-check2-circle"></i>' + (AP.st === 'draft' ? 'Không còn buổi nào chờ duyệt' : 'Không có buổi nào') + '</div></div>') +
+    (nDv ? '<div class="ap-foot"><label class="row" style="gap:8px" title="Chọn mọi buổi chờ duyệt đang hiện (theo ô tìm)"><input type="checkbox" class="ap-ck" id="apAll"' + (nSel && nSel === nDv ? ' checked' : '') + '>Chọn tất cả (' + nDv + ')</label><span class="sp"></span>' +
+      '<button class="btn sm pri" id="apGo"' + (nSel ? '' : ' disabled') + '><i class="bi bi-check2-all"></i>Duyệt ' + (nSel ? nSel + ' buổi' : 'đã chọn') + '</button></div>' : '');
+  const qi = $('#apQ', v); qi.oninput = debounce(() => { AP.q = qi.value; const p = qi.selectionStart; apPaint(v); const n = $('#apQ', v); n.focus(); n.setSelectionRange(p, p); }, 180);
+  v.onchange = e => {
+    const ck = e.target.closest('[data-ck]'); if (ck) { ck.checked ? AP.sel.add(ck.dataset.ck) : AP.sel.delete(ck.dataset.ck); return apPaint(v); }
+    if (e.target.id === 'apAll') { if (e.target.checked) L.filter(x => x.status === 'draft').forEach(x => AP.sel.add(x.id)); else AP.sel.clear(); apPaint(v); }
+  };
+  v.onclick = async e => {
+    const s = e.target.closest('[data-st]'); if (s) { AP.st = s.dataset.st; AP.sel.clear(); return apPaint(v); }
+    const pv = e.target.closest('[data-pv]'); if (pv) { if (pv.disabled) return; const h0 = pv.innerHTML; pv.disabled = true; pv.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang mở';
+      return apPreview(D.list.find(x => x.id === pv.dataset.pv)).finally(() => { pv.disabled = false; pv.innerHTML = h0; }); }
+    const ok = e.target.closest('[data-ok]'); if (ok) return apDo(v, [ok.dataset.ok], false, ok);
+    const un = e.target.closest('[data-undo]'); if (un) return apDo(v, [un.dataset.undo], true, un);
+    if (e.target.closest('#apGo')) return apDo(v, [...AP.sel], false, $('#apGo', v));
+  };
+}
+
+/** duyệt / bỏ duyệt: đổi ngay trên màn hình, máy chủ trả lỗi thì tải lại */
+async function apDo(v, ids, undo, btn) {
+  if (!ids.length) return;
+  if (S.me && S.me.preview) return toast('Đang xem thử — không lưu', 'warn');
+  const L = AP.d.list.filter(x => ids.indexOf(x.id) >= 0), keep = L.map(x => [x, x.status]);
+  if (btn) btn.disabled = true;
+  L.forEach(x => { x.status = undo ? 'draft' : 'approved'; if (!undo) { x.by = S.me.name || S.me.email; x.at = new Date().toISOString(); } AP.sel.delete(x.id); });
+  apBadge(); apPaint(v);
+  try {
+    const r = await rpc('sessionApprove', undo ? { ids: ids, undo: 1 } : { ids: ids }, { quiet: true });
+    const n = Number(r && r.approved) || 0, nm = L.length === 1 ? apCls(L[0].classId).name : L.length + ' buổi';
+    toast(undo ? 'Đã bỏ duyệt ' + nm : 'Đã duyệt ' + nm + (r && r.links ? ' · đã tạo ' + r.links + ' link' : ''), n ? 'ok' : 'info', 6000, '',
+      undo ? null : { t: 'Hoàn tác', fn: () => apDo(v, ids, true) });
+    if (r && r.errors && r.errors.length) toast(r.errors[0], 'warn', 7000);
+    if (!n) toast(undo ? 'Buổi không còn ở trạng thái đã duyệt' : 'Buổi đã được duyệt / đổi trước đó', 'info');
+  } catch (e) { keep.forEach(o => { o[0].status = o[1]; }); toast(e.message, 'err', 7000); }
+  apLoad().then(() => apPaint(v)).catch(() => apPaint(v));
+}
+
+/** xem trước tài liệu sẽ vào link của buổi (cùng khung xem với Duyệt & phát) */
+async function apPreview(x) {
+  if (!x) return;
+  const c = apCls(x.classId), title = (c.name || c.code) + ' · ' + clDay(x.date, AP.d.today).dm;
+  let r; try { r = await rpc('apprFiles', { id: x.id }); } catch (e) { return toast(e.message, 'err'); }
+  const ok = r.files.filter(f => f.ok);
+  if (ok.length && typeof clPreview === 'function') return clPreview(title, ok, true);
+  modal({ title: title, icon: 'bi-files', body: (r.files.length ? '<div class="ap-files">' + r.files.map(f => '<div class="ap-file">' + ficon(f.type) + '<span><b>' + esc(clFName(f.name)) + '</b><small>' + esc([f.d, f.kind].filter(Boolean).join(' · ')) + '</small></span></div>').join('') + '</div>' +
+      '<div class="small muted" style="margin-top:10px"><i class="bi bi-lock"></i> Bạn chưa xem được nội dung các tệp này — nhờ Quản trị bật thêm quyền <b>Xem thư viện</b> cho vai trò của bạn.</div>'
+    : '<div class="lk-empty"><i class="bi bi-file-earmark-x"></i><span>' + esc(r.why || 'Buổi này chưa có tệp ghép được vào link') + '</span></div>'),
+    foot: [{ t: 'Đóng', cls: 'ghost' }] });
 }
 </script>
 
