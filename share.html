@@ -1146,6 +1146,10 @@ html[data-glass] .lib-bar{ background:#EEF1F7 !important; -webkit-backdrop-filte
 
 /* ══════════ MENU THẢ XUỐNG ══════════ */
 .menu{ position:fixed; z-index:790; min-width:220px; max-width:min(360px, calc(100vw - 16px)); padding:5px; background:var(--surface); border:1px solid var(--border-strong); border-radius:14px; box-shadow:var(--sh-3); animation:popIn 180ms var(--spring) }
+.menu.has-q{ overflow-y:auto }
+.menu-q{ position:sticky; top:-5px; z-index:1; display:flex; align-items:center; gap:7px; margin:-5px -5px 4px; padding:8px 11px; background:var(--surface); border-bottom:1px solid var(--border) }
+.menu-q i{ color:var(--muted) } .menu-q input{ flex:1; min-width:0; border:0; outline:0; background:transparent; font:13px var(--font-sans); color:var(--ink) }
+.act-l .menu-q{ position:sticky; top:0; margin:0 0 6px; padding:10px 12px; border:1px solid var(--border); border-radius:12px } .act-l .menu-q input{ font-size:16px }
 .menu button{ display:flex; width:100%; align-items:center; gap:10px; min-height:36px; padding:7px 10px; border:0; background:none; border-radius:9px; cursor:pointer; font-size:12.5px; text-align:left; color:var(--ink) }
 .menu button:hover, .menu button:focus-visible{ background:var(--brand-50); outline:none }
 .menu button > i{ color:var(--muted); width:16px; text-align:center; flex-shrink:0 }
@@ -5062,10 +5066,13 @@ const V = { L: null, docs: [], zoom: 1, main: null, obs: null, total: 0, cur: 0 
 const ZS = [0.5, 0.67, 0.8, 0.9, 1, 1.15, 1.3, 1.5, 1.75, 2, 2.5];
 const targetW = () => Math.min(1000, Math.max(240, V.main.clientWidth - (innerWidth <= 820 ? 12 : 28)));
 
-async function start() {
+async function start(tries) {
   let L;
   try { L = await rpc('shareOpen', { t: TOKEN, ua: navigator.userAgent }); }
-  catch (e) { return fail(e.code === 'EXPIRED' ? 'Link đã hết hạn' : e.code === 'GONE' ? 'Link không còn hiệu lực' : 'Không mở được link', e.message, e.code === 'GONE' ? 'bi-link-45deg' : 'bi-hourglass-bottom'); }
+  catch (e) {
+    // (1.69) link in vừa tạo trên máy gia sư (hiện ngay, lưu ngầm) — mở trước khi máy chủ lưu xong → chờ thêm vài giây rồi thử lại
+    if (e.code === 'GONE' && /không tồn tại/.test(e.message || '') && (tries || 0) < 12) { const t = document.querySelector('#load .ld-t'); if (t) t.textContent = 'Link đang được chuẩn bị… (' + ((tries || 0) + 1) + ')'; return setTimeout(() => start((tries || 0) + 1), 2500); }
+    return fail(e.code === 'EXPIRED' ? 'Link đã hết hạn' : e.code === 'GONE' ? 'Link không còn hiệu lực' : 'Không mở được link', e.message, e.code === 'GONE' ? 'bi-link-45deg' : 'bi-hourglass-bottom'); }
   V.L = L; V.box = PNK.box(L.pnum);
   document.title = L.name + ' · ' + (L.app || 'Kiến Chuyên môn');
   $('#app').textContent = L.app || 'Kiến Chuyên môn';
