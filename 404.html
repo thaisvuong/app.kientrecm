@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-06T08:05:34.629Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-06T08:42:52.976Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -16729,7 +16729,8 @@ async function clPbOpen(L, btn) {
   let r = hit && hit.k === sig ? hit.r : null, touched = false;
   const fresh = rpc('printPickList', { ids: ids }, { quiet: true }).then(x => { lsSet(clPbKey(), { k: sig, at: Date.now(), r: x }); return x; });
   if (!r) { try { r = await fresh; } catch (e) { m.close(); return fail(e); } }
-  else fresh.then(x => { if (m.closed || touched || JSON.stringify(x.sessions) === JSON.stringify(r.sessions)) return; r = x; init(); step1(); }).catch(() => {});      // bản trên máy cũ hơn → vẽ lại khi người dùng chưa chọn gì
+  else fresh.then(x => { if (m.closed) return; r.qltt = x.qltt; r.centers = x.centers; r.linkBase = x.linkBase || r.linkBase;      // (1.69.1) cờ Gửi cho QLTT / trung tâm luôn theo bản mới
+    if (touched || JSON.stringify(x.sessions) === JSON.stringify(r.sessions)) return; r = x; init(); step1(); }).catch(() => {});      // bản trên máy cũ hơn → vẽ lại khi người dùng chưa chọn gì
   if (m.closed) return;
   const t = CL.d.today; let SS, max, pick, rg;      // SS = các buổi (không đặt tên S — trùng S toàn cục: người dùng, boot)
   const R = { today: ['Hôm nay', s => s.date === t], tom: ['Ngày mai', s => s.date === clAdd(t, 1)], week: ['7 ngày tới', s => s.date >= t && s.date <= clAdd(t, 6)], all: ['Tất cả', () => true] };
@@ -16786,7 +16787,7 @@ async function clPbOpen(L, btn) {
     body.innerHTML = '<div class="pb-sum"><b>' + nf + ' tệp · ' + K.length + ' bé — mỗi bé một link riêng</b><ol>' + K.map(g => '<li><b>' + esc(g.who) + '</b> <small>— ' + g.nf + ' tệp · ' + g.L.map(o => when(o.s)).join(', ') + (g.L.some(o => o.f.some(f => f.ans)) ? ' · có lời giải' : '') + '</small></li>').join('') + '</ol></div>' +
       '<div class="pb-opts"><button type="button" class="pb-o" data-o="print"><i class="bi bi-file-earmark-pdf"></i><b>Mở bản in</b><small>Mỗi bé một bản gộp theo đúng thứ tự → In, hoặc Lưu thành PDF</small></button>' +
       '<button type="button" class="pb-o" data-o="send"><i class="bi bi-send"></i><b>Tạo link gửi</b><small>Mỗi bé một link chứa đúng tệp đã chọn — gửi cho phụ huynh / tiệm in</small></button>' +
-      '<button type="button" class="pb-o qt" data-o="qltt"' + (C.length ? '' : ' disabled') + '><i class="bi bi-buildings"></i><b>Gửi cho QLTT</b><small>' + (C.length ? 'Quản lý trung tâm in giúp — chọn trung tâm (' + esc(C.map(c => c.name).slice(0, 3).join(', ')) + (C.length > 3 ? '…' : '') + ')' : 'Quản lý chưa thiết lập trung tâm (Kiến CM › Trung tâm & QLTT)') + '</small></button></div>';
+      (r.qltt === 0 ? '' : '<button type="button" class="pb-o qt" data-o="qltt"' + (C.length ? '' : ' disabled') + '><i class="bi bi-buildings"></i><b>Gửi cho QLTT</b><small>' + (C.length ? 'Quản lý trung tâm in giúp — chọn trung tâm (' + esc(C.map(c => c.name).slice(0, 3).join(', ')) + (C.length > 3 ? '…' : '') + ')' : 'Quản lý chưa thiết lập trung tâm (Kiến CM › Trung tâm & QLTT)') + '</small></button>') + '</div>';      // (1.69.1) quản lý tắt Gửi cho QLTT → ẩn hẳn
     foot.innerHTML = '<span class="pb-c"></span><button type="button" class="btn ghost" data-back><i class="bi bi-arrow-left"></i>Chọn lại</button>';
     body.scrollTop = 0;
   };
@@ -17869,6 +17870,8 @@ async function clCenters(B, v) {
       (r.note ? '<div class="nt">' + esc(r.note) + '</div>' : '') +
       r.items.map(x => '<div class="kd"><i class="bi bi-person"></i><span>Bé <b>' + esc(x.who) + '</b> · ' + x.files + ' tệp · ' + x.sessions + ' buổi' + (x.dates ? ' · ' + esc(x.dates) : '') + '</span><a class="btn xs ghost" href="' + esc(x.url) + '" target="_blank" rel="noopener"><i class="bi bi-printer"></i>Mở</a></div>').join('') + '</div>';
     B.innerHTML = '<div class="card"><div class="card-h"><h2><i class="bi bi-buildings"></i>Trung tâm & Quản lý trung tâm (QLTT)</h2><span class="sp"></span><button class="btn sm pri" data-add><i class="bi bi-plus-lg"></i>Thêm trung tâm</button></div>' +
+        '<div class="card-b ct-on"><label class="row" style="gap:10px"><span class="sw"><input type="checkbox" id="ctOn"' + (D.on !== 0 ? ' checked' : '') + '><span></span></span><span><b>Cho gia sư gửi QLTT</b><small class="muted" style="display:block">' +
+          (D.on !== 0 ? 'Đang bật — gia sư thấy lựa chọn “Gửi cho QLTT” ở In tài liệu' : 'Đang tắt — gia sư không thấy lựa chọn “Gửi cho QLTT”; trung tâm, QLTT và trang in vẫn giữ để bật lại lúc nào cũng được') + '</small></span></label></div>' +
         '<div class="card-b small muted">Gia sư chọn tài liệu ở <b>In tài liệu</b> → <b>Gửi cho QLTT</b> → chọn trung tâm. QLTT mở <b>trang in</b> của trung tâm (không cần đăng nhập), thấy từng yêu cầu tách theo <b>gia sư › bé</b>, mở link in từng bé rồi bấm <b>Đã in</b> — gia sư được báo. Bật mail thì QLTT có email nhận thêm mail mỗi lần có yêu cầu.</div></div>' +
       (D.centers.length ? '<div class="ct-grid" style="margin-top:12px">' + D.centers.map((c, i) => { const mine = (D.reqs || []).filter(r => r.center === c.id), nNew = mine.filter(r => r.status !== 'done').length;
         return '<div class="ct-c"><div class="ct-h"><div><b>' + esc(c.name) + '</b>' + (c.addr ? '<small>' + esc(c.addr) + '</small>' : '') + '</div><span class="ct-tag' + (c.mail ? ' on' : '') + '"><i class="bi bi-envelope"></i> ' + (c.mail ? 'Gửi mail' : 'Không mail') + '</span>' +
@@ -17907,6 +17910,12 @@ async function clCenters(B, v) {
     m.$('#ctQa').onclick = () => { read(); c.qltt.push({ name: '', email: '', phone: '', note: '' }); repaint(); const L = m.$$('#ctQ [data-k="name"]'); L[L.length - 1].focus(); };
     m.$('#ctQ').onclick = e => { const b = e.target.closest('[data-rmq]'); if (!b) return; read(); c.qltt.splice(Number(b.dataset.rmq), 1); repaint(); };
     setTimeout(() => m.$('#ctN').focus(), 60);
+  };
+  B.onchange = async e => {
+    if (e.target.id !== 'ctOn') return;
+    const on = e.target.checked; e.target.disabled = true;
+    try { D = await rpc('centersOn', { on: on ? 1 : 0 }); lsSet(CK, D); paint(); toast(on ? 'Đã bật — gia sư thấy “Gửi cho QLTT”' : 'Đã tắt — gia sư không thấy “Gửi cho QLTT”', 'ok'); }
+    catch (er) { fail(er); e.target.checked = !on; e.target.disabled = false; }
   };
   B.onclick = async e => {
     if (e.target.closest('[data-add]')) return edit(null);
