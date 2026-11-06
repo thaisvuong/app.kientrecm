@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-06T08:42:52.976Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-06T11:51:53.534Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -42,7 +42,8 @@
   window.KT_PATH = toPath; window.KT_ROUTE = toRoute;
 
   var path = location.pathname.replace(/^\/+/, ''), q = new URLSearchParams(location.search);
-  if (/^s\//.test(path)) { window.KT_STOP = 1; q.set('t', path.slice(2)); location.replace('/share.html?' + q.toString()); return; }      // link tạm → trang xem link tạm (app không khởi động)
+  if (/^s\//.test(path)) { window.KT_STOP = 1; q.set('t', path.slice(2)); location.replace('/share.html?' + q.toString()); return; }
+  if (/^b\/[\w-]+$/.test(path)) { window.KT_STOP = 1; q.set('t', path.slice(2)); location.replace('/book.html?' + q.toString()); return; }      // (1.70) link tạm Kiến Cẩm Nang → book.html      // link tạm → trang xem link tạm (app không khởi động)
   if (path === 'index.html' || path === '404.html') path = '';
   var route = q.get('page') || toRoute(path) || 'home';
   window.INIT_ROUTE = route;
@@ -7096,7 +7097,7 @@ const NAV_DEF = [
   { r: 'tasks/perf', t: 'Hiệu suất', i: 'bi-graph-up-arrow', g: 'lib', cap: 'tasks.tab.perf', m: /^tasks\/perf/ },
   /* Quản trị Kiến Task (1.43): một tab gom Phân quyền · Thống kê bảng · Cài đặt (nhắc việc, dữ liệu mẫu) — mục con hiện theo quyền */
   { r: 'tasks/admin', t: 'Quản trị', i: 'bi-shield-check', g: 'lib', cap: ['tasks.roles', 'tasks.boards', 'tasks.remind', 'tasks.manage'], m: /^tasks\/(admin|roles|boards)/ },
-  { r: 'guide', t: 'Hướng dẫn', i: 'bi-book', g: 'team' },
+  // (1.70) bỏ tab Hướng dẫn khỏi thanh bên — hướng dẫn nằm ở Kiến Cẩm Nang; link cũ …/guide vẫn mở được
   { r: 'trash', t: 'Thùng rác', i: 'bi-trash3', g: 'admin', cap: ['classes.view', 'classes.manage', 'settings.manage', 'sources.manage', 'programs.manage', 'users.manage', 'links.manage', 'book.manage', 'tasks.tab.board'] },
   { r: 'activity', t: 'Hoạt động', i: 'bi-activity', g: 'admin', cap: 'activity.view' },
   { r: 'sources', t: 'Nguồn dữ liệu', i: 'bi-hdd-network', g: 'lib', cap: 'sources.manage' },
@@ -10997,6 +10998,8 @@ async function setZalo(B) {
    Máy chủ: KgsSync.gs. */
 async function setKgs(B) {
   let K = null;
+  // (1.70) vùng nội dung dùng chung giữa các tab của Lớp gia sư: đã chuyển tab thì KHÔNG vẽ đè (trước: tải ngầm xong vẽ Báo cáo KGS lên tab Danh sách lớp, nút không bấm được)
+  const myTab = B.dataset.tab, alive = () => B.isConnected && (!myTab || B.dataset.tab === myTab);
   const VIA = { ext: 'tiện ích Chrome', cookie: 'phiên dán tay' };
   const steps = L => '<ol class="lg-steps">' + L.map(x => '<li>' + x + '</li>').join('') + '</ol>';
   // (1.62.2) đang đồng bộ trên máy chủ (Đồng bộ ngay / Gửi ngay chạy nền) → hỏi lại mỗi 5 giây tới khi xong
@@ -11006,10 +11009,10 @@ async function setKgs(B) {
   const CK = 'kgsView:' + ((S.me && S.me.email) || ''), busyQ = () => OB.q.some(x => /^kgs/.test(x.fn));
   const keep = () => { try { const c = Object.assign({}, K); delete c.code; c._code = !!K.code; lsSet(CK, c); } catch (e) {} };
   const take = k => { const was = K && K.run; if (K && K.code && k && !k.code && k._cache) k.code = K.code; K = k; if (!k._cache) keep(); paint(); clearTimeout(pt);
-    if (K.run) pt = setTimeout(() => { if (B.isConnected) rpc('kgsGet', {}, { quiet: true }).then(fresh, () => {}); }, 5000);
+    if (K.run) pt = setTimeout(() => { if (alive()) rpc('kgsGet', {}, { quiet: true }).then(fresh, () => {}); }, 5000);
     else if (was && !k._cache && tab === 'report') { Rp = null; paint(); }
     if (!K.run && was && !k._cache) toast(K.state && K.state.ok ? 'Đồng bộ KGS xong' : 'Đồng bộ KGS lỗi — xem mục trên', K.state && K.state.ok ? 'ok' : 'warn'); };
-  const fresh = k => { if (!B.isConnected || !k) return; if (busyQ()) return; take(k); };      // còn thao tác đang gửi → giữ bản trên màn hình, lệnh gửi xong sẽ trả bản mới
+  const fresh = k => { if (!alive() || !k) return; if (busyQ()) return; take(k); };      // còn thao tác đang gửi → giữ bản trên màn hình, lệnh gửi xong sẽ trả bản mới
   /** đổi ngay trên màn hình (fx sửa K) rồi gửi ngầm; xong thì nhận bản máy chủ */
   const now = (fx, fn, p, label, key, done) => { if (fx) { fx(K); keep(); paint(); }
     queueRpc(fn, p || {}, { label: 'Đồng bộ KGS · ' + label, key: key || '', merge: key ? (a, b) => Object.assign({}, a, b) : undefined })
@@ -11174,7 +11177,7 @@ async function setKgs(B) {
       '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-clock-history"></i>Các lượt đồng bộ gần nhất</h2></div><div class="card-b stack">' + ((Rp.runs || []).length ? Rp.runs.map(rpRun).join('') : '<div class="small muted">Chưa có lượt nào được ghi báo cáo — báo cáo bắt đầu từ lượt đồng bộ tiếp theo.</div>') + '</div></div>';
   };
   const tabs = () => '<div class="row" style="margin-bottom:12px"><div class="seg" id="kgTab"><button class="seg-b" data-kt="sync" aria-pressed="' + (tab === 'sync') + '"><i class="bi bi-arrow-left-right"></i>Đồng bộ</button><button class="seg-b" data-kt="report" aria-pressed="' + (tab === 'report') + '"><i class="bi bi-clipboard-data"></i>Báo cáo</button></div></div>';
-  const paint = () => { B.innerHTML = tabs() + (tab === 'report' ? report() : status() + ext() + ck() + opts() + road() + pmap() + data()); if (tab === 'report' && !Rp) rpLoad(); };
+  const paint = () => { if (!alive()) return; B.innerHTML = tabs() + (tab === 'report' ? report() : status() + ext() + ck() + opts() + road() + pmap() + data()); if (tab === 'report' && !Rp) rpLoad(); };
   const run = async (btn, wait, fn) => { const stop = btnWait(btn, wait); try { const k = await fn(); if (k) take(k); return k; } catch (er) { stop(); fail(er); } };
   const save = o => now(k => { Object.assign(k.cfg, o); }, 'kgsCfg', o, 'cài đặt', 'kgsCfg');
   B.onchange = e => {
@@ -11884,7 +11887,13 @@ function setSystem(B, cfg, setCfg) {
     gc.innerHTML = '<div class="card-h"><h2><i class="bi bi-send-check"></i>Tài khoản gửi mail</h2><span class="sp"></span><span class="tag ' + st[0] + '">' + esc(st[1]) + '</span></div><div class="card-b stack">' +
       '<div class="gmo-now"><i class="bi bi-envelope-at"></i><div><b>' + esc(G.on ? G.email : G.owner) + '</b><small>' + (G.on ? 'Mail của app (mã đăng nhập, thông báo, nhắc việc…) gửi từ tài khoản này qua Gmail · kết nối ' + esc(fmtDT(G.at)) : 'Tài khoản chạy app (Apps Script) — Gmail thường khoảng 100 người nhận / ngày') + '</small>' +
         (G.err ? '<small style="color:var(--danger)">' + esc(G.err) + '</small>' : '') +
-        (G.on ? (G.read ? '<small style="color:var(--ok)"><i class="bi bi-envelope-open"></i> Đọc được thư trả lời — Vòng mail dùng được</small>' : '<small style="color:var(--warn)"><i class="bi bi-envelope-exclamation"></i> Chưa có quyền đọc thư → Vòng mail chưa nhận được thư trả lời. Bấm <b>Kết nối tài khoản khác</b>, chọn lại tài khoản này và tick “Đọc email”.</small>') : '') + '</div>' +      // (1.68)
+        (G.on ? (G.read ? '<small style="color:var(--ok)"><i class="bi bi-envelope-open"></i> Đọc được thư trả lời — Vòng mail dùng được</small>' : '<small style="color:var(--warn)"><i class="bi bi-envelope-exclamation"></i> Chưa có quyền đọc thư → Vòng mail chưa nhận được thư trả lời. Bấm <b>Kết nối tài khoản khác</b>, chọn lại tài khoản này và tick “Đọc email”.</small>' +
+          '<details class="small" style="margin-top:4px"><summary style="cursor:pointer;color:var(--primary)">Hướng dẫn cấp quyền đọc thư</summary><ol style="margin:6px 0 0;padding-left:18px;line-height:1.6">' +      // (1.70)
+          '<li>Bấm <b>Kết nối tài khoản khác</b> (nút bên dưới) → chọn đúng <b>' + esc(G.email) + '</b>.</li>' +
+          '<li>Google có thể báo “Google chưa xác minh ứng dụng này” → bấm <b>Nâng cao</b> → <b>Đi tới … (không an toàn)</b> — đây là app nội bộ của trung tâm.</li>' +
+          '<li>Ở màn cho phép: tick đủ <b>Gửi email thay bạn</b> và <b>Xem email của bạn</b> (đọc thư) → <b>Tiếp tục</b>. Thiếu ô nào thì app vẫn gửi được mail nhưng chưa đọc được thư trả lời.</li>' +
+          '<li>Không thấy ô đọc thư: vào <a href="https://console.cloud.google.com/auth/scopes" target="_blank" rel="noopener">Google Cloud › Google Auth Platform › Data access</a> (đúng project chứa Client ID ở dưới) → <b>Add or remove scopes</b> → thêm <code>…/auth/gmail.readonly</code> → Save, rồi làm lại bước 1. Kiểm thêm Gmail API đã bật ở APIs &amp; Services.</li>' +
+          '<li>Xong: dòng này chuyển màu xanh “Đọc được thư trả lời”. Vào Quản trị › Vòng mail bấm <b>Quét ngay</b> để thử.</li></ol></details>') : '') + '</div>' +      // (1.68)
         (G.on ? '<button class="btn sm" id="gmT"><i class="bi bi-send"></i>Gửi thử</button><button class="btn sm ghost" id="gmX"><i class="bi bi-plug"></i>Ngắt</button>' : '') + '</div>' +
       '<div class="grid g2"><div class="fg"><label class="flabel">OAuth Client ID (loại Web application)</label><input class="inp mono" id="gmC" value="' + esc(G.cid) + '" placeholder="1234567890-xxxx.apps.googleusercontent.com"></div>' +
         '<div class="fg"><label class="flabel">Client secret</label><input class="inp mono" id="gmS" type="password" autocomplete="off" placeholder="' + (G.hasSecret ? '•••••••• đã lưu — để trống nếu không đổi' : 'GOCSPX-…') + '"></div></div>' +
@@ -14671,7 +14680,8 @@ function clMine(B, v) {
     : (todo.length ? sec('bi-send-check', 'Cần dạy', todo, 'mineT', clPbBtn(todo)) : '<div class="cm-free"><i class="bi bi-cup-hot"></i><span><b>Chưa có buổi cần dạy</b><small>' + (locked.length ? locked.length + ' buổi sắp tới đang chờ phát' : 'Buổi mới sẽ hiện khi được phát') + '</small></span></div>') +
       (locked.length ? sec('bi-lock', 'Chưa phát', locked, 'mineL', '<small>chờ duyệt hoặc chờ bạn xác nhận buổi trước</small>') : '') +
       (done.length ? '<div class="cl-sec"><div class="cl-sh clk" id="cmDone"><i class="bi bi-check2-all"></i><b>Đã dạy</b><span class="lk-n">' + done.length + '</span><i class="bi bi-chevron-' + (CL.showDone ? 'up' : 'down') + ' cv"></i></div>' + (CL.showDone ? clPage('mineD', done, x => clRow(x)) : '') + '</div>' : '');
-  if (nCls) B.insertAdjacentHTML('beforeend', '<div class="cm-cal"><button type="button" class="btn sm ghost" onclick="calSyncBox()"><i class="bi bi-google"></i>Đồng bộ lịch dạy lên Google Calendar / iPhone</button></div>');      // lịch dạy tự cập nhật trên điện thoại (.ics)
+  if (nCls) B.insertAdjacentHTML('beforeend', '<div class="cm-cal"><button type="button" class="btn sm ghost" onclick="calSyncBox()"><i class="bi bi-google"></i>Đồng bộ lịch dạy lên Google Calendar / iPhone</button></div>');
+  if (!S.me.preview) B.insertAdjacentHTML('beforeend', '<div class="cm-cal"><button type="button" class="btn sm ghost" onclick="clClaimDlg()"><i class="bi bi-search"></i>Chưa thấy lớp của bạn? Tìm & nhận lớp</button></div>');      // (1.70) TutorMapView.html      // lịch dạy tự cập nhật trên điện thoại (.ics)
   const cd = $('#cmDone', B); if (cd) cd.onclick = () => { CL.showDone = !CL.showDone; clMine(B, v); };
   const pb = $('#cmPrint', B); if (pb) { pb.onclick = () => clPbOpen(todo, pb); clPbPrefetch(todo); }      // (1.61) in hàng loạt — ClassPrint.html · (1.69) tải sẵn danh sách tệp
   clBindRows(B, () => CL.repaint());
@@ -15707,7 +15717,7 @@ function clTutors(B, v, em) {
     const cls = (c, off) => { const p = clProg(c), n = off ? 0 : pend(c); return '<a class="tu-s' + (off ? ' off' : '') + '" data-go="classes/c/' + c.id + '"><b>' + esc(clName(c)) + '</b>' + (c.student ? '<span class="cl-cd">' + esc(c.code) + '</span>' : '') + (c.grade ? '<span class="cl-gr">' + esc(c.grade) + '</span>' : '') + (off ? '<em class="cl-ub gray">' + esc(c.status || 'Đã dừng') + '</em>' : '') + '<small>' + esc(c.days || '') + (c.times ? ' · ' + esc(c.times.split(';')[0]) : '') + '</small>' +
       (p ? '<small class="tu-p">' + esc(p.name) + '</small>' : '<small class="cl-warn">chưa có chương trình</small>') + lockT(c) + (n ? '<em class="cl-ub warn">' + n + ' chưa xác nhận</em>' : '') + '</a>'; };
     const nAct = list.reduce((a, t) => a + t.list.filter(classActiveC).length, 0);
-    B.innerHTML = '<div class="cl-bar tu-bar"><div class="search"><i class="bi bi-search"></i><input class="inp" id="tuQ" value="' + esc(q) + '" placeholder="Tìm gia sư, học sinh, mã lớp">' + (q ? '<button class="ibtn sm tu-qx" id="tuQX" title="Xoá tìm kiếm" aria-label="Xoá tìm kiếm"><i class="bi bi-x-lg"></i></button>' : '') + '</div><span class="small muted">' + list.filter(t => t.email).length + ' gia sư · ' + nAct + ' lớp đang học</span></div>' +
+    B.innerHTML = '<div class="cl-bar tu-bar"><div class="search"><i class="bi bi-search"></i><input class="inp" id="tuQ" value="' + esc(q) + '" placeholder="Tìm gia sư, học sinh, mã lớp">' + (q ? '<button class="ibtn sm tu-qx" id="tuQX" title="Xoá tìm kiếm" aria-label="Xoá tìm kiếm"><i class="bi bi-x-lg"></i></button>' : '') + '</div><span class="small muted">' + list.filter(t => t.email).length + ' gia sư · ' + nAct + ' lớp đang học</span><span class="sp"></span><button type="button" class="btn sm" data-tuscan title="Khớp tên gia sư bên KGS với tên tài khoản / tên Google để gán lớp chưa có gia sư"><i class="bi bi-person-check"></i>Quét lại gia sư</button></div>' +      // (1.70) TutorMapView.html
       '<div class="tu-list">' + list.slice(0, CLP.tu || 30).map(t => { const on = t.list.filter(classActiveC), off = t.list.filter(c => !classActiveC(c)), k = t.email || '_', op = !!offOpen[k];
         return '<div class="card tu-c' + (CL.tuHi && CL.tuHi === String(t.email).toLowerCase() ? ' hi' : '') + (on.length ? '' : ' dim') + '"><div class="tu-h"><span class="av">' + esc(initials(t.name || t.email || '?')) + '</span><div class="tu-t"><b>' + (t.email ? zlName(t.name || t.email.split('@')[0], t.email) : 'Chưa có gia sư') + '</b><small>' + esc(t.email || 'Các lớp chưa gán gia sư') + '</small></div><span class="lk-n" title="Lớp đang học">' + on.length + '</span></div>' +
           '<div class="tu-k">' + (on.length ? on.map(c => cls(c)).join('') : '<div class="small muted tu-none">Không còn lớp đang học</div>') +
@@ -15717,7 +15727,7 @@ function clTutors(B, v, em) {
     const qx = $('#tuQX', B); if (qx) qx.onclick = () => { q = CL.tq = ''; CL.tuHi = ''; paint(); $('#tuQ', B).focus(); };
     const qi = $('#tuQ', B); qi.oninput = debounce(() => { q = CL.tq = qi.value; CL.tuHi = ''; paint(); const n = $('#tuQ', B); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 200);
   };
-  B.onclick = e => { const b = e.target.closest('[data-tuoff]'); if (b) { offOpen[b.dataset.tuoff] = !offOpen[b.dataset.tuoff]; paint(); } };
+  B.onclick = e => { if (e.target.closest('[data-tuscan]')) return clTutorScan(); const b = e.target.closest('[data-tuoff]'); if (b) { offOpen[b.dataset.tuoff] = !offOpen[b.dataset.tuoff]; paint(); } };
   paint();
 }
 
@@ -17492,7 +17502,8 @@ function clChatMount(root, c, onRead) {
     openMenu(el.querySelector('.ccx-b'), [{ t: 'Sao chép', i: 'bi-copy', fn: () => copyText(x.t, 'Đã sao chép') },
       x.e === me || CL.d.manage ? { t: 'Xoá tin nhắn', i: 'bi-trash', danger: true, fn: () => { x.del = 1; x.t = ''; keep(); paint(); rpc('classChatDelete', { mid: x.id }, { quiet: true }).catch(fail); } } : null].filter(Boolean));
   };
-  { const mb = root.querySelector('.ccx-ml'); if (mb) mb.onclick = () => mlCompose('cls', c.id, { label: clName(c), done: () => { clearTimeout(timer); poll(true); } }); }      // (1.68) Vòng mail
+  { const mb = root.querySelector('.ccx-ml'); if (mb) mlModeWire({ kind: 'cls', ref: c.id, label: clName(c), wrap: root.querySelector('.ccx-f'), ta: T, send: Sb, btn: mb, icon: 1,
+      mail: 'Viết MAIL về ' + clName(c) + '… (Enter = mở khung gửi mail)', done: () => { clearTimeout(timer); poll(true); } }); }      // (1.68) Vòng mail · (1.70) nút chuyển Chat ⇄ Mail
   paint(true); poll(true);
   setTimeout(() => { if (!matchMedia('(pointer:coarse)').matches && !closed) T.focus(); }, 80);
   return { stop: () => { closed = true; clearTimeout(timer); } };
@@ -17680,6 +17691,9 @@ async function apPreview(x) {
 .tk-cm.ml .x{ border-left:3px solid color-mix(in oklab, var(--info) 45%, transparent); padding-left:8px }
 .ccx-ml{ width:40px; height:40px; border-radius:50%; border:1px solid var(--border-strong); background:var(--surface); color:var(--ink-2); font-size:17px; display:grid; place-items:center; cursor:pointer; flex-shrink:0 }
 .ccx-ml:hover{ color:var(--primary); border-color:var(--primary) }
+.ccx-ml[aria-pressed="true"]{ background:color-mix(in oklab, var(--info) 14%, var(--surface)); color:var(--info); border-color:color-mix(in oklab, var(--info) 45%, transparent) }
+.ml-on textarea{ border-color:color-mix(in oklab, var(--info) 55%, var(--border-strong)) !important; background:color-mix(in oklab, var(--info) 5%, var(--surface)) !important }      /* (1.70) đang ở chế độ mail — nhìn là biết */
+.ml-on .ccx-s, .ml-on #tCmS{ background:var(--info) !important; border-color:var(--info) !important; color:#fff !important }
 .ml-f{ display:flex; flex-direction:column; gap:12px }
 .ml-row{ display:grid; grid-template-columns:64px 1fr; gap:8px; align-items:start }
 .ml-row > label{ padding-top:8px; font-size:12.5px; font-weight:700; color:var(--muted) }
@@ -17697,6 +17711,7 @@ async function apPreview(x) {
 .ml-hist b{ color:var(--ink) } .ml-hist span{ color:var(--muted) }
 .ml-pl{ display:flex; gap:12px; align-items:center; padding:12px 0; border-top:1px solid var(--border) }
 .ml-pl:first-child{ border-top:0 }
+.ml-pl.ml-sub{ padding-left:30px; border-top:1px dashed var(--border) } .ml-pl.ml-sub i.bi{ font-size:15px; color:var(--muted) }
 .ml-pl i.bi{ font-size:18px; color:var(--primary) } .ml-pl > div{ flex:1; min-width:0 } .ml-pl small{ display:block; color:var(--muted) }
 .ml-st{ display:flex; gap:12px; align-items:flex-start }
 .ml-st > i{ font-size:22px } .ml-st small{ display:block; color:var(--muted) }
@@ -17710,6 +17725,33 @@ async function apPreview(x) {
    · setMailLoop(B): Quản trị › Vòng mail.
    ══════════════════════════════════════════════════════════════ */
 function mlOn(kind) { return !!(S.boot && S.boot.ml && S.boot.ml[kind]) && !!S.me && !S.me.guest; }
+/** (1.70) chỗ này chỉ dùng mail (chat / bình luận thường đang tắt) */
+function mlOnly(kind) { return mlOn(kind) && !!(S.boot.ml.only && S.boot.ml.only[kind]); }
+/** (1.70) CHUYỂN CHAT ⇄ MAIL ngay ở ô soạn — người dùng thấy rõ đang gửi gì (nút đổi chữ / biểu tượng, ô soạn đổi màu, chữ gợi ý đổi).
+    Chế độ Mail: bấm Gửi (hoặc phím gửi) → mở khung mail điền sẵn nội dung đã gõ. Chặn ở pha bắt (capture) trên khung chứa → hàm gửi chat cũ không chạy.
+    o = { kind, ref, label, wrap: khung chứa, ta: ô soạn, send: nút Gửi, btn: nút chuyển, mail: chữ gợi ý mail, icon: 1 = nút chỉ có biểu tượng (khung chat lớp), done } */
+function mlModeWire(o) {
+  if (!mlOn(o.kind) || !o.wrap || !o.ta || !o.send || !o.btn) return null;
+  const K = 'mlMode:' + o.kind, only = mlOnly(o.kind), s0 = o.send.innerHTML, p0 = o.ta.placeholder;
+  let mode = only ? 'mail' : (lsGet(K, 'chat') === 'mail' ? 'mail' : 'chat');
+  const paint = () => { const ml = mode === 'mail';
+    o.wrap.classList.toggle('ml-on', ml);
+    o.ta.placeholder = ml ? o.mail || 'Viết mail…' : p0;
+    o.send.innerHTML = ml ? (o.icon ? '<i class="bi bi-envelope"></i>' : '<i class="bi bi-envelope"></i>Gửi mail') : s0;
+    o.send.title = ml ? 'Mở khung gửi mail với nội dung này' : '';
+    o.btn.hidden = only;
+    o.btn.innerHTML = ml ? (o.icon ? '<i class="bi bi-chat-dots"></i>' : '<i class="bi bi-chat-dots"></i>Chat') : (o.icon ? '<i class="bi bi-envelope"></i>' : '<i class="bi bi-envelope"></i>Mail');
+    o.btn.title = ml ? 'Đang gửi MAIL — bấm để quay về nhắn trong app' : 'Đang nhắn trong app — bấm để chuyển sang gửi MAIL (người nhận trả lời qua mail, hiện lại ở đây)';
+    o.btn.setAttribute('aria-pressed', String(ml));
+    if (ml) o.send.disabled = false; };
+  const go = () => { const body = o.ta.value.trim(); mlCompose(o.kind, o.ref, { label: o.label, body: body, done: () => { o.ta.value = ''; o.ta.dispatchEvent(new Event('input', { bubbles: true })); o.done && o.done(); } }); };
+  o.wrap.addEventListener('click', e => { if (mode !== 'mail' || !e.target.closest || e.target.closest('button') !== o.send) return; e.preventDefault(); e.stopPropagation(); go(); }, true);
+  o.wrap.addEventListener('keydown', e => { if (mode !== 'mail' || e.target !== o.ta || e.key !== 'Enter' || e.isComposing) return; if (o.icon ? e.shiftKey : !(e.ctrlKey || e.metaKey)) return; e.preventDefault(); e.stopPropagation(); go(); }, true);
+  o.btn.onclick = e => { e.preventDefault(); if (only) return; mode = mode === 'mail' ? 'chat' : 'mail'; lsSet(K, mode); paint(); o.ta.focus();
+    toast(mode === 'mail' ? 'Đã chuyển sang gửi MAIL' : 'Đã chuyển về nhắn trong app', 'info', 1800); };
+  paint();
+  return { mode: () => mode };
+}
 function mlTag(d, ml) {
   ml = ml || {}; const to = String(ml.to || '').split(',').filter(Boolean), n = to.length;
   const who = n ? (typeof tkUser === 'function' && TK && TK.d ? tkUser(to[0]) : to[0]) + (n > 1 ? ' +' + (n - 1) : '') : '';
@@ -17766,7 +17808,7 @@ async function mlCompose(kind, ref, opt) {
       opt.done && opt.done();
     } }] });
   to = mlChips(m.$('#mlTo'), D.to, D.users, 'Email người nhận…'); cc = mlChips(m.$('#mlCc'), D.cc.map(x => Object.assign({ auto: 1 }, x)), D.users, 'Thêm CC…');
-  B = m.$('#mlB'); setTimeout(() => B.focus(), 60);
+  const B0 = m.$('#mlB'); B = B0; if (opt.body) B0.value = opt.body; setTimeout(() => B0.focus(), 60);
 }
 
 /* ══════════ QUẢN TRỊ › VÒNG MAIL ══════════ */
@@ -17774,7 +17816,7 @@ async function setMailLoop(B) {
   let D = null, q = '', kf = '', LOG = null;
   const ago2 = iso => iso ? fmtDT(iso) : '—';
   const load = async () => { try { D = await rpc('mlCfgGet', {}, { quiet: true }); paint(); } catch (e) { B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'; } };
-  const save = async patch => { try { D = await rpc('mlCfgSave', patch, { quiet: true }); S.boot.ml = {}; if (D.read) D.places.forEach(p => { if (D.cfg.on[p.k]) S.boot.ml[p.k] = 1; }); paint(); toast('Đã lưu Vòng mail', 'ok', 2000); } catch (e) { toast(e.message, 'err'); load(); } };
+  const save = async patch => { try { D = await rpc('mlCfgSave', patch, { quiet: true }); S.boot.ml = {}; if (D.read) D.places.forEach(p => { if (D.cfg.on[p.k]) S.boot.ml[p.k] = 1; if (D.cfg.only && D.cfg.only[p.k]) (S.boot.ml.only = S.boot.ml.only || {})[p.k] = 1; }); paint(); toast('Đã lưu Vòng mail', 'ok', 2000); } catch (e) { toast(e.message, 'err'); load(); } };
   const logLoad = async () => { const h = $('#mlLog', B); if (h) h.innerHTML = miniLoader('Đang tải nhật ký…'); try { LOG = (await rpc('mlLog', { q: q, kind: kf }, { quiet: true })).list; } catch (e) { LOG = []; toast(e.message, 'err'); } logPaint(); };
   const logPaint = () => { const h = $('#mlLog', B); if (!h || !LOG) return;
     const pn = k => (D.places.find(p => p.k === k) || { t: k }).t;
@@ -17797,7 +17839,9 @@ async function setMailLoop(B) {
         '<div class="ml-st"><i class="bi ' + st[0] + '" style="color:' + st[1] + '"></i><div><b>' + esc(st[2]) + '</b><small>' + st[3] + '</small>' + (D.err ? '<small style="color:var(--danger)">Lỗi lần quét gần nhất: ' + esc(D.err) + '</small>' : '') + '</div>' +
           (ready ? '<span class="sp"></span><button class="btn sm" id="mlScan"><i class="bi bi-arrow-repeat"></i>Quét ngay</button>' : '') + '</div></div></div>' +
       '<div class="card"><div class="card-h"><h2><i class="bi bi-toggles"></i>Chỗ có nút Mail</h2></div><div class="card-b">' +
-        D.places.map(p => '<label class="ml-pl"><i class="bi ' + esc(p.i) + '"></i><div><b>' + esc(p.t) + '</b><small>' + esc(p.d) + '</small></div><span class="sw"><input type="checkbox" data-pl="' + p.k + '"' + (D.cfg.on[p.k] ? ' checked' : '') + ' aria-label="' + esc(p.t) + '"><span></span></span></label>').join('') +
+        D.places.map(p => '<label class="ml-pl"><i class="bi ' + esc(p.i) + '"></i><div><b>' + esc(p.t) + '</b><small>' + esc(p.d) + '</small></div><span class="sw"><input type="checkbox" data-pl="' + p.k + '"' + (D.cfg.on[p.k] ? ' checked' : '') + ' aria-label="' + esc(p.t) + '"><span></span></span></label>' +
+          (D.cfg.on[p.k] ? '<label class="ml-pl ml-sub"><i class="bi bi-chat-square-x"></i><div><b>Chỉ dùng mail (tắt ' + (p.k === 'task' ? 'bình luận thường' : 'chat') + ')</b><small>' + (D.cfg.only && D.cfg.only[p.k] ? 'Đang tắt chat — ô soạn chỉ gửi mail, không còn nút chuyển. Tin / bình luận cũ vẫn giữ. Tắt công tắc để bật chat lại.' : 'Mỗi người tự chuyển Chat ⇄ Mail ngay ở ô soạn. Bật để chỉ còn gửi mail (tránh nhầm chat với mail).') + '</small></div>' +
+            '<span class="sw"><input type="checkbox" data-only="' + p.k + '"' + (D.cfg.only && D.cfg.only[p.k] ? ' checked' : '') + ' aria-label="Chỉ dùng mail ở ' + esc(p.t) + '"><span></span></span></label>' : '')).join('') +      // (1.70)
         (ready ? '' : '<div class="small muted" style="margin-top:6px"><i class="bi bi-info-circle"></i> Bật trước được — nút Mail hiện khi hộp thư đọc được thư.</div>') + '</div></div>' +
       '<div class="card"><div class="card-h"><h2><i class="bi bi-people"></i>Ai được CC</h2></div><div class="card-b stack">' +
         '<div class="small">Theo vai trò: tick quyền <b>Nhận bản CC mọi mail của Vòng mail</b> ở <a href="#" data-go="users/roles">Vai trò & quyền</a> (nhóm “Vòng mail”). ' +
@@ -17814,6 +17858,7 @@ async function setMailLoop(B) {
   };
   B.onchange = e => {
     const pl = e.target.closest('[data-pl]'); if (pl) return save({ on: { [pl.dataset.pl]: pl.checked ? 1 : 0 } });
+    const on1 = e.target.closest('[data-only]'); if (on1) return save({ only: { [on1.dataset.only]: on1.checked ? 1 : 0 } });      // (1.70)
     if (e.target.id === 'mlEv') return save({ every: Number(e.target.value) });
     if (e.target.id === 'mlDy') return save({ days: Number(e.target.value) });
     if (e.target.id === 'mlK') { kf = e.target.value; logLoad(); }
@@ -17845,8 +17890,10 @@ async function setMailLoop(B) {
 .ct-rq .kd{ font-size:12.5px; color:var(--ink-2); display:flex; gap:6px; align-items:center } .ct-rq .kd a{ margin-left:auto }
 .ct-rq .nt{ font-size:12.5px; color:var(--ink-2); background:color-mix(in oklab, var(--warn) 9%, transparent); border-radius:8px; padding:6px 8px; white-space:pre-wrap }
 .ct-f{ display:flex; flex-direction:column; gap:12px }
-.ct-qr{ display:grid; grid-template-columns:1.2fr 1.4fr 1fr auto; gap:6px; align-items:center } .ct-qr .inp{ min-width:0 }
-.ct-qr.hd{ font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em }
+.ct-qr{ display:grid; grid-template-columns:1.2fr 1.4fr 1fr auto; gap:8px; align-items:center } .ct-qr .inp{ min-width:0 }
+#ctQ{ display:flex; flex-direction:column; gap:10px }
+#ctQ .ct-qr{ padding:10px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2) }      /* (1.70) mỗi QLTT một khung — trước các ô dính / lấp nhau */
+.ct-qr.hd{ font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; padding:0 11px; margin:6px 0 4px }
 .ct-qn{ grid-column:1 / -2 }
 @media (max-width:640px){ .ct-qr{ grid-template-columns:1fr 1fr auto } .ct-qr .ph{ display:none } .ct-qr.hd{ display:none } }
 </style>
@@ -17928,6 +17975,78 @@ async function clCenters(B, v) {
   };
   if (D) paint(); else B.innerHTML = miniLoader('Đang tải trung tâm…');
   load();
+}
+</script>
+
+<style>
+/* (1.70) GÁN GIA SƯ THEO TÊN · GIA SƯ TÌM & NHẬN LỚP — chỉ dùng token màu */
+.tm-sec{ margin-top:14px } .tm-sec > b{ display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:6px } .tm-sec > b .lk-n{ margin-left:0 }
+.tm-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:9px 12px; border:1px solid var(--border); border-radius:12px; margin-bottom:6px; background:var(--surface) }
+.tm-row .tx{ flex:1; min-width:180px } .tm-row .tx small{ display:block; color:var(--muted); font-size:12px }
+.tm-row .cs{ display:flex; gap:6px; flex-wrap:wrap }
+.tm-row.ok{ border-color:color-mix(in oklab, var(--ok) 40%, var(--border)) }
+.tm-q{ display:flex; flex-direction:column; gap:10px }
+.tm-hint{ font-size:12.5px; color:var(--muted); display:flex; gap:6px; align-items:flex-start }
+.tm-res{ display:flex; flex-direction:column; gap:6px; min-height:60px }
+</style>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   (1.70) GÁN GIA SƯ THEO TÊN — máy chủ: TutorMap.gs
+   · clTutorScan(): quản lý (Kiến CM › Gia sư › Quét lại gia sư) — gán các lớp khớp chắc, liệt kê lớp cần xác nhận (bấm gán) / chưa khớp.
+   · clClaimDlg(): gia sư (Buổi học / Lớp học) — tìm lớp chưa có gia sư: gõ ≥ 3 ký tự mới tìm, tối đa 5 lớp, chỉ tên bé · khối · lịch;
+     “Đây là lớp của tôi” → yêu cầu chờ quản lý duyệt.
+   ══════════════════════════════════════════════════════════════ */
+async function clTutorScan() {
+  const m = modal({ title: 'Quét lại gia sư theo tên', icon: 'bi-person-check', size: 'lg', body: miniLoader('Đang so tên gia sư bên KGS với tên tài khoản / tên Google…'), foot: [{ t: 'Đóng', cls: 'ghost' }] });
+  let r; try { r = await rpc('tutorScan', { apply: 1 }); } catch (e) { m.close(); return fail(e); }
+  if (m.closed) return;
+  const row = (x, extra, cls) => '<div class="tm-row' + (cls ? ' ' + cls : '') + '" data-cid="' + esc(x.id) + '"><span class="tx"><b>' + esc(x.who) + '</b>' + (x.code && x.code !== x.who ? ' <small style="display:inline">' + esc(x.code) + '</small>' : '') +
+    '<small>' + (x.kt ? 'Gia sư bên KGS: <b>' + esc(x.kt) + '</b>' : '') + (x.why ? (x.kt ? ' · ' : '') + esc(x.why) : '') + '</small></span>' + (extra || '') + '</div>';
+  m.$('.modal-b').innerHTML =
+    '<div class="small muted">So tên gia sư bên KGS của từng lớp (lớp chưa có gia sư trong app) với tên tài khoản + tên Google của gia sư. Chỉ gán tự động khi khớp đủ họ tên và chỉ một người. Việc này cũng tự chạy sau mỗi lần đồng bộ KGS và khi gia sư đăng nhập Google.</div>' +
+    '<div class="tm-sec"><b><i class="bi bi-check2-circle" style="color:var(--ok)"></i>Đã gán <span class="lk-n">' + r.done.length + '</span></b>' + (r.done.length ? r.done.map(x => row(x, '<span class="small">→ <b>' + esc(x.name) + '</b></span>', 'ok')).join('') : '<div class="small muted">Không có lớp mới khớp chắc</div>') + '</div>' +
+    '<div class="tm-sec"><b><i class="bi bi-question-circle" style="color:var(--warn)"></i>Cần xác nhận <span class="lk-n">' + r.check.length + '</span></b>' + (r.check.length ? r.check.map(x => row(x, '<span class="cs">' + x.cands.map(c => '<button class="btn xs" data-as="' + esc(c.email) + '" data-an="' + esc(c.name) + '" title="' + esc(c.email) + '"><i class="bi bi-person-check"></i>Gán ' + esc(c.name) + '</button>').join('') + '</span>')).join('') : '<div class="small muted">Không có</div>') + '</div>' +
+    (r.none.length ? '<details class="tm-sec"><summary class="small" style="cursor:pointer"><b>Chưa khớp được (' + r.none.length + ')</b> — gán tay ở Danh sách lớp, hoặc chờ gia sư tự tìm & nhận lớp</summary>' + r.none.map(x => row(x)).join('') + '</details>' : '');
+  m.$('.modal-b').onclick = async e => {
+    const b = e.target.closest('[data-as]'); if (!b) return;
+    const rw = b.closest('[data-cid]'), id = rw.dataset.cid, x = r.check.find(z => z.id === id);
+    rw.querySelectorAll('button').forEach(z => { z.disabled = true; });
+    try { await rpc('classSave', { items: [{ id: id, patch: { tutorEmail: b.dataset.as, tutorName: b.dataset.an }, twhy: 'Xác nhận khớp tên gia sư bên KGS “' + (x ? x.kt : '') + '”' }] });
+      rw.classList.add('ok'); rw.querySelector('.cs').innerHTML = '<span class="small">→ <b>' + esc(b.dataset.an) + '</b></span>'; toast('Đã gán ' + (x ? x.who : 'lớp') + ' cho ' + b.dataset.an); }
+    catch (er) { fail(er); rw.querySelectorAll('button').forEach(z => { z.disabled = false; }); }
+  };
+  if (r.done.length && typeof clReload === 'function') clReload().then(() => CL.repaint && CL.repaint()).catch(() => {});
+}
+/** gia sư tìm lớp chưa có gia sư → gửi yêu cầu nhận lớp */
+function clClaimDlg() {
+  const m = modal({ title: 'Tìm & nhận lớp của bạn', icon: 'bi-search', body: '<div class="tm-q">' +
+      '<div class="tm-hint"><i class="bi bi-shield-lock"></i><span>Không thấy lớp mình dạy? Gõ <b>tên bé</b> hoặc <b>mã lớp</b> (ít nhất 3 ký tự) để tìm trong các lớp <b>chưa có gia sư</b>. Chọn đúng lớp → gửi quản lý duyệt, duyệt xong lớp hiện trong Lớp học của bạn.</span></div>' +
+      '<div class="search"><i class="bi bi-search"></i><input class="inp" id="tmQ" placeholder="VD: Khang, GS-KhangNT" autocomplete="off"></div>' +
+      '<div class="tm-res" id="tmR"></div></div>', foot: [{ t: 'Đóng', cls: 'ghost' }] });
+  const Q = m.$('#tmQ'), R = m.$('#tmR'); let seq = 0;
+  const hint = t => { R.innerHTML = '<div class="small muted" style="padding:10px 2px">' + t + '</div>'; };
+  hint('Gõ ít nhất 3 ký tự để tìm.');
+  const run = debounce(async () => {
+    const q = Q.value.trim(), my = ++seq;
+    if (fold(q).replace(/[^a-z0-9]/g, '').length < 3) return hint('Gõ ít nhất 3 ký tự để tìm.');
+    R.innerHTML = miniLoader('Đang tìm…');
+    let r; try { r = await rpc('classFind', { q: q }, { quiet: true }); } catch (e) { if (my === seq) hint(esc(e.message)); return; }
+    if (my !== seq || m.closed) return;
+    R.innerHTML = r.list.length ? r.list.map(x => '<div class="tm-row" data-cid="' + esc(x.id) + '"><span class="tx"><b>' + esc(x.name) + '</b>' + (x.code && x.code !== x.name ? ' <small style="display:inline">' + esc(x.code) + '</small>' : '') +
+        '<small>' + esc([x.grade, x.sched].filter(Boolean).join(' · ') || 'Chưa có lịch') + '</small></span>' +
+        (x.asked ? '<span class="tag">Đã gửi — chờ duyệt</span>' : '<button class="btn xs pri" data-claim="' + esc(x.id) + '"><i class="bi bi-hand-index"></i>Đây là lớp của tôi</button>') + '</div>').join('') +
+        (r.more ? '<div class="small muted">Còn lớp khác khớp — gõ thêm chữ để thu hẹp.</div>' : '')
+      : '<div class="small muted" style="padding:10px 2px">Không tìm thấy lớp chưa có gia sư nào khớp “' + esc(q) + '”. Lớp đã có gia sư khác hoặc gõ sai tên — nhắn quản lý nếu cần.</div>';
+  }, 350);
+  Q.oninput = run; setTimeout(() => Q.focus(), 60);
+  R.onclick = async e => {
+    const b = e.target.closest('[data-claim]'); if (!b) return;
+    const rw = b.closest('[data-cid]'), name = rw.querySelector('b').textContent;
+    if (!await ask('Gửi quản lý duyệt: bạn là gia sư của lớp “' + name + '”?', { ok: 'Gửi duyệt' })) return;
+    b.disabled = true;
+    try { await rpc('classClaim', { id: b.dataset.claim }); b.outerHTML = '<span class="tag">Đã gửi — chờ duyệt</span>'; toast('Đã gửi quản lý duyệt — lớp hiện trong Lớp học khi được duyệt', 'ok', 4000); }
+    catch (er) { fail(er); b.disabled = false; }
+  };
 }
 </script>
 
@@ -22624,16 +22743,22 @@ async function setTasks(B) {
 /** (1.52) Cài đặt › Lưu trữ việc (quyền tasks.manage): việc xong hiện bao lâu trên cột Hoàn thành · xong bao lâu thì vào Lưu trữ (không tải khi mở app) */
 async function setTaskStore(B) {
   B.innerHTML = miniLoader('Đang tải…'); if (!TK.d) await tkLoad(true);
-  const o = Object.assign({ done: 14, arch: 90 }, TK.d.store || {});
+  const o = Object.assign({ done: 14, arch: 90, cmt: 0, purge: 0 }, TK.d.store || {});
   const opt = (id, L, cur) => '<select class="sel" id="' + id + '">' + L.map(x => '<option value="' + x[0] + '"' + (x[0] === cur ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select>';
   B.innerHTML = '<div class="card"><div class="card-h"><h2><i class="bi bi-archive"></i>Lưu trữ việc</h2></div><div class="card-b stack" style="max-width:600px">' +
     '<div class="fg"><label class="flabel">Hiện việc đã hoàn thành trên cột Hoàn thành</label>' + opt('stD', [[-1, 'Hiện tất cả (không gập)'], [3, '3 ngày gần nhất'], [7, '7 ngày gần nhất'], [14, '14 ngày gần nhất (mặc định)'], [30, '30 ngày gần nhất'], [0, 'Gập hết — chỉ hiện nút “n việc xong”']], o.done) +
       '<div class="small muted" style="margin-top:4px">Việc xong cũ hơn gập sau nút “n việc xong trước … ngày” ở cuối cột — bấm để xem. Số trên đầu cột vẫn là tổng. Áp dụng cho mọi người, mọi bảng.</div></div>' +
     '<div class="fg"><label class="flabel">Chuyển vào Lưu trữ khi việc đã xong quá</label>' + opt('stA', [[30, '30 ngày'], [60, '60 ngày'], [90, '90 ngày (mặc định)'], [180, '180 ngày'], [365, '1 năm']], o.arch) +
       '<div class="small muted" style="margin-top:4px">Việc xong quá số ngày này mà cả nhánh đã xong (task kèm mọi sub-task; epic khi mọi task bên trong đã xong) không tải khi mở app — app luôn mở nhanh, <b>không mất gì</b>. Tìm và mở lại ở nút Lưu trữ trên thanh trên. Báo cáo / Hiệu suất vẫn tính đủ trong kỳ đang xem.</div></div>' +
-    '<div class="row"><button class="btn pri" id="stSave"><i class="bi bi-check2"></i>Lưu</button><span class="small muted" id="stN"></span></div></div></div>';
+    '<div class="fg"><label class="flabel">Chuyển bình luận & hoạt động cũ vào Lưu trữ</label>' + opt('stC', [[0, 'Không (giữ tất cả trên bảng — mặc định)'], [7, 'Cũ hơn 7 ngày'], [14, 'Cũ hơn 14 ngày'], [30, 'Cũ hơn 30 ngày'], [60, 'Cũ hơn 60 ngày'], [90, 'Cũ hơn 90 ngày']], Number(o.cmt)) +
+      '<div class="small muted" style="margin-top:4px">Áp dụng cả việc đang làm: bình luận / hoạt động cũ hơn số ngày này không tải khi mở việc → dữ liệu nhẹ, mở nhanh. <b>Không mất</b> — trong hộp việc bấm “Xem bình luận cũ” để tải lại. Chạy mỗi 7 ngày (hoặc bấm Lưu trữ ngay ở mục Lưu trữ).</div></div>' +
+    '<div class="fg"><label class="flabel">Xoá hẳn dữ liệu đã lưu trữ</label>' + opt('stP', [[0, 'Không xoá (mặc định)'], [3, 'Cũ hơn 3 tháng'], [6, 'Cũ hơn 6 tháng'], [12, 'Cũ hơn 12 tháng']], Number(o.purge)) +
+      '<div class="small muted" style="margin-top:4px;color:var(--warn)"><i class="bi bi-exclamation-triangle"></i> Việc đã lưu trữ và bình luận đã lưu trữ quá mốc này bị <b>xoá vĩnh viễn</b>, không phục hồi được (không vào Thùng rác).</div></div>' +
+    '<div class="row"><button class="btn pri" id="stSave"><i class="bi bi-check2"></i>Lưu</button><span class="small muted" id="stN"></span></div></div></div>';      // (1.70)
   $('#stSave', B).onclick = async e => { const b = e.currentTarget; b.classList.add('busy');
-    try { TK.d.store = await rpc('taskStoreCfg', { done: Number($('#stD', B).value), arch: Number($('#stA', B).value) });
+    const pg = Number($('#stP', B).value);
+    if (pg && pg !== Number(o.purge) && !await ask('Bật xoá vĩnh viễn dữ liệu lưu trữ cũ hơn ' + pg + ' tháng? Không phục hồi được.', { danger: true, ok: 'Bật xoá' })) { b.classList.remove('busy'); return; }
+    try { TK.d.store = await rpc('taskStoreCfg', { done: Number($('#stD', B).value), arch: Number($('#stA', B).value), cmt: Number($('#stC', B).value), purge: pg }); o.purge = TK.d.store.purge;
       toast('Đã lưu · việc xong ' + (TK.d.store.done < 0 ? 'hiện hết' : TK.d.store.done ? 'hiện ' + TK.d.store.done + ' ngày' : 'gập hết') + ' · lưu trữ sau ' + TK.d.store.arch + ' ngày');
       if (Number(o.arch) !== TK.d.store.arch) tkLoad(true).catch(() => {});      // đổi mốc lưu trữ → tải lại để bảng có / bớt việc cũ
       o.arch = TK.d.store.arch; } catch (er) { fail(er); } finally { b.classList.remove('busy'); } };
@@ -24134,7 +24259,7 @@ async function viewTasks(arg, v) {
         (kt ? '<div class="tk-h">' + (kt === 'task' ? 'Task thuộc epic' : 'Sub-task') + ' · <span id="tKidN"></span><a class="tk-tpl" id="tKidAdd"><i class="bi bi-plus-lg"></i> Thêm ' + TK_LV[kt].toLowerCase() + '</a></div><div id="tKids"></div>' +
           '<div class="tk-kid-new tk-dkid">' + tkLvIc(kt) + '<input class="tk-sub-new" id="tKidNew" placeholder="Thêm ' + TK_LV[kt].toLowerCase() + ' vào ' + esc(cur.key) + ' — gõ tên rồi Enter" aria-label="Thêm vào ' + esc(cur.key) + '"></div>' : '') +
         (isNew ? '' : '<div class="tk-h">Tài liệu · <span id="tDocN">…</span></div><div id="tDocs" class="tk-docs">' + miniLoader('Đang tải…') + '</div>') +      // TÀI LIỆU tải lên Drive đứng tên tài khoản chủ (1.35)
-        (isNew ? '' : '<div class="tk-h">Bình luận & hoạt động<span class="tk-upd" data-upd hidden><i class="spin-s"></i>Đang cập nhật…</span></div><div id="tCm">' + miniLoader('Đang tải…') + '</div><div class="row" style="flex-wrap:nowrap;align-items:flex-end;margin-top:6px"><textarea class="ta" id="tCmT" style="min-height:44px;height:44px" placeholder="Viết bình luận… (gõ @ để nhắc tên)"></textarea><button class="btn pri sm" id="tCmS"><i class="bi bi-send"></i>Gửi</button>' + (typeof mlOn === 'function' && mlOn('task') ? '<button class="btn sm" id="tCmM" title="Gửi mail cho người phụ trách — thư trả lời hiện ở đây (Vòng mail)"><i class="bi bi-envelope"></i>Mail</button>' : '') + '</div>') + '</div>' +
+        (isNew ? '' : '<div class="tk-h">Bình luận & hoạt động<span class="tk-upd" data-upd hidden><i class="spin-s"></i>Đang cập nhật…</span>' + (TK.d.store && TK.d.store.cmt ? '<button type="button" class="btn xs ghost" id="tCmOld" style="margin-left:auto" title="Bình luận & hoạt động cũ hơn ' + TK.d.store.cmt + ' ngày đã chuyển vào Lưu trữ"><i class="bi bi-clock-history"></i>Xem bình luận cũ</button>' : '') + '</div><div id="tCm">' + miniLoader('Đang tải…') + '</div><div class="row" style="flex-wrap:nowrap;align-items:flex-end;margin-top:6px"><textarea class="ta" id="tCmT" style="min-height:44px;height:44px" placeholder="Viết bình luận… (gõ @ để nhắc tên)"></textarea><button class="btn pri sm" id="tCmS"><i class="bi bi-send"></i>Gửi</button>' + (typeof mlOn === 'function' && mlOn('task') ? '<button class="btn sm" id="tCmM" title="Gửi mail cho người phụ trách — thư trả lời hiện ở đây (Vòng mail)"><i class="bi bi-envelope"></i>Mail</button>' : '') + '</div>') + '</div>' +
       '<div class="tk-side"><div><label>Cấp</label><span class="tk-lvs tk-dlv" id="tLvB" role="group" aria-label="Cấp của mục này">' + ['epic', 'task', 'sub'].map(k => { const no = k === 'sub' && lv0 === 'task' && kids.length;
           return '<button type="button" data-dlv="' + k + '" aria-pressed="' + (lv0 === k) + '"' + (no ? ' disabled title="Task đang có sub-task nên không thành sub-task được"' : ' title="Đổi thành ' + TK_LV[k] + '"') + '>' + tkLvIc(k) + '<span>' + TK_LV[k] + '</span></button>'; }).join('') + '</span></div>' +
         (isNew ? '<div><label>Dự án</label><select class="sel" id="tP">' + opt(projs().map(p => [p.id, p.name]), p0.id) + '</select></div>' : '') +
@@ -24342,7 +24467,11 @@ async function viewTasks(arg, v) {
         const io = box && sc && 'IntersectionObserver' in window ? new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) go1(); }, { root: sc, rootMargin: '0px 0px 120px 0px' }) : null;
         const tm = setTimeout(go1, tkoCached(cur.id) ? 3000 : 0);
         if (io) io.observe(box); else go1(); }
-      { const mb = m.$('#tCmM'); if (mb) mb.onclick = () => mlCompose('task', cur.id, { label: cur.key + ' · ' + cur.title, done: () => { if (!m.closed) load(1); } }); }      // (1.68) Vòng mail
+      { const ob = m.$('#tCmOld'); if (ob) ob.onclick = async () => { ob.disabled = true;      // (1.70) bình luận cũ đã lưu trữ — chỉ tải khi bấm
+          try { const r = await rpc('taskCmtOld', { id: cur.id }); modal({ title: 'Bình luận cũ · ' + cur.key, icon: 'bi-clock-history', size: 'lg', body: r.comments.length ? tkCmHtml(r.comments, () => false) : '<div class="small muted">Việc này chưa có bình luận nào được chuyển vào lưu trữ</div>', foot: [{ t: 'Đóng', cls: 'ghost' }] }); }
+          catch (e) { fail(e); } ob.disabled = false; }; }
+      { const mb = m.$('#tCmM'); if (mb) mlModeWire({ kind: 'task', ref: cur.id, label: cur.key + ' · ' + cur.title, wrap: mb.closest('.row'), ta: m.$('#tCmT'), send: m.$('#tCmS'), btn: mb,
+          mail: 'Viết MAIL cho người phụ trách… (bấm Gửi mail để xem người nhận, CC) — người nhận trả lời qua mail, hiện lại ở đây', done: () => { if (!m.closed) load(1); } }); }      // (1.68) Vòng mail · (1.70) nút chuyển Chat ⇄ Mail
       tkCmWire(m, { t: cur, get: () => CL, set: cm, send: text => tkSend('taskComment', { id: cur.id, text: text }), del: cid => rpc('taskCommentDel', { id: cur.id, cid: cid }),
         after: r => { cmLast = JSON.stringify(r.comments); tkoPut(cur.id, Object.assign({}, tkoCached(cur.id), { comments: r.comments })); const x = D().tasks.find(k => k.id === cur.id); if (x) { x.nc = r.comments.filter(c => c.kind !== 'a').length; paint(); } } });
     }

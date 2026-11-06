@@ -11,7 +11,7 @@
     return function () { var a = [].slice.call(arguments), n = 0, go = function () { n++; fetch("https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec", { method: "POST", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn: a[0], p: a[1] || {}, t: "" }) })
       .then(function (r) { if (!r.ok) throw Object.assign(new Error("Máy chủ trả lỗi " + r.status + " — tải lại trang để thử lại"), { again: r.status >= 500 }); return r.text().then(function (x) { try { return JSON.parse(x); } catch (er) { throw Object.assign(new Error("bad json"), { again: 1 }); } }); })
       .then(function (r) { if (ok) ok(r); }, function (e) { var net = e && (e.again || /fetch|network|load failed/i.test(e.message || ""));
-        if (net && n < 3 && a[0] !== "sharePrint") { console.warn("máy chủ chậm / lỗi mạng → gửi lại lần " + (n + 1), a[0], e); return setTimeout(go, 1500 * n); }
+        if (net && n < 3 && a[0] !== "sharePrint" && a[0] !== "bookShareSubmit") { console.warn("máy chủ chậm / lỗi mạng → gửi lại lần " + (n + 1), a[0], e); return setTimeout(go, 1500 * n); }
         if (ko) ko(net ? new Error("Máy chủ Google đang chậm hoặc mất mạng — bấm Thử lại") : e); }); }; go(); };
   } }); })(null, null) } };</script>
   
@@ -5161,6 +5161,9 @@ function load(d) {
   return (d.p = (async () => {
     d.state = 'load';
     const sec = $('#sec' + d.i), st = $('#st' + d.i);
+    // (1.70) XEM NHANH: ảnh trang đầu (Google dựng sẵn, nhẹ) hiện ngay trong lúc tải PDF đầy đủ — 3 tài liệu đầu, khi trang đầu nằm trong phần được chọn
+    if (d.i < 3 && !(d.f.p && d.f.p.length && d.f.p[0] !== 1)) rpc('sharePeek', { t: TOKEN, id: d.f.id, w: Math.round(Math.min(1000, innerWidth) * Math.min(2, devicePixelRatio || 1)) })
+      .then(r => { const ph = sec && $('.ph', sec); if (r && r.url && ph && !ph.firstChild) ph.innerHTML = '<img src="' + r.url + '" alt="" style="width:100%;height:100%;object-fit:contain;display:block">'; }).catch(() => {});
     try {
       const r = await partsGet((fn, pl) => rpc(fn, pl), 'shareFile', { t: TOKEN, id: d.f.id }, partsGuess(d.f.t, d.f.s));      // theo phần, gửi mọi phần ngay từ đầu (1.37.3)
       if (r.type !== 'pdf') throw Object.assign(new Error(r.type === 'big' ? 'Tài liệu quá lớn để xem trực tuyến (' + fmtSize(r.size) + ')' : 'Không xem được định dạng này'), { soft: 1 });
