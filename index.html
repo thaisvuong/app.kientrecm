@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-06T13:06:35.462Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-06T17:58:17.110Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -43,6 +43,7 @@
 
   var path = location.pathname.replace(/^\/+/, ''), q = new URLSearchParams(location.search);
   if (/^s\//.test(path)) { window.KT_STOP = 1; q.set('t', path.slice(2)); location.replace('/share.html?' + q.toString()); return; }
+  if (/^pc\/[\w-]+$/.test(path)) { window.KT_STOP = 1; q.set('t', path.slice(3)); location.replace('/center.html?' + q.toString()); return; }      // (1.72.2) trang in của trung tâm (QLTT) → center.html
   if (/^b\/[\w-]+$/.test(path)) { window.KT_STOP = 1; q.set('t', path.slice(2)); location.replace('/book.html?' + q.toString()); return; }      // (1.70) link tạm Kiến Cẩm Nang → book.html      // link tạm → trang xem link tạm (app không khởi động)
   if (path === 'index.html' || path === '404.html') path = '';
   var route = q.get('page') || toRoute(path) || 'home';
@@ -4982,6 +4983,7 @@ html[data-mode="dark"] input, html[data-mode="dark"] select, html[data-mode="dar
 html[data-mode="dark"] input::placeholder, html[data-mode="dark"] textarea::placeholder{ color:#6F7B93 }
 html[data-mode="dark"] [style*="background:#fff"], html[data-mode="dark"] [style*="background:#FFF"], html[data-mode="dark"] [style*="background: #fff"]{ background:var(--surface) !important }
 html[data-mode="dark"] [style*="color:#1E3A6E"], html[data-mode="dark"] [style*="color:#0F2A5C"]{ color:#AFC6F5 !important }
+html[data-mode="dark"] .seg-b.seg-b[aria-pressed="true"], html[data-mode="dark"] .seg-b.seg-b[aria-pressed="true"]:hover{ background:var(--primary); color:#fff; box-shadow:0 1px 3px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.08) }      /* (1.72.1) nút đang chọn của nhóm nút (Phân cấp / Phẳng · Epic / Task / Sub-task · Kanban / Bảng dữ liệu…) tô màu chính như chế độ sáng — quy tắc sinh tự động từ nền #fff cũ đè thành --surface, trùng nền nhóm. .seg-b lặp hai lần để thắng quy tắc sinh tự động */
 /* ═══ sinh tự động ═══ */
 /* ── Styles.html ── */
 html[data-mode="dark"] ::-webkit-scrollbar-thumb{ background:#39414d }
@@ -7286,7 +7288,7 @@ document.addEventListener('keydown', e => {      // Alt + 1…9 mở ứng dụn
 /** gia sư thuần (xem lớp mình dạy, không quản lý lớp) */
 function isTutor() { return can('classes.view') && !can('classes.manage'); }
 /** thứ tự tab của gia sư: 4 tab đầu nằm ngoài thanh dưới (Trang chủ · Buổi học · Lớp · Thư viện), phần còn lại (Apps, Yêu cầu…) vào “Thêm” */
-const TUT_ORDER = ['today', 'classes/todo', 'classes/list', 'library', 'classes/notes', 'apps', 'classes/reqs', 'guide', 'info', 'programs', 'links', 'tasks', 'tasks/backlog', 'tasks/mine', 'tasks/time', 'tasks/cal', 'tasks/sum', 'compose', 'home', 'recent', 'settings'];
+const TUT_ORDER = ['today', 'classes/todo', 'approve', 'classes/list', 'library', 'classes/notes', 'apps', 'classes/reqs', 'guide', 'info', 'programs', 'links', 'tasks', 'tasks/backlog', 'tasks/mine', 'tasks/time', 'tasks/cal', 'tasks/sum', 'compose', 'home', 'recent', 'settings'];      // (1.72.1) approve = gia sư được cấp thêm quyền Duyệt bài (VD vừa gia sư vừa Asst) → tab Duyệt bài đứng ngay sau Buổi học (điện thoại: nằm trên thanh dưới), không bị dồn xuống cuối
 /** gia sư thấy tab Apps cả khi chỉ có một ứng dụng nhưng có liên kết ngoài */
 function tutApps() { return isTutor() && extApps().length > 0; }
 /** tab đang mở ứng với route (trang con như classes/c/… thuộc tab Lớp học) */
@@ -17491,7 +17493,7 @@ function clChatMount(root, c, onRead) {
     L.innerHTML = st.msgs.length ? st.msgs.map(x => { const mine = x.e === me, d = day(x.at), same = p0 === x.e && d === d0; const h = (d !== d0 ? '<div class="ccx-d">' + (d === day(new Date().toISOString()) ? 'Hôm nay' : d) + '</div>' : '') +
         '<div class="ccx-m' + (mine ? ' me' : '') + (same ? ' same' : '') + (x.pend ? ' pend' : '') + (x.bad ? ' bad' : '') + (x.del ? ' del' : '') + '" data-mid="' + esc(x.id) + '">' + (!mine && !same ? '<span class="av sm">' + esc(initials(x.n || x.e)) + '</span>' : '<span class="ccx-sp"></span>') +
           '<div class="ccx-b">' + (!mine && !same ? '<small class="ccx-n">' + esc(x.n || x.e) + '</small>' : '') + '<div class="ccx-t">' + (x.ml && typeof mlTag === 'function' ? mlTag(x.ml.d, x.ml) : '') + (x.del ? '<i>Tin nhắn đã xoá</i>' : richLite(x.t).replace(/^<p>|<\/p>$/g, '')) + '</div>' +
-          '<small class="ccx-at">' + pad(new Date(x.at).getHours()) + ':' + pad(new Date(x.at).getMinutes()) + (x.pend ? ' <i class="bi bi-clock"></i>' : x.bad ? ' <i class="bi bi-exclamation-circle"></i> chưa gửi được · chạm để thử lại' : mine ? ' <i class="bi bi-check2"></i>' : '') + '</small></div></div>';
+          '<small class="ccx-at">' + pad(new Date(x.at).getHours()) + ':' + pad(new Date(x.at).getMinutes()) + (x.pend ? ' <i class="bi bi-clock"></i>' + (x.mail ? ' đang gửi mail' : '') : x.bad ? ' <i class="bi bi-exclamation-circle"></i> chưa gửi được · chạm để thử lại' : mine ? ' <i class="bi bi-check2"></i>' : '') + '</small></div></div>';
         d0 = d; p0 = x.e; return h; }).join('')
       : '<div class="ccx-e"><i class="bi bi-chat-heart"></i><b>Trao đổi về ' + esc(clName(c)) + '</b><span>Tình hình học, bài tập, ý kiến phụ huynh… — gia sư và quản lý cùng thấy.</span></div>';
     if (keepBottom) L.scrollTop = L.scrollHeight;
@@ -17513,13 +17515,22 @@ function clChatMount(root, c, onRead) {
     } catch (e) { if (first && !st.msgs.length && !closed) L.innerHTML = '<div class="ccx-e"><span>' + esc(e.message) + '</span></div>'; }
     if (!closed) timer = setTimeout(() => poll(false), document.hidden ? 15000 : 4000);
   };
-  const send = (text, again) => {
+  let mw = null;      // (1.72) Vòng mail của khung này (mlModeWire)
+  /** mail (1.72) = gửi bằng MAIL qua Vòng mail: {} = người nhận đề xuất + CC Quản trị · { to, cc, subject } = từ khung soạn đầy đủ. Bong bóng hiện ngay, thư đi ngầm */
+  const send = (text, again, mail) => {
     const x = again || { id: 'M' + [...crypto.getRandomValues(new Uint8Array(12))].map(z => 'abcdefghijklmnopqrstuvwxyz0123456789'[z % 36]).join(''), e: me, n: S.me.name, t: text, at: new Date().toISOString() };
+    if (mail && !again) { const d = typeof mlDraftNow === 'function' ? mlDraftNow('cls', c.id) : null;
+      x.mail = mail; x.ml = { d: 'o', to: (mail.to || (d ? d.to.map(z => z.e) : [String(c.tutorEmail || '').toLowerCase()].filter(Boolean))).join(','), cc: (mail.cc || (d ? d.cc.map(z => z.e) : [])).join(','), s: mail.subject || (d && d.subject) || '' }; }
     x.pend = 1; delete x.bad; if (!again) st.msgs.push(x); paint(true);
     const o = CL.d.chat || (CL.d.chat = {}); o[c.id] = Object.assign(o[c.id] || {}, { at: x.at, n: ((o[c.id] || {}).n || 0) + (again ? 0 : 1), un: 0, t: x.t.replace(/\s+/g, ' ').slice(0, 140), e: me, by: S.me.name }); onRead && onRead();
-    queueRpc('classChatSend', { id: c.id, text: x.t, cid: x.id }, { label: 'Tin nhắn · ' + clName(c), soft: 1 })
-      .then(r => { const i = st.msgs.indexOf(x); if (i >= 0 && r && r.msg) st.msgs[i] = r.msg; if (r && r.v) st.v = r.v; keep(); if (!closed) paint(); })
-      .catch(er => { delete x.pend; x.bad = 1; if (!closed) paint(); toast('Chưa gửi được tin nhắn — ' + (er && er.message || ''), 'err'); });
+    (x.mail ? mlSendBg('cls', c.id, Object.assign({ body: x.t, cid: x.id }, x.mail), clName(c)) : queueRpc('classChatSend', { id: c.id, text: x.t, cid: x.id }, { label: 'Tin nhắn · ' + clName(c), soft: 1 }))
+      .then(r => { const i = st.msgs.indexOf(x); if (i >= 0 && r && r.msg) st.msgs[i] = r.msg; else if (i >= 0) { delete x.pend; delete x.mail; } if (r && r.v) st.v = r.v; keep(); if (!closed) paint(); })
+      .catch(er => {
+        if (x.mail && er && er.code === 'NOTO') {      // lớp chưa có gia sư / email → bỏ bong bóng, mở khung soạn để chọn người nhận
+          const i = st.msgs.indexOf(x); if (i >= 0) st.msgs.splice(i, 1); keep(); if (closed) return; paint();
+          if (!T.value.trim()) { T.value = x.t; fit(); } toast(er.message, 'warn', 5000); return mw && mw.full(x.t);
+        }
+        delete x.pend; x.bad = 1; keep(); if (!closed) paint(); toast((x.mail ? 'Chưa gửi được mail — ' : 'Chưa gửi được tin nhắn — ') + (er && er.message || ''), 'err'); });
   };
   const fit = () => { T.style.height = 'auto'; T.style.height = Math.min(140, T.scrollHeight + 2) + 'px'; T.style.overflowY = T.scrollHeight > 140 ? 'auto' : 'hidden'; Sb.disabled = !T.value.trim(); };
   T.oninput = fit;
@@ -17532,8 +17543,10 @@ function clChatMount(root, c, onRead) {
     openMenu(el.querySelector('.ccx-b'), [{ t: 'Sao chép', i: 'bi-copy', fn: () => copyText(x.t, 'Đã sao chép') },
       x.e === me || CL.d.manage ? { t: 'Xoá tin nhắn', i: 'bi-trash', danger: true, fn: () => { x.del = 1; x.t = ''; keep(); paint(); rpc('classChatDelete', { mid: x.id }, { quiet: true }).catch(fail); } } : null].filter(Boolean));
   };
-  { const mb = root.querySelector('.ccx-ml'); if (mb) mlModeWire({ kind: 'cls', ref: c.id, label: clName(c), wrap: root.querySelector('.ccx-f'), ta: T, send: Sb, btn: mb, icon: 1,
-      mail: 'Viết MAIL về ' + clName(c) + '… (Enter = mở khung gửi mail)', done: () => { clearTimeout(timer); poll(true); } }); }      // (1.68) Vòng mail · (1.70) nút chuyển Chat ⇄ Mail
+  { const mb = root.querySelector('.ccx-ml'); if (mb) mw = mlModeWire({ kind: 'cls', ref: c.id, label: clName(c), wrap: root.querySelector('.ccx-f'), ta: T, send: Sb, btn: mb, icon: 1,
+      free: String(c.tutorEmail || '').toLowerCase() === me,      // (1.72) gia sư của lớp = người nhận mail → luôn nhắn trả lời được trong app
+      quick: (body, ex) => send(body, null, ex || {}),            // (1.72) gửi mail ngay: bong bóng hiện liền, thư đi ngầm
+      mail: 'Viết MAIL về ' + clName(c) + '… (Enter = gửi mail ngay)', done: () => { clearTimeout(timer); poll(true); } }); }      // (1.68) Vòng mail · (1.70) nút chuyển Chat ⇄ Mail
   paint(true); poll(true);
   setTimeout(() => { if (!matchMedia('(pointer:coarse)').matches && !closed) T.focus(); }, 80);
   return { stop: () => { closed = true; clearTimeout(timer); } };
@@ -17724,6 +17737,14 @@ async function apPreview(x) {
 .ccx-ml[aria-pressed="true"]{ background:color-mix(in oklab, var(--info) 14%, var(--surface)); color:var(--info); border-color:color-mix(in oklab, var(--info) 45%, transparent) }
 .ml-on textarea{ border-color:color-mix(in oklab, var(--info) 55%, var(--border-strong)) !important; background:color-mix(in oklab, var(--info) 5%, var(--surface)) !important }      /* (1.70) đang ở chế độ mail — nhìn là biết */
 .ml-on .ccx-s, .ml-on #tCmS{ background:var(--info) !important; border-color:var(--info) !important; color:#fff !important }
+.mlq-bar{ display:flex; align-items:center; gap:6px; padding:6px 12px 0; font-size:12px; color:var(--info); min-width:0; flex-shrink:0 }      /* (1.72) dòng “Mail tới … · CC n người” trên ô soạn */
+.mlq-bar[hidden]{ display:none }
+.mlq-bar span{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-2) }
+.mlq-bar b{ color:var(--ink) }
+.mlq-bar .ml-edit{ border:0; background:none; color:var(--info); font-weight:700; font-size:12px; cursor:pointer; padding:2px 4px; white-space:nowrap; flex-shrink:0 }
+.mlq-bar .ml-edit:hover{ text-decoration:underline }
+.ccx-l + .mlq-bar{ border-top:1px solid var(--border); padding:7px 14px 0 }
+.ccx-l + .mlq-bar:not([hidden]) + .ccx-f{ border-top:0 }
 .ml-f{ display:flex; flex-direction:column; gap:12px }
 .ml-row{ display:grid; grid-template-columns:64px 1fr; gap:8px; align-items:start }
 .ml-row > label{ padding-top:8px; font-size:12.5px; font-weight:700; color:var(--muted) }
@@ -17760,31 +17781,76 @@ function mlOnly(kind) { return mlOn(kind) && !!(S.boot.ml.only && S.boot.ml.only
 /** (1.70) CHUYỂN CHAT ⇄ MAIL ngay ở ô soạn — người dùng thấy rõ đang gửi gì (nút đổi chữ / biểu tượng, ô soạn đổi màu, chữ gợi ý đổi).
     Chế độ Mail: bấm Gửi (hoặc phím gửi) → mở khung mail điền sẵn nội dung đã gõ. Chặn ở pha bắt (capture) trên khung chứa → hàm gửi chat cũ không chạy.
     o = { kind, ref, label, wrap: khung chứa, ta: ô soạn, send: nút Gửi, btn: nút chuyển, mail: chữ gợi ý mail, icon: 1 = nút chỉ có biểu tượng (khung chat lớp), done } */
+/* (1.72) GỬI NGAY — XỬ LÝ NGẦM
+   · Người nhận đề xuất + CC Quản trị đã cài được LẤY SẴN khi ô soạn ở chế độ Mail (nhớ 5 phút) → dòng “Mail tới … · CC n người” hiện ngay trên ô soạn.
+   · Enter / Gửi = gửi luôn (không mở khung soạn): ô soạn xoá ngay, thư đi qua hàng đợi ghi ngầm (mất mạng tự gửi lại, mã cid chống gửi trùng).
+   · Muốn đổi người nhận / CC / tiêu đề → “Sửa người nhận” (khung soạn đầy đủ, mở tức thì nhờ dữ liệu lấy sẵn). */
+const ML_DR = {};
+function mlDraftGet(kind, ref, fresh) {
+  const k = kind + ':' + ref, o = ML_DR[k];
+  if (o && !fresh && Date.now() - o.at < 300000) return o.pr;
+  const pr = rpc('mlDraft', { kind: kind, ref: ref }, { quiet: true });
+  ML_DR[k] = { at: Date.now(), pr: pr, d: o && o.d };      // tải lại: giữ bản cũ để dòng người nhận không nháy
+  pr.then(d => { if (ML_DR[k] && ML_DR[k].pr === pr) ML_DR[k].d = d; }, () => { if (ML_DR[k] && ML_DR[k].pr === pr) { if (o && o.d) ML_DR[k] = o; else delete ML_DR[k]; } });
+  return pr;
+}
+function mlDraftNow(kind, ref) { const o = ML_DR[kind + ':' + ref]; return o && o.d || null; }
+function mlCid() { return 'M' + [...crypto.getRandomValues(new Uint8Array(12))].map(z => 'abcdefghijklmnopqrstuvwxyz0123456789'[z % 36]).join(''); }
+const mlNm = x => x.n && x.n !== x.e ? x.n : String(x.e).split('@')[0];
+/** gửi mail qua hàng đợi ghi ngầm · p = { body, to?, cc?, subject?, cid? } — không có to / cc → máy chủ dùng người nhận đề xuất + CC Quản trị */
+function mlSendBg(kind, ref, p, label) {
+  const pr = queueRpc('mlSend', Object.assign({ kind: kind, ref: ref }, p, { cid: p.cid || mlCid() }), { label: 'Mail · ' + (label || ''), soft: 1 });
+  pr.then(() => { if (ML_DR[kind + ':' + ref]) mlDraftGet(kind, ref, true).catch(() => {}); }, () => {});      // lịch sử mail trong khung soạn cập nhật lần sau
+  return pr;
+}
 function mlModeWire(o) {
   if (!mlOn(o.kind) || !o.wrap || !o.ta || !o.send || !o.btn) return null;
-  const K = 'mlMode:' + o.kind, only = mlOnly(o.kind), s0 = o.send.innerHTML, p0 = o.ta.placeholder;
+  const K = 'mlMode:' + o.kind, only = mlOnly(o.kind) && !o.free, s0 = o.send.innerHTML, p0 = o.ta.placeholder;      // free (1.72) = người nhận mail ở chỗ này (gia sư của lớp / người phụ trách việc) — vẫn nhắn trong app được
   let mode = only ? 'mail' : (lsGet(K, 'chat') === 'mail' ? 'mail' : 'chat');
-  const paint = () => { const ml = mode === 'mail';
+  const bar = document.createElement('div'); bar.className = 'mlq-bar'; bar.hidden = true; o.wrap.parentNode.insertBefore(bar, o.wrap);
+  const barPaint = () => {
+    if (mode !== 'mail' || !o.wrap.isConnected) { bar.hidden = true; return; }
+    const d = mlDraftNow(o.kind, o.ref); bar.hidden = false;
+    bar.innerHTML = '<i class="bi bi-envelope"></i><span>' + (!d ? 'Mail tới người phụ trách · CC theo Quản trị' : d.to.length ? 'Mail tới <b>' + esc(d.to.map(mlNm).join(', ')) + '</b>' + (d.cc.length ? ' · CC ' + d.cc.length + ' người' : '') : 'Chưa có người nhận mặc định — bấm Gửi để chọn') + '</span>' +
+      '<button type="button" class="ml-edit">Sửa người nhận</button>';
+    bar.title = d ? 'Tới: ' + d.to.map(x => x.e).join(', ') + (d.cc.length ? '\nCC (Quản trị cài): ' + d.cc.map(x => x.e).join(', ') : '') : '';
+  };
+  const warm = () => { if (mode === 'mail') mlDraftGet(o.kind, o.ref).then(barPaint, () => {}); };
+  const clear = () => { o.ta.value = ''; o.ta.dispatchEvent(new Event('input', { bubbles: true })); };
+  const quick = (body, ex) => {
+    if (o.quick) return o.quick(body, ex || {});      // chỗ gửi tự hiện bong bóng chờ (Trao đổi lớp)
+    toast('Đang gửi mail…', 'info', 1800);
+    mlSendBg(o.kind, o.ref, Object.assign({ body: body }, ex || {}), o.label).then(r => {
+      const it = r && r.item || {}, n = String(it.to || '').split(',').filter(Boolean).length, c = String(it.cc || '').split(',').filter(Boolean).length;
+      toast('Đã gửi mail' + (n ? ' tới ' + n + ' người' : '') + (c ? ' · CC ' + c : ''), 'ok', 3000); o.done && o.done();
+    }).catch(e => { toast('Chưa gửi được mail — ' + e.message, 'err', 8000); if (!o.ta.value.trim()) { o.ta.value = body; o.ta.dispatchEvent(new Event('input', { bubbles: true })); } });
+  };
+  const full = body => mlCompose(o.kind, o.ref, { label: o.label, body: body, quick: (b, ex) => { if (o.ta.value.trim() === String(body || '').trim()) clear(); quick(b, ex); } });
+  const go = () => { const body = o.ta.value.trim(), d = mlDraftNow(o.kind, o.ref);
+    if (!body || (d && !d.to.length)) return full(body);      // chưa viết gì / chỗ này chưa có người nhận mặc định → khung soạn đầy đủ
+    clear(); quick(body); };
+  bar.onclick = e => { if (e.target.closest('.ml-edit')) { e.preventDefault(); full(o.ta.value.trim()); } };
+  const paint = () => { const ml = mode === 'mail'; barPaint(); warm();
     o.wrap.classList.toggle('ml-on', ml);
     o.ta.placeholder = ml ? o.mail || 'Viết mail…' : p0;
     o.send.innerHTML = ml ? (o.icon ? '<i class="bi bi-envelope"></i>' : '<i class="bi bi-envelope"></i>Gửi mail') : s0;
-    o.send.title = ml ? 'Mở khung gửi mail với nội dung này' : '';
+    o.send.title = ml ? 'Gửi mail ngay (người nhận, CC như dòng phía trên)' : '';
     o.btn.hidden = only;
     o.btn.innerHTML = ml ? (o.icon ? '<i class="bi bi-chat-dots"></i>' : '<i class="bi bi-chat-dots"></i>Chat') : (o.icon ? '<i class="bi bi-envelope"></i>' : '<i class="bi bi-envelope"></i>Mail');
     o.btn.title = ml ? 'Đang gửi MAIL — bấm để quay về nhắn trong app' : 'Đang nhắn trong app — bấm để chuyển sang gửi MAIL (người nhận trả lời qua mail, hiện lại ở đây)';
     o.btn.setAttribute('aria-pressed', String(ml));
     if (ml) o.send.disabled = false; };
-  const go = () => { const body = o.ta.value.trim(); mlCompose(o.kind, o.ref, { label: o.label, body: body, done: () => { o.ta.value = ''; o.ta.dispatchEvent(new Event('input', { bubbles: true })); o.done && o.done(); } }); };
   o.wrap.addEventListener('click', e => { if (mode !== 'mail' || !e.target.closest || e.target.closest('button') !== o.send) return; e.preventDefault(); e.stopPropagation(); go(); }, true);
   o.wrap.addEventListener('keydown', e => { if (mode !== 'mail' || e.target !== o.ta || e.key !== 'Enter' || e.isComposing) return; if (o.icon ? e.shiftKey : !(e.ctrlKey || e.metaKey)) return; e.preventDefault(); e.stopPropagation(); go(); }, true);
   o.btn.onclick = e => { e.preventDefault(); if (only) return; mode = mode === 'mail' ? 'chat' : 'mail'; lsSet(K, mode); paint(); o.ta.focus();
     toast(mode === 'mail' ? 'Đã chuyển sang gửi MAIL' : 'Đã chuyển về nhắn trong app', 'info', 1800); };
   paint();
-  return { mode: () => mode };
+  return { mode: () => mode, full: full };
 }
 function mlTag(d, ml) {
   ml = ml || {}; const to = String(ml.to || '').split(',').filter(Boolean), n = to.length;
-  const who = n ? (typeof tkUser === 'function' && TK && TK.d ? tkUser(to[0]) : to[0]) + (n > 1 ? ' +' + (n - 1) : '') : '';
+  const dn = e => { for (const k in ML_DR) { const u = ML_DR[k].d && (ML_DR[k].d.users || []).find(x => x.e === e); if (u && u.n) return u.n; } return e; };      // (1.72) chưa tải Kiến Task → tên từ khung soạn đã lấy sẵn
+  const who = n ? (typeof tkUser === 'function' && typeof TK !== 'undefined' && TK && TK.d ? tkUser(to[0]) : dn(to[0])) + (n > 1 ? ' +' + (n - 1) : '') : '';
   return d === 'i' ? '<span class="ml-tag i" title="' + esc(ml.s || '') + '"><i class="bi bi-reply"></i>Trả lời qua mail</span>'
     : '<span class="ml-tag" title="' + esc('Tới: ' + to.join(', ') + (ml.cc ? '\nCC: ' + String(ml.cc).split(',').join(', ') : '') + (ml.s ? '\n' + ml.s : '')) + '"><i class="bi bi-envelope"></i>Mail' + (who ? ' → ' + esc(who) : '') + '</span>';
 }
@@ -17813,9 +17879,10 @@ async function mlCompose(kind, ref, opt) {
   opt = opt || {};
   if (S.me && S.me.preview) return toast('Đang xem thử — không gửi mail', 'warn');
   const title = 'Gửi mail' + (opt.label ? ' · ' + opt.label : '');
-  const lm = modal({ title: title, icon: 'bi-envelope', size: 'lg', body: miniLoader('Đang chuẩn bị…') });
-  let D; try { D = await rpc('mlDraft', { kind: kind, ref: ref }, { quiet: true }); } catch (e) { lm.close(); return toast(e.message, 'err', 7000); }
-  if (lm.closed) return; lm.close();
+  let D = mlDraftNow(kind, ref);      // (1.72) đã lấy sẵn → mở tức thì
+  if (!D) { const lm = modal({ title: title, icon: 'bi-envelope', size: 'lg', body: miniLoader('Đang chuẩn bị…') });
+    try { D = await mlDraftGet(kind, ref); } catch (e) { lm.close(); return toast(e.message, 'err', 7000); }
+    if (lm.closed) return; lm.close(); }
   const day = iso => { const d = new Date(iso); return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
   let to, cc, B;
   const m = modal({ title: title, icon: 'bi-envelope', size: 'lg', sticky: true, body: '<div class="ml-f">' +
@@ -17832,6 +17899,7 @@ async function mlCompose(kind, ref, opt) {
       const T = to.get(), C = cc.get(), body = B.value.trim(), sub = m.$('#mlS').value.trim();
       if (!T.length) { toast('Chưa có người nhận', 'warn'); return false; }
       if (!body) { toast('Chưa nhập nội dung', 'warn'); B.focus(); return false; }
+      if (opt.quick) { opt.quick(body, { to: T, cc: C, subject: sub }); return; }      // (1.72) đóng ngay — thư đi qua hàng đợi ghi ngầm
       try { await rpc('mlSend', { kind: kind, ref: ref, to: T, cc: C, subject: sub, body: body }, { quiet: true }); }
       catch (e) { toast(e.message, 'err', 7000); return false; }
       toast('Đã gửi mail tới ' + T.length + ' người' + (C.length ? ' · CC ' + C.length : '') + ' — thư trả lời sẽ hiện ở đây', 'ok', 5000);
@@ -24501,7 +24569,8 @@ async function viewTasks(arg, v) {
           try { const r = await rpc('taskCmtOld', { id: cur.id }); modal({ title: 'Bình luận cũ · ' + cur.key, icon: 'bi-clock-history', size: 'lg', body: r.comments.length ? tkCmHtml(r.comments, () => false) : '<div class="small muted">Việc này chưa có bình luận nào được chuyển vào lưu trữ</div>', foot: [{ t: 'Đóng', cls: 'ghost' }] }); }
           catch (e) { fail(e); } ob.disabled = false; }; }
       { const mb = m.$('#tCmM'); if (mb) mlModeWire({ kind: 'task', ref: cur.id, label: cur.key + ' · ' + cur.title, wrap: mb.closest('.row'), ta: m.$('#tCmT'), send: m.$('#tCmS'), btn: mb,
-          mail: 'Viết MAIL cho người phụ trách… (bấm Gửi mail để xem người nhận, CC) — người nhận trả lời qua mail, hiện lại ở đây', done: () => { if (!m.closed) load(1); } }); }      // (1.68) Vòng mail · (1.70) nút chuyển Chat ⇄ Mail
+          free: tkWho(cur).some(e => String(e).toLowerCase() === S.me.email),      // (1.72) người phụ trách việc = người nhận mail → luôn bình luận trả lời được
+          mail: 'Viết MAIL cho người phụ trách… (Ctrl/⌘ + Enter = gửi ngay) — người nhận trả lời qua mail, hiện lại ở đây', done: () => { if (!m.closed) load(1); } }); }      // (1.68) Vòng mail · (1.70) nút chuyển Chat ⇄ Mail
       tkCmWire(m, { t: cur, get: () => CL, set: cm, send: text => tkSend('taskComment', { id: cur.id, text: text }), del: cid => rpc('taskCommentDel', { id: cur.id, cid: cid }),
         after: r => { cmLast = JSON.stringify(r.comments); tkoPut(cur.id, Object.assign({}, tkoCached(cur.id), { comments: r.comments })); const x = D().tasks.find(k => k.id === cur.id); if (x) { x.nc = r.comments.filter(c => c.kind !== 'a').length; paint(); } } });
     }

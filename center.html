@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#FFFFFF">
+  <script>window.google = { script: { run: (function mk(ok, ko) { return new Proxy({}, { get: function (_, k) {
+    if (k === "withSuccessHandler") return function (f) { return mk(f, ko); }; if (k === "withFailureHandler") return function (f) { return mk(ok, f); };
+    return function () { var a = [].slice.call(arguments), n = 0, go = function () { n++; fetch("https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec", { method: "POST", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn: a[0], p: a[1] || {}, t: "" }) })
+      .then(function (r) { if (!r.ok) throw Object.assign(new Error("Máy chủ trả lỗi " + r.status + " — tải lại trang để thử lại"), { again: r.status >= 500 }); return r.text().then(function (x) { try { return JSON.parse(x); } catch (er) { throw Object.assign(new Error("bad json"), { again: 1 }); } }); })
+      .then(function (r) { if (ok) ok(r); }, function (e) { var net = e && (e.again || /fetch|network|load failed/i.test(e.message || ""));
+        if (net && n < 3 && a[0] !== "sharePrint" && a[0] !== "bookShareSubmit") { console.warn("máy chủ chậm / lỗi mạng → gửi lại lần " + (n + 1), a[0], e); return setTimeout(go, 1500 * n); }
+        if (ko) ko(net ? new Error("Máy chủ Google đang chậm hoặc mất mạng — bấm Thử lại") : e); }); }; go(); };
+  } }); })(null, null) } };</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Trang in</title>
+  <style>
+:root{ color-scheme:light }
+body{ margin:0; background:#EEF2F8; font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#14213D }
+main{ max-width:760px; margin:0 auto; padding:20px 16px 40px }
+h1{ font-size:22px; margin:4px 0 2px } h2{ font-size:14px; letter-spacing:.05em; text-transform:uppercase; color:#5B6478; margin:22px 4px 8px }
+.sub{ color:#5B6478; font-size:13px } .top{ display:flex; gap:10px; align-items:flex-start } .top > div{ flex:1; min-width:0 }
+.rq{ background:#fff; border-radius:16px; padding:14px 16px; margin-bottom:10px; box-shadow:0 1px 3px rgba(20,33,61,.08) } .rq.done{ opacity:.72 }
+.hd{ display:flex; gap:8px; align-items:baseline; flex-wrap:wrap } .hd b{ font-size:16px } .hd small{ color:#6B7385 }
+.note{ margin:8px 0 0; padding:8px 10px; background:#FFF6E6; border-radius:10px; font-size:13.5px; white-space:pre-wrap }
+.note.ok{ background:#DCFCE7 } .note.bad{ background:#FEE2E2 }
+.kid{ display:flex; gap:10px; align-items:center; padding:10px 0; border-top:1px solid #EEF1F6; margin-top:8px }
+.kid span{ flex:1; min-width:0 } .kid small{ display:block; color:#6B7385; font-size:12.5px }
+a.bt, button.bt{ display:inline-flex; align-items:center; gap:6px; border:0; border-radius:999px; padding:9px 16px; font:600 14px/1.2 inherit; text-decoration:none; cursor:pointer; background:#1E3A6E; color:#fff; white-space:nowrap }
+button.bt.ok{ background:#0F7B45 } button.bt.gh{ background:#E8EDF6; color:#1E3A6E } button.bt[disabled]{ opacity:.55; cursor:default }
+.ft{ display:flex; justify-content:flex-end; margin-top:10px; gap:8px }
+.tag{ font-size:12px; font-weight:700; padding:2px 9px; border-radius:999px; background:#DCFCE7; color:#15803D }
+.empty{ padding:28px; text-align:center; color:#6B7385; background:#fff; border-radius:16px }
+  </style>
+</head>
+<body>
+<main id="pg"><div class="empty">Đang tải trang in…</div></main>
+<script>
+/* (1.72.2) TRANG IN CỦA TRUNG TÂM chạy thẳng trên tên miền (…/pc/<mã>) — thay trang script.google.com/…?pc=<mã>.
+   Dựng bởi tools/build-static.js → domain/center.html · gọi máy chủ bằng fetch (centerOpen · centerDone là lệnh công khai, chỉ cần mã trang in). */
+const CQ = new URLSearchParams(location.search), TOKEN = (CQ.get('t') || (/^\/pc\/([\w-]+)/.exec(location.pathname) || [])[1] || '').replace(/[^\w-]/g, '');
+if (TOKEN) try { history.replaceState(null, '', '/pc/' + TOKEN); } catch (e) {}
+const $pg = document.getElementById('pg');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const tm = iso => { const d = new Date(iso); if (isNaN(d)) return ''; const p = n => String(n).padStart(2, '0'); return p(d.getHours()) + ':' + p(d.getMinutes()) + ' ' + p(d.getDate()) + '/' + p(d.getMonth() + 1); };
+const rpc = (fn, p) => new Promise((ok, ko) => google.script.run.withSuccessHandler(r => (r && r.ok ? ok(r.data) : ko(new Error((r && r.error) || 'Lỗi máy chủ')))).withFailureHandler(ko).api(fn, p));      // như share.html: run.api(lệnh, dữ liệu) → fetch POST /exec
+let D = null, msg = null, busy = false;
+function card(r) {
+  const dn = r.status === 'done';
+  return '<div class="rq' + (dn ? ' done' : '') + '"><div class="hd"><b>Gia sư ' + esc(r.byName) + '</b><small>gửi ' + tm(r.at) + ' · ' + r.items.length + ' bé</small>' + (dn ? '<span class="tag">Đã in ' + tm(r.doneAt) + '</span>' : '') + '</div>' +
+    (r.note ? '<div class="note">' + esc(r.note) + '</div>' : '') +
+    r.items.map(x => '<div class="kid"><span><b>Bé ' + esc(x.who) + '</b><small>' + esc([x.code, x.files + ' tệp', x.sessions + ' buổi', x.dates].filter(Boolean).join(' · ')) + '</small></span>' +
+      (x.url ? '<a class="bt" href="' + esc(x.url) + '" target="_blank" rel="noopener">🖨 Mở để in</a>' : '') + '</div>').join('') +
+    '<div class="ft">' + (dn ? '<button class="bt gh" data-id="' + esc(r.id) + '" data-v="0">Chưa in</button>'
+      : '<button class="bt ok" data-id="' + esc(r.id) + '" data-v="1" data-ask="Đánh dấu đã in xong yêu cầu của ' + esc(r.byName) + '?">✓ Đã in xong</button>') + '</div></div>';
+}
+function paint() {
+  if (!D) return;
+  if (D.gone) { document.title = 'Trang in'; $pg.innerHTML = '<div class="empty"><b>Link trang in không còn hiệu lực</b><br>Nhờ quản lý gửi lại link trang in của trung tâm.</div>'; return; }
+  document.title = 'Trang in · ' + D.name;
+  const nw = D.reqs.filter(r => r.status !== 'done'), dn = D.reqs.filter(r => r.status === 'done');
+  $pg.innerHTML = '<div class="top"><div><div class="sub">' + esc(D.app) + ' · Trang in của trung tâm</div><h1>' + esc(D.name) + '</h1>' + (D.addr ? '<div class="sub">' + esc(D.addr) + '</div>' : '') + '</div>' +
+    '<button class="bt gh" id="rl"' + (busy ? ' disabled' : '') + '>↻ Tải lại</button></div>' +
+    (msg ? '<div class="note ' + msg[0] + '">' + esc(msg[1]) + '</div>' : '') +
+    '<h2>Cần in · ' + nw.length + '</h2>' + (nw.length ? nw.map(card).join('') : '<div class="empty">Chưa có yêu cầu in mới</div>') +
+    (dn.length ? '<h2>Đã in (30 ngày) · ' + dn.length + '</h2>' + dn.map(card).join('') : '');
+}
+async function load(quiet) {
+  if (!TOKEN) { D = { gone: 1 }; return paint(); }
+  busy = true; if (D) paint();
+  try { D = await rpc('centerOpen', { t: TOKEN }); if (!quiet) msg = null; }
+  catch (e) { if (!D) { $pg.innerHTML = '<div class="empty"><b>Chưa tải được trang in</b><br>' + esc(e.message) + '<br><br><button class="bt" id="rl">Thử lại</button></div>'; busy = false; return; } msg = ['bad', e.message]; }
+  busy = false; paint();
+}
+document.addEventListener('click', async e => {
+  if (e.target.closest('#rl')) { msg = null; return load(); }
+  const b = e.target.closest('button[data-id]'); if (!b || busy) return;
+  if (b.dataset.ask && !confirm(b.dataset.ask)) return;
+  const done = b.dataset.v === '1'; busy = true; b.disabled = true; b.textContent = 'Đang lưu…';
+  try { D = await rpc('centerDone', { t: TOKEN, id: b.dataset.id, done: done ? 1 : 0 }); msg = ['ok', done ? 'Đã đánh dấu đã in — gia sư được báo.' : 'Đã chuyển lại thành chưa in.']; }
+  catch (er) { msg = ['bad', er.message]; }
+  busy = false; paint(); scrollTo({ top: 0, behavior: 'smooth' });
+});
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && D && !D.gone && !busy) load(true); });      // quay lại tab → lấy yêu cầu mới
+load();
+</script>
+</body>
+</html>
