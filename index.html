@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-06T17:58:17.110Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-06T18:27:40.329Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -13841,7 +13841,7 @@ function clOverlay(d) {
   const C = {}; d.classes.forEach(c => { C[c.id] = c; });
   const X = {}; d.sessions.forEach(x => { X[x.id] = x; });
   const autoOn = new Set();
-  P('classSave').forEach(p => (p.items || []).forEach(it => { const c = C[it.id]; if (c) { Object.assign(c, it.patch); if ('programId' in it.patch) c.plock = null; if ('autoOk' in it.patch) { c.autoOk = it.patch.autoOk ? 1 : 0; if (c.autoOk) autoOn.add(c.id); } } }));
+  P('classSave').forEach(p => (p.items || []).forEach(it => { const c = C[it.id]; if (c) { if ('programId' in it.patch) c.plock = clPkAfter(c, it.patch.programId); Object.assign(c, it.patch); if ('autoOk' in it.patch) { c.autoOk = it.patch.autoOk ? 1 : 0; if (c.autoOk) autoOn.add(c.id); } } }));
   if (autoOn.size) d.sessions.forEach(x => { if (autoOn.has(x.classId) && x.status === 'draft' && (x.folders || []).length) { x.status = 'approved'; x.auto = true; } });   // vừa bật Tự duyệt → buổi nháp hiện đã duyệt ngay
   if (d.manage) P('classAdd').forEach(p => { if (p.newId && !C[p.newId]) { const c = { id: p.newId, code: p.code, student: p.student, grade: p.grade, ref: '', course: '', status: 'Đang học', days: p.days, times: p.times, tutorEmail: p.tutorEmail, tutorName: p.tutorName, programId: p.programId, startDate: p.startDate, lead: '', per: '', note: p.note, order: d.classes.length + 1, done: [] }; d.classes.push(c); C[c.id] = c; } });   // lớp vừa thêm, chưa lưu xong
   P('classMine').forEach(p => { if (C[p.id]) { Object.assign(C[p.id], p.patch); if ('programId' in p.patch) C[p.id].plock = null; } });
@@ -15546,6 +15546,13 @@ function clProgChip(c) {
     : [' mv', 'bi-arrow-left-right', (o.name || '') + ' đề xuất chuyển → ' + ((progById(o.to) || {}).name || 'chương trình khác') + ' · ' + clDm(o.at) + (o.note ? ' · ' + o.note : '')];
   return '<button type="button" class="cl-pchip' + st[0] + '" data-plk style="--pc:' + progColor(p) + '" title="' + esc(clProgName(p) + ' — ' + st[2]) + '"><i class="bi bi-mortarboard"></i><span>' + esc(clProgName(p).split(/\s*[›>]\s*/).slice(-2).join(' › ')) + '</span><i class="bi ' + st[1] + ' pk"></i></button>';
 }
+/** (1.72.3) xác nhận chương trình sau khi quản lý đổi chương trình: chuyển ĐÚNG sang chương trình gia sư đề xuất = duyệt đề xuất → “Đúng chương trình” luôn
+    (giống máy chủ classSave) · đổi khác → bỏ xác nhận */
+function clPkAfter(c, pid) {
+  const o = c.plock;
+  if (o && o.k === 'ok' && pid && String(o.pid || '') === String(pid)) return o;      // máy chủ đã xác nhận (tải lại dữ liệu khi lệnh còn trong hàng đợi) → giữ
+  return o && o.k === 'move' && pid && String(o.to) === String(pid) ? { k: 'ok', to: '', note: 'Duyệt đề xuất chuyển của ' + (o.name || 'gia sư') + (o.note ? ': ' + o.note : ''), pid: String(pid), by: S.me.email, name: S.me.name || S.me.email, at: new Date().toISOString() } : null;
+}
 /** huy hiệu trên ảnh chữ cái của lớp: ✓ gia sư đã xác nhận đúng chương trình · ⇄ đang đề xuất chuyển */
 function clPkBadge(c) {
   const o = c && c.plock; if (!o || !o.k) return '';
@@ -15555,7 +15562,7 @@ function clLockMenu(btn, c, done, extra) {
   const o = c.plock, man = CL.d.manage, p = o && o.k === 'move' ? progById(o.to) : null;
   if (!clProg(c)) return extra && extra.length ? openMenu(btn, extra) : null;
   openMenu(btn, [
-    o && o.k === 'move' && man && p ? { t: 'Chuyển sang ' + p.name, d: 'Lý do lấy từ đề xuất của gia sư', i: 'bi-check2-circle', fn: () => clSave(c, { programId: o.to }, 'Đổi chương trình', { why: (o.name ? o.name + ': ' : '') + (o.note || 'Gia sư đề xuất'), after: () => { toast('Đã chuyển chương trình'); done && done(); } }) } : null,
+    o && o.k === 'move' && man && p ? { t: 'Chuyển sang ' + p.name, d: 'Lý do lấy từ đề xuất của gia sư', i: 'bi-check2-circle', fn: () => clSave(c, { programId: o.to }, 'Đổi chương trình', { why: (o.name ? o.name + ': ' : '') + (o.note || 'Gia sư đề xuất'), after: () => { toast('Đã chuyển chương trình · đã xác nhận đúng chương trình'); done && done(); } }) } : null,
     !o || o.k !== 'ok' ? { t: 'Đúng chương trình', d: 'Bé học hợp sức — đổi hàng loạt sẽ giữ nguyên bé này', i: 'bi-lock', fn: () => clLockDlg(c, 'ok', done) } : null,
     { t: o && o.k === 'move' ? 'Sửa đề xuất chuyển' : 'Đề xuất chuyển chương trình', d: 'Chọn chương trình phù hợp hơn + lý do', i: 'bi-arrow-left-right', fn: () => clLockDlg(c, 'move', done) },
     o ? '-' : null,
@@ -15722,7 +15729,7 @@ function clReport(B, v) {
       return rvSave({ on: 1, mail: mail ? 1 : 0, restart: 1 }, 'Đã bật đợt xác nhận chương trình'); }
     if (e.target.closest('[data-rvoff]')) { if (!await ask('Kết thúc đợt? Gia sư không còn thấy hộp xác nhận khi mở app (xác nhận đã gửi giữ nguyên).', { ok: 'Kết thúc' })) return; return rvSave({ on: 0 }, 'Đã kết thúc đợt xác nhận'); }
     if (e.target.closest('[data-rvmail]')) { if (!await ask('Gửi mail nhắc ' + rvT.length + ' gia sư còn lớp chưa xác nhận?', { ok: 'Gửi mail' })) return; return rvSave({ remind: 1 }, 'Đã nhắc'); }
-    const ok = e.target.closest('[data-mvok]'); if (ok) { e.preventDefault(); const c = clClass(ok.dataset.mvok), o = c && c.plock; if (o) clSave(c, { programId: o.to }, 'Đổi chương trình', { why: (o.name ? o.name + ': ' : '') + (o.note || 'Gia sư đề xuất'), after: () => { toast('Đã chuyển chương trình · ' + clName(c)); clReport(B, v); } }); return; }
+    const ok = e.target.closest('[data-mvok]'); if (ok) { e.preventDefault(); const c = clClass(ok.dataset.mvok), o = c && c.plock; if (o) clSave(c, { programId: o.to }, 'Đổi chương trình', { why: (o.name ? o.name + ': ' : '') + (o.note || 'Gia sư đề xuất'), after: () => { toast('Đã chuyển chương trình · đã xác nhận đúng chương trình · ' + clName(c)); clReport(B, v); } }); return; }
     const no = e.target.closest('[data-mvno]'); if (no) { e.preventDefault(); const c = clClass(no.dataset.mvno); if (c) clLockSet(c, { k: '' }, () => clReport(B, v)); }
   };
   B.onchange = e => { if (e.target.id === 'rpP') { st.per = Number(e.target.value); clReport(B, v); } if (e.target.id === 'rvMail') st.mail = e.target.checked ? 1 : 0; };
@@ -15879,7 +15886,7 @@ function clSave(c, patch, label, meta) {
   const man = CL.d.manage; meta = meta || {};
   if ('programId' in patch && !meta.ok) return clProgGate([{ id: c.id, patch: patch, why: meta.why }], out => { if (out.length) clSave(c, out[0].patch, label, Object.assign({}, meta, { ok: 1, why: out[0].why, force: out[0].force })); });
   if (!Object.keys(patch).length) return;
-  if ('programId' in patch) c.plock = null;
+  if ('programId' in patch) c.plock = man ? clPkAfter(c, patch.programId) : null;
   Object.assign(c, patch); ['lead', 'per'].forEach(k => { if (k in patch) c[k] = patch[k] === '' ? '' : Number(patch[k]); });
   const deep = 'programId' in patch || 'tutorEmail' in patch;
   if ('programId' in patch) delete CL_LES[c.id];
