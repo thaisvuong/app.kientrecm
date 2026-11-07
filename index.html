@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-07T20:43:34.518Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-07T21:01:00.436Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4554,6 +4554,8 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .ask-n{ flex:none; font-style:normal; font-size:12px; font-weight:700; min-width:22px; height:22px; padding:0 7px; border-radius:99px; display:grid; place-items:center; background:#FFF1D6; color:#9A5B00 } .ask-n.red{ background:#E5484D; color:#fff }
 /* mini-Kanban canh giữa khi đủ chỗ (trước đây dồn trái), cột giãn đều tới 340px; hẹp thì cuộn ngang như cũ */
 .gc-kbd{ width:auto; min-width:min-content; justify-content:flex-start } .gc-col{ flex:1 1 0; min-width:200px; max-width:none }      /* 1.56.6: cột chia đều, đủ chỗ thì thấy hết các cột — hẹp hơn 200px/cột mới cuộn ngang */
+/* 1.75.2: Kanban cao vừa khít khung xem — tnKbFit (Classes.html) đo chỗ còn lại đặt --gc-h; mọi cột kéo tới đáy, thẻ cuộn trong cột (trước: max-height đoán cứng 100dvh − 300px → dư khoảng trống dưới) */
+.gc-kbd{ height:var(--gc-h, auto); align-items:stretch } .gc-col{ max-height:var(--gc-h, calc(100dvh - 300px)) } .gc-cl{ flex:1 1 auto; min-height:60px }
 /* 1.56.6 · mini-Kanban GIỐNG Kiến Task: cột chia đều bề ngang (hẹp quá mới cuộn) · màu cột DÙNG CHUNG với Kiến Task (App.html › ksCls: --pb nền / --pc chữ) — nền cột nhạt, tên cột màu đậm, không viền màu */
 .gc-col.ks{ background:color-mix(in srgb, var(--pb) 75%, var(--surface)); border:0 }
 .gc-col.ks header{ padding:12px 10px 10px 12px; font-size:14px; color:var(--pc) } .gc-col.ks header b{ font-weight:700 } .gc-col.ks header > i{ width:8px; height:8px; background:var(--pc); opacity:.8 }
@@ -5000,6 +5002,13 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
   .cl-rf .cl-kgs{ white-space:normal; max-width:100% } .cl-rf .cl-kgs span{ overflow:visible; text-overflow:clip }
   .cl-rf .cl-fold span{ white-space:normal }
 }
+
+/* (1.75.2) NHÃN NHÓM thanh bên Kiến CM (CM_SEC · buildNav): chữ nhỏ, nhạt; nhóm sau cách nhóm trước một khoảng · thanh bên thu gọn → vạch mảnh thay chữ */
+.app .sb-nav .nav-sec{ display:block; flex:none; padding:12px 12px 4px; font-size:11px; line-height:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--sb-ink-3, var(--muted)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.app .sb-nav .nav-sec.n1{ padding-top:2px }
+.app.mini .sb-nav .nav-sec{ display:block !important; font-size:0; height:1px; padding:0; margin:10px 14px; background:var(--border) } .app.mini .sb-nav .nav-sec.n1{ display:none !important }
+.app.mini .sb-nav .nav-sec::after{ content:none }
+@media (min-width:821px) and (max-width:1100px){ .app:not(.wide) .sb-nav .nav-sec{ display:block !important; font-size:0; height:1px; padding:0; margin:10px 14px; background:var(--border) } .app:not(.wide) .sb-nav .nav-sec.n1{ display:none !important } }
 </style>
 
   <style>
@@ -7517,7 +7526,10 @@ function navLayout(L) {
   return { groups: groups, items: items };
 }
 /** thứ tự cố định các tab của Kiến Chuyên môn (quản lý): Hướng dẫn kế cuối, Cài đặt lớp cuối — không phụ thuộc bố cục menu đã lưu từ trước khi tách tab */
-const CM_ORDER = ['today', 'approve', 'classes', 'classes/list', 'classes/tutors', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'classes/stats', 'classes/centers', 'classes/perms', 'guide', 'classes/settings'];
+const CM_ORDER = ['today', 'approve', 'classes', 'classes/list', 'classes/tutors', 'classes/stats', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'classes/centers', 'classes/perms', 'guide', 'classes/settings', 'classes/kgs'];
+/* (1.75.2) Kiến CM (quản lý): thanh bên chia NHÓM có nhãn — Vận hành · Hộp thư · Thiết lập (buildNav vẽ nhãn trước mục đầu mỗi nhóm; thu gọn thanh bên → vạch mảnh) */
+const CM_SEC = { today: 'Vận hành', approve: 'Vận hành', classes: 'Vận hành', 'classes/list': 'Vận hành', 'classes/tutors': 'Vận hành', 'classes/stats': 'Vận hành', programs: 'Vận hành',
+  'classes/reqs': 'Hộp thư', 'classes/notes': 'Hộp thư', 'classes/inbox': 'Hộp thư', 'classes/centers': 'Thiết lập', 'classes/perms': 'Thiết lập', 'classes/settings': 'Thiết lập', 'classes/kgs': 'Thiết lập' };
 /** các tab người này thấy, đúng thứ tự (gia sư: thứ tự công việc) */
 function navItems(lay) {
   lay = lay || navLayout();
@@ -7526,7 +7538,8 @@ function navItems(lay) {
   const tut = isTutor();
   let items = lay.items.map(x => (x.tm && mgr && x.t === x.dt ? Object.assign({}, x, { t: x.tm }) : tut && x.tt && x.t === x.dt ? Object.assign({}, x, { t: x.tt, i: x.ti }) : x))
     .filter(x => !x.hide && canAny(x.cap) && !(x.nm && can(x.nm)) && (!x.on || (S.boot && S.boot[x.on])) && (!x.off || !(S.boot && S.boot[x.off])) && (!x.tut || tut) && !(x.nt && tut) && (!modOf(x.r) || !S.mod || modOf(x.r) === S.mod) && (!x.multi || nMods > 1 || tutApps()));
-  if (!isTutor() && S.mod === 'tutor') { const at = [], sub = []; items.forEach((x, i) => { if (CM_ORDER.indexOf(x.r) >= 0) { at.push(i); sub.push(x); } }); sub.sort((a, b) => CM_ORDER.indexOf(a.r) - CM_ORDER.indexOf(b.r)); items = items.slice(); at.forEach((i, k) => { items[i] = sub[k]; }); }
+  if (!isTutor() && S.mod === 'tutor') { const at = [], sub = []; items.forEach((x, i) => { if (CM_ORDER.indexOf(x.r) >= 0) { at.push(i); sub.push(x); } }); sub.sort((a, b) => CM_ORDER.indexOf(a.r) - CM_ORDER.indexOf(b.r)); items = items.slice(); at.forEach((i, k) => { items[i] = sub[k]; });
+    items = items.map(x => CM_SEC[x.r] ? Object.assign({}, x, { sec: CM_SEC[x.r] }) : x); }
   if (isTutor()) items = items.slice().sort((a, b) => { const ia = TUT_ORDER.indexOf(a.r), ib = TUT_ORDER.indexOf(b.r); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
   return items;
 }
@@ -7545,6 +7558,7 @@ function buildNav(L) {
     const shut = lsGet('navPg', {}), cur = navOf(S.route, items);
     h += L2.map((x, k) => (x.pg && (k === 0 || L2[k - 1].pg !== x.pg) ? (k && L2[k - 1].pg ? '</div>' : '') + '<button type="button" class="nav-i nav-grp" data-pg="' + esc(x.pg) + '" aria-expanded="' + !(shut[x.pg] && !L2.some(y => y.pg === x.pg && y.r === cur)) + '" title="' + esc(x.pg) + '"><i class="bi ' + esc(x.pgi || 'bi-folder2') + '"></i><span class="nav-t">' + esc(x.pg) + '</span><i class="bi bi-chevron-down nav-cv"></i></button><div class="nav-sub">'
         : !x.pg && k && L2[k - 1].pg ? '</div>' : '') +
+      (x.sec && (k === 0 || L2[k - 1].sec !== x.sec) ? '<div class="sb-sec nav-sec' + (k ? '' : ' n1') + '" aria-hidden="true">' + esc(x.sec) + '</div>' : '') +      // (1.75.2) nhãn nhóm (CM_SEC)
       '<a class="nav-i' + (x.pg ? ' nav-k' : '') + (modOf(x.r) ? '' : ' c' + (x === L2.find(y => !modOf(y.r)) ? ' c1' : '')) + '" data-r="' + x.r + '" href="' + esc(routeUrl(x.r)) + '" title="' + esc(x.pg ? x.pg + ' · ' + x.t : x.t) + '"><i class="bi ' + esc(x.i) + '"></i><span class="nav-t">' + esc(x.t) + '</span>' +
       (x.r === 'library' ? '<span class="nav-badge" id="navN">' + fmtN(IX.files.length) + '</span>' : '') + (x.r === 'approve' ? '<span class="nav-badge warn" id="navA" title="Buổi chờ duyệt"' + (S.boot.appr ? '' : ' hidden') + '>' + (S.boot.appr || 0) + '</span>' : '') + (x.r === 'classes' || x.r === 'classes/todo' ? '<span class="nav-badge warn" id="navT" title="Buổi học cần gán bài"' + (S.boot.todo ? '' : ' hidden') + '>' + (S.boot.todo || 0) + '</span>' : '') + (x.r === 'info' ? '<span class="nav-badge" id="navI" hidden></span>' : '') + (x.r === 'today' && isTutor() ? '<span class="nav-badge warn" id="navTd" hidden></span>' : '') + (x.r === 'classes/reqs' || x.r === 'classes/notes' ? '<span class="nav-badge warn" id="navR" hidden></span>' : '') + (x.r === 'classes/inbox' ? '<span class="nav-badge warn" id="navC" hidden></span>' : '') + (x.r === 'users' && S.boot.pending ? '<span class="nav-badge warn" id="navP" title="Tài khoản chờ duyệt">' + S.boot.pending + '</span>' : '') + '</a>').join('') + (L2.length && L2[L2.length - 1].pg ? '</div>' : '');
   });
@@ -16396,7 +16410,7 @@ async function clNotes(B, v, openId) {
           '<span class="gc-m"><b>' + esc(x.title) + (x.pri === 'high' ? ' <em class="cl-ub red">Gấp</em>' : '') + '</b><small>' + [esc(kn(x.kind)), x.cls ? '<i class="bi bi-person-video3"></i> ' + esc(x.cls.name) + tnPg(x) : '', x.lesson ? '<i class="bi bi-book"></i> ' + esc(x.lesson) : '', x.due && !x.done ? '<i class="bi bi-calendar-event"></i> hạn ' + esc(x.due.slice(8, 10) + '/' + x.due.slice(5, 7)) : '', D.man || D.all ? esc(x.byName) : '', x.pend ? 'đang gửi…' : esc(ago(x.upd))].filter(Boolean).join(' · ') + (unread.has(x.id) ? ' <em class="gc-new">Có phản hồi mới</em>' : '') + '</small></span>' +
           (x.nc ? '<span class="gc-nc" title="' + x.nc + ' bình luận"><i class="bi bi-chat-dots"></i>' + x.nc + '</span>' : '') + '<span class="tag ' + st[1] + '"><i class="bi ' + st[2] + '"></i>' + (x.stage === 'review' && D.man ? 'Chờ gia sư xem' : st[0]) + '</span></button>'; }).join('')
         : '<div class="lk-empty"><i class="bi bi-journal-check"></i><b>' + (TN.f === 'open' ? 'Không có yêu cầu đang mở' : 'Chưa có yêu cầu') + '</b>' + (D.man ? '' : '<span>Bấm “Gửi yêu cầu” để xin bài dạy, báo lỗi tài liệu hoặc đề xuất với quản lý</span>') + '</div>') + '</div>');
-    if (sv.y) v.scrollTop = sv.y; const kw = $('.gc-kbw', B); if (kw && sv.x) kw.scrollLeft = sv.x; $$('.gc-col', B).forEach(c => { const t = sv.c[c.dataset.col]; if (t) $('.gc-cl', c).scrollTop = t; });
+    const kw = $('.gc-kbw', B); tnKbFit(kw); if (sv.y) v.scrollTop = sv.y; if (kw && sv.x) kw.scrollLeft = sv.x; $$('.gc-col', B).forEach(c => { const t = sv.c[c.dataset.col]; if (t) $('.gc-cl', c).scrollTop = t; });
     const qi = $('#tnQ', B); if (qi) qi.oninput = debounce(() => { TN.q = qi.value; const at = qi.selectionStart; paint(); const q2 = $('#tnQ', B); if (q2) { q2.focus(); q2.setSelectionRange(at, at); } }, 200);
   };
   B.onclick = e => {
@@ -16423,6 +16437,15 @@ async function clNotes(B, v, openId) {
   try { await load(); } catch (e) { if (!TN.d && B.dataset.tab === 'notes') B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được ghi chú</b><span>' + esc(e.message) + '</span></div></div>'; return; }
   paint();
   if (openId) { const x = TN.d.items.find(y => y.id === openId); if (x) tnView(x, paint); else toast('Không tìm thấy ghi chú này (đã xoá hoặc không phải của bạn)', 'warn'); }
+}
+/** (1.75.2) mini-Kanban cao vừa khít khung xem: đo từ đầu bảng tới đáy .view → --gc-h; mọi cột kéo tới đáy (trước dư một khoảng trống phía dưới).
+    Màn hẹp (≤ 720px, cột xếp ngang 82vw) để cột tự cao theo thẻ như cũ. Đổi cỡ cửa sổ → đo lại. */
+function tnKbFit(kw) {
+  if (!kw || !kw.isConnected) return; const v = kw.closest('.view');
+  if (!v || matchMedia('(max-width:720px)').matches) { kw.style.removeProperty('--gc-h'); return; }
+  const top = kw.getBoundingClientRect().top - v.getBoundingClientRect().top + v.scrollTop, cs = getComputedStyle(v), pad = parseFloat(getComputedStyle(kw).paddingBottom) || 0;
+  kw.style.setProperty('--gc-h', Math.max(320, Math.floor(v.clientHeight - top - (parseFloat(cs.paddingBottom) || 0) - pad)) + 'px');
+  if (!tnKbFit.on) { tnKbFit.on = 1; addEventListener('resize', debounce(() => tnKbFit(document.querySelector('.gc-kbw')), 120)); }
 }
 /** MINI-KANBAN: các cột của bảng nhận ghi chú (như ở Kiến Task) — quản lý kéo thẻ để chuyển cột, bấm thẻ để xem / trả lời; cột “xong” chỉ hiện 12 thẻ mới nhất */
 function tnKanban(D, L, unread) {
@@ -18198,6 +18221,20 @@ async function setMailLoop(B) {
 #ctQ .ct-qr{ padding:10px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2) }      /* (1.70) mỗi QLTT một khung — trước các ô dính / lấp nhau */
 .ct-qr.hd{ font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; padding:0 11px; margin:6px 0 4px }
 .ct-qn{ grid-column:1 / -2 }
+/* (1.75.2) phạm vi “Gửi cho QLTT”: Tắt · Thử nghiệm (vai trò / người được chọn) · Công khai */
+.ct-mode{ display:flex; gap:12px; align-items:center; flex-wrap:wrap } .ct-mode > div:first-child{ flex:1; min-width:240px } .ct-mode small{ display:block; color:var(--muted); margin-top:2px }
+.ct-mode .seg-b{ font-size:12px; min-height:30px; padding:0 14px } .ct-mode .seg-b i{ margin-right:4px }
+.ct-scope{ margin-top:12px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px }
+.ct-scope .flabel{ display:flex; gap:6px; align-items:center; margin-bottom:6px } .ct-scope .flabel em{ font-style:normal; font-weight:600; color:var(--muted) }
+.ct-chips{ display:flex; flex-wrap:wrap; gap:6px }
+.ct-rc{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--border); background:var(--surface); font:600 12.5px/1 inherit; color:var(--ink-2); cursor:pointer }
+.ct-rc i{ width:8px; height:8px; border-radius:50%; background:var(--rc, var(--muted)) } .ct-rc .bi{ width:auto; height:auto; background:none; font-size:12px }
+.ct-rc[aria-pressed="true"]{ background:var(--brand-700); border-color:var(--brand-700); color:#fff } .ct-rc[aria-pressed="true"] i{ background:#fff }
+.ct-pc{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 4px 0 12px; border-radius:999px; background:var(--surface); border:1px solid var(--border); font-size:12.5px; max-width:100% }
+.ct-pc span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .ct-pc small{ color:var(--muted) } .ct-pc button{ border:0; background:none; width:24px; height:24px; border-radius:50%; cursor:pointer; color:var(--muted); display:grid; place-items:center }
+.ct-pc button:hover{ background:var(--surface-3); color:var(--ink) }
+.ct-add{ display:flex; gap:6px; margin-top:8px } .ct-add .inp{ flex:1; min-width:0 }
+@media (max-width:760px){ .ct-scope{ grid-template-columns:minmax(0,1fr) } .ct-mode .seg{ width:100% } .ct-mode .seg-b{ flex:1 } }
 @media (max-width:640px){ .ct-qr{ grid-template-columns:1fr 1fr auto } .ct-qr .ph{ display:none } .ct-qr.hd{ display:none } }
 </style>
 <script>
@@ -18213,6 +18250,36 @@ async function clCenters(B, v) {
   const t = iso => { const d = new Date(iso); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1); };
   const save = async (list, msg) => { try { D = await rpc('centersSave', { centers: list }); lsSet(CK, D); paint(); toast(msg || 'Đã lưu', 'ok'); return true; } catch (e) { fail(e); return false; } };
   const pack = () => D.centers.map(c => ({ id: c.id, name: c.name, addr: c.addr, mail: c.mail, qltt: c.qltt }));
+  /* (1.75.2) phạm vi “Gửi cho QLTT” — off · test (vai trò / người được chọn + Quản trị) · public (mọi gia sư) */
+  const cfg = () => D.cfg || { mode: D.on !== 0 ? 'public' : 'off', roles: [], users: [] };
+  const uName = e => { const u = (D.userList || []).find(x => x.email === e); return u && u.name ? u.name : ''; };
+  const scopeHtml = () => {
+    const c = cfg(), RL = D.roleList || [], md = c.mode;
+    const say = md === 'off' ? 'Đang tắt — gia sư không thấy lựa chọn “Gửi cho QLTT”; trung tâm, QLTT và trang in vẫn giữ để bật lại lúc nào cũng được'
+      : md === 'test' ? 'Đang thử nghiệm — chỉ ' + (c.roles.length || c.users.length ? [c.roles.length ? c.roles.length + ' vai trò' : '', c.users.length ? c.users.length + ' người' : ''].filter(Boolean).join(' và ') + ' được chọn bên dưới' : 'Quản trị (chưa chọn vai trò / người nào)') + ' thấy “Gửi cho QLTT”. Ổn rồi thì chuyển sang Công khai.'
+      : 'Đang công khai — mọi gia sư thấy lựa chọn “Gửi cho QLTT” ở In tài liệu';
+    return '<div class="ct-mode"><div><b>Ai được gửi cho QLTT</b><small>' + say + '</small></div><div class="seg" role="group" aria-label="Phạm vi Gửi cho QLTT">' +
+        [['off', 'Tắt', 'bi-slash-circle'], ['test', 'Thử nghiệm', 'bi-person-check'], ['public', 'Công khai', 'bi-globe2']].map(o => '<button class="seg-b" data-md="' + o[0] + '" aria-pressed="' + (md === o[0]) + '"><i class="bi ' + o[2] + '"></i>' + o[1] + '</button>').join('') + '</div></div>' +
+      (md !== 'test' ? '' : '<div class="ct-scope"><div><div class="flabel"><i class="bi bi-people"></i>Theo vai trò <em>· mọi người có vai trò này</em></div><div class="ct-chips">' +
+          (RL.length ? RL.map(r => '<button type="button" class="ct-rc" data-rl="' + esc(r.id) + '" aria-pressed="' + (c.roles.indexOf(r.id) >= 0) + '" style="--rc:' + esc(r.color || '') + '"><i></i>' + esc(r.name) + '</button>').join('') : '<small class="muted">Chưa có vai trò</small>') + '</div></div>' +
+        '<div><div class="flabel"><i class="bi bi-person-check"></i>Người cụ thể <em>· ' + c.users.length + '</em></div><div class="ct-chips">' +
+          (c.users.length ? c.users.map(e => { const n = uName(e); return '<span class="ct-pc" title="' + esc(e) + '"><span>' + (n ? esc(n) + ' <small>' + esc(e) + '</small>' : esc(e)) + '</span><button type="button" data-rmu="' + esc(e) + '" aria-label="Bỏ ' + esc(n || e) + '"><i class="bi bi-x-lg"></i></button></span>'; }).join('') : '<small class="muted">Chưa chọn ai — thêm gia sư dùng thử bên dưới</small>') + '</div>' +
+          '<div class="ct-add"><input class="inp" id="ctU" list="ctUL" type="email" placeholder="Gõ tên hoặc email người dùng thử" autocomplete="off"><datalist id="ctUL">' + (D.userList || []).filter(u => c.users.indexOf(u.email) < 0).map(u => '<option value="' + esc(u.email) + '">' + esc(u.name || u.email) + '</option>').join('') + '</datalist>' +
+          '<button type="button" class="btn sm" id="ctUa"><i class="bi bi-plus-lg"></i>Thêm</button></div></div></div>');
+  };
+  let busy = false;
+  const scope = async (patch, msg) => {
+    if (busy) return; busy = true; const c = cfg(), o = Object.assign({ mode: c.mode, roles: c.roles.slice(), users: c.users.slice() }, patch);
+    D.cfg = o; D.on = o.mode === 'off' ? 0 : 1; paint();      // đổi ngay trên màn hình, lỗi → tải lại
+    try { D = await rpc('centersOn', o); lsSet(CK, D); paint(); if (msg) toast(msg, 'ok'); } catch (e) { fail(e); load(); } finally { busy = false; }
+  };
+  const addUser = () => {
+    const inp = $('#ctU', B); if (!inp) return; const q = inp.value.trim().toLowerCase(); if (!q) return inp.focus();
+    const UL = D.userList || [], hit = UL.filter(x => fold(x.name + ' ' + x.email).indexOf(fold(q)) >= 0), u = UL.find(x => x.email === q) || (hit.length === 1 ? hit[0] : null);      // gõ tên đủ khớp một người cũng được
+    const e = u ? u.email : q; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) { toast('Chọn một người trong danh sách hoặc nhập đúng email', 'warn'); return inp.focus(); }
+    const c = cfg(); if (c.users.indexOf(e) >= 0) { toast('Người này đã có trong danh sách', 'warn'); return; }
+    scope({ users: c.users.concat([e]) }, 'Đã cho ' + (u && u.name || e) + ' dùng thử “Gửi cho QLTT”');
+  };
   const paint = () => {
     const R = (D.reqs || []).filter(r => fl === 'all' || (fl === 'new' ? r.status !== 'done' : r.status === 'done'));
     const rq = r => '<div class="ct-rq"><div class="hd"><b>GS ' + esc(r.byName) + '</b><small>' + esc(t(r.at)) + ' · ' + r.items.length + ' bé</small>' +
@@ -18220,8 +18287,7 @@ async function clCenters(B, v) {
       (r.note ? '<div class="nt">' + esc(r.note) + '</div>' : '') +
       r.items.map(x => '<div class="kd"><i class="bi bi-person"></i><span>Bé <b>' + esc(x.who) + '</b> · ' + x.files + ' tệp · ' + x.sessions + ' buổi' + (x.dates ? ' · ' + esc(x.dates) : '') + '</span><a class="btn xs ghost" href="' + esc(x.url) + '" target="_blank" rel="noopener"><i class="bi bi-printer"></i>Mở</a></div>').join('') + '</div>';
     B.innerHTML = '<div class="card"><div class="card-h"><h2><i class="bi bi-buildings"></i>Trung tâm & Quản lý trung tâm (QLTT)</h2><span class="sp"></span><button class="btn sm pri" data-add><i class="bi bi-plus-lg"></i>Thêm trung tâm</button></div>' +
-        '<div class="card-b ct-on"><label class="row" style="gap:10px"><span class="sw"><input type="checkbox" id="ctOn"' + (D.on !== 0 ? ' checked' : '') + '><span></span></span><span><b>Cho gia sư gửi QLTT</b><small class="muted" style="display:block">' +
-          (D.on !== 0 ? 'Đang bật — gia sư thấy lựa chọn “Gửi cho QLTT” ở In tài liệu' : 'Đang tắt — gia sư không thấy lựa chọn “Gửi cho QLTT”; trung tâm, QLTT và trang in vẫn giữ để bật lại lúc nào cũng được') + '</small></span></label></div>' +
+        '<div class="card-b ct-on">' + scopeHtml() + '</div>' +
         '<div class="card-b small muted">Gia sư chọn tài liệu ở <b>In tài liệu</b> → <b>Gửi cho QLTT</b> → chọn trung tâm. QLTT mở <b>trang in</b> của trung tâm (không cần đăng nhập), thấy từng yêu cầu tách theo <b>gia sư › bé</b>, mở link in từng bé rồi bấm <b>Đã in</b> — gia sư được báo. Bật mail thì QLTT có email nhận thêm mail mỗi lần có yêu cầu.</div></div>' +
       (D.centers.length ? '<div class="ct-grid" style="margin-top:12px">' + D.centers.map((c, i) => { const mine = (D.reqs || []).filter(r => r.center === c.id), nNew = mine.filter(r => r.status !== 'done').length;
         return '<div class="ct-c"><div class="ct-h"><div><b>' + esc(c.name) + '</b>' + (c.addr ? '<small>' + esc(c.addr) + '</small>' : '') + '</div><span class="ct-tag' + (c.mail ? ' on' : '') + '"><i class="bi bi-envelope"></i> ' + (c.mail ? 'Gửi mail' : 'Không mail') + '</span>' +
@@ -18261,13 +18327,14 @@ async function clCenters(B, v) {
     m.$('#ctQ').onclick = e => { const b = e.target.closest('[data-rmq]'); if (!b) return; read(); c.qltt.splice(Number(b.dataset.rmq), 1); repaint(); };
     setTimeout(() => m.$('#ctN').focus(), 60);
   };
-  B.onchange = async e => {
-    if (e.target.id !== 'ctOn') return;
-    const on = e.target.checked; e.target.disabled = true;
-    try { D = await rpc('centersOn', { on: on ? 1 : 0 }); lsSet(CK, D); paint(); toast(on ? 'Đã bật — gia sư thấy “Gửi cho QLTT”' : 'Đã tắt — gia sư không thấy “Gửi cho QLTT”', 'ok'); }
-    catch (er) { fail(er); e.target.checked = !on; e.target.disabled = false; }
-  };
+  B.onkeydown = e => { if (e.key === 'Enter' && e.target.id === 'ctU') { e.preventDefault(); addUser(); } };
   B.onclick = async e => {
+    const md = e.target.closest('[data-md]'); if (md) { const m2 = md.dataset.md; if (m2 === cfg().mode) return;
+      if (m2 === 'public' && !await ask('Mở “Gửi cho QLTT” cho MỌI gia sư? Danh sách thử nghiệm vẫn được giữ để quay lại khi cần.', { ok: 'Công khai' })) return;
+      return scope({ mode: m2 }, m2 === 'off' ? 'Đã tắt — gia sư không thấy “Gửi cho QLTT”' : m2 === 'test' ? 'Thử nghiệm — chỉ vai trò / người được chọn thấy “Gửi cho QLTT”' : 'Đã công khai — mọi gia sư thấy “Gửi cho QLTT”'); }
+    const rl = e.target.closest('[data-rl]'); if (rl) { const c = cfg(), id = rl.dataset.rl; return scope({ roles: c.roles.indexOf(id) >= 0 ? c.roles.filter(x => x !== id) : c.roles.concat([id]) }); }
+    const ru = e.target.closest('[data-rmu]'); if (ru) { const c = cfg(); return scope({ users: c.users.filter(x => x !== ru.dataset.rmu) }); }
+    if (e.target.closest('#ctUa')) return addUser();
     if (e.target.closest('[data-add]')) return edit(null);
     const ed = e.target.closest('[data-ed]'); if (ed) return edit(Number(ed.dataset.ed));
     const cp = e.target.closest('[data-cp]'); if (cp) return copyText(cp.dataset.cp, 'Đã sao chép link trang in — gửi cho QLTT');
