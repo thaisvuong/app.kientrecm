@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-07T21:01:00.436Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-08T15:50:11.789Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7152,6 +7152,7 @@ const NAV_DEF = [
   { r: 'classes/reqs', t: 'Yêu cầu', i: 'bi-inboxes', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/reqs/, off: 'tn' },      // off = ẩn khi máy chủ bật (S.boot.tn): 1.43.15 gộp vào tab Yêu cầu bên dưới
   { r: 'classes/inbox', t: 'Trao đổi', i: 'bi-chat-dots', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/inbox/, nt: 1 },
   { r: 'classes/notes', t: 'Yêu cầu', i: 'bi-inboxes', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/(notes|reqs)/, on: 'tn' },      // 1.43.15: tab “Yêu cầu” = Gửi quản lý (ghi chú & đề xuất) + Thay đổi chờ duyệt (Classes.html › clAsk) — gia sư hay nhầm hai tab      // 1.31: gia sư gửi ghi chú / đề xuất cho quản lý (bảng chung Kiến Task) — on = chỉ hiện khi máy chủ bật (S.boot.tn)      // nt = không thành tab của gia sư (tin nhắn đã có trên Trang chủ và nút Trao đổi của từng lớp)
+  { r: 'ai', t: 'Trợ lý AI', i: 'bi-stars', g: 'lib', cap: ['ai.tutor', 'ai.admin', 'ai.log', 'settings.manage'], m: /^ai(\/|$)/, on: 'ai' },      // (1.76) AiView.html · on = máy chủ bật cho người này (S.boot.ai: AI đang bật + có quyền, hoặc người cài đặt)
   { r: 'classes/stats', t: 'Thống kê', i: 'bi-clipboard-data', g: 'lib', cap: 'classes.stats', m: /^classes\/stats/ },
   { r: 'classes/centers', t: 'Trung tâm & QLTT', i: 'bi-buildings', g: 'lib', cap: 'classes.manage', m: /^classes\/centers/ },      // (1.69) CentersView.html
   { r: 'classes/perms', t: 'Quyền gia sư', i: 'bi-person-lock', g: 'lib', cap: 'classes.manage', m: /^classes\/perms/ },
@@ -7206,7 +7207,7 @@ const GROUPS = { lib: 'Thư viện', team: 'Hỗ trợ', admin: 'Quản trị' }
    Web app chia thành các ứng dụng (danh mục ở máy chủ: MODULES trong Code.gs → S.boot.mods; người này được vào những ứng dụng nào: S.me.apps).
    Mỗi trang thuộc một ứng dụng; thanh bên chỉ hiện tab của ứng dụng đang mở + các tab dùng chung (Thông tin, Hướng dẫn, Cài đặt).
    Mở một trang của ứng dụng khác (link, thông báo…) → tự chuyển sang ứng dụng đó. Thêm ứng dụng: thêm vào MODULES + MOD_ROUTES. */
-const MOD_ROUTES = { tutor: ['today', 'classes', 'approve', 'guide'], lib: ['home', 'library', 'programs', 'recent', 'links', 'upload', 'sources', 'who'], redesign: ['compose', 'syllabus'], task: ['tasks'], book: ['book'], sys: ['activity', 'users', 'xapps', 'admin'] };      // Nguồn dữ liệu thuộc Thư viện: nạp nguồn ngay tại nơi dùng tài liệu
+const MOD_ROUTES = { tutor: ['today', 'classes', 'approve', 'ai', 'guide'], lib: ['home', 'library', 'programs', 'recent', 'links', 'upload', 'sources', 'who'], redesign: ['compose', 'syllabus'], task: ['tasks'], book: ['book'], sys: ['activity', 'users', 'xapps', 'admin'] };      // Nguồn dữ liệu thuộc Thư viện: nạp nguồn ngay tại nơi dùng tài liệu
 const MOD_LAST = lsGet('modLast', {});
 /* trang dùng chung giữa các ứng dụng: Chương trình có ở cả Kiến Chuyên môn (lớp gia sư học theo chương trình) lẫn Thư viện (nơi dựng chương trình từ tài liệu) —
    mở từ ứng dụng nào thì ở lại ứng dụng đó, cùng một dữ liệu */
@@ -7365,7 +7366,7 @@ document.addEventListener('keydown', e => {      // Alt + 1…9 mở ứng dụn
 /** gia sư thuần (xem lớp mình dạy, không quản lý lớp) */
 function isTutor() { return can('classes.view') && !can('classes.manage'); }
 /** thứ tự tab của gia sư: 4 tab đầu nằm ngoài thanh dưới (Trang chủ · Buổi học · Lớp · Thư viện), phần còn lại (Apps, Yêu cầu…) vào “Thêm” */
-const TUT_ORDER = ['today', 'classes/todo', 'approve', 'classes/list', 'library', 'classes/notes', 'apps', 'classes/reqs', 'guide', 'info', 'programs', 'links', 'tasks', 'tasks/backlog', 'tasks/mine', 'tasks/time', 'tasks/cal', 'tasks/sum', 'compose', 'home', 'recent', 'settings'];      // (1.72.1) approve = gia sư được cấp thêm quyền Duyệt bài (VD vừa gia sư vừa Asst) → tab Duyệt bài đứng ngay sau Buổi học (điện thoại: nằm trên thanh dưới), không bị dồn xuống cuối
+const TUT_ORDER = ['today', 'classes/todo', 'approve', 'classes/list', 'library', 'classes/notes', 'ai', 'apps', 'classes/reqs', 'guide', 'info', 'programs', 'links', 'tasks', 'tasks/backlog', 'tasks/mine', 'tasks/time', 'tasks/cal', 'tasks/sum', 'compose', 'home', 'recent', 'settings'];      // (1.72.1) approve = gia sư được cấp thêm quyền Duyệt bài (VD vừa gia sư vừa Asst) → tab Duyệt bài đứng ngay sau Buổi học (điện thoại: nằm trên thanh dưới), không bị dồn xuống cuối
 /** gia sư thấy tab Apps cả khi chỉ có một ứng dụng nhưng có liên kết ngoài */
 function tutApps() { return isTutor() && extApps().length > 0; }
 /** tab đang mở ứng với route (trang con như classes/c/… thuộc tab Lớp học) */
@@ -7526,7 +7527,7 @@ function navLayout(L) {
   return { groups: groups, items: items };
 }
 /** thứ tự cố định các tab của Kiến Chuyên môn (quản lý): Hướng dẫn kế cuối, Cài đặt lớp cuối — không phụ thuộc bố cục menu đã lưu từ trước khi tách tab */
-const CM_ORDER = ['today', 'approve', 'classes', 'classes/list', 'classes/tutors', 'classes/stats', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'classes/centers', 'classes/perms', 'guide', 'classes/settings', 'classes/kgs'];
+const CM_ORDER = ['today', 'approve', 'classes', 'classes/list', 'classes/tutors', 'classes/stats', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'ai', 'classes/centers', 'classes/perms', 'guide', 'classes/settings', 'classes/kgs'];
 /* (1.75.2) Kiến CM (quản lý): thanh bên chia NHÓM có nhãn — Vận hành · Hộp thư · Thiết lập (buildNav vẽ nhãn trước mục đầu mỗi nhóm; thu gọn thanh bên → vạch mảnh) */
 const CM_SEC = { today: 'Vận hành', approve: 'Vận hành', classes: 'Vận hành', 'classes/list': 'Vận hành', 'classes/tutors': 'Vận hành', 'classes/stats': 'Vận hành', programs: 'Vận hành',
   'classes/reqs': 'Hộp thư', 'classes/notes': 'Hộp thư', 'classes/inbox': 'Hộp thư', 'classes/centers': 'Thiết lập', 'classes/perms': 'Thiết lập', 'classes/settings': 'Thiết lập', 'classes/kgs': 'Thiết lập' };
@@ -7836,6 +7837,7 @@ const ROUTES = {
   file:     { t: 'Xem tài liệu', i: 'bi-file-earmark-pdf', fn: (a, v) => viewFile(a, v), nav: 'library', nocache: 1, cls: 'vw-view', ix: 1 },
   classes:  { t: 'Lớp gia sư', i: 'bi-person-video3', fn: (a, v) => viewClasses(a, v), arg: 1, cls: 'cl-view', cap: ['classes.view', 'classes.manage'], ix: 1 },
   approve:  { t: 'Duyệt bài', i: 'bi-send-check', fn: (a, v) => viewAppr(a, v), cap: ['classes.approve', 'classes.manage'] },      // (1.67) Approve.html
+  ai:       { t: 'Trợ lý AI', i: 'bi-stars', fn: (a, v) => viewAi(a, v), arg: 1, cap: ['ai.tutor', 'ai.admin', 'ai.log', 'settings.manage'] },      // (1.76) Trợ lý AI — AiView.html
   links:    { t: 'Link tạm', i: 'bi-link-45deg', fn: (a, v) => viewLinks(a, v), arg: 1, cls: 'lk-view', cap: 'links.manage', ix: 1 },
   upload:   { t: 'Upload file', i: 'bi-cloud-arrow-up', fn: (a, v) => viewUpload(a, v), arg: 1, cap: ['sources.manage', '@up'] },
   compose:  { t: 'Soạn phiếu', i: 'bi-file-earmark-richtext', fn: (a, v) => viewCompose(a, v), arg: 1, cls: 'cp-view', cap: 'compose.use' },
@@ -17949,6 +17951,632 @@ async function apPreview(x) {
       '<div class="small muted" style="margin-top:10px"><i class="bi bi-lock"></i> Bạn chưa xem được nội dung các tệp này — nhờ Quản trị bật thêm quyền <b>Xem thư viện</b> cho vai trò của bạn.</div>'
     : '<div class="lk-empty"><i class="bi bi-file-earmark-x"></i><span>' + esc(r.why || 'Buổi này chưa có tệp ghép được vào link') + '</span></div>'),
     foot: [{ t: 'Đóng', cls: 'ghost' }] });
+}
+</script>
+
+<style>
+/* (1.76) TRỢ LÝ AI — AiAssist.gs · chỉ dùng token màu → chế độ tối tự khớp */
+.ai-top{ display:flex; flex-wrap:wrap; gap:10px; align-items:center }
+.ai-top .sp{ flex:1 }
+.ai-st{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--surface-3); color:var(--ink-2) }
+.ai-st.on{ background:color-mix(in oklab, var(--ok) 14%, transparent); color:var(--ok) }
+.ai-st.off{ background:color-mix(in oklab, var(--warn) 14%, transparent); color:var(--warn) }
+.ai-ban{ display:flex; gap:10px; align-items:flex-start; padding:12px 14px; border-radius:var(--r-l); border:1px solid color-mix(in oklab, var(--warn) 40%, var(--border)); background:color-mix(in oklab, var(--warn) 7%, var(--surface)); margin-top:12px; font-size:13px }
+.ai-ban i{ color:var(--warn); font-size:18px } .ai-ban a{ font-weight:700 }
+.ai-body{ margin-top:12px }
+.ai-muted{ color:var(--muted) }
+/* — hỏi đáp — */
+.ai-chat{ display:grid; grid-template-columns:260px 1fr; gap:12px; align-items:start }
+.ai-side{ display:flex; flex-direction:column; gap:10px; position:sticky; top:0 }
+.ai-side .card-b{ display:flex; flex-direction:column; gap:10px }
+.ai-side label.flabel{ margin:0 }
+.ai-side .seg{ display:flex; flex-wrap:wrap; width:100%; height:auto } .ai-side .seg-b{ flex:1 1 auto; white-space:nowrap }
+.ai-convs{ display:flex; flex-direction:column; gap:2px; max-height:340px; overflow:auto }
+.ai-conv{ text-align:left; border:0; background:none; padding:7px 9px; border-radius:var(--r-m); cursor:pointer; color:var(--ink-2); font-size:12.5px; display:flex; flex-direction:column; gap:1px }
+.ai-conv:hover{ background:var(--surface-3) } .ai-conv.on{ background:color-mix(in oklab, var(--primary) 10%, transparent); color:var(--ink) }
+.ai-conv b{ font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .ai-conv small{ color:var(--muted) }
+.ai-th{ display:flex; flex-direction:column; min-height:min(640px, calc(100dvh - 230px)) }
+.ai-msgs{ flex:1; display:flex; flex-direction:column; gap:12px; padding:16px; overflow:auto }
+.ai-m{ max-width:min(720px, 92%); display:flex; flex-direction:column; gap:6px }
+.ai-m.me{ align-self:flex-end; align-items:flex-end }
+.ai-bb{ padding:10px 13px; border-radius:16px; font-size:14px; line-height:1.55; word-break:break-word; background:var(--surface-3); color:var(--ink) }
+.ai-m.me .ai-bb{ background:var(--primary); color:#fff; border-bottom-right-radius:6px }
+.ai-m.ai .ai-bb{ border:1px solid var(--border); background:var(--surface); border-bottom-left-radius:6px }
+.ai-m.err .ai-bb{ border-color:color-mix(in oklab, var(--danger) 45%, var(--border)); color:var(--danger) }
+.ai-bb ul, .ai-bb ol{ margin:4px 0 4px 18px; padding:0 } .ai-bb li{ margin:2px 0 } .ai-bb p{ margin:0 0 6px } .ai-bb p:last-child{ margin:0 }
+.ai-meta{ font-size:11.5px; color:var(--muted); display:flex; gap:8px; align-items:center }
+.ai-ref{ display:inline-flex; align-items:center; gap:5px; margin:1px 2px; padding:2px 9px; border-radius:999px; border:1px solid color-mix(in oklab, var(--primary) 35%, var(--border)); background:color-mix(in oklab, var(--primary) 7%, var(--surface));
+  color:var(--primary); font-size:12.5px; font-weight:700; cursor:pointer; vertical-align:1px; max-width:100%; text-align:left }
+.ai-ref:hover{ background:color-mix(in oklab, var(--primary) 14%, var(--surface)) }
+.ai-ref small{ font-weight:600; color:var(--muted) } .ai-ref.learned{ border-style:dashed }
+.ai-fchips{ display:flex; flex-wrap:wrap; gap:6px }
+.ai-fc{ display:inline-flex; align-items:center; gap:6px; padding:4px 6px 4px 9px; border-radius:999px; background:var(--surface-3); border:1px solid var(--border); font-size:12px; color:var(--ink-2); max-width:260px }
+.ai-fc span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .ai-fc button{ border:0; background:none; cursor:pointer; color:var(--muted); font-size:14px; padding:0 2px }
+.ai-m.me .ai-fc{ background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.3); color:inherit }
+.ai-comp{ border-top:1px solid var(--border); padding:10px 12px; display:flex; flex-direction:column; gap:8px }
+.ai-comp textarea{ width:100%; resize:none; min-height:46px; max-height:200px }
+.ai-comp .row{ gap:8px; align-items:center }
+.ai-sugs{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; padding:4px 0 10px }
+.ai-sug{ border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:6px 12px; font-size:12.5px; color:var(--ink-2); cursor:pointer } .ai-sug:hover{ border-color:var(--primary); color:var(--primary) }
+.ai-hello{ margin:auto; text-align:center; color:var(--muted); max-width:460px; padding:24px 10px } .ai-hello i{ font-size:34px; color:var(--primary); display:block; margin-bottom:8px } .ai-hello b{ color:var(--ink); display:block; font-size:16px; margin-bottom:4px }
+.ai-wait{ display:inline-flex; gap:8px; align-items:center } .ai-dots{ display:inline-flex; gap:3px } .ai-dots i{ width:6px; height:6px; border-radius:50%; background:var(--muted); animation:aiDot 1.2s infinite ease-in-out }
+.ai-dots i:nth-child(2){ animation-delay:.15s } .ai-dots i:nth-child(3){ animation-delay:.3s }
+@keyframes aiDot{ 0%,80%,100%{ opacity:.25; transform:translateY(0) } 40%{ opacity:1; transform:translateY(-3px) } }
+/* chấm bài */
+.ai-gr{ display:flex; flex-direction:column; gap:10px; min-width:min(520px, 80vw) }
+.ai-gr-h{ display:flex; gap:10px; align-items:center; flex-wrap:wrap }
+.ai-vd{ font-size:12.5px; font-weight:800; padding:4px 11px; border-radius:999px }
+.ai-vd.dat{ background:color-mix(in oklab, var(--ok) 15%, transparent); color:var(--ok) } .ai-vd.mot_phan{ background:color-mix(in oklab, var(--warn) 15%, transparent); color:var(--warn) } .ai-vd.chua_dat{ background:color-mix(in oklab, var(--danger) 13%, transparent); color:var(--danger) }
+.ai-score{ font-size:20px; font-weight:800; color:var(--ink) } .ai-score small{ font-size:12px; color:var(--muted); font-weight:600 }
+.ai-cr{ display:grid; grid-template-columns:22px 1fr; gap:4px 8px; padding:7px 0; border-top:1px dashed var(--border); font-size:13px } .ai-cr b{ font-weight:700 } .ai-cr small{ grid-column:2; color:var(--ink-2) }
+.ai-cr i.dat{ color:var(--ok) } .ai-cr i.mot_phan{ color:var(--warn) } .ai-cr i.chua_dat{ color:var(--danger) }
+/* gán bài · yêu cầu */
+.ai-ctl{ display:flex; flex-wrap:wrap; gap:10px; align-items:center }
+.ai-ctl .sp{ flex:1 }
+.ai-cls{ display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; padding:9px 12px; border-top:1px solid var(--border) }
+.ai-cls:first-child{ border-top:0 } .ai-cls.dis{ opacity:.55 }
+.ai-cls b{ font-size:14px } .ai-cls small{ display:block; color:var(--muted); font-size:12px }
+.ai-bdg{ display:flex; flex-wrap:wrap; gap:5px; justify-content:flex-end }
+.ai-b{ font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--surface-3); color:var(--ink-2); white-space:nowrap }
+.ai-b.w{ background:color-mix(in oklab, var(--warn) 14%, transparent); color:var(--warn) } .ai-b.r{ background:color-mix(in oklab, var(--danger) 12%, transparent); color:var(--danger) }
+.ai-b.o{ background:color-mix(in oklab, var(--ok) 14%, transparent); color:var(--ok) } .ai-b.i{ background:color-mix(in oklab, var(--info) 13%, transparent); color:var(--info) }
+.ai-ck{ width:18px; height:18px; accent-color:var(--primary) }
+.ai-prog{ display:flex; gap:12px; align-items:center; padding:12px 14px; border:1px solid var(--border); border-radius:var(--r-l); background:var(--surface); margin-top:12px }
+.ai-prog .bar{ flex:1; height:6px; border-radius:99px; background:var(--surface-3); overflow:hidden } .ai-prog .bar i{ display:block; height:100%; background:var(--primary); transition:width .4s }
+.ai-plan{ margin-top:12px }
+.ai-plan .card-h small{ color:var(--muted); font-weight:600 }
+.ai-it{ display:grid; grid-template-columns:auto 1fr; gap:10px; padding:11px 14px; border-top:1px solid var(--border) }
+.ai-it.done{ background:color-mix(in oklab, var(--ok) 5%, transparent) } .ai-it.err{ background:color-mix(in oklab, var(--danger) 5%, transparent) }
+.ai-it-h{ display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline } .ai-it-h b{ font-size:14px } .ai-it-h small{ color:var(--muted) }
+.ai-les{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:6px; font-size:12.5px }
+.ai-les span.l{ padding:3px 9px; border-radius:999px; background:var(--surface-3); border:1px solid var(--border); color:var(--ink-2) }
+.ai-les span.l.new{ background:color-mix(in oklab, var(--primary) 9%, var(--surface)); border-color:color-mix(in oklab, var(--primary) 35%, var(--border)); color:var(--ink) }
+.ai-les span.l.old{ text-decoration:line-through; opacity:.7 } .ai-les i.bi-arrow-right{ color:var(--muted) }
+.ai-why{ margin-top:6px; font-size:12.5px; color:var(--ink-2); display:flex; gap:6px } .ai-why i{ color:var(--primary) }
+.ai-res{ margin-top:6px; font-size:12px; font-weight:700 } .ai-res.ok{ color:var(--ok) } .ai-res.bad{ color:var(--danger) }
+.ai-it textarea{ width:100%; margin-top:8px; min-height:56px }
+.ai-it .row{ gap:8px; flex-wrap:wrap; margin-top:8px; align-items:center }
+.ai-warn{ padding:10px 14px; border-top:1px solid var(--border); font-size:12.5px; color:var(--ink-2) } .ai-warn summary{ cursor:pointer; font-weight:700; color:var(--warn) } .ai-warn li{ margin:3px 0 }
+.ai-foot{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:10px 14px; border-top:1px solid var(--border); background:var(--surface-2, var(--surface)); position:sticky; bottom:0; border-radius:0 0 var(--r-l) var(--r-l) }
+.ai-foot .sp{ flex:1 }
+.ai-hist{ display:flex; flex-direction:column }
+.ai-hrow{ display:flex; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--border); font-size:13px } .ai-hrow:first-child{ border-top:0 }
+.ai-hrow .t{ flex:1; min-width:0 } .ai-hrow .t b{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .ai-hrow small{ color:var(--muted) }
+/* nhật ký */
+.ai-log td{ vertical-align:top } .ai-log tr{ cursor:pointer } .ai-log tr:hover td{ background:var(--surface-3) }
+.ai-log .tx{ max-width:420px; color:var(--ink-2) }
+.ai-pre{ white-space:pre-wrap; font-size:13px; background:var(--surface-3); border-radius:var(--r-m); padding:10px 12px; max-height:320px; overflow:auto; margin:0 }
+.ai-kv{ display:grid; grid-template-columns:120px 1fr; gap:6px 12px; font-size:13px } .ai-kv > span:nth-child(odd){ color:var(--muted); font-weight:700 }
+/* cài đặt */
+.ai-cfg .card{ margin-bottom:12px }
+.ai-opt{ display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--border) } .ai-opt:first-child{ border-top:0; padding-top:0 }
+.ai-opt > div{ flex:1; min-width:0 } .ai-opt > select, .ai-opt > .sel{ width:auto; flex:none; max-width:45% } .ai-opt b{ display:block } .ai-opt small{ color:var(--muted) }
+.ai-flow{ border:1px solid var(--border); border-radius:var(--r-m); padding:10px 12px; margin-bottom:8px; display:flex; flex-direction:column; gap:6px }
+.ai-flow-h{ display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+.ai-radio{ display:flex; flex-direction:column; gap:6px } .ai-radio label{ display:flex; gap:8px; align-items:center; font-size:13.5px; cursor:pointer }
+.ai-fns{ display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:6px } .ai-fns label{ display:flex; gap:6px; align-items:center; font-size:13px }
+.ai-cvd > summary{ list-style:none; cursor:pointer } .ai-cvd > summary::-webkit-details-marker{ display:none }
+.ai-cvd > summary::after{ content:'\F282'; font-family:'bootstrap-icons'; margin-left:auto; color:var(--muted); transition:transform .2s } .ai-cvd[open] > summary::after{ transform:rotate(180deg) }
+@media (max-width:900px){ .ai-chat{ grid-template-columns:1fr } .ai-side{ position:static; gap:8px } .ai-convs{ max-height:180px } #aiModeHint{ display:none } .ai-th{ min-height:calc(100dvh - 260px) } }
+@media (max-width:640px){ .ai-cls{ grid-template-columns:auto 1fr } .ai-bdg{ grid-column:2; justify-content:flex-start } .ai-kv{ grid-template-columns:1fr } .ai-gr{ min-width:0 } }
+</style>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   (1.76) TRỢ LÝ AI — tab “Trợ lý AI” của Kiến Chuyên môn (route ai/<tab>[/<mã>]) · máy chủ: AiAssist.gs
+   · assign: quét lớp có buổi trống / nháp → AI đề xuất bài từng buổi (mỗi đợt ≤ 6 lớp) → xem, bỏ chọn, Gán nháp / Gán & duyệt
+   · reqs: AI đọc yêu cầu chờ duyệt + ghi chú / xin bài của gia sư + tin chưa trả lời → sắp theo mức gấp, soạn trả lời (sửa được) → Áp dụng
+   · chat: hỏi tài liệu cho bé (mã [[L:…]] thành nút mở tài liệu / xin bài) · nhận xét bài tập đính kèm theo tiêu chuẩn
+   · log: nhật ký mọi lượt hỏi (người có quyền ai.log thấy của mọi người) · cfg: hộp thư & flow nhận thư (theo việc + vai trò), chế độ, tiêu chuẩn, tự chạy mỗi ngày
+   Kết nối bằng MAIL: gửi thư tới flow rồi trả về ngay; aiWatch hỏi lại (aiPoll) mỗi 5 giây tới khi flow trả lời — không khoá trang, rời trang thì máy chủ tự xử lý + báo chuông.
+   ══════════════════════════════════════════════════════════════ */
+const AI = { b: null, tab: '', chat: { cid: '', mode: 'chat', conv: '', msgs: [], files: [], busy: false, convs: null }, as: { days: 0, scan: null, sel: new Set(), plans: [], run: null, hist: null }, rq: { plans: [], hist: null }, lg: { q: '', kind: '', who: '' } };
+const AI_TABS = [
+  { k: 'assign', t: 'Gán bài', i: 'bi-magic', ok: () => AI.b.can.admin },
+  { k: 'reqs', t: 'Yêu cầu & trao đổi', i: 'bi-inboxes', ok: () => AI.b.can.admin },
+  { k: 'chat', t: 'Hỏi AI', i: 'bi-chat-square-text', ok: () => AI.b.can.tutor },
+  { k: 'log', t: 'Nhật ký', i: 'bi-journal-text', ok: () => true },
+  { k: 'cfg', t: 'Cài đặt', i: 'bi-sliders', ok: () => AI.b.can.cfg }
+];
+const AI_EXT = { pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', heic: 'image/heic', txt: 'text/plain', csv: 'text/csv', md: 'text/markdown',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', doc: 'application/msword', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xls: 'application/vnd.ms-excel',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', ppt: 'application/vnd.ms-powerpoint' };
+const AI_VD = { dat: 'Đạt', mot_phan: 'Đạt một phần', chua_dat: 'Chưa đạt' }, AI_VDI = { dat: 'bi-check-circle-fill', mot_phan: 'bi-dash-circle-fill', chua_dat: 'bi-x-circle-fill' };
+const AI_ST = { send: ['Đang gửi thư', 'i'], wait: ['Chờ flow trả lời', 'i'], proc: ['Đang xử lý', 'i'], run: ['Đang chạy', 'i'], ok: ['Có kết quả', 'i'], empty: ['Không có đề xuất', ''], err: ['Lỗi', 'r'], partial: ['Đã áp dụng một phần', 'w'], applied: ['Đã áp dụng', 'o'] };
+const AI_URG = { 1: ['Gấp', 'r'], 2: ['Trong tuần', 'w'], 3: ['Thường', ''] };
+
+function aiSec(ms) { return ms ? Math.round(ms / 1000) + ' giây' : ''; }
+function aiErr(e) { return e && e.code === 'AIOFF' || e && e.code === 'AICFG' ? e.message + (AI.b && AI.b.can.cfg ? ' →' : '') : (e && e.message || String(e)); }
+/** bộ đếm giây khi chờ AI → hàm dừng */
+function aiTick(el, label, t0) { t0 = t0 ? new Date(t0).getTime() : Date.now(); const f = () => { if (!el.isConnected) return clearInterval(h); const n = Math.max(0, Math.round((Date.now() - t0) / 1000)); el.textContent = label + ' ' + (n < 90 ? n + ' giây' : Math.floor(n / 60) + ' phút ' + (n % 60) + ' giây'); }; f(); const h = setInterval(f, 1000); return () => clearInterval(h); }
+const AI_WAIT = /^(send|wait|proc)$/;
+/** THEO DÕI lượt đang chờ thư trả lời: hỏi lại máy chủ (aiPoll) mỗi 5 giây cho mọi lượt đang chờ; xong → gọi cb(kết quả) */
+const AIW = { cb: new Map(), t: 0 };
+function aiWatch(id, cb) { AIW.cb.set(id, cb); if (!AIW.t) AIW.t = setTimeout(aiWatchTick, 4000); }
+async function aiWatchTick() {
+  AIW.t = 0; const ids = [...AIW.cb.keys()]; if (!ids.length) return;
+  try { const r = await rpc('aiPoll', { ids: ids }, { quiet: true }); (r.list || []).forEach(o => { if (AI_WAIT.test(o.status)) return; const cb = AIW.cb.get(o.id); AIW.cb.delete(o.id); try { cb && cb(o); } catch (e) { console.error(e); } }); }
+  catch (e) { console.warn('aiPoll', e); }
+  if (AIW.cb.size) AIW.t = setTimeout(aiWatchTick, 5000);
+}
+/** đề xuất (gán bài / yêu cầu) đang chờ → khi có kết quả thay thẻ trên màn hình */
+function aiWatchPlan(L) {
+  if (!L || !AI_WAIT.test(L.status)) return;
+  aiWatch(L.id, o => { const list = o.kind === 'assign' ? AI.as.plans : AI.rq.plans, i = list.findIndex(p => p.id === o.id); if (i >= 0) list[i] = o; else list.unshift(o);
+    const el = document.querySelector('[data-plan="' + o.id + '"]'); if (el) { el.outerHTML = aiPlanHtml(o); }
+    if (o.kind === 'assign') AI.as.hist = null; else AI.rq.hist = null;
+    toast(o.status === 'err' ? 'Trợ lý AI: ' + (o.err || 'lỗi') : 'Flow đã trả lời: ' + o.title + (o.actions && o.actions.items ? ' · ' + o.actions.items.length + ' mục' : ''), o.status === 'err' ? 'err' : 'ok', 6000); });
+}
+
+async function viewAi(arg, v) {
+  setTitle('Trợ lý AI', 'bi-stars', [{ t: S.boot.app, r: 'today' }], v);
+  v.innerHTML = miniLoader('Đang mở Trợ lý AI…');
+  try { AI.b = await rpc('aiBoot', {}, { quiet: true }); }
+  catch (e) { v.innerHTML = '<div class="card"><div class="empty" style="padding:40px"><i class="bi bi-stars"></i><b>Chưa mở được Trợ lý AI</b><span>' + esc(e.message) + '</span></div></div>'; return; }
+  v._onArg = a => aiShow(v, a);
+  v._onShow = () => { if (AI.tab === 'log') aiLog(v); };
+  aiShow(v, arg);
+}
+function aiTabsOk() { return AI_TABS.filter(t => t.ok()); }
+function aiShow(v, arg) {
+  const tabs = aiTabsOk(), a = String(arg || '').split('/'); let k = a[0];
+  if (!tabs.some(t => t.k === k)) k = (tabs.find(t => t.k === (AI.b.can.admin ? 'assign' : 'chat')) || tabs[0]).k;
+  AI.tab = k;
+  const B = AI.b, on = !!B.ready, need = { assign: 'assign', reqs: 'reqs', chat: AI.chat.mode === 'grade' ? 'grade' : 'chat' }[k], noFlow = on && need && !B.flowFor[need];
+  v.innerHTML = '<div class="card"><div class="card-h ai-top"><div class="seg" id="aiTabs">' + tabs.map(t => '<button class="seg-b" data-tab="' + t.k + '" aria-pressed="' + (t.k === k) + '"><i class="bi ' + t.i + '"></i> ' + esc(t.t) + '</button>').join('') + '</div><span class="sp"></span>' +
+      '<span class="ai-st ' + (on ? 'on' : 'off') + '"><i class="bi ' + (on ? 'bi-lightning-charge-fill' : 'bi-pause-circle') + '"></i>' + (on ? 'Đang bật' + (B.can.admin ? ' · ' + esc((B.modes[B.mode] || '').split(' —')[0]) : '') : !B.on ? 'Đang tắt' : 'Chưa có hộp thư') + '</span></div>' +
+    ((!on || noFlow) && k !== 'cfg' && k !== 'log' ? '<div class="card-b"><div class="ai-ban" style="margin:0"><i class="bi bi-exclamation-triangle"></i><div>' + (!B.on ? 'Trợ lý AI đang tắt.' : !on ? 'Chưa có hộp thư gửi / đọc thư cho Trợ lý AI.' : 'Chưa có flow nhận việc này' + (B.can.cfg ? '' : ' cho vai trò của bạn') + '.') +
+      (B.can.cfg ? ' Vào <a href="#" data-tab="cfg">Cài đặt</a> để ' + (!B.on ? 'bật' : !on ? 'xem cách kết nối' : 'thêm flow') + '.' : ' Nhờ Quản trị cài đặt.') + '</div></div></div>' : '') + '</div>' +
+    '<div class="ai-body" id="aiBody"></div>';
+  v.onclick = e => { const t = e.target.closest('[data-tab]'); if (t && !t.closest('#aiBody')) { e.preventDefault(); go('ai/' + t.dataset.tab); } };
+  const body = $('#aiBody', v);
+  if (k === 'chat') aiChatView(body, a[1]);
+  else if (k === 'assign') aiAssignView(body, a[1]);
+  else if (k === 'reqs') aiReqView(body, a[1]);
+  else if (k === 'cfg') aiCfgView(body);
+  else aiLog(v);
+}
+
+/* ═════════════ HỎI AI ═════════════ */
+function aiChatView(body, cid) {
+  const B = AI.b, C = AI.chat;
+  if (cid && B.classes.some(c => c.id === cid) && cid !== C.cid) { C.cid = cid; C.conv = ''; C.msgs = []; }
+  body.innerHTML = '<div class="ai-chat"><div class="ai-side"><div class="card"><div class="card-b">' +
+      '<div class="fg"><label class="flabel">Bé (lớp)</label><select class="sel" id="aiCls"><option value="">— Không chọn lớp —</option>' + B.classes.map(c => '<option value="' + c.id + '"' + (c.id === C.cid ? ' selected' : '') + '>' + esc(c.name + (c.grade ? ' · lớp ' + c.grade : '') + (c.prog ? ' · ' + c.prog : '')) + '</option>').join('') + '</select></div>' +
+      '<div class="seg" id="aiMode" style="align-self:flex-start"><button class="seg-b" data-aimode="chat" aria-pressed="' + (C.mode === 'chat') + '"><i class="bi bi-search"></i> Hỏi tài liệu</button><button class="seg-b" data-aimode="grade" aria-pressed="' + (C.mode === 'grade') + '"><i class="bi bi-clipboard-check"></i> Nhận xét bài tập</button></div>' +
+      '<div class="small ai-muted" id="aiModeHint"></div>' +
+      '<button class="btn sm ghost" id="aiNew"><i class="bi bi-plus-lg"></i>Cuộc hỏi mới</button></div></div>' +
+      '<details class="card ai-cvd"' + (matchMedia('(min-width:901px)').matches ? ' open' : '') + '><summary class="card-h"><h2 style="font-size:13px"><i class="bi bi-clock-history"></i>Đã hỏi gần đây</h2></summary><div class="ai-convs" id="aiConvs"><div class="small ai-muted" style="padding:8px 12px">Đang tải…</div></div></details></div>' +
+    '<div class="card ai-th"><div class="ai-msgs" id="aiMsgs"></div>' +
+      '<div class="ai-comp"><div class="ai-fchips" id="aiFiles"></div><textarea class="ta" id="aiIn" rows="2" placeholder=""></textarea>' +
+      '<div class="row"><input type="file" id="aiFile" multiple hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.heic,.txt,.csv,.md,.docx,.doc,.xlsx,.xls,.pptx,.ppt,image/*,application/pdf">' +
+        '<button class="btn sm ghost" id="aiAtt" title="Đính kèm tệp (PDF, ảnh, Word, Excel, PowerPoint — tối đa ' + B.limits.files + ' tệp, mỗi tệp ' + B.limits.fileMb + ' MB)"><i class="bi bi-paperclip"></i>Đính kèm</button>' +
+        '<span class="small ai-muted" style="flex:1">AI trả lời sau khoảng 15–40 giây · mọi lượt hỏi được lưu ở Nhật ký</span>' +
+        '<button class="btn sm pri" id="aiSend"><i class="bi bi-send"></i>Gửi</button></div></div></div></div>';
+  aiChatHint(body); aiPaintMsgs(body); aiPaintFiles(body); aiConvs(body);
+  const ta = $('#aiIn', body);
+  ta.oninput = () => { ta.style.height = 'auto'; ta.style.height = Math.min(200, ta.scrollHeight) + 'px'; };
+  ta.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && matchMedia('(min-width:821px)').matches) { e.preventDefault(); aiSend(body); } };
+  $('#aiFile', body).onchange = e => { aiAddFiles(body, [...e.target.files]); e.target.value = ''; };
+  const th = $('.ai-th', body);
+  th.ondragover = e => { e.preventDefault(); }; th.ondrop = e => { e.preventDefault(); aiAddFiles(body, [...(e.dataTransfer.files || [])]); };
+  ta.onpaste = e => { const fs = [...(e.clipboardData && e.clipboardData.files || [])]; if (fs.length) { e.preventDefault(); aiAddFiles(body, fs); } };
+  body.onchange = e => { if (e.target.id === 'aiCls') { C.cid = e.target.value; C.conv = ''; C.msgs = []; aiPaintMsgs(body); aiConvs(body); } };
+  body.onclick = async e => {
+    const m = e.target.closest('[data-aimode]'); if (m) { C.mode = m.dataset.aimode; $$('[data-aimode]', body).forEach(b => b.setAttribute('aria-pressed', b === m)); aiChatHint(body); aiPaintMsgs(body); return; }
+    if (e.target.closest('#aiNew')) { C.conv = ''; C.msgs = []; aiPaintMsgs(body); $$('.ai-conv', body).forEach(b => b.classList.remove('on')); return $('#aiIn', body).focus(); }
+    if (e.target.closest('#aiAtt')) return $('#aiFile', body).click();
+    if (e.target.closest('#aiSend')) return aiSend(body);
+    const sg = e.target.closest('[data-sug]'); if (sg) { ta.value = sg.dataset.sug; ta.focus(); ta.oninput(); return; }
+    const rf = e.target.closest('[data-rmf]'); if (rf) { C.files.splice(Number(rf.dataset.rmf), 1); return aiPaintFiles(body); }
+    const cv = e.target.closest('[data-conv]'); if (cv) return aiOpenConv(body, cv.dataset.conv, cv.dataset.cid);
+    const r = e.target.closest('[data-ref]'); if (r) return aiRefMenu(r.dataset.ref, JSON.parse(r.dataset.o || '{}'));
+  };
+}
+function aiChatHint(body) {
+  const C = AI.chat, h = $('#aiModeHint', body), ta = $('#aiIn', body);
+  if (h) h.innerHTML = C.mode === 'grade' ? 'Đính kèm phiếu / bài tập bạn chọn → AI nhận xét có <b>đạt yêu cầu về nội dung</b> không, theo tiêu chuẩn của trung tâm.' : 'Hỏi bé yếu phần nào nên học topic nào, tài liệu nào phù hợp. Chọn lớp để AI biết bé đã học những gì.';
+  if (ta) ta.placeholder = C.mode === 'grade' ? 'Ghi thêm yêu cầu (tuỳ chọn): VD “bài cho bé lớp 4 yếu phân số, 45 phút”…' : 'VD: Bé yếu phần phân số, buổi tới nên dạy topic nào? Có tài liệu luyện thêm không?';
+}
+function aiPaintFiles(body) {
+  const h = $('#aiFiles', body); if (!h) return;
+  h.innerHTML = AI.chat.files.map((f, i) => '<span class="ai-fc"><i class="bi bi-file-earmark"></i><span title="' + esc(f.name) + '">' + esc(f.name) + '</span><small>' + Math.max(1, Math.round(f.size / 1024)) + ' KB</small><button data-rmf="' + i + '" aria-label="Bỏ tệp">×</button></span>').join('');
+}
+async function aiAddFiles(body, list) {
+  const L = AI.b.limits, C = AI.chat;
+  for (const f of list) {
+    if (C.files.length >= L.files) { toast('Tối đa ' + L.files + ' tệp mỗi lần hỏi', 'warn'); break; }
+    const ext = String(f.name || '').split('.').pop().toLowerCase(), mt = f.type && f.type !== 'application/octet-stream' ? f.type : AI_EXT[ext] || '';
+    if (!mt || !Object.values(AI_EXT).concat(['image/heif']).some(x => x === mt) && !/^image\//.test(mt)) { toast('Chưa đọc được loại tệp “' + f.name + '” — dùng PDF, ảnh, Word, Excel, PowerPoint', 'warn'); continue; }
+    if (f.size > L.fileMb * 1048576) { toast('“' + f.name + '” lớn hơn ' + L.fileMb + ' MB', 'warn'); continue; }
+    if (C.files.reduce((a, x) => a + x.size, 0) + f.size > L.totalMb * 1048576) { toast('Các tệp cộng lại lớn hơn ' + L.totalMb + ' MB', 'warn'); break; }
+    const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).replace(/^data:[^,]*,/, '')); r.onerror = () => rej(r.error); r.readAsDataURL(f); }).catch(() => '');
+    if (!data) { toast('Không đọc được “' + f.name + '”', 'err'); continue; }
+    C.files.push({ name: f.name, mimeType: mt, size: f.size, data: data });
+  }
+  aiPaintFiles(body);
+  if (C.files.length && C.mode !== 'grade' && !C.msgs.length) toast('Đã đính kèm. Muốn AI chấm theo tiêu chuẩn thì chọn “Nhận xét bài tập”.', 'info', 4000);
+}
+/** chữ AI → HTML an toàn: **đậm**, gạch đầu dòng, số thứ tự, mã [[L:…]] thành nút tài liệu */
+function aiMd(text, refs) {
+  refs = refs || {};
+  const chip = id => { const o = refs[id]; if (!o) return '';
+    const tag = o.s === 'done' || o.s === 'taught' ? 'đã học' : o.s === 'plan' ? 'đã xếp' : o.s === 'carry' ? 'chưa dạy' : o.in ? 'trong lộ trình' : 'thư viện';
+    return '<button class="ai-ref' + (o.s === 'done' || o.s === 'taught' ? ' learned' : '') + '" data-ref="' + esc(id) + '" data-o="' + esc(JSON.stringify(o)) + '" title="Mở tài liệu / xin bài này"><i class="bi ' + (o.f ? 'bi-file-earmark-text' : 'bi-folder2-open') + '"></i>' + esc(o.n) + ' <small>' + tag + '</small></button>'; };
+  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id));
+  const lines = String(text || '').replace(/\r/g, '').split('\n'); let h = '', list = '';
+  const close = () => { if (list) { h += '</' + list + '>'; list = ''; } };
+  lines.forEach(l => {
+    const ul = /^\s*[-*•]\s+(.*)$/.exec(l), ol = /^\s*\d+[.)]\s+(.*)$/.exec(l), hd = /^\s*#{1,4}\s+(.*)$/.exec(l);
+    if (ul || ol) { const k = ul ? 'ul' : 'ol'; if (list !== k) { close(); h += '<' + k + '>'; list = k; } h += '<li>' + inl((ul || ol)[1]) + '</li>'; return; }
+    close(); if (!l.trim()) return; h += '<p>' + (hd ? '<b>' + inl(hd[1]) + '</b>' : inl(l)) + '</p>';
+  });
+  close(); return h;
+}
+function aiGradeHtml(g, refs) {
+  const tp = (g.topics || []).filter(id => (refs || {})[id]);
+  return '<div class="ai-gr"><div class="ai-gr-h"><span class="ai-vd ' + g.verdict + '">' + AI_VD[g.verdict] + '</span><span class="ai-score">' + g.score + '<small>/10</small></span></div>' +
+    (g.summary ? '<div>' + esc(g.summary) + '</div>' : '') +
+    (g.criteria && g.criteria.length ? '<div>' + g.criteria.map(c => '<div class="ai-cr"><i class="bi ' + AI_VDI[c.kq] + ' ' + c.kq + '"></i><b>' + esc(c.name) + '</b>' + (c.note ? '<small>' + esc(c.note) + '</small>' : '') + '</div>').join('') + '</div>' : '') +
+    (g.fixes && g.fixes.length ? '<div><b>Gợi ý sửa</b><ul style="margin:4px 0 0 18px;padding:0">' + g.fixes.map(f => '<li>' + esc(f) + '</li>').join('') + '</ul></div>' : '') +
+    (tp.length ? '<div><b>Topic liên quan</b><div>' + aiMd(tp.map(id => '[[L:' + id + ']]').join(' '), refs) + '</div></div>' : '') + '</div>';
+}
+function aiPaintMsgs(body) {
+  const h = $('#aiMsgs', body); if (!h) return; const C = AI.chat;
+  if (!C.msgs.length) {
+    const c = AI.b.classes.find(x => x.id === C.cid), sugs = C.mode === 'grade' ? ['Nhận xét phiếu bài tập này theo tiêu chuẩn', 'Bài tập này có vừa sức bé không?', 'Phiếu này thiếu dạng bài nào?']
+      : c ? [(/^bé\s/i.test(c.name) ? c.name : 'Bé ' + c.name) + ' yếu phần nào, nên ôn topic nào?', 'Buổi tới nên dạy bài gì cho bé?', 'Gợi ý tài liệu luyện thêm cho bé'] : ['Tài liệu nào luyện phân số lớp 4?', 'Có đề kiểm tra giữa kỳ lớp 5 không?', 'Cách dạy bé hiểu tỉ số phần trăm'];
+    h.innerHTML = '<div class="ai-hello"><i class="bi bi-stars"></i><b>' + (C.mode === 'grade' ? 'Nhận xét bài tập' : 'Hỏi Trợ lý AI') + '</b>' + (C.mode === 'grade' ? 'Đính kèm tệp bài tập rồi bấm Gửi.' : c ? 'AI đã biết lộ trình và các bài ' + esc(/^bé\s/i.test(c.name) ? c.name : 'bé ' + c.name) + ' đã học.' : 'Chọn lớp bên trái để AI biết bé đang học gì.') + '</div>' +
+      '<div class="ai-sugs">' + sugs.map(s => '<button class="ai-sug" data-sug="' + esc(s) + '">' + esc(s) + '</button>').join('') + '</div>';
+    return;
+  }
+  h.innerHTML = C.msgs.map(m => {
+    if (m.me) return '<div class="ai-m me">' + (m.text ? '<div class="ai-bb">' + esc(m.text).replace(/\n/g, '<br>') + '</div>' : '') + (m.files && m.files.length ? '<div class="ai-fchips">' + m.files.map(f => '<span class="ai-fc"><i class="bi bi-file-earmark"></i><span>' + esc(f.n || f.name) + '</span></span>').join('') + '</div>' : '') + '</div>';
+    if (m.wait) return '<div class="ai-m ai"><div class="ai-bb"><span class="ai-wait"><span class="ai-dots"><i></i><i></i><i></i></span><span data-tick data-t0="' + esc(m.t0 || '') + '">Đang gửi thư…</span></span></div><div class="ai-meta"><i class="bi bi-envelope"></i>' + (m.flow ? 'Đã gửi thư tới flow ' + esc(m.flow) : 'Đang gửi thư tới flow') + ' · có thể rời trang, xong sẽ báo chuông</div></div>';
+    if (m.err) return '<div class="ai-m ai err"><div class="ai-bb"><i class="bi bi-exclamation-octagon"></i> ' + esc(m.err) + '</div></div>';
+    return '<div class="ai-m ai"><div class="ai-bb">' + (m.grade ? aiGradeHtml(m.grade, m.refs) : aiMd(m.text, m.refs)) + '</div><div class="ai-meta"><i class="bi bi-stars"></i>' + (m.ms ? 'AI trả lời sau ' + aiSec(m.ms) : 'Trợ lý AI') + '</div></div>';
+  }).join('');
+  const tk = $('[data-tick]', h); if (tk) aiTick(tk, 'Đang chờ flow trả lời…', tk.dataset.t0 || 0);
+  h.scrollTop = h.scrollHeight;
+}
+async function aiSend(body) {
+  const C = AI.chat; if (C.busy) return toast('Đang chờ AI trả lời câu trước…', 'info');
+  if (S.me && S.me.preview) return toast('Đang xem thử — không hỏi AI', 'warn');
+  const ta = $('#aiIn', body), text = ta.value.trim(), files = C.files.slice();
+  if (!text && !files.length) return ta.focus();
+  if (C.mode === 'grade' && !files.length) return toast('Đính kèm tệp bài tập cần nhận xét', 'warn');
+  C.msgs.push({ me: 1, text: text, files: files.map(f => ({ n: f.name })) }, { wait: 1 }); C.files = []; ta.value = ''; ta.oninput();
+  aiPaintFiles(body); aiPaintMsgs(body); C.busy = true; const btn = $('#aiSend', body); if (btn) btn.disabled = true;
+  try {
+    const r = await rpc('aiChat', { cid: C.cid, text: text, files: files, conv: C.conv, mode: C.mode }, { quiet: true });
+    C.conv = r.conv; AI.chat.convs = null; const w = C.msgs[C.msgs.length - 1]; Object.assign(w, { id: r.id, flow: r.flow, t0: r.at });
+    if (r.unread && r.unread.length) toast('Không đọc được tệp: ' + r.unread.join(', ') + ' — AI chỉ thấy tên tệp', 'warn', 7000);
+    if (body.isConnected) { aiPaintMsgs(body); aiConvs(body); }
+    aiWatch(r.id, o => { const i = C.msgs.findIndex(m => m.id === o.id); const out = o.status === 'ok' ? { text: o.text, grade: o.grade, refs: o.refs, ms: o.ms } : { err: o.err || 'Không có câu trả lời' };
+      if (i >= 0) C.msgs[i] = out; C.busy = false; AI.chat.convs = null; const v2 = document.querySelector('#aiBody'); if (v2 && $('#aiMsgs', v2)) { aiPaintMsgs(v2); aiConvs(v2); const b2 = $('#aiSend', v2); if (b2) b2.disabled = false; } });
+    return;
+  } catch (e) { C.msgs.pop(); C.msgs.push({ err: aiErr(e) }); if (files.length && !C.files.length) { C.files = files; aiPaintFiles(body); } }
+  C.busy = false; const b2 = $('#aiSend', body); if (b2) b2.disabled = false;
+  if (body.isConnected) { aiPaintMsgs(body); aiConvs(body); }
+}
+async function aiConvs(body) {
+  const h = $('#aiConvs', body); if (!h) return; const C = AI.chat;
+  try { if (!C.convs) C.convs = (await rpc('aiLogList', { mine: 1 }, { quiet: true })).list.filter(r => r.kind === 'chat' || r.kind === 'grade'); }
+  catch (e) { h.innerHTML = '<div class="small ai-muted" style="padding:8px 12px">' + esc(e.message) + '</div>'; return; }
+  const seen = {}, L = []; C.convs.forEach(r => { if (!r.conv || seen[r.conv]) return; seen[r.conv] = 1; L.push(r); });
+  const mine = L.filter(r => !C.cid || r.classId === C.cid).slice(0, 30);
+  h.innerHTML = mine.length ? mine.map(r => '<button class="ai-conv' + (r.conv === C.conv ? ' on' : '') + '" data-conv="' + esc(r.conv) + '" data-cid="' + esc(r.classId) + '"><b>' + esc(r.prompt && r.prompt !== '(chỉ gửi tệp)' ? r.prompt : r.title) + '</b><small>' + esc([r.kind === 'grade' ? 'Nhận xét bài tập' : '', r.cls, fmtDT(r.at)].filter(Boolean).join(' · ')) + '</small></button>').join('')
+    : '<div class="small ai-muted" style="padding:8px 12px">Chưa có cuộc hỏi nào' + (C.cid ? ' về bé này' : '') + '</div>';
+}
+async function aiOpenConv(body, conv, cid) {
+  const C = AI.chat; C.conv = conv; if (cid && cid !== C.cid && AI.b.classes.some(c => c.id === cid)) { C.cid = cid; const s = $('#aiCls', body); if (s) s.value = cid; }
+  $('#aiMsgs', body).innerHTML = miniLoader('Đang mở cuộc hỏi…');
+  try {
+    const L = (await rpc('aiLogList', { conv: conv, mine: 1 }, { quiet: true })).list.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+    C.mode = L.length && L[L.length - 1].kind === 'grade' ? 'grade' : 'chat'; $$('[data-aimode]', body).forEach(b => b.setAttribute('aria-pressed', b.dataset.aimode === C.mode)); aiChatHint(body);
+    C.msgs = []; L.forEach(r => { C.msgs.push({ me: 1, text: r.prompt === '(chỉ gửi tệp)' ? '' : r.prompt, files: r.files });
+      if (r.status === 'ok') C.msgs.push(r.kind === 'grade' && r.grade ? { grade: r.grade, refs: r.refs, ms: r.ms } : { text: r.reply, refs: r.refs, ms: r.ms });
+      else if (AI_WAIT.test(r.status)) { C.msgs.push({ wait: 1, id: r.id, flow: r.flow, t0: r.at }); C.busy = true; aiWatch(r.id, o => { const i = C.msgs.findIndex(m => m.id === o.id); if (i >= 0) C.msgs[i] = o.status === 'ok' ? { text: o.text, grade: o.grade, refs: o.refs, ms: o.ms } : { err: o.err || 'Không có câu trả lời' }; C.busy = false; const v2 = document.querySelector('#aiBody'); if (v2 && $('#aiMsgs', v2)) aiPaintMsgs(v2); }); }
+      else C.msgs.push({ err: r.err || 'Không có câu trả lời' }); });
+  } catch (e) { C.msgs = [{ err: e.message }]; }
+  aiPaintMsgs(body); $$('.ai-conv', body).forEach(b => b.classList.toggle('on', b.dataset.conv === conv));
+}
+/** bấm nút tài liệu trong câu trả lời: mở · xin bài này cho bé */
+function aiRefMenu(id, o) {
+  const cid = AI.chat.cid, c = AI.b.classes.find(x => x.id === cid);
+  modal({ title: o.n || 'Tài liệu', icon: o.f ? 'bi-file-earmark-text' : 'bi-folder2-open',
+    body: '<div class="small ai-muted">' + esc(o.f ? 'Tệp' : 'Thư mục bài') + ' · ' + esc(o.s === 'done' || o.s === 'taught' ? 'bé đã học' : o.s === 'plan' ? 'đã xếp vào một buổi sắp tới' : o.s === 'carry' ? 'gia sư báo chưa dạy' : o.in ? 'nằm trong lộ trình của bé, chưa học' : 'trong thư viện, ngoài lộ trình của bé') + '</div>' +
+      (c ? '<div class="fg" style="margin-top:12px"><label class="flabel">Ghi chú gửi quản lý (khi xin bài)</label><textarea class="ta" id="aiWhy" rows="2" placeholder="VD: bé yếu phần này, xin cho buổi tới"></textarea></div>' : ''),
+    foot: [{ t: 'Đóng', cls: 'ghost' }].concat(c ? [{ t: 'Xin bài này cho ' + c.name, i: 'bi-send', cls: '', fn: async m => { const r = await rpc('aiTnAsk', { cid: cid, lid: id, why: (m.$('#aiWhy') || {}).value || '' }, { quiet: true });
+        toast(r.via === 'note' ? 'Đã gửi yêu cầu ' + r.key + ' cho quản lý (tab Yêu cầu)' : 'Đã nhắn quản lý trong Trao đổi của lớp', 'ok', 5000); } }] : [])
+      .concat([{ t: 'Mở tài liệu', i: 'bi-box-arrow-up-right', cls: 'pri', fn: () => { go(o.f ? 'file/' + id : 'library/' + id); } }]) });
+}
+
+/* ═════════════ GÁN BÀI ═════════════ */
+async function aiAssignView(body, openId) {
+  const A = AI.as; if (!A.days) A.days = AI.b.days || 7;
+  body.innerHTML = '<div class="card"><div class="card-h ai-ctl"><h2><i class="bi bi-magic"></i>AI gán bài cho buổi sắp tới</h2><span class="sp"></span>' +
+      '<label class="row" style="gap:6px">Trong <select class="sel" id="aiDays">' + [3, 5, 7, 10, 14, 21].map(n => '<option value="' + n + '"' + (n === A.days ? ' selected' : '') + '>' + n + ' ngày tới</option>').join('') + '</select></label>' +
+      '<button class="btn sm" id="aiScan"><i class="bi bi-arrow-repeat"></i>Quét lại</button></div>' +
+      '<div class="card-b small ai-muted"><i class="bi bi-info-circle"></i> AI đọc bài bé đã học, bài đang xếp, bài gia sư báo chưa dạy, yêu cầu “Xin bài dạy”, tin trao đổi và lưu ý của bé → đề xuất bài cho từng buổi <b>trống / nháp</b>. Máy chủ kiểm lại mọi mã bài AI đưa (đúng lộ trình của bé, không gán lại bài đã học) trước khi cho áp dụng. ' +
+        'Chế độ hiện tại: <b>' + esc(AI.b.modes[AI.b.mode]) + '</b>' + (AI.b.can.cfg ? ' (đổi ở <a href="#" data-go2="cfg">Cài đặt</a>)' : '') + '.</div>' +
+      '<div id="aiClsL"></div></div><div id="aiRun"></div><div id="aiPlans"></div><div id="aiAHist"></div>';
+  body.onchange = e => { if (e.target.id === 'aiDays') { A.days = Number(e.target.value); A.scan = null; aiScan(body); }
+    const ck = e.target.closest('[data-ck]'); if (ck) { ck.checked ? A.sel.add(ck.dataset.ck) : A.sel.delete(ck.dataset.ck); aiScanPaint(body); }
+    if (e.target.id === 'aiAll') { (A.scan.list || []).filter(c => !c.noprog).forEach(c => e.target.checked ? A.sel.add(c.cid) : A.sel.delete(c.cid)); aiScanPaint(body); }
+    aiPlanChange(e, body); };
+  body.onclick = e => { if (e.target.closest('#aiScan')) { A.scan = null; return aiScan(body); } if (e.target.closest('#aiGo')) return aiAssignRun(body);
+    const g2 = e.target.closest('[data-go2]'); if (g2) { e.preventDefault(); return go('ai/' + g2.dataset.go2); }
+    const ho = e.target.closest('[data-hopen]'); if (ho) return aiOpenPlan(body, ho.dataset.hopen, 'aiPlans');
+    aiPlanClick(e, body); };
+  aiPlansPaint(body, 'aiPlans', A.plans);
+  if (A.scan) aiScanPaint(body); else aiScan(body);
+  aiHist(body, 'assign', 'aiAHist');
+  if (openId) aiOpenPlan(body, openId, 'aiPlans');
+}
+async function aiScan(body) {
+  const A = AI.as, h = $('#aiClsL', body); if (!h) return; h.innerHTML = miniLoader('Đang tìm lớp có buổi cần bài…');
+  try { A.scan = await rpc('aiAssignScan', { days: A.days }, { quiet: true }); A.sel = new Set(A.scan.list.filter(c => !c.noprog && (c.empty || c.ask)).slice(0, 18).map(c => c.cid)); }
+  catch (e) { h.innerHTML = '<div class="card-b"><div class="ai-ban" style="margin:0"><i class="bi bi-exclamation-triangle"></i><div>' + esc(aiErr(e)) + '</div></div></div>'; return; }
+  aiScanPaint(body);
+}
+function aiScanPaint(body) {
+  const A = AI.as, h = $('#aiClsL', body); if (!h || !A.scan) return; const L = A.scan.list;
+  if (!L.length) { h.innerHTML = '<div class="empty" style="padding:28px"><i class="bi bi-check2-circle"></i>Không có lớp nào còn buổi trống / nháp trong ' + A.days + ' ngày tới</div>'; return; }
+  const ok = L.filter(c => !c.noprog), n = A.sel.size;
+  h.innerHTML = '<div>' + L.map(c => '<label class="ai-cls' + (c.noprog ? ' dis' : '') + '"><input type="checkbox" class="ai-ck" data-ck="' + c.cid + '"' + (A.sel.has(c.cid) ? ' checked' : '') + (c.noprog ? ' disabled' : '') + '>' +
+      '<span><b>' + esc(c.name) + '</b><small>' + esc([c.code, c.grade && 'lớp ' + c.grade, c.prog || 'chưa gắn chương trình', c.tutor && 'GS ' + c.tutor].filter(Boolean).join(' · ')) + '</small></span>' +
+      '<span class="ai-bdg">' + (c.ask ? '<span class="ai-b r"><i class="bi bi-inbox"></i> ' + c.ask + ' yêu cầu</span>' : '') + (c.empty ? '<span class="ai-b w">' + c.empty + ' buổi trống</span>' : '') + (c.draft ? '<span class="ai-b">' + c.draft + ' nháp</span>' : '') + (c.hold ? '<span class="ai-b">' + c.hold + ' để trống chờ chèn</span>' : '') +
+        (c.kgs ? '<span class="ai-b i">KGS</span>' : '') + '<span class="ai-b">từ ' + esc(clDay(c.next, A.scan.today).dm) + '</span></span></label>').join('') + '</div>' +
+    '<div class="ai-foot"><label class="row" style="gap:8px"><input type="checkbox" class="ai-ck" id="aiAll"' + (n && n === ok.length ? ' checked' : '') + '>Chọn tất cả (' + ok.length + ')</label><span class="sp"></span>' +
+      '<span class="small ai-muted">' + (n ? Math.ceil(n / AI.b.limits.batch) + ' lượt hỏi AI · mỗi lượt ' + AI.b.limits.batch + ' lớp' : '') + '</span>' +
+      '<button class="btn sm pri" id="aiGo"' + (n && !A.run ? '' : ' disabled') + '><i class="bi bi-stars"></i>AI đề xuất cho ' + (n || '…') + ' lớp</button></div>';
+}
+async function aiAssignRun(body) {
+  const A = AI.as; if (A.run) return; if (S.me && S.me.preview) return toast('Đang xem thử — không chạy', 'warn');
+  const ids = [...A.sel], per = AI.b.limits.batch, N = Math.ceil(ids.length / per); if (!ids.length) return;
+  A.run = { i: 0, n: N }; aiScanPaint(body);
+  const h = $('#aiRun', body); let sent = 0;
+  for (let i = 0; i < N; i++) {
+    if (h.isConnected) h.innerHTML = '<div class="ai-prog"><span class="ai-dots"><i></i><i></i><i></i></span><div style="flex:1"><b>Đang gửi thư ' + (i + 1) + '/' + N + ' tới flow…</b><div class="bar" style="margin-top:6px"><i style="width:' + Math.round(i / N * 100) + '%"></i></div></div></div>';
+    try { const r = await rpc('aiAssignPlan', { cids: ids.slice(i * per, i * per + per), days: A.days }, { quiet: true });
+      if (r.log) { sent++; A.plans.unshift(r.log); aiWatchPlan(r.log); if (body.isConnected) aiPlansPaint(body, 'aiPlans', A.plans); } else if (r.msg) toast(r.msg, 'info', 5000); }
+    catch (e) { toast('Thư ' + (i + 1) + ': ' + aiErr(e), 'err', 9000); if (/AIOFF|AICFG/.test(e.code || '')) break; }
+  }
+  A.run = null; if (h.isConnected) h.innerHTML = ''; if (sent) toast('Đã gửi ' + sent + ' thư tới flow — đề xuất hiện ở đây khi flow trả lời (thường 1–3 phút). Rời trang cũng được: xong sẽ báo chuông.', 'ok', 8000);
+  if (body.isConnected) { aiScanPaint(body); AI.as.hist = null; aiHist(body, 'assign', 'aiAHist'); }
+}
+/** thẻ một đề xuất (gán bài hoặc yêu cầu) */
+function aiPlanHtml(L) {
+  const A = L.actions || { items: [], warn: [] }, it = A.items || [], st = AI_ST[L.status] || [L.status, ''], open = it.filter(x => x.st !== 'done').length, isA = L.kind === 'assign';
+  const head = '<div class="card-h"><h2><i class="bi ' + (isA ? 'bi-magic' : 'bi-inboxes') + '"></i>' + esc(L.title) + '</h2><span class="sp"></span><small>' + esc([L.name, fmtDT(L.at), L.ms && 'AI ' + aiSec(L.ms)].filter(Boolean).join(' · ')) + '</small> <span class="ai-b ' + st[1] + '">' + esc(st[0]) + '</span></div>';
+  if (L.status === 'err') return '<div class="card ai-plan" data-plan="' + L.id + '">' + head + '<div class="card-b"><div class="ai-res bad"><i class="bi bi-exclamation-octagon"></i> ' + esc(L.err) + '</div></div></div>';
+  if (AI_WAIT.test(L.status)) return '<div class="card ai-plan" data-plan="' + L.id + '">' + head + '<div class="card-b"><div class="ai-prog" style="margin:0"><span class="ai-dots"><i></i><i></i><i></i></span><div style="flex:1"><b data-tick data-t0="' + esc(L.at) + '">Đang chờ flow trả lời…</b>' +
+    '<div class="small ai-muted">Đã gửi thư tới ' + esc(L.flow || 'flow') + '. Có thể rời trang — xong sẽ báo chuông, đề xuất nằm ở “Lượt trước”.</div></div></div></div></div>';
+  const rows = it.map((x, i) => {
+    const res = x.st === 'done' ? '<div class="ai-res ok"><i class="bi bi-check2-circle"></i> Đã áp dụng' + (x.by ? ' · ' + esc(x.by) : '') + (x.mode === 'approve' ? ' · đã duyệt' : x.mode === 'draft' ? ' · nháp chờ duyệt' : '') + (x.msg ? ' · ' + esc(x.msg) : '') + '</div>' : x.st === 'err' ? '<div class="ai-res bad"><i class="bi bi-exclamation-octagon"></i> ' + esc(x.err) + '</div>' : '';
+    const on = x.st !== 'done' && x.st !== 'err' && (x.t === 'assign' || (x.t === 'req' ? x.act !== 'human' : !!(x.reply || x.move)));
+    const ck = '<input type="checkbox" class="ai-ck" data-pick="' + i + '"' + (x.st === 'done' ? ' disabled' : on ? ' checked' : '') + ' aria-label="Chọn mục này">';
+    if (x.t === 'assign') return '<div class="ai-it ' + (x.st || '') + '" data-i="' + i + '">' + ck + '<div><div class="ai-it-h"><b>' + esc(x.be) + '</b><small>' + esc([x.thu + ' ' + clDay(x.d, ymdLocal()).dm, x.gio, 'buổi ' + x.tt].filter(Boolean).join(' · ')) + '</small>' + (x.review ? '<span class="ai-b i">ôn lại</span>' : '') + '</div>' +
+      '<div class="ai-les">' + (x.cur.length ? x.cur.map(l => '<span class="l old">' + esc(l.n) + '</span>').join('') + '<i class="bi bi-arrow-right"></i>' : '') + x.les.map(l => '<span class="l new" title="' + esc([l.g, l.s].filter(Boolean).join(' · ')) + '">' + esc(l.n) + '</span>').join('') + '</div>' +
+      (x.why ? '<div class="ai-why"><i class="bi bi-stars"></i><span>' + esc(x.why) + '</span></div>' : '') + (x.note ? '<div class="ai-why"><i class="bi bi-sticky"></i><span>Dặn gia sư: ' + esc(x.note) + '</span></div>' : '') +
+      (x.move ? '<div class="ai-why"><i class="bi bi-arrow-left-right"></i><span>Chuyển “' + esc(x.move) + '” từ buổi khác sang buổi này</span></div>' : '') + res + '</div></div>';
+    const urg = AI_URG[x.urgent] || AI_URG[3], typ = x.t === 'req' ? 'Yêu cầu chờ duyệt · ' + x.loai : x.t === 'note' ? (x.ma ? x.ma + ' · ' : '') + x.loai : 'Tin trao đổi chưa trả lời';
+    const lnk = x.t === 'req' ? 'classes/reqs' : x.t === 'note' ? 'classes/notes/' + x.id : /^T:/.test(x.cid) ? 'classes/inbox/' + x.cid : 'classes/c/' + x.cid + '/chat';
+    return '<div class="ai-it ' + (x.st || '') + '" data-i="' + i + '">' + ck + '<div><div class="ai-it-h"><span class="ai-b ' + urg[1] + '">' + urg[0] + '</span><b>' + esc(x.be || 'Gia sư') + '</b><small>' + esc([typ, x.gs && 'GS ' + x.gs, x.buoi && 'buổi ' + clDay(x.buoi, ymdLocal()).dm, x.cot && 'cột “' + x.cot + '”'].filter(Boolean).join(' · ')) + '</small>' +
+        '<a href="#" class="small" data-golnk="' + esc(lnk) + '">Mở</a></div>' +
+      '<div class="ai-why" style="color:var(--ink)"><i class="bi bi-quote"></i><span>' + esc(x.nd) + '</span></div>' + (x.why ? '<div class="ai-why"><i class="bi bi-stars"></i><span>' + esc(x.why) + '</span></div>' : '') +
+      (x.st === 'done' ? (x.reply ? '<div class="ai-why"><i class="bi bi-reply"></i><span>' + esc(x.reply) + '</span></div>' : '') :
+        '<div class="row">' + (x.t === 'req' ? '<select class="sel" data-act="' + i + '"><option value="approve"' + (x.act === 'approve' ? ' selected' : '') + '>AI đề xuất: Duyệt</option><option value="reject"' + (x.act === 'reject' ? ' selected' : '') + '>Từ chối</option><option value="human"' + (x.act === 'human' ? ' selected' : '') + '>Để tôi tự xem</option></select>' : '') +
+          (x.t === 'note' ? '<select class="sel" data-move="' + i + '"><option value=""' + (!x.move ? ' selected' : '') + '>Giữ cột hiện tại</option><option value="doing"' + (x.move === 'doing' ? ' selected' : '') + '>Chuyển: Đang xử lý</option><option value="review"' + (x.move === 'review' ? ' selected' : '') + '>Chuyển: Chờ gia sư xem</option><option value="done"' + (x.move === 'done' ? ' selected' : '') + '>Chuyển: Đã xong</option></select>' : '') + '</div>' +
+        '<textarea class="ta" data-reply="' + i + '" placeholder="' + (x.t === 'req' ? 'Tin nhắn gửi gia sư (tuỳ chọn) — gửi vào Trao đổi của lớp' : 'Câu trả lời gửi gia sư') + '">' + esc(x.reply || '') + '</textarea>') + res + '</div></div>';
+  }).join('');
+  return '<div class="card ai-plan" data-plan="' + L.id + '">' + head + (A.summary ? '<div class="card-b small"><i class="bi bi-stars" style="color:var(--primary)"></i> ' + esc(A.summary) + '</div>' : '') +
+    (rows || '<div class="card-b small ai-muted">AI không đề xuất thay đổi nào' + (isA ? ' — các buổi đã có bài hợp lý' : '') + '.</div>') +
+    ((A.warn || []).length ? '<details class="ai-warn"><summary><i class="bi bi-exclamation-triangle"></i> ' + A.warn.length + ' điểm máy chủ đã lọc / cần biết</summary><ul style="margin:6px 0 0 18px;padding:0">' + A.warn.map(w => '<li>' + esc(w) + '</li>').join('') + '</ul></details>' : '') +
+    (open && AI.b.can.admin ? '<div class="ai-foot"><span class="small ai-muted">' + open + ' mục chưa áp dụng</span><span class="sp"></span>' +
+      (isA ? '<button class="btn sm" data-apply="draft"><i class="bi bi-pencil-square"></i>Gán nháp (chờ duyệt)</button><button class="btn sm pri" data-apply="approve"><i class="bi bi-check2-all"></i>Gán & duyệt luôn</button>'
+        : '<button class="btn sm pri" data-apply="go"><i class="bi bi-check2-all"></i>Áp dụng mục đã chọn</button>') + '</div>' : '') + '</div>';
+}
+function ymdLocal() { const d = new Date(Date.now() + 7 * 3600e3); return d.toISOString().slice(0, 10); }
+function aiPlansPaint(body, hid, plans) { const h = $('#' + hid, body); if (!h) return; h.innerHTML = plans.map(aiPlanHtml).join(''); $$('[data-tick]', h).forEach(t => aiTick(t, 'Đang chờ flow trả lời…', t.dataset.t0)); }
+function aiPlanOf(el) { const c = el.closest('[data-plan]'); if (!c) return null; const id = c.dataset.plan; return AI.as.plans.concat(AI.rq.plans).find(p => p.id === id); }
+function aiPlanChange(e, body) {
+  const L = aiPlanOf(e.target); if (!L) return; const it = L.actions.items;
+  const a = e.target.closest('[data-act]'); if (a) it[a.dataset.act].act = a.value;
+  const m = e.target.closest('[data-move]'); if (m) it[m.dataset.move].move = m.value;
+  const r = e.target.closest('[data-reply]'); if (r) it[r.dataset.reply].reply = r.value;
+}
+async function aiPlanClick(e, body) {
+  const gl = e.target.closest('[data-golnk]'); if (gl) { e.preventDefault(); return go(gl.dataset.golnk); }
+  const b = e.target.closest('[data-apply]'); if (!b) return; const L = aiPlanOf(b); if (!L) return;
+  if (S.me && S.me.preview) return toast('Đang xem thử — không áp dụng', 'warn');
+  const card = b.closest('[data-plan]'), pick = $$('[data-pick]', card).filter(x => x.checked && !x.disabled).map(x => Number(x.dataset.pick));
+  if (!pick.length) return toast('Chọn ít nhất một mục', 'warn');
+  const edits = {}; pick.forEach(i => { const x = L.actions.items[i], ta = $('[data-reply="' + i + '"]', card), ac = $('[data-act="' + i + '"]', card), mv = $('[data-move="' + i + '"]', card);
+    edits[i] = {}; if (ta) edits[i].reply = ta.value; if (ac) edits[i].act = ac.value; if (mv) edits[i].move = mv.value; if (x.t === 'req' && edits[i].act === 'human') edits[i].skip = 1; });
+  const go2 = pick.filter(i => !edits[i].skip); if (!go2.length) return toast('Các mục đã chọn đều đang để “Để tôi tự xem”', 'warn');
+  if (b.dataset.apply === 'approve' && !await ask('Gán và DUYỆT LUÔN ' + go2.length + ' buổi? Gia sư nhận được bài ngay (lớp bật tự tạo link thì có link).', { ok: 'Gán & duyệt' })) return;
+  const h0 = b.innerHTML; b.disabled = true; b.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang áp dụng…';
+  try {
+    const r = await rpc('aiApply', { id: L.id, pick: go2, mode: b.dataset.apply === 'approve' ? 'approve' : 'draft', edits: edits }, { quiet: true });
+    Object.assign(L, r.log); toast('Đã áp dụng ' + r.done + ' mục' + (r.failed ? ' · ' + r.failed + ' mục lỗi (xem trong thẻ)' : ''), r.failed ? 'warn' : 'ok', 6000);
+    if (L.kind === 'assign') { AI.as.scan = null; if (typeof CL !== 'undefined') CL.v = ''; } else AI.rq.hist = null;
+  } catch (er) { toast(aiErr(er), 'err', 8000); }
+  b.disabled = false; b.innerHTML = h0;
+  if (body.isConnected) { card.outerHTML = aiPlanHtml(L); if (L.kind === 'assign' && !AI.as.scan) aiScan(body); }
+}
+async function aiOpenPlan(body, id, hid) {
+  const list = AI.tab === 'assign' ? AI.as.plans : AI.rq.plans;
+  if (!list.some(p => p.id === id)) { try { const L = await rpc('aiLogGet', { id: id }, { quiet: true }); if (!L.actions && !AI_WAIT.test(L.status) && L.status !== 'err') return toast('Lượt này không có đề xuất', 'info'); list.unshift(L); aiWatchPlan(L); } catch (e) { return toast(e.message, 'err'); } }
+  aiPlansPaint(body, hid, list); const el = $('[data-plan="' + id + '"]', body); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+/** lượt đề xuất gần đây (gán bài / yêu cầu) */
+async function aiHist(body, kind, hid) {
+  const h = $('#' + hid, body); if (!h) return; const box = kind === 'assign' ? AI.as : AI.rq;
+  try { if (!box.hist) box.hist = (await rpc('aiLogList', { kind: kind }, { quiet: true })).list.slice(0, 15); } catch (e) { h.innerHTML = ''; return; }
+  const shown = {}; box.plans.forEach(p => { shown[p.id] = 1; }); const L = box.hist.filter(r => !shown[r.id]);
+  h.innerHTML = L.length ? '<div class="card ai-plan"><div class="card-h"><h2><i class="bi bi-clock-history"></i>Lượt trước</h2></div><div class="ai-hist">' + L.map(r => { const st = AI_ST[r.status] || [r.status, ''];
+    return '<div class="ai-hrow"><span class="t"><b>' + esc(r.title) + '</b><small>' + esc([r.name, fmtDT(r.at), r.nAct != null && r.nAct + ' mục' + (r.nDone ? ' · ' + r.nDone + ' đã áp dụng' : ''), r.via === 'job' && 'tự chạy'].filter(Boolean).join(' · ')) + '</small></span><span class="ai-b ' + st[1] + '">' + esc(st[0]) + '</span>' +
+      (r.nAct || AI_WAIT.test(r.status) ? '<button class="btn xs ghost" data-hopen="' + r.id + '">Mở</button>' : '') + '</div>'; }).join('') + '</div></div>' : '';
+}
+
+/* ═════════════ YÊU CẦU & TRAO ĐỔI ═════════════ */
+function aiReqView(body, openId) {
+  body.innerHTML = '<div class="card"><div class="card-h ai-ctl"><h2><i class="bi bi-inboxes"></i>AI đọc yêu cầu của gia sư</h2><span class="sp"></span><button class="btn sm pri" id="aiRq"><i class="bi bi-stars"></i>AI đọc & xếp mức gấp</button></div>' +
+    '<div class="card-b small ai-muted"><i class="bi bi-info-circle"></i> Gồm <b>yêu cầu chờ duyệt</b> (đổi giờ, sửa thông tin lớp, cập nhật bài đã học…), <b>ghi chú / xin bài dạy / báo lỗi</b> của gia sư và <b>tin trao đổi</b> gia sư gửi mà chưa ai trả lời. ' +
+      'AI xếp theo mức gấp, đề xuất Duyệt / Từ chối / Để bạn tự xem và soạn sẵn câu trả lời — bạn sửa lại rồi bấm Áp dụng. Tin gửi đi mang tên bạn.</div></div><div id="aiRun"></div><div id="aiRPlans"></div><div id="aiRHist"></div>';
+  body.onchange = e => aiPlanChange(e, body);
+  body.onclick = async e => {
+    const ho = e.target.closest('[data-hopen]'); if (ho) return aiOpenPlan(body, ho.dataset.hopen, 'aiRPlans');
+    if (!e.target.closest('#aiRq')) return aiPlanClick(e, body);
+    if (S.me && S.me.preview) return toast('Đang xem thử — không chạy', 'warn');
+    const b = $('#aiRq', body); b.disabled = true; const h = $('#aiRun', body);
+    h.innerHTML = '<div class="ai-prog"><span class="ai-dots"><i></i><i></i><i></i></span><span data-tick></span></div>'; const stop = aiTick($('[data-tick]', h), 'Đang gom yêu cầu và gửi thư tới flow…');
+    try { const r = await rpc('aiReqPlan', {}, { quiet: true }); if (r.log) { AI.rq.plans.unshift(r.log); aiWatchPlan(r.log); aiPlansPaint(body, 'aiRPlans', AI.rq.plans); AI.rq.hist = null; aiHist(body, 'reqs', 'aiRHist'); } else toast(r.msg || 'Không có gì cần xử lý', 'info', 5000); }
+    catch (er) { toast(aiErr(er), 'err', 9000); }
+    stop(); h.innerHTML = ''; b.disabled = false;
+  };
+  aiPlansPaint(body, 'aiRPlans', AI.rq.plans); aiHist(body, 'reqs', 'aiRHist');
+  if (openId) aiOpenPlan(body, openId, 'aiRPlans');
+}
+
+/* ═════════════ NHẬT KÝ ═════════════ */
+async function aiLog(v) {
+  const body = $('#aiBody', v); if (!body) return; const G = AI.lg;
+  if (!$('#aiLogT', body)) body.innerHTML = '<div class="card"><div class="card-h ai-ctl"><h2><i class="bi bi-journal-text"></i>Nhật ký Trợ lý AI</h2><span class="sp"></span>' +
+    '<div class="search"><i class="bi bi-search"></i><input class="inp" id="aiLQ" placeholder="Tìm người, câu hỏi, câu trả lời…" value="' + esc(G.q) + '"></div>' +
+    '<select class="sel" id="aiLK"><option value="">Mọi loại</option>' + Object.keys({ assign: 1, reqs: 1, chat: 1, grade: 1 }).map(k => '<option value="' + k + '"' + (G.kind === k ? ' selected' : '') + '>' + esc({ assign: 'Gán bài', reqs: 'Yêu cầu & trao đổi', chat: 'Hỏi tài liệu', grade: 'Nhận xét bài tập' }[k]) + '</option>').join('') + '</select>' +
+    '<select class="sel" id="aiLW" hidden></select></div><div class="card-b small ai-muted" id="aiLInfo"></div><div id="aiLogT">' + miniLoader('Đang tải nhật ký…') + '</div></div>';
+  let D; try { D = await rpc('aiLogList', { q: G.q, kind: G.kind, who: G.who }, { quiet: true }); } catch (e) { $('#aiLogT', body).innerHTML = '<div class="empty" style="padding:28px">' + esc(e.message) + '</div>'; return; }
+  const w = $('#aiLW', body); if (D.all) { w.hidden = false; w.innerHTML = '<option value="">Mọi người</option>' + D.users.map(u => '<option value="' + esc(u.email) + '"' + (G.who === u.email ? ' selected' : '') + '>' + esc(u.name) + '</option>').join(''); }
+  $('#aiLInfo', body).innerHTML = '<i class="bi bi-shield-check"></i> ' + (D.all ? 'Bạn xem được nhật ký của <b>mọi người</b> (quyền “Xem nhật ký Trợ lý AI”).' : 'Bạn đang xem các lượt hỏi của chính mình.') + ' ' + D.total + ' lượt' + (D.total > D.list.length ? ' · hiện ' + D.list.length + ' lượt mới nhất' : '') + '.';
+  const L = D.list, kn = k => ({ assign: 'Gán bài', reqs: 'Yêu cầu', chat: 'Hỏi tài liệu', grade: 'Nhận xét bài tập' }[k] || k);
+  $('#aiLogT', body).innerHTML = L.length ? '<div class="tbl-wrap"><table class="tbl ai-log"><thead><tr><th>Lúc</th><th>Người</th><th>Loại</th><th>Nội dung</th><th>Kết quả</th></tr></thead><tbody>' + L.map(r => { const st = AI_ST[r.status] || [r.status, ''];
+      return '<tr data-log="' + r.id + '"><td class="small">' + esc(fmtDT(r.at)) + (r.via === 'job' ? '<div class="t-sub">tự chạy</div>' : '') + '</td><td><b>' + esc(r.name) + '</b><div class="t-sub">' + esc(r.role || r.email) + '</div></td>' +
+        '<td class="small">' + esc(kn(r.kind)) + (r.cls ? '<div class="t-sub">' + esc(r.cls) + '</div>' : '') + '</td><td class="small tx"><b>' + esc(r.title) + '</b>' + (r.files.length ? '<div class="t-sub"><i class="bi bi-paperclip"></i>' + esc(r.files.map(f => f.n).join(', ')) + '</div>' : '') + (r.reply ? '<div class="t-sub">' + esc(r.reply) + '</div>' : '') + '</td>' +
+        '<td><span class="ai-b ' + st[1] + '">' + esc(st[0]) + '</span>' + (r.nAct != null ? '<div class="t-sub">' + r.nAct + ' mục' + (r.nDone ? ' · ' + r.nDone + ' đã áp dụng' : '') + '</div>' : '') + (r.ms ? '<div class="t-sub">AI ' + aiSec(r.ms) + '</div>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>'
+    : '<div class="empty" style="padding:28px"><i class="bi bi-journal"></i>Chưa có lượt nào' + (G.q || G.kind || G.who ? ' khớp bộ lọc' : '') + '</div>';
+  body.onchange = e => { if (e.target.id === 'aiLK') { G.kind = e.target.value; aiLog(v); } if (e.target.id === 'aiLW') { G.who = e.target.value; aiLog(v); } };
+  body.oninput = debounce(e => { if (e.target.id === 'aiLQ') { G.q = e.target.value; aiLog(v); } }, 350);
+  body.onclick = e => { const tr = e.target.closest('[data-log]'); if (tr) aiLogOpen(tr.dataset.log); };
+}
+async function aiLogOpen(id) {
+  let r; try { r = await rpc('aiLogGet', { id: id }); } catch (e) { return toast(e.message, 'err'); }
+  const st = AI_ST[r.status] || [r.status, ''], A = r.actions, kn = AI_TABS.find(t => t.k === (r.kind === 'grade' ? 'chat' : r.kind)) || {};
+  const files = (r.files || []).map(f => '<span class="ai-fc"><i class="bi bi-paperclip"></i><span>' + (f.id ? '<a href="https://drive.google.com/file/d/' + esc(f.id) + '/view" target="_blank" rel="noopener">' + esc(f.n) + '</a>' : esc(f.n)) + '</span><small>' + Math.max(1, Math.round((f.s || 0) / 1024)) + ' KB</small></span>').join('');
+  const acts = A && A.items && A.items.length ? '<div class="small" style="margin-top:4px">' + A.items.map(x => '<div class="ai-cr"><i class="bi ' + (x.st === 'done' ? 'bi-check-circle-fill dat' : x.st === 'err' ? 'bi-x-circle-fill chua_dat' : 'bi-circle') + '"></i><b>' + esc(x.t === 'assign' ? x.be + ' · ' + x.d + ': ' + x.les.map(l => l.n).join(', ') : (x.be || '') + ' · ' + (x.loai || 'tin trao đổi') + (x.act ? ' → ' + x.act : '')) + '</b>' +
+    '<small>' + esc([x.why, x.reply && 'Trả lời: ' + x.reply, x.err, x.by && 'áp dụng bởi ' + x.by].filter(Boolean).join(' · ')) + '</small></div>').join('') + '</div>' : '';
+  modal({ title: r.title || 'Lượt hỏi AI', icon: 'bi-stars', size: 'lg', body:
+    '<div class="ai-kv"><span>Người hỏi</span><span>' + esc(r.name + ' · ' + r.email + (r.role ? ' (' + r.role + ')' : '')) + '</span><span>Lúc</span><span>' + esc(fmtDT(r.at)) + (r.via === 'job' ? ' · tự chạy theo lịch' : '') + '</span>' +
+      '<span>Loại</span><span>' + esc(r.kindT) + (r.cls ? ' · ' + esc(r.cls) : '') + '</span>' + (r.flow ? '<span>Flow</span><span><i class="bi bi-envelope"></i> ' + esc(r.flow) + '</span>' : '') + '<span>Kết quả</span><span><span class="ai-b ' + st[1] + '">' + esc(st[0]) + '</span>' + (r.ms ? ' · AI ' + aiSec(r.ms) : '') + (r.reqId ? ' · mã cổng ' + esc(r.reqId) : '') + (r.appliedBy ? ' · áp dụng bởi ' + esc(r.appliedBy) + ' ' + esc(fmtDT(r.appliedAt)) : '') + '</span></div>' +
+    '<h4 style="margin:14px 0 6px">Câu hỏi / việc giao</h4><pre class="ai-pre">' + esc(r.prompt) + '</pre>' + (files ? '<div class="ai-fchips" style="margin-top:8px">' + files + '</div>' : '') +
+    (r.ctx ? '<details style="margin-top:8px"><summary class="small">Dữ liệu gửi kèm (tóm tắt)</summary><pre class="ai-pre">' + esc(r.ctx) + '</pre></details>' : '') +
+    (r.err ? '<h4 style="margin:14px 0 6px;color:var(--danger)">Lỗi</h4><pre class="ai-pre">' + esc(r.err) + '</pre>' : '') +
+    (r.grade ? '<h4 style="margin:14px 0 6px">AI nhận xét</h4>' + aiGradeHtml(r.grade, r.refs) : r.reply ? '<h4 style="margin:14px 0 6px">AI trả lời</h4>' + (r.kind === 'chat' ? '<div class="ai-bb" style="border:1px solid var(--border)">' + aiMd(r.reply, r.refs) + '</div>' : '<details><summary class="small">Bản gốc AI trả về</summary><pre class="ai-pre">' + esc(r.reply) + '</pre></details>') : '') +
+    (acts ? '<h4 style="margin:14px 0 6px">Đề xuất đã kiểm & trạng thái</h4>' + acts : ''),
+    foot: [{ t: 'Đóng', cls: 'ghost' }].concat(A && A.items && A.items.some(x => x.st !== 'done') && r.canApply && (r.kind === 'assign' || r.kind === 'reqs') ? [{ t: 'Mở để áp dụng', cls: 'pri', i: 'bi-box-arrow-in-right', fn: () => { go('ai/' + r.kind + '/' + r.id); } }] : []) });
+}
+
+/* ═════════════ CÀI ĐẶT ═════════════ */
+/** hướng dẫn dựng flow trong hộp thư giaovu@kitee.vn (Google Workspace Studio / Flows) */
+function aiFlowHelp(c) {
+  const L = (c.flows || []).filter(f => f.on);
+  modal({ title: 'Cách dựng flow trong hộp thư nhận', icon: 'bi-diagram-3', size: 'lg', body:
+    '<div class="small" style="margin-bottom:8px">5 flow đã dựng sẵn trong <b>giaovu@kitee.vn</b> (Gán bài · Yêu cầu gia sư · Gia sư hỏi · Quản lý hỏi · Chấm bài). Thêm flow mới chỉ cần:</div>' +
+    '<ol style="margin:0 0 0 18px;padding:0;line-height:1.7"><li>Ở đây bấm <b>Thêm flow</b> → app tạo sẵn Token (VD <code>KCMAIAB12CD</code>), chọn việc / vai trò.</li>' +
+    '<li>Mở <a href="https://studio.workspace.google.com/manage" target="_blank" rel="noopener">Workspace Studio</a> (đăng nhập giaovu@kitee.vn) → mở một flow KCM-AI có sẵn → <b>⋮ › Make a copy</b>.</li>' +
+    '<li>Trong bản sao, Bước 1 <b>Has the words</b> = Token mới (giữ nguyên Skip thread replies, From / To để trống) → đặt tên → <b>Turn on</b>.</li>' +
+    '<li>Copy link trên thanh địa chỉ (…/workflow/…) → <b>dán vào ô Link flow</b> của dòng đó → <b>Lưu flow</b> → <b>Gửi thư thử</b>.</li></ol>' +
+    '<div class="small ai-muted" style="margin-top:10px">Ô <b>To</b> trong Studio chỉ nhận địa chỉ có trong danh bạ (không nhận giaovu+…), nên flow nhận thư theo <b>Token trong tiêu đề</b>; địa chỉ giaovu+ai-… chỉ để thư dễ lọc. Hai flow không được dùng chung một Token (sẽ trả lời hai lần).</div>' +
+    '<div class="small ai-muted" style="margin-top:12px">Thư gửi từ hộp thư <b>' + esc(c.box || c.boxSend || '(chưa kết nối)') + '</b>, tiêu đề dạng <code>[KCM-AI] … · AI… · TOKEN</code>. Mỗi việc nên một flow riêng để dễ theo dõi; muốn chạy song song thì tạo nhiều flow giống hệt nhau cho cùng một việc.</div>' +
+    (L.length ? '<table class="tbl" style="margin-top:12px"><thead><tr><th>Flow</th><th>Has the words (Token)</th><th>Link</th></tr></thead><tbody>' + L.map(f => '<tr><td>' + esc(f.name) + '</td><td><code>' + esc(f.token) + '</code></td><td>' + (f.url ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">Mở flow</a>' : '<span class="ai-muted">chưa dán link</span>') + '</td></tr>').join('') + '</tbody></table>' : ''),
+    foot: [{ t: 'Đóng', cls: 'ghost' }] });
+}
+function aiCfgView(body) {
+  const c = AI.b.cfg;
+  /** flow dựng sẵn (AI_FLOW_DEF) chưa có trong danh sách — so theo Token */
+  const defMiss = L => (c ? c.flowDef || [] : []).filter(d => !(L || []).some(f => f.token === d.token)); if (!c) { body.innerHTML = '<div class="card"><div class="empty">Chỉ Quản trị (quyền Cài đặt chung) sửa được</div></div>'; return; }
+  const sw = (k, on, lab) => '<span class="sw"><input type="checkbox" data-sw="' + k + '"' + (on ? ' checked' : '') + ' aria-label="' + esc(lab) + '"><span></span></span>';
+  const last = c.last;
+  body.innerHTML = '<div class="ai-cfg">' +
+    '<div class="card"><div class="card-h"><h2><i class="bi bi-envelope-paper"></i>Kết nối bằng mail</h2></div><div class="card-b">' +
+      '<div class="ai-opt"><div><b>Bật Trợ lý AI</b><small>Tắt: mọi người không gọi được AI, nhật ký vẫn giữ.</small></div>' + sw('on', c.on, 'Bật Trợ lý AI') + '</div>' +
+      '<div class="ai-opt"><div><b>Hộp thư gửi & nhận</b><small>' + (c.box ? '<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> ' + esc(c.box) + '</span> — gửi thư hỏi tới flow và đọc thư flow trả lời.'
+          : c.boxSend ? '<span style="color:var(--warn)"><i class="bi bi-exclamation-triangle-fill"></i> ' + esc(c.boxSend) + ' chưa có quyền ĐỌC thư</span> — kết nối lại và tick cả “Đọc email”.' : '<span style="color:var(--danger)">Chưa kết nối</span> — kết nối tài khoản Gmail (nên dùng chính giaovu@kitee.vn), tick cả Gửi và Đọc email.') +
+        ' Dùng chung với Tài khoản gửi mail / Vòng mail.</small></div><button class="btn sm ghost" data-go="admin/system"><i class="bi bi-box-arrow-up-right"></i>Tài khoản gửi mail</button></div>' +
+      '<div class="ai-opt"><div><b>Chờ thư trả lời tối đa</b><small>Quá thời gian này lượt hỏi báo lỗi (flow tắt / sai điều kiện).' + (c.waiting ? ' Đang chờ ' + c.waiting + ' thư.' : '') + '</small></div><select class="sel" id="aiWait">' + [5, 10, 15, 30, 60].map(n => '<option value="' + n + '"' + (n === c.wait ? ' selected' : '') + '>' + n + ' phút</option>').join('') + '</select></div></div></div>' +
+    '<div class="card"><div class="card-h"><h2><i class="bi bi-diagram-3"></i>Flow nhận thư</h2><span class="sp"></span><button class="btn sm ghost" id="aiFlowHelp"><i class="bi bi-question-circle"></i>Cách dựng flow</button></div><div class="card-b">' +
+      '<div class="small ai-muted" style="margin-bottom:10px">Mỗi flow = một địa chỉ kích hoạt + một mã trong tiêu đề (Token). Chọn flow nhận <b>việc</b> nào và cho <b>vai trò</b> nào (để trống = mọi vai trò). Nhiều flow cùng khớp → thư chia đều cho các flow đó (chạy song song).</div>' +
+      '<div id="aiFlows"></div><div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn sm ghost" id="aiFlowAdd"><i class="bi bi-plus-lg"></i>Thêm flow</button>' + (defMiss(c.flows).length ? '<button class="btn sm ghost" id="aiFlowDef"><i class="bi bi-magic"></i>Thêm ' + defMiss(c.flows).length + ' flow dựng sẵn còn thiếu (giaovu@kitee.vn)</button>' : '') +
+        '<span class="sp"></span><button class="btn sm pri" id="aiFlowSave"><i class="bi bi-check2"></i>Lưu flow</button></div></div></div>' +
+    '<div class="card"><div class="card-h"><h2><i class="bi bi-magic"></i>Gán bài</h2></div><div class="card-b">' +
+      '<div class="ai-opt"><div><b>Khi AI đề xuất bài</b><div class="ai-radio" style="margin-top:6px">' + Object.keys(AI.b.modes).map(k => '<label><input type="radio" name="aiMode" value="' + k + '"' + (c.assign === k ? ' checked' : '') + '>' + esc(AI.b.modes[k]) + '</label>').join('') + '</div><small>Áp dụng cho lượt AI tự chạy mỗi ngày. Khi bạn bấm tay, luôn được chọn Gán nháp hoặc Gán & duyệt.</small></div></div>' +
+      '<div class="ai-opt"><div><b>Xem trước bao nhiêu ngày</b></div><select class="sel" id="aiDaysC">' + [3, 5, 7, 10, 14, 21].map(n => '<option value="' + n + '"' + (n === c.days ? ' selected' : '') + '>' + n + ' ngày</option>').join('') + '</select></div>' +
+      '<div class="ai-opt"><div><b>Tự chạy mỗi ngày</b><small>AI gán bài cho lớp có buổi trống / có yêu cầu, rồi đọc yêu cầu của gia sư — báo kết quả cho người có quyền Trợ lý AI quản lý.' + (last ? '<br>Lần chạy gần nhất: ' + esc(fmtDT(last.at)) + ' · gửi ' + (last.sent || 0) + ' thư (' + (last.classes || 0) + ' lớp' + (last.reqs ? ' + yêu cầu' : '') + ')' + (last.err && last.err.length ? ' · lỗi: ' + esc(last.err[0]) : '') : '') + '</small>' +
+        '<div class="row" style="gap:8px;margin-top:8px">Lúc <select class="sel" id="aiHour">' + Array.from({ length: 24 }, (_, h) => '<option value="' + h + '"' + (h === c.hour ? ' selected' : '') + '>' + h + ' giờ</option>').join('') + '</select><button class="btn sm ghost" id="aiJob"><i class="bi bi-play"></i>Chạy ngay một lượt</button></div></div>' + sw('daily', c.daily, 'Tự chạy mỗi ngày') + '</div></div></div>' +
+    '<div class="card"><div class="card-h"><h2><i class="bi bi-inboxes"></i>Yêu cầu của gia sư (khi tự chạy)</h2></div><div class="card-b">' +
+      '<div class="ai-opt"><div><b>Tự duyệt yêu cầu AI cho là hợp lý</b><small>Chỉ các loại tick dưới đây; AI không bao giờ tự từ chối.</small><div class="ai-fns">' + c.reqFnsAll.map(f => '<label><input type="checkbox" data-fn="' + f.id + '"' + (c.reqFns.indexOf(f.id) >= 0 ? ' checked' : '') + '>' + esc(f.t) + '</label>').join('') + '</div></div>' + sw('reqAuto', c.reqAuto, 'Tự duyệt yêu cầu') + '</div>' +
+      '<div class="ai-opt"><div><b>Tự gửi câu trả lời AI soạn</b><small>Tắt (nên dùng): câu trả lời chờ bạn xem ở tab Yêu cầu & trao đổi.</small></div>' + sw('reply', c.reply, 'Tự gửi trả lời') + '</div></div></div>' +
+    '<div class="card"><div class="card-h"><h2><i class="bi bi-person-video3"></i>Gia sư</h2></div><div class="card-b">' +
+      '<div class="ai-opt"><div><b>Cho gia sư dùng Trợ lý AI</b><small>Vai trò nào được dùng: tick quyền <b>Trợ lý AI cho gia sư</b> ở <a href="#" data-go="users/roles">Vai trò & quyền</a> (nhóm Trợ lý AI).</small></div>' + sw('tutor', c.tutor, 'Cho gia sư dùng') + '</div>' +
+      '<div class="ai-opt"><div><b>Tiêu chuẩn nhận xét bài tập</b><small>AI chấm từng tiêu chuẩn: đạt / đạt một phần / chưa đạt.</small><textarea class="ta" id="aiRub" rows="7" style="margin-top:8px">' + esc(c.rubric) + '</textarea>' +
+        '<div class="row" style="gap:8px;margin-top:8px"><button class="btn sm" id="aiRubSave"><i class="bi bi-check2"></i>Lưu tiêu chuẩn</button><button class="btn sm ghost" id="aiRubDef">Về mặc định</button></div></div></div>' +
+      '<div class="ai-opt"><div><b>Chỉ dẫn thêm cho AI khi gia sư hỏi</b><textarea class="ta" id="aiSysT" rows="3" style="margin-top:8px" placeholder="VD: Luôn gợi ý tài liệu của trung tâm trước; nhắc gia sư ghi nhận xét sau buổi">' + esc(c.sysTutor) + '</textarea><button class="btn sm" id="aiSysTSave" style="margin-top:8px">Lưu</button></div></div></div></div>' +
+    '<div class="card"><div class="card-h"><h2><i class="bi bi-shield-lock"></i>Quản lý & nhật ký</h2></div><div class="card-b">' +
+      '<div class="ai-opt"><div><b>Chỉ dẫn thêm cho AI (gán bài, yêu cầu)</b><textarea class="ta" id="aiSysA" rows="3" style="margin-top:8px" placeholder="VD: Bé lớp 5 thi giữa kỳ tuần 9 — ưu tiên ôn tập trước tuần đó">' + esc(c.sysAdmin) + '</textarea><button class="btn sm" id="aiSysASave" style="margin-top:8px">Lưu</button></div></div>' +
+      '<div class="ai-opt"><div><b>Lưu bản tệp gia sư đính kèm</b><small>Lưu ở Drive (thư mục chính › Trợ lý AI — tệp đính kèm) để xem lại ở Nhật ký.</small></div>' + sw('keepFiles', c.keepFiles, 'Lưu tệp đính kèm') + '</div>' +
+      '<div class="ai-opt"><div><b>Giữ nhật ký</b><small>Ai xem được nhật ký của mọi người: quyền <b>Xem nhật ký Trợ lý AI</b> (Vai trò & quyền).</small></div><select class="sel" id="aiKeep">' + [[30, '30 ngày'], [90, '90 ngày'], [180, '180 ngày'], [365, '1 năm'], [0, 'Giữ mãi']].map(o => '<option value="' + o[0] + '"' + (o[0] === c.keepDays ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div></div></div></div>';
+  const save = async (patch, msg) => { try { AI.b = await rpc('aiCfgSave', patch, { quiet: true }); toast(msg || 'Đã lưu', 'ok', 2000); aiShow(body.closest('.view'), 'cfg'); } catch (e) { toast(e.message, 'err'); } };
+  let F = JSON.parse(JSON.stringify(c.flows || []));
+  const saved = id => (c.flows || []).some(f => f.id === id);
+  function flowsPaint() {
+    const h = $('#aiFlows', body); if (!h) return;
+    h.innerHTML = F.length ? F.map((f, i) => '<div class="ai-flow" data-fi="' + i + '"><div class="ai-flow-h">' +
+        '<input class="inp" data-fk="name" placeholder="Tên flow" value="' + esc(f.name) + '" style="max-width:170px"><input class="inp" data-fk="to" placeholder="giaovu+ai-…@kitee.vn" value="' + esc(f.to) + '" style="flex:1;min-width:200px">' +
+        '<input class="inp" data-fk="token" placeholder="Token (tự tạo)" value="' + esc(f.token) + '" style="max-width:150px" title="Mã nằm trong tiêu đề thư — điều kiện “Tiêu đề có chữ” của flow">' +
+        '<span class="sw" title="Bật flow"><input type="checkbox" data-fk="on"' + (f.on !== 0 ? ' checked' : '') + '><span></span></span><button class="ibtn" data-fdel="' + i + '" title="Bỏ flow"><i class="bi bi-trash3"></i></button></div>' +
+      '<div class="ai-flow-h"><input class="inp" data-fk="url" placeholder="Dán link flow trong Workspace Studio (https://studio.workspace.google.com/workflow/…)" value="' + esc(f.url || '') + '" style="flex:1;min-width:220px">' +
+        (f.url ? '<a class="btn xs ghost" href="' + esc(f.url) + '" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>Mở flow</a>' : '') + '</div>' +
+      '<div class="ai-fns"><b class="small">Việc:</b>' + c.kinds.map(k => '<label><input type="checkbox" data-fkind="' + k.id + '"' + (f.kinds.indexOf(k.id) >= 0 ? ' checked' : '') + '>' + esc(k.t) + '</label>').join('') + '</div>' +
+      '<div class="ai-fns"><b class="small">Vai trò:</b>' + c.roles.map(r => '<label><input type="checkbox" data-frole="' + r.id + '"' + (f.roles.indexOf(r.id) >= 0 ? ' checked' : '') + '>' + esc(r.label) + '</label>').join('') + '<small class="ai-muted">(không tick = mọi vai trò)</small></div>' +
+      '<div class="row" style="gap:8px;margin-top:6px;align-items:center">' + (saved(f.id) ? '<button class="btn xs ghost" data-ftest="' + f.id + '"><i class="bi bi-send"></i>Gửi thư thử</button>' : '<small class="ai-muted">Lưu flow rồi gửi thư thử</small>') + '<span class="small" data-fres="' + esc(f.id || '') + '"></span></div></div>').join('')
+      : '<div class="empty small" style="padding:18px"><i class="bi bi-diagram-3"></i>Chưa có flow nào — thêm flow hoặc bấm “Thêm 4 flow gợi ý”.</div>';
+  }
+  function flowsRead() { return $$('.ai-flow', body).map(el => { const i = Number(el.dataset.fi), f = F[i] || {}, v = k => ($('[data-fk="' + k + '"]', el) || {}).value || '';
+    return { id: f.id, name: v('name').trim(), to: v('to').trim(), token: v('token').trim(), url: v('url').trim(), on: $('[data-fk="on"]', el).checked ? 1 : 0,
+      kinds: $$('[data-fkind]', el).filter(x => x.checked).map(x => x.dataset.fkind), roles: $$('[data-frole]', el).filter(x => x.checked).map(x => x.dataset.frole) }; }); }
+  flowsPaint();
+  body.onchange = e => {
+    const s = e.target.closest('[data-sw]'); if (s) return save({ [s.dataset.sw]: s.checked ? 1 : 0 });
+    if (e.target.name === 'aiMode') return save({ assign: e.target.value });
+    if (e.target.id === 'aiDaysC') return save({ days: Number(e.target.value) });
+    if (e.target.id === 'aiHour') return save({ hour: Number(e.target.value) });
+    if (e.target.id === 'aiKeep') return save({ keepDays: Number(e.target.value) });
+    if (e.target.id === 'aiWait') return save({ wait: Number(e.target.value) });
+    if (e.target.closest('#aiFlows')) { F = flowsRead(); return; }
+    if (e.target.closest('[data-fn]')) return save({ reqFns: $$('[data-fn]', body).filter(x => x.checked).map(x => x.dataset.fn) });
+  };
+  body.onclick = async e => {
+    const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); return go(g.dataset.go); }
+    if (e.target.closest('#aiFlowAdd')) { const tk = 'KCMAI' + Math.random().toString(36).slice(2, 8).toUpperCase(); F.push({ name: '', to: 'giaovu+ai-' + tk.slice(5).toLowerCase() + '@kitee.vn', token: tk, kinds: [], roles: [], on: 1, url: '' }); flowsPaint();
+      return toast('Đã thêm dòng flow với Token ' + tk + ' — làm bản sao một flow trong Studio, đặt “Has the words” = ' + tk + ', bật flow rồi dán link vào dòng này', 'info', 9000); }
+    if (e.target.closest('#aiFlowDef')) { const M = defMiss(F); M.forEach(d => F.push(Object.assign({ roles: [], on: 1 }, JSON.parse(JSON.stringify(d))))); flowsPaint(); e.target.closest('#aiFlowDef').remove(); return toast('Đã thêm ' + M.length + ' flow dựng sẵn — bấm Lưu flow', 'info'); }
+    const fd = e.target.closest('[data-fdel]'); if (fd) { F.splice(Number(fd.dataset.fdel), 1); return flowsPaint(); }
+    if (e.target.closest('#aiFlowSave')) return save({ flows: flowsRead() }, 'Đã lưu flow');
+    if (e.target.closest('#aiFlowHelp')) return aiFlowHelp(c);
+    const ft = e.target.closest('[data-ftest]'); if (ft) { const out = $('[data-fres="' + ft.dataset.ftest + '"]', body); ft.disabled = true;
+      try { const r = await rpc('aiFlowTest', { id: ft.dataset.ftest }, { quiet: true }); out.innerHTML = '<span data-tick></span>'; aiTick($('[data-tick]', out), 'Đã gửi thư thử tới ' + r.to + ' · chờ trả lời…');
+        aiWatch(r.id, o => { ft.disabled = false; if (!out.isConnected) return; out.innerHTML = o.status === 'ok' ? '<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> Flow trả lời sau ' + aiSec(o.ms) + ': “' + esc(String(o.text || '').slice(0, 80)) + '”</span>' : '<span style="color:var(--danger)"><i class="bi bi-x-circle-fill"></i> ' + esc(o.err || 'Lỗi') + '</span>'; }); }
+      catch (er) { ft.disabled = false; out.innerHTML = '<span style="color:var(--danger)">' + esc(er.message) + '</span>'; } return; }
+    if (e.target.closest('#aiRubSave')) return save({ rubric: $('#aiRub', body).value }, 'Đã lưu tiêu chuẩn');
+    if (e.target.closest('#aiRubDef')) return save({ rubricReset: 1 }, 'Đã về tiêu chuẩn mặc định');
+    if (e.target.closest('#aiSysTSave')) return save({ sysTutor: $('#aiSysT', body).value });
+    if (e.target.closest('#aiSysASave')) return save({ sysAdmin: $('#aiSysA', body).value });
+    const jb = e.target.closest('#aiJob'); if (jb) { if (!await ask('Chạy ngay một lượt như lịch hằng ngày? AI sẽ ' + (c.assign === 'review' ? 'tạo đề xuất (chưa áp dụng)' : c.assign === 'approve' ? 'gán và DUYỆT bài' : 'gán bài nháp') + ' cho các lớp có buổi trống / có yêu cầu.', { ok: 'Chạy' })) return;
+      jb.disabled = true; jb.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang gửi thư…';
+      try { const r = await rpc('aiJobNow', {}, { quiet: true }); toast(r.skip ? 'Chưa chạy: AI đang tắt hoặc chưa có hộp thư' : 'Đã gửi ' + r.sent + ' thư tới flow (' + r.classes + ' lớp' + (r.reqs ? ' + yêu cầu' : '') + ') — kết quả xử lý khi flow trả lời, báo chuông cho bạn' + (r.err && r.err.length ? ' · ' + r.err[0] : ''), r.err && r.err.length ? 'warn' : 'ok', 9000); AI.b = await rpc('aiBoot', {}, { quiet: true }); AI.as.hist = null; aiCfgView(body); }
+      catch (er) { toast(er.message, 'err', 8000); jb.disabled = false; jb.innerHTML = '<i class="bi bi-play"></i>Chạy ngay một lượt'; } }
+  };
 }
 </script>
 
