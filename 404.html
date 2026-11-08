@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-08T15:50:11.789Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-08T15:59:25.629Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -18496,7 +18496,7 @@ function aiCfgView(body) {
   const c = AI.b.cfg;
   /** flow dựng sẵn (AI_FLOW_DEF) chưa có trong danh sách — so theo Token */
   const defMiss = L => (c ? c.flowDef || [] : []).filter(d => !(L || []).some(f => f.token === d.token)); if (!c) { body.innerHTML = '<div class="card"><div class="empty">Chỉ Quản trị (quyền Cài đặt chung) sửa được</div></div>'; return; }
-  const sw = (k, on, lab) => '<span class="sw"><input type="checkbox" data-sw="' + k + '"' + (on ? ' checked' : '') + ' aria-label="' + esc(lab) + '"><span></span></span>';
+  const sw = (k, on, lab) => '<label class="sw"><input type="checkbox" data-sw="' + k + '"' + (on ? ' checked' : '') + ' aria-label="' + esc(lab) + '"><span></span></label>';      // label: bấm vào nút gạt mới đổi ô tick ẩn
   const last = c.last;
   body.innerHTML = '<div class="ai-cfg">' +
     '<div class="card"><div class="card-h"><h2><i class="bi bi-envelope-paper"></i>Kết nối bằng mail</h2></div><div class="card-b">' +
@@ -18534,13 +18534,13 @@ function aiCfgView(body) {
     h.innerHTML = F.length ? F.map((f, i) => '<div class="ai-flow" data-fi="' + i + '"><div class="ai-flow-h">' +
         '<input class="inp" data-fk="name" placeholder="Tên flow" value="' + esc(f.name) + '" style="max-width:170px"><input class="inp" data-fk="to" placeholder="giaovu+ai-…@kitee.vn" value="' + esc(f.to) + '" style="flex:1;min-width:200px">' +
         '<input class="inp" data-fk="token" placeholder="Token (tự tạo)" value="' + esc(f.token) + '" style="max-width:150px" title="Mã nằm trong tiêu đề thư — điều kiện “Tiêu đề có chữ” của flow">' +
-        '<span class="sw" title="Bật flow"><input type="checkbox" data-fk="on"' + (f.on !== 0 ? ' checked' : '') + '><span></span></span><button class="ibtn" data-fdel="' + i + '" title="Bỏ flow"><i class="bi bi-trash3"></i></button></div>' +
+        '<label class="sw" title="Bật flow"><input type="checkbox" data-fk="on"' + (f.on !== 0 ? ' checked' : '') + ' aria-label="Bật flow"><span></span></label><button class="ibtn" data-fdel="' + i + '" title="Bỏ flow"><i class="bi bi-trash3"></i></button></div>' +
       '<div class="ai-flow-h"><input class="inp" data-fk="url" placeholder="Dán link flow trong Workspace Studio (https://studio.workspace.google.com/workflow/…)" value="' + esc(f.url || '') + '" style="flex:1;min-width:220px">' +
         (f.url ? '<a class="btn xs ghost" href="' + esc(f.url) + '" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>Mở flow</a>' : '') + '</div>' +
       '<div class="ai-fns"><b class="small">Việc:</b>' + c.kinds.map(k => '<label><input type="checkbox" data-fkind="' + k.id + '"' + (f.kinds.indexOf(k.id) >= 0 ? ' checked' : '') + '>' + esc(k.t) + '</label>').join('') + '</div>' +
       '<div class="ai-fns"><b class="small">Vai trò:</b>' + c.roles.map(r => '<label><input type="checkbox" data-frole="' + r.id + '"' + (f.roles.indexOf(r.id) >= 0 ? ' checked' : '') + '>' + esc(r.label) + '</label>').join('') + '<small class="ai-muted">(không tick = mọi vai trò)</small></div>' +
       '<div class="row" style="gap:8px;margin-top:6px;align-items:center">' + (saved(f.id) ? '<button class="btn xs ghost" data-ftest="' + f.id + '"><i class="bi bi-send"></i>Gửi thư thử</button>' : '<small class="ai-muted">Lưu flow rồi gửi thư thử</small>') + '<span class="small" data-fres="' + esc(f.id || '') + '"></span></div></div>').join('')
-      : '<div class="empty small" style="padding:18px"><i class="bi bi-diagram-3"></i>Chưa có flow nào — thêm flow hoặc bấm “Thêm 4 flow gợi ý”.</div>';
+      : '<div class="empty small" style="padding:18px"><i class="bi bi-diagram-3"></i>Chưa có flow nào — thêm flow hoặc bấm “Thêm flow dựng sẵn”.</div>';
   }
   function flowsRead() { return $$('.ai-flow', body).map(el => { const i = Number(el.dataset.fi), f = F[i] || {}, v = k => ($('[data-fk="' + k + '"]', el) || {}).value || '';
     return { id: f.id, name: v('name').trim(), to: v('to').trim(), token: v('token').trim(), url: v('url').trim(), on: $('[data-fk="on"]', el).checked ? 1 : 0,
@@ -18895,11 +18895,13 @@ async function clCenters(B, v) {
           '<div class="ct-add"><input class="inp" id="ctU" list="ctUL" type="email" placeholder="Gõ tên hoặc email người dùng thử" autocomplete="off"><datalist id="ctUL">' + (D.userList || []).filter(u => c.users.indexOf(u.email) < 0).map(u => '<option value="' + esc(u.email) + '">' + esc(u.name || u.email) + '</option>').join('') + '</datalist>' +
           '<button type="button" class="btn sm" id="ctUa"><i class="bi bi-plus-lg"></i>Thêm</button></div></div></div>');
   };
-  let busy = false;
+  let busy = 0;      // lúc bắt đầu lần lưu đang chạy (0 = rảnh)
   const scope = async (patch, msg) => {
-    if (busy) return; busy = true; const c = cfg(), o = Object.assign({ mode: c.mode, roles: c.roles.slice(), users: c.users.slice() }, patch);
-    D.cfg = o; D.on = o.mode === 'off' ? 0 : 1; paint();      // đổi ngay trên màn hình, lỗi → tải lại
-    try { D = await rpc('centersOn', o); lsSet(CK, D); paint(); if (msg) toast(msg, 'ok'); } catch (e) { fail(e); load(); } finally { busy = false; }
+    if (busy && Date.now() - busy < 20000) return toast('Đang lưu lựa chọn trước — đợi một chút rồi bấm lại', 'info', 2500);      // (1.76) không im lặng bỏ cú bấm; lần lưu treo quá 20 giây thì cho bấm tiếp
+    busy = Date.now();
+    try { const c = cfg(), o = Object.assign({ mode: c.mode, roles: (c.roles || []).slice(), users: (c.users || []).slice() }, patch);
+      D.cfg = o; D.on = o.mode === 'off' ? 0 : 1; paint();      // đổi ngay trên màn hình, lỗi → tải lại
+      D = await rpc('centersOn', o); lsSet(CK, D); paint(); if (msg) toast(msg, 'ok'); } catch (e) { fail(e); load(); } finally { busy = 0; }
   };
   const addUser = () => {
     const inp = $('#ctU', B); if (!inp) return; const q = inp.value.trim().toLowerCase(); if (!q) return inp.focus();
