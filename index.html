@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-09T02:59:25.111Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-09T03:55:06.078Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -18126,6 +18126,11 @@ async function apPreview(x) {
 .ax-ed .sel{ width:auto; max-width:320px; font-size:12.5px; height:30px }
 .ax-conv{ position:relative } .ax-conv .del{ position:absolute; right:6px; top:50%; transform:translateY(-50%); border:0; background:var(--surface); color:var(--muted); width:26px; height:26px; border-radius:8px; cursor:pointer; display:none } .ax-conv:hover .del{ display:grid; place-items:center } .ax-conv .del:hover{ color:var(--danger) }
 .ax-meta .tdel{ border:0; background:none; color:var(--muted); cursor:pointer; padding:0 4px; font-size:11.5px; opacity:0; transition:opacity .15s } .ax-m:hover .ax-meta .tdel{ opacity:1 } .ax-meta .tdel:hover{ color:var(--danger) }
+.ax-do{ display:flex; flex-direction:column; gap:3px; margin:6px 0 4px; padding:8px 10px; border:1px solid color-mix(in oklab, var(--primary) 30%, var(--border)); border-radius:12px; background:color-mix(in oklab, var(--primary) 4%, var(--surface)); max-width:560px }
+.ax-do button{ align-self:flex-start; display:inline-flex; gap:6px; align-items:center; border:0; border-radius:999px; padding:6px 12px; font-size:12.5px; font-weight:700; cursor:pointer; background:var(--primary); color:var(--on-primary, #fff) }
+.ax-do button:hover{ filter:brightness(1.08) } .ax-do button:disabled{ cursor:default; filter:none } .ax-do small{ font-size:12px; color:var(--ink-2); line-height:1.45 } .ax-do .why{ color:var(--muted) }
+.ax-do.done{ border-color:color-mix(in oklab, var(--ok) 35%, var(--border)); background:color-mix(in oklab, var(--ok) 6%, var(--surface)) } .ax-do.done button{ background:color-mix(in oklab, var(--ok) 16%, transparent); color:var(--ok) }
+.ax-do.dis button{ background:var(--surface-3); color:var(--muted) } .ax-do .ok{ color:var(--ok); font-weight:700 }
 .ai-ref.cls{ padding:2px 7px; border-color:color-mix(in oklab, var(--ok) 40%, var(--border)); background:color-mix(in oklab, var(--ok) 8%, var(--surface)); color:var(--ok) }
 .ax-inl{ display:flex; flex-wrap:wrap; gap:8px; align-items:center } .ax-inl .sel{ width:auto; min-width:0 } .ax-inl .inp{ min-width:0 }
 .ax-chip{ border:1px solid var(--border); background:var(--surface); border-radius:99px; padding:5px 11px; font-size:12px; color:var(--ink-2); cursor:pointer } .ax-chip:hover{ border-color:var(--primary); color:var(--primary) }
@@ -18374,6 +18379,7 @@ function aiChatView(body, arg) {
     const rf = e.target.closest('[data-rmf]'); if (rf) { C.files.splice(Number(rf.dataset.rmf), 1); return aiPaintFiles(body); }
     const rd = e.target.closest('[data-rmd]'); if (rd) { C.drive.splice(Number(rd.dataset.rmd), 1); return aiPaintFiles(body); }
     const bc = e.target.closest('[data-bcls]'); if (bc) return go('classes/c/' + bc.dataset.bcls);
+    const db = e.target.closest('[data-do]'); if (db) { const mm = db.closest('[data-rid]'); if (mm) return aiDoRun(db, mm.dataset.rid, () => aiPaintMsgs(body)); }
     const cd = e.target.closest('[data-cdel]'); if (cd) { e.stopPropagation(); return aiConvDelete(body, cd.dataset.cdel, ''); }
     const td = e.target.closest('[data-tdel]'); if (td) return aiConvDelete(body, '', td.dataset.tdel);
     const cv = e.target.closest('[data-conv]'); if (cv) return aiOpenConv(body, cv.dataset.conv, cv.dataset.cid);
@@ -18430,12 +18436,16 @@ function aiMd(text, refs) {
   const chip = id => { const o = refs[id]; if (!o) return '';
     const tag = o.s === 'done' || o.s === 'taught' ? 'đã học' : o.s === 'plan' ? 'đã xếp' : o.s === 'carry' ? 'chưa dạy' : o.in ? 'trong lộ trình' : 'thư viện';
     return '<button class="ai-ref' + (o.s === 'done' || o.s === 'taught' ? ' learned' : '') + '" data-ref="' + esc(id) + '" data-o="' + esc(JSON.stringify(o)) + '" title="Mở tài liệu / xin bài này"><i class="bi ' + (o.f ? 'bi-file-earmark-text' : 'bi-folder2-open') + '"></i>' + esc(o.n) + ' <small>' + tag + '</small></button>'; };
+  let nDo = 0; const AI_DOI = { gan: 'bi-magic', duyet: 'bi-check2-circle', tuchoi: 'bi-x-circle', traloi: 'bi-reply', xong: 'bi-check2-all', hoigs: 'bi-question-circle' };
+  const dochip = () => { const k = nDo++, o = refs['DO:' + k]; if (!o) return '';      // (1.77.4) nút hành động — máy chủ kiểm lại khi bấm
+    return '<span class="ax-do' + (o.done ? ' done' : !o.ok ? ' dis' : '') + '"><button type="button" data-do="' + k + '"' + (o.ok ? '' : ' disabled') + '><i class="bi ' + (o.done ? 'bi-check2-circle' : AI_DOI[o.kind] || 'bi-lightning') + '"></i>' + esc(o.label || o.t) + '</button>' +
+      (o.sub ? '<small>' + esc(o.sub) + '</small>' : '') + (o.done ? '<small class="ok">✓ ' + esc(o.done.msg || 'Đã làm') + ' · ' + esc(o.done.by || '') + '</small>' : !o.ok && o.why ? '<small class="why">' + esc(o.why) + '</small>' : '') + '</span>'; };
   const bchip = id => { const o = refs['B:' + id]; return o ? '<button class="ai-ref cls" data-bcls="' + esc(id) + '" title="Mở trang bé ' + esc(o.n) + ' · ' + esc(o.code || '') + '" aria-label="Mở trang bé ' + esc(o.n) + '"><i class="bi bi-box-arrow-up-right"></i></button>' : ''; };      // tên bé AI đã ghi ngay trước → chỉ cần nút nhỏ      // (1.77.1)
-  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id));
+  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip());
   const lines = String(text || '').replace(/\r/g, '').split('\n'); let h = '', list = '';
   const close = () => { if (list) { h += '</' + list + '>'; list = ''; } };
   let tb = null;      // (1.77.3) bảng Markdown | a | b |
-  const cells = l => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(x => x.trim());
+  const cells = l => l.trim().replace(/^\|/, '').replace(/\|$/, '').split(/\|(?![^\[]*\]\])/).map(x => x.trim());      // | trong [[DO:…]] không tách ô
   const flushT = () => { if (!tb) return; const [hd, ...rows] = tb; h += '<table><thead><tr>' + hd.map(x => '<th>' + inl(x) + '</th>').join('') + '</tr></thead><tbody>' + rows.map(r => '<tr>' + hd.map((_, k) => '<td>' + inl(r[k] || '') + '</td>').join('') + '</tr>').join('') + '</tbody></table>'; tb = null; };
   lines.forEach(l => {
     if (/^\s*\|.*\|\s*$/.test(l)) { close(); if (/^\s*\|?[\s:|-]+\|?\s*$/.test(l) && /-/.test(l)) return; (tb = tb || []).push(cells(l)); return; }
@@ -18469,11 +18479,24 @@ function aiPaintMsgs(body) {
     if (m.wait) return '<div class="ax-m ai"><span class="ax-av"><i class="bi bi-robot"></i></span><div class="ax-bb">' + aiThink(C.mode === 'grade' ? 'grade' : 'chat', m.t0) + '<div class="ax-skel" aria-hidden="true"><i></i><i></i><i></i></div><div class="ax-meta">Bạn có thể rời trang — xong sẽ báo chuông</div></div></div>';
     if (m.err) return '<div class="ax-m ai err"><span class="ax-av"><i class="bi bi-exclamation"></i></span><div class="ax-bb">' + esc(m.err) + '</div></div>';
     const fr = m.fresh; m.fresh = 0;
-    return '<div class="ax-m ai' + (fr ? ' fresh' : '') + '"><span class="ax-av"><i class="bi bi-robot"></i></span><div class="ax-bb">' + (m.grade ? aiGradeHtml(m.grade, m.refs) : aiMd(m.text, m.refs)) + '<div class="ax-meta">' + (m.ms ? 'Trợ lý AI · ' + aiSec(m.ms) : 'Trợ lý AI') + (m.rid ? '<button class="tdel" data-tdel="' + esc(m.rid) + '" title="Xoá câu hỏi và câu trả lời này"><i class="bi bi-trash3"></i> Xoá</button>' : '') + '</div></div></div>';
+    return '<div class="ax-m ai' + (fr ? ' fresh' : '') + '"' + (m.rid ? ' data-rid="' + esc(m.rid) + '"' : '') + '><span class="ax-av"><i class="bi bi-robot"></i></span><div class="ax-bb">' + (m.grade ? aiGradeHtml(m.grade, m.refs) : aiMd(m.text, m.refs)) + '<div class="ax-meta">' + (m.ms ? 'Trợ lý AI · ' + aiSec(m.ms) : 'Trợ lý AI') + (m.rid ? '<button class="tdel" data-tdel="' + esc(m.rid) + '" title="Xoá câu hỏi và câu trả lời này"><i class="bi bi-trash3"></i> Xoá</button>' : '') + '</div></div></div>';
   }).join('');
   h.scrollTop = h.scrollHeight;
 }
 function aiChatOut(o) { return Object.assign(o.status === 'ok' ? { text: o.text, grade: o.grade, refs: o.refs, ms: o.ms } : { err: o.err || 'Trợ lý AI chưa trả lời được — thử lại sau ít phút' }, { rid: o.id }); }
+/** (1.77.4) bấm nút hành động trong câu trả lời → máy chủ kiểm lại + làm luôn; cập nhật nút (đã làm) */
+async function aiDoRun(btn, rid, repaint) {
+  if (S.me && S.me.preview) return toast('Đang xem thử — không làm', 'warn');
+  const k = Number(btn.dataset.do), h0 = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang làm…';
+  try {
+    const r = await rpc('aiDo', { id: rid, k: k }, { quiet: true });
+    AI.chat.msgs.forEach(m => { if (m.rid === rid && !m.me && m.refs) Object.assign(m.refs, r.refs); });
+    toast(r.done.msg || 'Đã làm', 'ok', 5000); AI.dash = null; AI.rq.hist = null;
+    if (r.done.spawn) aiWatch(r.done.spawn, o => { toast(aiDoneMsg(o), o.status === 'err' ? 'err' : 'ok', 8000, 'ai/assign/' + o.id); if (typeof clReload === 'function' && typeof CL !== 'undefined') clReload(Date.now()).catch(() => {}); });
+    const sp = btn.closest('.ax-do'); if (sp) { sp.className = 'ax-do done'; btn.innerHTML = '<i class="bi bi-check2-circle"></i>' + esc(r.done.label || 'Đã làm'); const ok = document.createElement('small'); ok.className = 'ok'; ok.textContent = '✓ ' + (r.done.msg || 'Đã làm') + ' · ' + (r.done.by || ''); sp.appendChild(ok); }
+    else if (repaint) repaint();
+  } catch (e) { toast(aiErr(e), 'err', 8000); btn.disabled = false; btn.innerHTML = h0; }
+}
 /** (1.77.1) xoá một cuộc hỏi (conv) hoặc một lượt (rid) của chính mình */
 async function aiConvDelete(body, conv, rid) {
   if (!await ask(conv ? 'Xoá cả cuộc hỏi này? Không khôi phục được.' : 'Xoá câu hỏi và câu trả lời này?', { ok: 'Xoá', danger: true })) return;
@@ -18835,7 +18858,7 @@ function aiLogOpen(id) {
       (acts ? '<h4 style="margin:14px 0 6px">Việc AI đề xuất / đã làm</h4>' + acts : '') +
       (A && A.items && A.items.some(x => x.st !== 'done') && r.canApply && (r.kind === 'assign' || r.kind === 'reqs') ? '<button class="btn sm pri" style="margin-top:12px" data-goap="' + r.kind + '/' + r.id + '"><i class="bi bi-box-arrow-in-right"></i>Mở để làm tiếp</button>' : '') +
       (r.kind === 'chat' || r.kind === 'grade' ? '<button class="btn sm" style="margin-top:12px" data-goap="chat/v:' + esc(r.conv || '') + '"><i class="bi bi-chat-dots"></i>Mở cuộc hỏi</button>' : '');
-    h.onclick = e => { const g = e.target.closest('[data-goap]'); if (g) { m.close(); go('ai/' + g.dataset.goap); } };
+    h.onclick = e => { const g = e.target.closest('[data-goap]'); if (g) { m.close(); go('ai/' + g.dataset.goap); } const db = e.target.closest('[data-do]'); if (db) aiDoRun(db, r.id); };
   }).catch(e => { const h = m.$('#aiLo'); if (h) h.innerHTML = '<div class="ax-ban"><i class="bi bi-exclamation-triangle"></i><div>' + esc(e.message) + '</div></div>'; });
 }
 
