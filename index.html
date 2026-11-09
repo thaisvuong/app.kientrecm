@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-09T05:39:03.945Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-09T06:05:36.680Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -18188,6 +18188,9 @@ const AI_EXT = { pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jp
   pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', ppt: 'application/vnd.ms-powerpoint' };
 const AI_VD = { dat: 'Đạt', mot_phan: 'Đạt một phần', chua_dat: 'Chưa đạt' }, AI_VDI = { dat: 'bi-check-circle-fill', mot_phan: 'bi-dash-circle-fill', chua_dat: 'bi-x-circle-fill' };
 const AI_ST = { send: ['AI đang làm', 'p'], wait: ['AI đang làm', 'p'], proc: ['AI đang làm', 'p'], run: ['AI đang làm', 'p'], ok: ['Có kết quả', 'i'], empty: ['Không cần đổi', ''], err: ['Lỗi', 'r'], partial: ['Đã làm một phần', 'w'], applied: ['Đã làm xong', 'o'] };
+/** (1.77.7) khoảng gán bài: tuần / tháng */
+const AI_DOPT = [[3, '3 ngày tới'], [7, '1 tuần tới'], [14, '2 tuần tới'], [21, '3 tuần tới'], [30, '1 tháng tới'], [60, '2 tháng tới'], [92, '3 tháng tới']];
+function aiDOpts(cur) { return AI_DOPT.concat(AI_DOPT.some(o => o[0] === cur) ? [] : [[cur, cur + ' ngày tới']]).sort((a, b) => a[0] - b[0]).map(o => '<option value="' + o[0] + '"' + (o[0] === cur ? ' selected' : '') + '>' + o[1] + '</option>').join(''); }
 const AI_URG = { 1: ['Gấp', 'r'], 2: ['Trong tuần', 'w'], 3: ['Thường', ''] };
 const AI_APPLY = { approve: 'Tự gán & duyệt luôn', draft: 'Tự gán nháp (chờ duyệt)', review: 'Chỉ đề xuất, tôi xem trước' };
 const AI_WAIT = /^(send|wait|proc)$/;
@@ -18585,19 +18588,20 @@ function aiRefMenu(id, o) {
 async function aiAssignView(body, openId) {
   const A = AI.as; if (!A.days) A.days = AI.b.days || 7; if (!A.apply) A.apply = AI.b.mode || 'draft';
   body.innerHTML = '<div class="ax-card"><div class="ax-ch"><h3><i class="bi bi-magic"></i>Giao AI gán bài</h3><span class="sp"></span>' +
-      '<label class="small" style="display:inline-flex;gap:6px;align-items:center">Trong <select class="sel" id="aiDays">' + [3, 5, 7, 10, 14, 21].map(n => '<option value="' + n + '"' + (n === A.days ? ' selected' : '') + '>' + n + ' ngày tới</option>').join('') + '</select></label>' +
+      '<label class="small" style="display:inline-flex;gap:6px;align-items:center">Gán cho <select class="sel" id="aiDays">' + aiDOpts(A.days) + '</select></label>' +
       '<button class="btn sm ghost" id="aiScan"><i class="bi bi-arrow-repeat"></i>Quét lại</button></div>' +
       '<div class="ax-cb ax-note" style="padding-top:0"><i class="bi bi-info-circle"></i> AI đọc <b>tiến độ</b> của từng bé (bài xa nhất đã học, bài bị bỏ qua), <b>so với tuần học của trường</b>, đọc yêu cầu “Xin bài dạy”, trao đổi và lưu ý → tự chọn bài cho buổi <b>trống / nháp</b>. Không gán lại bài đã học, không tự gán bài đã bị bỏ qua; bé lệch nhiều thì AI <b>hỏi gia sư</b> và tự gán lại khi gia sư trả lời. Máy chủ kiểm lại mọi mã bài trước khi áp dụng.</div>' +
       '<div class="ax-cmd"><textarea class="ta" id="aiTxt" rows="1" placeholder="Dặn AI thêm (tuỳ chọn) — VD: tuần sau thi giữa kỳ, ưu tiên ôn tập; bé lớp 5 cần luyện đề…">' + esc(A.text) + '</textarea>' +
         '<div class="opt"><span class="small ax-muted">Khi AI chọn xong</span><select class="sel" id="aiApply">' + Object.keys(AI_APPLY).map(k => '<option value="' + k + '"' + (k === A.apply ? ' selected' : '') + '>' + esc(AI_APPLY[k]) + '</option>').join('') + '</select></div></div>' +
       '<div class="ax-sub" id="aiSub"></div><div data-apane="' + (A.sub || 'pick') + '" id="aiPane">' +
         '<div data-p="pick"><div class="ax-tools"><div class="search"><i class="bi bi-search"></i><input class="inp" id="aiCQ" placeholder="Tìm bé, mã lớp, gia sư…" value="' + esc(A.q) + '"></div>' +
-          '<div class="ax-flt" id="aiFlt">' + [['all', 'Tất cả'], ['ask', 'Có yêu cầu'], ['empty', 'Có buổi trống'], ['draft', 'Có nháp'], ['asking', 'Chờ GS xác nhận']].map(o => '<button type="button" data-flt="' + o[0] + '" aria-pressed="' + ((A.f || 'all') === o[0]) + '">' + o[1] + '</button>').join('') + '</div></div>' +
+          '<select class="sel" id="aiTut" aria-label="Lọc theo gia sư" style="width:auto;max-width:240px"><option value="">Mọi gia sư</option></select>' + '<div class="ax-flt" id="aiFlt">' + [['all', 'Tất cả'], ['ask', 'Có yêu cầu'], ['empty', 'Có buổi trống'], ['draft', 'Có nháp'], ['asking', 'Chờ GS xác nhận']].map(o => '<button type="button" data-flt="' + o[0] + '" aria-pressed="' + ((A.f || 'all') === o[0]) + '">' + o[1] + '</button>').join('') + '</div></div>' +
           '<div id="aiClsL"></div></div>' +
         '<div data-p="res"><div id="aiRun"></div><div id="aiPlans" class="ax" style="padding:0 0 4px"></div></div>' +
         '<div data-p="hist"><div id="aiAHist"></div></div></div></div>';
   body.onchange = e => { if (e.target.id === 'aiDays') { A.days = Number(e.target.value); A.scan = null; aiScan(body); }
     if (e.target.id === 'aiApply') A.apply = e.target.value;
+    if (e.target.id === 'aiTut') { A.tut = e.target.value; if (A.tut) { A.sel = new Set(aiScanShown().filter(c => !c.noprog).map(c => c.cid)); } aiScanPaint(body); }
     const ck = e.target.closest('[data-ck]'); if (ck) { ck.checked ? A.sel.add(ck.dataset.ck) : A.sel.delete(ck.dataset.ck); aiScanFoot(body); }
     if (e.target.id === 'aiAll') { aiScanShown().filter(c => !c.noprog).forEach(c => e.target.checked ? A.sel.add(c.cid) : A.sel.delete(c.cid)); aiScanPaint(body); }
     aiPlanChange(e, body); };
@@ -18625,10 +18629,12 @@ async function aiScan(body) {
   catch (e) { h.innerHTML = '<div class="ax-cb"><div class="ax-ban"><i class="bi bi-exclamation-triangle"></i><div>' + esc(aiErr(e)) + '</div></div></div>'; return; }
   aiScanPaint(body);
 }
-function aiScanShown() { const A = AI.as, w = fold(A.q.trim()), f = A.f || 'all'; return (A.scan ? A.scan.list : []).filter(c => (!w || fold([c.name, c.code, c.tutor, c.prog].join(' ')).indexOf(w) >= 0) && (f === 'all' || (f === 'ask' ? c.ask : f === 'empty' ? c.empty : f === 'draft' ? c.draft : c.asking))); }
+function aiScanShown() { const A = AI.as, w = fold(A.q.trim()), f = A.f || 'all'; return (A.scan ? A.scan.list : []).filter(c => (!A.tut || (c.tutor || '') === A.tut) && (!w || fold([c.name, c.code, c.tutor, c.prog].join(' ')).indexOf(w) >= 0) && (f === 'all' || (f === 'ask' ? c.ask : f === 'empty' ? c.empty : f === 'draft' ? c.draft : c.asking))); }
 function aiScanPaint(body) {
   const A = AI.as, h = $('#aiClsL', body); if (!h || !A.scan) return; const all = A.scan.list, L = aiScanShown();
   if (!all.length) { h.innerHTML = '<div class="empty" style="padding:28px"><i class="bi bi-check2-circle"></i><b>Mọi buổi trong ' + A.days + ' ngày tới đã có bài</b><span>AI không cần gán thêm</span></div>'; return; }
+  { const ts = $('#aiTut', body); if (ts) { const cnt = {}; all.forEach(c => { if (c.tutor) cnt[c.tutor] = (cnt[c.tutor] || 0) + 1; });      // (1.77.7) lọc bé theo gia sư → Chọn tất cả = mọi bé của gia sư đó
+    ts.innerHTML = '<option value="">Mọi gia sư (' + Object.keys(cnt).length + ')</option>' + Object.keys(cnt).sort((a, b) => a.localeCompare(b, 'vi')).map(t => '<option value="' + esc(t) + '"' + (t === A.tut ? ' selected' : '') + '>' + esc(t) + ' · ' + cnt[t] + ' bé</option>').join(''); } }
   h.innerHTML = '<div class="ax-scroll">' + (L.length ? L.map(c => '<label class="ai-cls' + (c.noprog ? ' dis' : '') + '"><input type="checkbox" class="ai-ck" data-ck="' + c.cid + '"' + (A.sel.has(c.cid) ? ' checked' : '') + (c.noprog ? ' disabled' : '') + '>' +
       '<span><b>' + esc(c.name) + '</b><small>' + esc([c.code, aiGr(c.grade), c.prog || 'chưa gắn chương trình', c.tutor && 'GS ' + c.tutor].filter(Boolean).join(' · ')) + '</small></span>' +
       '<span class="ai-bdg">' + (c.ask ? '<span class="ai-b r"><i class="bi bi-inbox"></i>' + c.ask + ' yêu cầu</span>' : '') + (c.asking ? '<span class="ai-b w"><i class="bi bi-question-circle"></i>chờ GS xác nhận</span>' : '') + (c.empty ? '<span class="ai-b w">' + c.empty + ' buổi trống</span>' : '') + (c.draft ? '<span class="ai-b">' + c.draft + ' nháp</span>' : '') + (c.hold ? '<span class="ai-b">' + c.hold + ' để trống chờ chèn</span>' : '') +
@@ -18638,13 +18644,13 @@ function aiScanPaint(body) {
 }
 function aiScanFoot(body) {
   const A = AI.as, f = $('#aiFootA', body); if (!f) return; const ok = aiScanShown().filter(c => !c.noprog), n = A.sel.size, all = ok.length && ok.every(c => A.sel.has(c.cid));
-  f.innerHTML = '<label class="ax-inl small"><input type="checkbox" class="ai-ck" id="aiAll"' + (all ? ' checked' : '') + '>Chọn tất cả (' + ok.length + ')</label><span class="sp"></span>' +
+  f.innerHTML = '<label class="ax-inl small"><input type="checkbox" class="ai-ck" id="aiAll"' + (all ? ' checked' : '') + '>' + (A.tut ? 'Chọn tất cả bé của GS ' + esc(A.tut) : 'Chọn tất cả') + ' (' + ok.length + ')</label><span class="sp"></span>' +
     '<span class="small ax-muted">' + (n ? n + ' bé đã chọn' : 'Chọn bé cần gán bài') + '</span>' +
-    '<button class="btn sm pri" id="aiGo"' + (n && !A.run ? '' : ' disabled') + '><i class="bi bi-stars"></i>Giao AI gán bài' + (n ? ' cho ' + n + ' bé' : '') + '</button>';
+    '<button class="btn sm pri" id="aiGo"' + (n && !A.run ? '' : ' disabled') + '><i class="bi bi-stars"></i>Giao AI gán bài' + (n ? ' cho ' + n + ' bé' : '') + ' · ' + esc((AI_DOPT.find(o => o[0] === A.days) || [0, A.days + ' ngày tới'])[1]) + '</button>';
 }
 async function aiAssignRun(body) {
   const A = AI.as; if (A.run) return; if (S.me && S.me.preview) return toast('Đang xem thử — không chạy', 'warn');
-  const ids = [...A.sel], per = AI.b.limits.batch, N = Math.ceil(ids.length / per); if (!ids.length) return;
+  const ids = [...A.sel], per = A.days > 21 ? 3 : AI.b.limits.batch, N = Math.ceil(ids.length / per); if (!ids.length) return;      // gán dài (1 tháng…) → mỗi lượt ít bé hơn, AI xếp kỹ hơn
   A.run = { i: 0, n: N }; aiScanFoot(body); aiSubSet(body, 'res');
   const h = $('#aiRun', body); let sent = 0; const t0 = new Date().toISOString();
   for (let i = 0; i < N; i++) {
@@ -18834,10 +18840,10 @@ async function aiTaskModal(cids, label) {
     '<div class="ax-qv"><div class="small ax-muted">AI đọc tiến độ, lộ trình, các buổi đã dạy, yêu cầu và trao đổi của ' + (one ? 'bé' : 'từng bé') + ' → tự chọn bài cho các buổi trống / nháp, ' + (AI.b.gap ? 'bé lệch nhiều thì hỏi gia sư' : '') + '. Để trống ô dưới = gán bài tiếp theo lộ trình.</div>' +
       '<textarea class="ta" id="aiTk" rows="3" autofocus placeholder="VD: Tuần sau bé thi giữa kỳ — 2 buổi tới ôn tập; ưu tiên phần phân số…"></textarea>' +
       '<div class="ax-chips">' + ['Gán bài tiếp theo lộ trình', 'Ôn lại phần bé thấy khó', 'Chuẩn bị ôn tập kiểm tra giữa kỳ', 'Theo kịp chương trình trên lớp'].map(s => '<button type="button" class="ax-chip" data-tk="' + esc(s) + '">' + esc(s) + '</button>').join('') + '</div>' +
-      '<div class="ax-inl"><span class="small ax-muted">Trong</span><select class="sel" id="aiTd">' + [3, 5, 7, 10, 14, 21].map(n => '<option value="' + n + '"' + (n === (AI.b.days || 7) ? ' selected' : '') + '>' + n + ' ngày tới</option>').join('') + '</select>' +
+      '<div class="ax-inl"><span class="small ax-muted">Trong</span><select class="sel" id="aiTd">' + aiDOpts(AI.b.days || 7) + '</select>' +
         '<span class="small ax-muted">Khi AI chọn xong</span><select class="sel" id="aiTm">' + Object.keys(AI_APPLY).map(k => '<option value="' + k + '"' + (k === mode ? ' selected' : '') + '>' + esc(AI_APPLY[k]) + '</option>').join('') + '</select></div></div>',
     foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Giao AI làm', cls: 'pri', i: 'bi-stars', fn: async m => {
-      const t = m.$('#aiTk').value.trim(), ap = m.$('#aiTm').value, d = Number(m.$('#aiTd').value), per = AI.b.limits.batch || 6;
+      const t = m.$('#aiTk').value.trim(), ap = m.$('#aiTm').value, d = Number(m.$('#aiTd').value), per = d > 21 ? 3 : (AI.b.limits.batch || 6);
       for (let i = 0; i < cids.length; i += per) await aiTaskSend(cids.slice(i, i + per), t, ap, null, d); } }] });
   setTimeout(() => { const bg = document.querySelector('.modal-bg:last-child'); if (bg) bg.addEventListener('click', e => { const s = e.target.closest('[data-tk]'); if (s) { const ta = bg.querySelector('#aiTk'); ta.value = s.dataset.tk; ta.focus(); } }); }, 0);
 }
@@ -18930,7 +18936,7 @@ function aiCfgView(body) {
           : c.run === 'daily' ? '<span class="small">lúc</span><select class="sel" id="aiHour">' + Array.from({ length: 24 }, (_, h) => '<option value="' + h + '"' + (h === c.hour ? ' selected' : '') + '>' + h + ' giờ</option>').join('') + '</select>' : '') +
           '<button class="btn sm ghost" id="aiJob"><i class="bi bi-play"></i>Chạy ngay</button></div></div></div>') +
     card('bi-magic', 'Gán bài', '<div class="ai-opt"><div><b>Khi AI chọn bài</b><div class="ai-radio" style="margin-top:6px">' + Object.keys(AI.b.modes).map(k => '<label><input type="radio" name="aiMode" value="' + k + '"' + (c.assign === k ? ' checked' : '') + '>' + esc(AI.b.modes[k]) + '</label>').join('') + '</div><small>Áp dụng cho lượt tự chạy và mặc định khi bạn giao việc (đổi được từng lần).</small></div></div>' +
-      '<div class="ai-opt"><div><b>Xem trước bao nhiêu ngày</b></div><select class="sel" id="aiDaysC">' + [3, 5, 7, 10, 14, 21].map(n => '<option value="' + n + '"' + (n === c.days ? ' selected' : '') + '>' + n + ' ngày</option>').join('') + '</select></div>' +
+      '<div class="ai-opt"><div><b>Xem trước bao nhiêu ngày</b></div><select class="sel" id="aiDaysC">' + aiDOpts(c.days) + '</select></div>' +
       '<div class="ai-opt"><div><b>Hỏi gia sư khi bé lệch tiến độ</b><small>Bé lệch so với chương trình trên lớp hoặc có nhiều bài bị bỏ qua → AI nhờ gia sư xác nhận kiến thức (mail + thông báo + tin trao đổi). Gia sư xác nhận xong, AI <b>tự gán bài lại</b> trong vòng một phút.</small>' +
         '<div class="ax-inl" style="margin-top:8px"><span class="small">Hỏi khi lệch từ</span><select class="sel" id="aiGap">' + [2, 3, 4, 5, 6, 8, 10].map(n => '<option value="' + n + '"' + (n === c.gap ? ' selected' : '') + '>' + n + ' bài</option>').join('') + '</select></div></div>' + sw('askTutor', c.askTutor, 'Hỏi gia sư') + '</div>') +
     card('bi-inboxes', 'Yêu cầu của gia sư', '<div class="ai-opt"><div><b>Tự duyệt yêu cầu AI cho là hợp lý</b><small>Chỉ các loại tick dưới đây; AI không bao giờ tự từ chối.</small><div class="ai-fns">' + c.reqFnsAll.map(f => '<label><input type="checkbox" data-fn="' + f.id + '"' + (c.reqFns.indexOf(f.id) >= 0 ? ' checked' : '') + '>' + esc(f.t) + '</label>').join('') + '</div></div>' + sw('reqAuto', c.reqAuto, 'Tự duyệt') + '</div>' +
