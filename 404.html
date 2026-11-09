@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-09T06:05:36.680Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-09T06:38:27.976Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -13970,6 +13970,7 @@ function clOverlay(d) {
   if (delS.size || delC.size) { d.sessions = d.sessions.filter(x => !delS.has(x.id) && !delC.has(x.classId)); d.classes = d.classes.filter(c => !delC.has(c.id)); }
   P('sessionSave').forEach(p => { const x = X[p.id]; if (!x) return; ['date', 'time', 'note'].forEach(k => { if (k in p) x[k] = p[k]; }); if ('off' in p) x.status = p.off ? 'off' : ((x.folders || []).length ? 'draft' : ''); });
   P('sessionOff').forEach(p => (p.ids || []).forEach(id => { const x = X[id]; if (x && x.status !== 'taught') x.status = p.off ? 'off' : ((x.folders || []).length ? 'draft' : ''); }));
+  P('sessionBlank').forEach(p => (p.ids || []).forEach(id => { const x = X[id]; if (x && x.status !== 'taught' && x.status !== 'off' && !(x.folders || []).length) Object.assign(x, { status: 'approved', folders: [], extra: [], pick: null, hold: 0, link: null, auto: false }); }));      // (1.77.8)
   P('sessionClear').forEach(p => (p.ids || []).forEach(id => { const x = X[id]; if (x && x.status !== 'taught' && x.status !== 'off') Object.assign(x, { folders: [], extra: [], pick: null, tags: [], status: '', hold: 1, link: null, auto: false }); }));      // (1.44.11) xoá nội dung đang chờ gửi
   if (d.manage && d.reqs) { const dec = new Set(); P('reqDecide').forEach(p => (p.ids || []).forEach(i => dec.add(i))); if (dec.size) d.reqs = d.reqs.filter(r => !dec.has(r.id)); }
   return d;
@@ -14516,7 +14517,7 @@ function clDayOk(x, k, t) {
   if (!k) return true;
   if (/^\d{4}-\d{2}-\d{2}$/.test(k)) return x.date === k;
   const n = clDay(x.date, t).diff;
-  return k === 'today' ? n === 0 : k === 'tom' ? n === 1 : k === 'yday' ? n === -1 : k === 'week' ? n >= 0 && n <= 7 : k === 'late' ? n < 0 && x.status !== 'taught' && x.status !== 'off' : true;
+  return k === 'today' ? n === 0 : k === 'tom' ? n === 1 : k === 'yday' ? n === -1 : k === 'week' ? n >= 0 && n <= 7 : k === 'late' ? n < 0 && x.status !== 'taught' && x.status !== 'off' && !clSelf(x) : true;      // (1.77.8) buổi đã bỏ trống / không cần bài không tính quá hạn
 }
 /** dấu nhỏ cạnh tên lớp (quản lý): ⚑ chưa thiết lập buổi học đầu · ⛉ chưa được quản lý duyệt buổi nào */
 function clFlagInfo(c) {
@@ -14619,6 +14620,8 @@ function clTodo(B, v) {
   const dayLab = pickDay ? clDay(pickDay, t).ws + ' ' + clDay(pickDay, t).dm : '';
   const nSel = CL.sel.size, selL = D.sessions.filter(x => CL.sel.has(x.id)), selDraft = selL.filter(x => x.status === 'draft').length;
   const clrOk = x => x.status !== 'taught' && x.status !== 'off' && ((x.folders || []).length || (x.extra || []).length), selCont = selL.filter(clrOk).length;      // (1.44.11) xoá nội dung
+  const blankOk = x => x.status !== 'taught' && x.status !== 'off' && !(x.folders || []).length && !(x.extra || []).length && !clSelf(x);      // (1.77.8) buổi chưa có bài → Bỏ trống
+  const selBlank = selL.filter(blankOk).length;
   // một nút phễu → bảng chọn trường lọc (ngày học · trạng thái · khối · chương trình · gia sư…); lọc đang bật hiện thành chip nhỏ, bấm × để bỏ
   const nF = nConds + (CL.day ? 1 : 0) + (CL.st !== 'all' ? 1 : 0);
   const T0 = CL_ST_TABS.find(k => k[0] === CL.st) || CL_ST_TABS[0], D0 = CL_DAYS.find(k => k[0] === CL.day);
@@ -14642,6 +14645,7 @@ function clTodo(B, v) {
       '<button class="btn xs" id="csAsg"' + (nSel ? '' : ' disabled') + '><i class="bi bi-collection"></i><span class="bl">Gán bài</span></button>' +
       '<button class="btn xs pri" id="csOk"' + (selDraft ? '' : ' disabled') + '><i class="bi bi-check2-all"></i>Duyệt' + (selDraft ? ' ' + selDraft : '') + '</button>' +
       '<button class="btn xs" id="csClr"' + (selCont ? '' : ' disabled') + ' title="Bỏ bài / tệp của các buổi đã chọn — buổi về “Để trống — chờ chèn bài”"><i class="bi bi-eraser"></i><span class="bl">Xoá nội dung' + (selCont ? ' ' + selCont : '') + '</span></button>' +
+      '<button class="btn xs" id="csBlank"' + (selBlank ? '' : ' disabled') + ' title="Buổi không cần bài (VD buổi đã qua chưa gán): đánh dấu đã xong, không tạo link, không tự xếp bài, không hiện lại ở Chưa có bài / Quá hạn"><i class="bi bi-dash-circle-dotted"></i><span class="bl">Bỏ trống' + (selBlank ? ' ' + selBlank : '') + '</span></button>' +
       '<button class="btn xs" id="csOff"' + (nSel ? '' : ' disabled') + '><i class="bi bi-slash-circle"></i><span class="bl">Nghỉ</span></button>' +
       '<button class="btn xs red" id="csDel"' + (nSel ? '' : ' disabled') + '><i class="bi bi-trash"></i>Xoá buổi' + (nSel ? ' ' + nSel : '') + '</button></div>' : ''));
   const sc = $('.ct-scroll', B); if (sc && prevScroll) sc.scrollTop = prevScroll;
@@ -14700,6 +14704,11 @@ function clTodo(B, v) {
       cs.forEach(x => { x.folders = []; x.extra = []; x.pick = null; x.tags = []; x.status = ''; x.hold = 1; x.link = null; x.auto = false; }); CL.sel.clear(); CL._fl = null;
       toast('Đã xoá nội dung ' + cs.length + ' buổi'); again();
       clQueue('sessionClear', { ids: cs.map(x => x.id) }, { label: 'Xoá nội dung ' + cs.length + ' buổi' }); return; }
+    if (e.target.closest('#csBlank')) { const bs = L.filter(blankOk); if (!bs.length) return toast('Các buổi đã chọn đều đã có bài / đã dạy / nghỉ', 'warn');      // (1.77.8)
+      if (!await ask('Bỏ trống ' + bs.length + ' buổi (không cần bài)?\nBuổi được đánh dấu xong, không tạo link, hệ thống không tự xếp bài và không hiện lại ở “Chưa có bài” / “Quá hạn”.' + (L.length > bs.length ? '\n' + (L.length - bs.length) + ' buổi đã có bài / đã dạy / nghỉ giữ nguyên.' : '') + '\nMuốn gán lại: mở ⋯ của buổi → Bỏ duyệt (về để trống).', { ok: 'Bỏ trống ' + bs.length + ' buổi' })) return;
+      bs.forEach(x => { x.status = 'approved'; x.folders = []; x.extra = []; x.pick = null; x.hold = 0; x.link = null; x.auto = false; }); CL.sel.clear(); CL._fl = null;
+      toast('Đã bỏ trống ' + bs.length + ' buổi — không hiện lại để chờ gán bài'); again();
+      clQueue('sessionBlank', { ids: bs.map(x => x.id) }, { label: 'Bỏ trống ' + bs.length + ' buổi' }); return; }
     if (e.target.closest('#csOff')) { const ls = L.filter(x => x.status !== 'taught'); if (!ls.length) return toast('Buổi đã dạy không đánh dấu nghỉ được', 'warn');
       const off = ls.some(x => x.status !== 'off');
       ls.forEach(x => { x.status = off ? 'off' : ((x.folders || []).length ? 'draft' : ''); }); CL.sel.clear();
@@ -18365,9 +18374,10 @@ function aiChatView(body, arg) {
       '<button class="btn sm" id="aiNew"><i class="bi bi-plus-lg"></i>Cuộc hỏi mới</button></div></div>' +
       '<div class="ax-card cv"><div class="ax-ch"><h3 style="font-size:13px"><i class="bi bi-clock-history"></i>Đã hỏi</h3></div>' +
         '<div class="ax-cvt"><div class="search"><i class="bi bi-search"></i><input class="inp" id="aiCvQ" placeholder="Tìm trong câu hỏi, câu trả lời…" value="' + esc(C.cvq || '') + '"></div>' +
-        '<select class="sel" id="aiCvD" aria-label="Tải trong">' + [[7, '7 ngày'], [30, '30 ngày'], [90, '90 ngày'], [0, 'Tất cả']].map(o => '<option value="' + o[0] + '"' + (o[0] === (C.cvd == null ? 30 : C.cvd) ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div><div class="ax-convs" id="aiConvs"><div class="small ax-muted" style="padding:8px 12px">Đang tải…</div></div></div></div>' +
+        '<select class="sel" id="aiCvW" aria-label="Lịch sử của ai" hidden style="max-width:110px"></select><select class="sel" id="aiCvD" aria-label="Tải trong">' + [[7, '7 ngày'], [30, '30 ngày'], [90, '90 ngày'], [0, 'Tất cả']].map(o => '<option value="' + o[0] + '"' + (o[0] === (C.cvd == null ? 30 : C.cvd) ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div><div class="ax-convs" id="aiConvs"><div class="small ax-muted" style="padding:8px 12px">Đang tải…</div></div></div></div>' +
     '<div class="ax-card ax-th"><div class="ax-msgs" id="aiMsgs"></div>' +
-      '<div class="ax-comp"><div class="ax-fchips" id="aiFiles"></div><textarea id="aiIn" rows="1" placeholder=""></textarea>' +
+      '<div class="ax-comp">' + ((B.skills || []).length ? '<div class="ax-chips" title="Kỹ năng — bấm để dùng (hoặc gõ /tên)">' + B.skills.map(k => '<button type="button" class="ax-chip" data-skill="' + esc(k.slug) + '" title="' + esc(k.desc || k.name) + '"><i class="bi bi-lightning-charge"></i> /' + esc(k.slug) + '</button>').join('') + '</div>' : '') +
+      '<div class="ax-fchips" id="aiFiles"></div><textarea id="aiIn" rows="1" placeholder=""></textarea>' +
       '<div class="row"><input type="file" id="aiFile" multiple hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.heic,.txt,.csv,.md,.docx,.doc,.xlsx,.xls,.pptx,.ppt,image/*,application/pdf">' +
         '<button class="ibtn" id="aiAtt" title="Đính kèm tệp (PDF, ảnh, Word, Excel, PowerPoint — tối đa ' + B.limits.files + ' tệp, mỗi tệp ' + B.limits.fileMb + ' MB)" aria-label="Đính kèm"><i class="bi bi-paperclip"></i></button>' +
         '<button class="ibtn" id="aiDrv" title="' + (B.folder ? 'Chọn tệp trong thư mục Drive dành cho AI' : 'Tệp trên Drive: dán link vào ô chat') + '" aria-label="Tệp trên Drive"><i class="bi bi-google"></i></button>' +
@@ -18378,6 +18388,7 @@ function aiChatView(body, arg) {
   if (!aiFit.on) { aiFit.on = 1; window.addEventListener('resize', debounce(() => { const b = document.querySelector('#aiBody'); if (b && $('.ax-th', b)) aiFit(b); }, 80)); }
   $('#aiCvQ', body).oninput = debounce(e => { C.cvq = e.target.value.trim(); C.convs = null; aiConvs(body); }, 350);
   $('#aiCvD', body).onchange = e => { C.cvd = Number(e.target.value); C.convs = null; aiConvs(body); };
+  $('#aiCvW', body).onchange = e => { C.cvw = e.target.value; C.convs = null; aiConvs(body); };
   const ta = $('#aiIn', body);
   ta.oninput = () => { ta.style.height = 'auto'; ta.style.height = Math.min(220, ta.scrollHeight) + 'px'; };
   ta.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && matchMedia('(min-width:821px)').matches) { e.preventDefault(); aiSend(body); } };
@@ -18387,7 +18398,7 @@ function aiChatView(body, arg) {
   ta.onpaste = e => { const fs = [...(e.clipboardData && e.clipboardData.files || [])]; if (fs.length) { e.preventDefault(); aiAddFiles(body, fs); } };
   body.onclick = async e => {
     const m = e.target.closest('[data-aimode]'); if (m) { C.mode = m.dataset.aimode; $$('[data-aimode]', body).forEach(b => b.setAttribute('aria-pressed', b === m)); aiChatHint(body); aiPaintMsgs(body); return; }
-    if (e.target.closest('#aiNew')) { C.conv = ''; C.msgs = []; aiPaintMsgs(body); $$('.ax-conv', body).forEach(b => b.classList.remove('on')); return $('#aiIn', body).focus(); }
+    if (e.target.closest('#aiNew')) { C.conv = ''; C.msgs = []; C.ro = ''; aiRoPaint(body); aiPaintMsgs(body); $$('.ax-conv', body).forEach(b => b.classList.remove('on')); return $('#aiIn', body).focus(); }
     if (e.target.closest('#aiAtt')) return $('#aiFile', body).click();
     if (e.target.closest('#aiDrv')) return aiDrivePick(body);
     if (e.target.closest('#aiSend')) return aiSend(body);
@@ -18398,7 +18409,8 @@ function aiChatView(body, arg) {
     const db = e.target.closest('[data-do]'); if (db) { const mm = db.closest('[data-rid]'); if (mm) return aiDoRun(db, mm.dataset.rid, () => aiPaintMsgs(body)); }
     const cd = e.target.closest('[data-cdel]'); if (cd) { e.stopPropagation(); return aiConvDelete(body, cd.dataset.cdel, ''); }
     const td = e.target.closest('[data-tdel]'); if (td) return aiConvDelete(body, '', td.dataset.tdel);
-    const cv = e.target.closest('[data-conv]'); if (cv) return aiOpenConv(body, cv.dataset.conv, cv.dataset.cid);
+    const cv = e.target.closest('[data-conv]'); if (cv) return aiOpenConv(body, cv.dataset.conv, cv.dataset.cid, cv.dataset.who);
+    const sk = e.target.closest('[data-skill]'); if (sk) { ta.value = '/' + sk.dataset.skill + ' ' + ta.value.replace(/^\/[\w-]+\s*/, ''); ta.focus(); ta.oninput(); return; }
     const r = e.target.closest('[data-ref]'); if (r) return aiRefMenu(r.dataset.ref, JSON.parse(r.dataset.o || '{}'));
   };
 }
@@ -18410,10 +18422,17 @@ function aiFit(body) {
   const cv = $('.ax-card.cv', body), sd = $('.ax-side', body);
   if (cv && sd && !narrow) { const t2 = cv.getBoundingClientRect().top - sd.getBoundingClientRect().top; cv.style.maxHeight = Math.max(200, h - t2) + 'px'; } else if (cv) cv.style.maxHeight = '';
 }
+/** (1.77.10) đang xem cuộc hỏi của người khác (admin) → chỉ xem, ô hỏi khoá */
+function aiRoPaint(body) {
+  const C = AI.chat, cp = $('.ax-comp', body); if (!cp) return; let b = $('#aiRo', body);
+  if (C.ro) { if (!b) { b = document.createElement('div'); b.id = 'aiRo'; b.className = 'small ax-muted'; b.style.cssText = 'padding:8px 12px'; cp.prepend(b); } const u = (C.cvUsers || []).find(x => x.email === C.ro); b.innerHTML = '<i class="bi bi-eye"></i> Đang xem cuộc hỏi của <b>' + esc(u ? u.name : C.ro) + '</b> — chỉ xem. Bấm “Cuộc hỏi mới” để hỏi.'; }
+  else if (b) b.remove();
+  const ta = $('#aiIn', body), sd = $('#aiSend', body); if (ta) ta.disabled = !!C.ro; if (sd) sd.disabled = !!C.ro || C.busy;
+}
 function aiChatHint(body) {
   const C = AI.chat, h = $('#aiModeHint', body), ta = $('#aiIn', body);
   if (h) h.innerHTML = C.mode === 'grade' ? 'Đính kèm phiếu / bài tập (hoặc dán link Drive) → AI nhận xét có <b>đạt yêu cầu về nội dung</b> không, theo tiêu chuẩn của trung tâm.' : 'Hỏi bé yếu phần nào nên học topic nào, tài liệu nào phù hợp. Chọn bé để AI biết bé đã học những gì.';
-  if (ta) ta.placeholder = C.mode === 'grade' ? 'Ghi thêm yêu cầu (tuỳ chọn): VD “bài cho bé lớp 4 yếu phân số, 45 phút”…' : 'Hỏi Trợ lý AI… VD: Bé yếu phần phân số, buổi tới nên dạy topic nào?';
+  if (ta) ta.placeholder = C.mode === 'grade' ? 'Ghi thêm yêu cầu (tuỳ chọn): VD “bài cho bé lớp 4 yếu phân số, 45 phút”…' : 'Hỏi Trợ lý AI…' + (AI.b.memOk ? ' · gõ “Nhớ: …” để AI ghi nhớ' : '') + ((AI.b.skills || []).length ? ' · “/” để dùng kỹ năng' : '');
 }
 function aiPaintFiles(body) {
   const h = $('#aiFiles', body); if (!h) return; const C = AI.chat;
@@ -18517,9 +18536,10 @@ async function aiDoRun(btn, rid, repaint) {
 async function aiConvDelete(body, conv, rid) {
   if (!await ask(conv ? 'Xoá cả cuộc hỏi này? Không khôi phục được.' : 'Xoá câu hỏi và câu trả lời này?', { ok: 'Xoá', danger: true })) return;
   const C = AI.chat;
-  try { await rpc('aiConvDel', conv ? { conv: conv } : { id: rid }, { quiet: true }); } catch (e) { return toast(e.message, 'err'); }
+  let rr; try { rr = await rpc('aiConvDel', conv ? { conv: conv } : { id: rid }, { quiet: true }); } catch (e) { return toast(e.message, 'err'); }
+  if (rr && rr.mailErr) toast('Đã xoá trên web · ' + rr.mailErr, 'warn', 9000); else if (rr && rr.mail) toast('Đã xoá · ' + rr.mail + ' luồng mail với AI đã vào Thùng rác Gmail', 'ok', 4000);
   if (conv) { if (C.conv === conv) { C.conv = ''; C.msgs = []; } } else C.msgs = C.msgs.filter(m => m.rid !== rid && m.id !== rid);
-  C.convs = null; AI.lg.list = null; toast('Đã xoá', 'ok', 2000);
+  C.convs = null; AI.lg.list = null; if (!rr || (!rr.mail && !rr.mailErr)) toast('Đã xoá', 'ok', 2000);
   if (body.isConnected) { aiPaintMsgs(body); aiConvs(body); }
 }
 /** có kết quả của một lượt → thay khối “đang suy nghĩ”, vẽ lại nếu đang mở khung chat */
@@ -18549,19 +18569,21 @@ async function aiSend(body) {
 }
 async function aiConvs(body) {
   const h = $('#aiConvs', body); if (!h) return; const C = AI.chat;
-  try { if (!C.convs) C.convs = (await rpc('aiLogList', { mine: 1, days: C.cvd == null ? 30 : C.cvd, q: C.cvq || '' }, { quiet: true })).list.filter(r => r.kind === 'chat' || r.kind === 'grade'); }
+  try { if (!C.convs) { const R = await rpc('aiLogList', Object.assign({ days: C.cvd == null ? 30 : C.cvd, q: C.cvq || '' }, C.cvw ? (C.cvw === '*' ? {} : { who: C.cvw }) : { mine: 1 }), { quiet: true }); C.convs = R.list.filter(r => r.kind === 'chat' || r.kind === 'grade'); if (R.users) C.cvUsers = R.users; } }
   catch (e) { h.innerHTML = '<div class="small ax-muted" style="padding:8px 12px">' + esc(e.message) + '</div>'; return; }
   if (!h.isConnected) return;
   const seen = {}, L = []; C.convs.forEach(r => { if (!r.conv || seen[r.conv]) return; seen[r.conv] = 1; L.push(r); });
   const mine = L.filter(r => !C.cid || r.classId === C.cid).slice(0, 30);
-  h.innerHTML = mine.length ? mine.map(r => '<button class="ax-conv' + (r.conv === C.conv ? ' on' : '') + '" data-conv="' + esc(r.conv) + '" data-cid="' + esc(r.classId) + '"><b>' + esc(r.prompt && r.prompt !== '(chỉ gửi tệp)' ? r.prompt : r.title) + '</b><small>' + esc([r.kind === 'grade' ? 'Nhận xét bài' : '', r.cls, fmtDT(r.at)].filter(Boolean).join(' · ')) + (AI_WAIT.test(r.status) ? ' · đang trả lời…' : '') + '</small><span class="del" role="button" data-cdel="' + esc(r.conv) + '" title="Xoá cuộc hỏi" aria-label="Xoá cuộc hỏi"><i class="bi bi-trash3"></i></span></button>').join('')
+  const own = r => r.email === (S.me && S.me.email);
+  { const w = $('#aiCvW', body); if (w && AI.b.can.log) { w.hidden = false; const U = (C.cvUsers || []).filter(u => u.email !== (S.me && S.me.email)); w.innerHTML = '<option value="">Của tôi</option><option value="*"' + (C.cvw === '*' ? ' selected' : '') + '>Mọi người</option>' + U.map(u => '<option value="' + esc(u.email) + '"' + (C.cvw === u.email ? ' selected' : '') + '>' + esc(u.name) + '</option>').join(''); } }
+  h.innerHTML = mine.length ? mine.map(r => '<button class="ax-conv' + (r.conv === C.conv ? ' on' : '') + '" data-conv="' + esc(r.conv) + '" data-cid="' + esc(r.classId) + '" data-who="' + esc(r.email) + '"><b>' + esc(r.prompt && r.prompt !== '(chỉ gửi tệp)' ? r.prompt : r.title) + '</b><small>' + esc([own(r) ? '' : r.name, r.kind === 'grade' ? 'Nhận xét bài' : '', r.cls, fmtDT(r.at)].filter(Boolean).join(' · ')) + (AI_WAIT.test(r.status) ? ' · đang trả lời…' : '') + '</small>' + (own(r) ? '<span class="del" role="button" data-cdel="' + esc(r.conv) + '" title="Xoá cuộc hỏi (cả luồng mail)" aria-label="Xoá cuộc hỏi"><i class="bi bi-trash3"></i></span>' : '') + '</button>').join('')
     : '<div class="small ax-muted" style="padding:8px 12px">' + (C.cvq ? 'Không có cuộc hỏi nào khớp “' + esc(C.cvq) + '”' : 'Chưa có cuộc hỏi nào' + (C.cid ? ' về bé này' : '') + (C.cvd ? ' trong ' + C.cvd + ' ngày' : '')) + '</div>';
 }
-async function aiOpenConv(body, conv, cid) {
-  const C = AI.chat; C.conv = conv; if (cid && cid !== C.cid && AI.b.classes.some(c => c.id === cid)) { C.cid = cid; const pb = $('.ax-pick-b', body); if (pb) pb.innerHTML = aiPickLabel(AI.b.classes.find(c => c.id === cid)); }
+async function aiOpenConv(body, conv, cid, who) {
+  const C = AI.chat; C.conv = conv; C.ro = who && S.me && who !== S.me.email ? who : ''; aiRoPaint(body); if (cid && cid !== C.cid && AI.b.classes.some(c => c.id === cid)) { C.cid = cid; const pb = $('.ax-pick-b', body); if (pb) pb.innerHTML = aiPickLabel(AI.b.classes.find(c => c.id === cid)); }
   const h = $('#aiMsgs', body); if (h) h.innerHTML = '<div style="margin:auto">' + miniLoader('Đang mở cuộc hỏi…') + '</div>';
   try {
-    const L = (await rpc('aiLogList', { conv: conv, mine: 1 }, { quiet: true })).list.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+    const L = (await rpc('aiLogList', C.ro ? { conv: conv } : { conv: conv, mine: 1 }, { quiet: true })).list.sort((a, b) => String(a.at).localeCompare(String(b.at)));
     if (C.conv !== conv) return;
     C.mode = L.length && L[L.length - 1].kind === 'grade' ? 'grade' : 'chat'; $$('[data-aimode]', body).forEach(b => b.setAttribute('aria-pressed', b.dataset.aimode === C.mode)); aiChatHint(body);
     if (L.length && L[0].classId && L[0].classId !== C.cid && AI.b.classes.some(c => c.id === L[0].classId)) { C.cid = L[0].classId; const pb = $('.ax-pick-b', body); if (pb) pb.innerHTML = aiPickLabel(AI.b.classes.find(c => c.id === C.cid)); }
@@ -18949,6 +18971,10 @@ function aiCfgView(body) {
       '<div class="ai-opt"><div><b>Tiêu chuẩn nhận xét bài tập</b><small>AI chấm từng tiêu chuẩn: đạt / đạt một phần / chưa đạt.</small><textarea class="ta" id="aiRub" rows="7" style="margin-top:8px">' + esc(c.rubric) + '</textarea>' +
         '<div class="ax-inl" style="margin-top:8px"><button class="btn sm" id="aiRubSave"><i class="bi bi-check2"></i>Lưu tiêu chuẩn</button><button class="btn sm ghost" id="aiRubDef">Về mặc định</button></div></div></div>' +
       '<div class="ai-opt"><div><b>Chỉ dẫn thêm cho AI khi gia sư hỏi</b><textarea class="ta" id="aiSysT" rows="3" style="margin-top:8px" placeholder="VD: Luôn gợi ý tài liệu của trung tâm trước; nhắc gia sư ghi nhận xét sau buổi">' + esc(c.sysTutor) + '</textarea><button class="btn sm" id="aiSysTSave" style="margin-top:8px">Lưu</button></div></div>') +
+    card('bi-journal-bookmark', 'Bộ nhớ & kỹ năng', '<div class="small ax-muted" style="margin-bottom:10px">AI <b>học tích luỹ</b>: điều trong Bộ nhớ được gửi kèm MỌI lượt (gán bài, yêu cầu, hỏi đáp). Thêm ở đây hoặc gõ <b>“Nhớ: …”</b> trong Hỏi AI (đang chọn bé → nhớ riêng cho bé). <b>Kỹ năng</b> = bộ chỉ dẫn đặt tên, gọi bằng <b>/tên</b> trong Hỏi AI hoặc ô Dặn AI ở Gán bài. ' + (AI.b.mdUrl ? 'Bản Markdown: <a href="' + esc(AI.b.mdUrl) + '" target="_blank" rel="noopener">Trợ lý AI — Bộ nhớ & kỹ năng.md</a> (tự cập nhật).' : 'Bản Markdown tự tạo trong thư mục chính khi có mục đầu tiên.') + '</div>' +
+      '<div class="ai-opt"><div><b>Bộ nhớ (' + (AI.b.mem || []).length + ')</b><div class="ax-inl" style="margin-top:8px"><input class="inp" id="aiMemT" style="flex:1;min-width:220px" placeholder="VD: Lớp 5 thi giữa kỳ tuần 9 — 2 tuần trước đó ưu tiên ôn tập"><select class="sel" id="aiMemC"><option value="">Mọi bé</option>' + AI.b.classes.map(k => '<option value="' + esc(k.id) + '">' + esc(k.name) + '</option>').join('') + '</select><button class="btn sm" id="aiMemAdd"><i class="bi bi-plus-lg"></i>Ghi nhớ</button></div>' +
+        '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;max-height:280px;overflow:auto">' + ((AI.b.mem || []).length ? AI.b.mem.map(m => '<div class="ax-todo" style="padding:6px 0"><span class="ic"><i class="bi ' + (m.cid ? 'bi-person' : 'bi-pin-angle') + '"></i></span><div class="tx">' + (m.cid ? '<b>' + esc(m.be) + ':</b> ' : '') + esc(m.t) + '<small>' + esc(m.by + ' · ' + fmtDT(m.at)) + '</small></div><button class="ibtn sm" data-memdel="' + esc(m.id) + '" title="Xoá"><i class="bi bi-trash3"></i></button></div>').join('') : '<div class="small ax-muted">Chưa có điều nào.</div>') + '</div></div></div>' +
+      '<div class="ai-opt"><div><b>Kỹ năng (' + (c.skillsAll || []).length + ')</b><div id="aiSkL" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div><div class="ax-inl" style="margin-top:8px"><button class="btn sm ghost" id="aiSkAdd"><i class="bi bi-plus-lg"></i>Thêm kỹ năng</button><span class="sp" style="flex:1"></span><button class="btn sm pri" id="aiSkSave"><i class="bi bi-check2"></i>Lưu kỹ năng</button></div></div></div>') +
     card('bi-shield-lock', 'Quản lý & nhật ký', '<div class="ai-opt"><div><b>Chỉ dẫn thêm cho AI (gán bài, yêu cầu)</b><textarea class="ta" id="aiSysA" rows="3" style="margin-top:8px" placeholder="VD: Bé lớp 5 thi giữa kỳ tuần 9 — ưu tiên ôn tập trước tuần đó">' + esc(c.sysAdmin) + '</textarea><button class="btn sm" id="aiSysASave" style="margin-top:8px">Lưu</button></div></div>' +
       '<div class="ai-opt"><div><b>Lưu bản tệp gia sư đính kèm</b><small>Lưu ở Drive (thư mục chính › Trợ lý AI — tệp đính kèm) để xem lại ở Nhật ký.</small></div>' + sw('keepFiles', c.keepFiles, 'Lưu tệp đính kèm') + '</div>' +
       '<div class="ai-opt"><div><b>Giữ nhật ký</b><small>Ai xem được nhật ký của mọi người: quyền <b>Xem nhật ký Trợ lý AI</b> (Vai trò & quyền).</small></div><select class="sel" id="aiKeep">' + [[30, '30 ngày'], [90, '90 ngày'], [180, '180 ngày'], [365, '1 năm'], [0, 'Giữ mãi']].map(o => '<option value="' + o[0] + '"' + (o[0] === c.keepDays ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>') +
@@ -18956,6 +18982,10 @@ function aiCfgView(body) {
       '<div id="aiFlows"></div><div class="ax-inl" style="margin-top:10px"><button class="btn sm ghost" id="aiFlowAdd"><i class="bi bi-plus-lg"></i>Thêm flow</button>' + (defMiss(c.flows).length ? '<button class="btn sm ghost" id="aiFlowDef"><i class="bi bi-magic"></i>Thêm ' + defMiss(c.flows).length + ' flow dựng sẵn còn thiếu</button>' : '') +
         '<span class="sp" style="flex:1"></span><button class="btn sm pri" id="aiFlowSave"><i class="bi bi-check2"></i>Lưu flow</button></div>', '<button class="btn sm ghost" id="aiFlowHelp"><i class="bi bi-question-circle"></i>Cách dựng flow</button>') + '</div>';
   const save = async (patch, msg) => { try { AI.b = await rpc('aiCfgSave', patch, { quiet: true }); lsSet('aiBoot:' + (S.me && S.me.email || ''), AI.b); toast(msg || 'Đã lưu', 'ok', 2000); AI.dash = null; aiShow(body.closest('.view') || body.parentElement.parentElement, 'cfg'); } catch (e) { toast(e.message, 'err'); } };
+  let SK = JSON.parse(JSON.stringify(c.skillsAll || []));
+  const skPaint = () => { const h = $('#aiSkL', body); if (!h) return; h.innerHTML = SK.length ? SK.map((k, i) => '<div class="ai-flow" data-ski="' + i + '"><div class="ai-flow-h"><input class="inp" data-sk="name" placeholder="Tên kỹ năng (VD Ôn thi giữa kỳ)" value="' + esc(k.name || '') + '" style="max-width:260px">' + (k.slug ? '<code class="small">/' + esc(k.slug) + '</code>' : '') + '<input class="inp" data-sk="desc" placeholder="Mô tả ngắn (tuỳ chọn)" value="' + esc(k.desc || '') + '" style="flex:1;min-width:180px"><button class="ibtn" data-skdel="' + i + '" title="Bỏ"><i class="bi bi-trash3"></i></button></div><textarea class="ta" data-sk="ins" rows="3" placeholder="Chỉ dẫn cho AI khi dùng kỹ năng này — VD: Gán 2 buổi ôn tập trước ngày thi, mỗi buổi 1 đề tổng hợp đúng khối…">' + esc(k.ins || '') + '</textarea></div>').join('') : '<div class="small ax-muted">Chưa có kỹ năng nào.</div>'; };
+  const skRead = () => { $$('[data-ski]', body).forEach(el => { const k = SK[Number(el.dataset.ski)]; $$('[data-sk]', el).forEach(i => { k[i.dataset.sk] = i.value; }); }); };
+  skPaint();
   let F = JSON.parse(JSON.stringify(c.flows || []));
   const saved = id => (c.flows || []).some(f => f.id === id);
   function flowsPaint() {
@@ -18985,6 +19015,11 @@ function aiCfgView(body) {
   };
   body.onclick = async e => {
     const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); return go(g.dataset.go); }
+    if (e.target.closest('#aiMemAdd')) { const t = $('#aiMemT', body).value.trim(); if (!t) return $('#aiMemT', body).focus(); try { const r = await rpc('aiMemAdd', { t: t, cid: $('#aiMemC', body).value }, { quiet: true }); AI.b.mem = r.mem; toast('Đã ghi nhớ', 'ok', 2000); aiShow(body.closest('.view') || body.parentElement.parentElement, 'cfg'); } catch (er) { toast(er.message, 'err'); } return; }
+    const md = e.target.closest('[data-memdel]'); if (md) { if (!await ask('Xoá điều này khỏi bộ nhớ AI?', { ok: 'Xoá', danger: true })) return; try { const r = await rpc('aiMemDel', { id: md.dataset.memdel }, { quiet: true }); AI.b.mem = r.mem; aiShow(body.closest('.view') || body.parentElement.parentElement, 'cfg'); } catch (er) { toast(er.message, 'err'); } return; }
+    if (e.target.closest('#aiSkAdd')) { skRead(); SK.push({ name: '', desc: '', ins: '' }); return skPaint(); }
+    const skd = e.target.closest('[data-skdel]'); if (skd) { skRead(); SK.splice(Number(skd.dataset.skdel), 1); return skPaint(); }
+    if (e.target.closest('#aiSkSave')) { skRead(); try { await rpc('aiSkillSave', { skills: SK }, { quiet: true }); const ck = 'aiBoot:' + (S.me && S.me.email || ''); AI.b = await rpc('aiBoot', {}, { quiet: true }); lsSet(ck, AI.b); toast('Đã lưu kỹ năng — gọi bằng /tên trong Hỏi AI', 'ok', 4000); aiShow(body.closest('.view') || body.parentElement.parentElement, 'cfg'); } catch (er) { toast(er.message, 'err'); } return; }
     if (e.target.closest('#aiPreset')) { if (!await ask('Bật “Trợ lý tự xử lý”?\n\n• AI tự gán bài & DUYỆT luôn (gia sư nhận bài ngay)\n• Tự duyệt các loại yêu cầu bạn đã tick, tự trả lời gia sư\n• Gia sư xin bài → AI gán bài luôn\n• Bé lệch tiến độ → AI hỏi gia sư, gia sư trả lời xong tự gán lại\n• Chạy mỗi giờ từ ' + c.from + 'h đến ' + c.to + 'h\n\nMọi việc AI làm ghi ở Tổng quan và Nhật ký.', { ok: 'Bật' })) return; return save({ preset: 'full' }, 'Đã bật Trợ lý tự xử lý'); }
     if (e.target.closest('#aiFoldSave')) return save({ folder: $('#aiFold', body).value.trim() }, $('#aiFold', body).value.trim() ? 'Đã lưu thư mục tệp cho AI' : 'Đã bỏ thư mục tệp');
     if (e.target.closest('#aiFlowAdd')) { const tk = 'KCMAI' + Math.random().toString(36).slice(2, 8).toUpperCase(); F.push({ name: '', to: 'giaovu+ai-' + tk.slice(5).toLowerCase() + '@kitee.vn', token: tk, kinds: [], roles: [], on: 1, url: '' }); flowsPaint();
