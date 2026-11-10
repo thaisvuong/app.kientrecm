@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T07:59:06.439Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T08:15:41.844Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -10072,7 +10072,8 @@ const SRC_F = [['all', 'Tất cả', () => true], ['new', 'Chưa quét', x => !x
   ['old', 'Lâu chưa quét', x => x.lastScanAt && Date.now() - new Date(x.lastScanAt).getTime() > 14 * 86400000], ['lock', 'Giới hạn xem', x => !!x.viewers], ['pause', 'Tạm dừng', x => x.status === 'paused']];
 async function viewSources(arg, v) {
   let list = await rpc('listSources', {}, { quiet: true });
-  topBtns(v, '<button class="btn sm" id="sAll"' + (list.length ? '' : ' disabled') + '><i class="bi bi-arrow-repeat"></i>Quét tất cả</button><button class="btn pri sm" id="sAdd"><i class="bi bi-plus-lg"></i>Thêm nguồn</button>');
+  topBtns(v, '<button class="btn sm" id="sAll"' + (list.length ? '' : ' disabled') + ' title="Quét mọi nguồn rồi tự làm mới link buổi học"><i class="bi bi-arrow-repeat"></i>Quét tất cả</button>' +
+    (can('classes.manage') ? '<button class="btn sm" id="sRel" title="Ghép lại link tài liệu của mọi buổi đã duyệt từ hôm nay theo tệp hiện có trong thư mục bài — giữ nguyên địa chỉ link"><i class="bi bi-link-45deg"></i>Làm mới link</button>' : '') + '<button class="btn pri sm" id="sAdd"><i class="bi bi-plus-lg"></i>Thêm nguồn</button>');
   const top = viewRec(v).topNode;
   const paint = () => {
     const tot = list.reduce((a, s) => { a.f += s.nFiles; a.d += s.nFolders; a.b += s.totalSize; return a; }, { f: 0, d: 0, b: 0 });
@@ -10184,6 +10185,23 @@ async function viewSources(arg, v) {
   };
   const scanAll = async () => {
     for (const s of list.filter(x => x.status !== 'paused')) { if (!v.isConnected) break; await scan(s.id); }
+    if (v.isConnected && can('classes.manage') && !Object.values(SCANS).some(x => x.err)) await relinkAll();      // (1.77.15) quét xong → link buổi học có tệp mới
+  };
+  /** (1.77.15) làm mới toàn bộ link buổi học — chạy theo lượt, hiện tiến độ trên nút */
+  let relBusy = false;
+  const relinkAll = async () => {
+    if (relBusy) return; relBusy = true; const b = $('#sRel', top), h0 = b ? b.innerHTML : '';
+    const T = { upd: 0, add: 0, same: 0, err: 0, errs: [] }; let from = '', r;
+    try {
+      do { r = await rpc('sessRelinkAll', { from: from }, { quiet: true }); from = r.next;
+        ['upd', 'add', 'same', 'err'].forEach(k => { T[k] += r[k]; }); T.errs = T.errs.concat(r.errs).slice(0, 10);
+        if (b) { b.disabled = true; b.innerHTML = '<span class="dot spin"></span>Link ' + Math.min(r.at, r.total) + '/' + r.total; }
+      } while (!r.done);
+      const msg = 'Làm mới link: ' + T.upd + ' link cập nhật tệp · ' + T.add + ' link mới · ' + T.same + ' không đổi';
+      if (T.err) modal({ title: 'Làm mới link — ' + T.err + ' buổi chưa ghép được', icon: 'bi-link-45deg', body: '<div class="small" style="margin-bottom:8px">' + esc(msg) + '</div><ul class="small" style="margin:0;padding-left:18px;line-height:1.6">' + T.errs.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>', foot: [{ t: 'Đóng', cls: 'pri' }] });
+      else toast(msg, 'ok', 6000);
+    } catch (e) { fail(e); }
+    finally { relBusy = false; if (b) { b.disabled = false; b.innerHTML = h0; } }
   };
   v.onclick = e => {
     const gs = e.target.closest('[data-gscan]'); if (gs) { e.stopPropagation(); const k = gs.dataset.gscan; (async () => { for (const x of shown().filter(y => (y.grp || '') === k && y.status !== 'paused')) { if (!v.isConnected) break; await scan(x.id); } })(); return; }
@@ -10266,6 +10284,7 @@ async function viewSources(arg, v) {
   };
   $('#sAdd', top).onclick = addDialog;
   $('#sAll', top).onclick = scanAll;
+  if ($('#sRel', top)) $('#sRel', top).onclick = relinkAll;
   paint();
   if (!list.length) setTimeout(addDialog, 200);
 }
@@ -11986,7 +12005,7 @@ function setSystem(B, cfg, setCfg) {
     row('bi-table', 'Kho dữ liệu', esc(cfg.sheetUrl), '<a class="btn sm" target="_blank" href="' + esc(cfg.sheetUrl) + '"><i class="bi bi-box-arrow-up-right"></i>Mở</a>') +
     row('bi-folder2', 'Thư mục chính', 'Chứa kho dữ liệu và bộ đệm PDF chuyển đổi từ Word / PowerPoint', '<a class="btn sm" target="_blank" href="' + esc(cfg.rootUrl) + '"><i class="bi bi-box-arrow-up-right"></i>Mở</a>') +
     row('bi-code-slash', 'Dự án Apps Script', esc(cfg.ver), '<a class="btn sm" target="_blank" href="' + esc(cfg.scriptUrl) + '"><i class="bi bi-box-arrow-up-right"></i>Mở</a>') +
-    row('bi-alarm', 'Tự quét lại hằng đêm', 'Quét lại mọi nguồn đang bật lúc 2 giờ sáng — tài liệu mới tự vào thư viện, không cần bấm tay.',
+    row('bi-alarm', 'Tự quét lại hằng đêm', 'Quét lại mọi nguồn đang bật lúc 2 giờ sáng — tài liệu mới tự vào thư viện, rồi tự làm mới link tài liệu của các buổi đã duyệt (gia sư không phải bấm gì).',
       '<label class="sw"><input type="checkbox" id="sTrig"' + (cfg.trigger ? ' checked' : '') + '><span></span></label>') +
     row('bi-lightning-charge', 'Xoá bộ đệm', 'Buộc máy chủ và trình duyệt đọc lại dữ liệu mới nhất (khi vừa sửa tay trong kho dữ liệu).', '<button class="btn sm" id="sFlush"><i class="bi bi-arrow-clockwise"></i>Xoá bộ đệm</button>') +
     '</div></div>';
