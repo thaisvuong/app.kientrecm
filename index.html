@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T15:36:28.616Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T16:23:48.079Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7155,6 +7155,7 @@ const NAV_DEF = [
   { r: 'approve', t: 'Duyệt bài', i: 'bi-send-check', g: 'lib', cap: 'classes.approve', nm: 'classes.manage' },      // (1.67) Approve.html — người chỉ có quyền Duyệt bài (VD Asst) · nm = ẩn khi có quyền này (quản lý duyệt ở Duyệt & phát)
   { r: 'classes/list', t: 'Lớp học', tm: 'Danh sách lớp', i: 'bi-people', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/(list|c)(\/|$)/ },
   { r: 'classes/todo', t: 'Buổi học', i: 'bi-calendar2-check', g: 'lib', cap: 'classes.view', tut: 1, m: /^classes(\/todo)?$/ },
+  { r: 'classes/sched', t: 'Điều độ', i: 'bi-signpost-split', g: 'lib', cap: 'classes.manage', m: /^classes\/sched/ },      // (1.77.24) Điều độ in bài theo cơ sở (SchedView.html)
   { r: 'classes/tutors', t: 'Gia sư', i: 'bi-person-badge', g: 'lib', cap: 'classes.manage', m: /^classes\/tutors/ },
   { r: 'classes/reqs', t: 'Yêu cầu', i: 'bi-inboxes', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/reqs/, off: 'tn' },      // off = ẩn khi máy chủ bật (S.boot.tn): 1.43.15 gộp vào tab Yêu cầu bên dưới
   { r: 'classes/inbox', t: 'Trao đổi', i: 'bi-chat-dots', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/inbox/, nt: 1 },
@@ -7536,7 +7537,7 @@ function navLayout(L) {
 /** thứ tự cố định các tab của Kiến Chuyên môn (quản lý): Hướng dẫn kế cuối, Cài đặt lớp cuối — không phụ thuộc bố cục menu đã lưu từ trước khi tách tab */
 const CM_ORDER = ['today', 'ai', 'approve', 'classes', 'classes/list', 'classes/tutors', 'classes/stats', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'classes/centers', 'classes/perms', 'guide', 'classes/settings', 'classes/kgs'];
 /* (1.75.2) Kiến CM (quản lý): thanh bên chia NHÓM có nhãn — Vận hành · Hộp thư · Thiết lập (buildNav vẽ nhãn trước mục đầu mỗi nhóm; thu gọn thanh bên → vạch mảnh) */
-const CM_SEC = { today: 'Vận hành', ai: 'Vận hành', approve: 'Vận hành', classes: 'Vận hành', 'classes/list': 'Vận hành', 'classes/tutors': 'Vận hành', 'classes/stats': 'Vận hành', programs: 'Vận hành',
+const CM_SEC = { today: 'Vận hành', ai: 'Vận hành', approve: 'Vận hành', classes: 'Vận hành', 'classes/list': 'Vận hành', 'classes/tutors': 'Vận hành', 'classes/sched': 'Vận hành', 'classes/stats': 'Vận hành', programs: 'Vận hành',
   'classes/reqs': 'Hộp thư', 'classes/notes': 'Hộp thư', 'classes/inbox': 'Hộp thư', 'classes/centers': 'Thiết lập', 'classes/perms': 'Thiết lập', 'classes/settings': 'Thiết lập', 'classes/kgs': 'Thiết lập' };
 /** các tab người này thấy, đúng thứ tự (gia sư: thứ tự công việc) */
 function navItems(lay) {
@@ -14201,7 +14202,7 @@ async function viewClasses(arg, v) {
   else await clReload();
   clBadge();
   const parts = String(arg || '').split('/');
-  const route = () => parts[0] === 'c' ? 'detail' : ['list', 'tutors', 'stats', 'settings', 'perms', 'reqs', 'inbox', 'notes', 'kgs', 'centers'].indexOf(parts[0]) >= 0 ? parts[0] : 'todo';
+  const route = () => parts[0] === 'c' ? 'detail' : ['list', 'tutors', 'stats', 'settings', 'perms', 'reqs', 'inbox', 'notes', 'kgs', 'centers', 'sched'].indexOf(parts[0]) >= 0 ? parts[0] : 'todo';
   const man = CL.d.manage;
   v.innerHTML = '<div class="cl-top"' + (man ? '' : ' hidden') + '><div class="seg" id="clTab"><button class="seg-b" data-t="todo"><i class="bi bi-send-check"></i>' + '<span class="sg-l">' + (man ? '<span class="sg-lg">Duyệt & phát</span><span class="sg-sh">Duyệt</span>' : 'Buổi học của tôi') + '</span><span class="lk-n" id="clTN"></span></button>' +
     '<button class="seg-b" data-t="list"><i class="bi bi-table"></i>' + (man ? '<span class="sg-lg">Danh sách lớp</span><span class="sg-sh">Lớp</span>' : 'Lớp của tôi') + '</button>' +
@@ -14237,6 +14238,7 @@ async function viewClasses(arg, v) {
     else if (r === 'settings') clSettings(body, v);
     else if (r === 'centers') { if (man) clCenters(body, v); else body.innerHTML = '<div class="card"><div class="empty" style="padding:40px"><i class="bi bi-lock"></i>Chỉ quản lý lớp thiết lập được trung tâm</div></div>'; }      // (1.69) CentersView.html
     else if (r === 'perms') clPerms(body, v);
+    else if (r === 'sched') { if (man) clSched(body, v); else body.innerHTML = '<div class="card"><div class="empty" style="padding:40px"><i class="bi bi-lock"></i>Chỉ quản lý lớp xem được Điều độ</div></div>'; }      // (1.77.24) SchedView.html
     else if (r === 'kgs') { setTitle('Đồng bộ Kiến Gia Sư', 'bi-arrow-left-right', [{ t: S.boot.app, r: 'home' }, { t: 'Lớp gia sư', r: 'classes' }], v); if (can('settings.manage')) setKgs(body); else body.innerHTML = '<div class="card"><div class="empty" style="padding:40px"><i class="bi bi-lock"></i>Chỉ quản trị mới mở được Đồng bộ KGS</div></div>'; }
     else if (r === 'reqs' || r === 'notes') { clAsk(body, v, r, parts[1] || ''); parts.length = 1; }
     else if (r === 'inbox') { clInbox(body, v, parts[1] || ''); parts.length = 1; }
@@ -20016,6 +20018,76 @@ function clTutorPlan(em) {
     const b = e.target.closest('[data-tpb]'); if (b) { const c = clClass(b.dataset.tpb); if (c) clBoard(c); return; }
     const o = e.target.closest('[data-tpo]'); if (o) { m.close(); go('classes/c/' + o.dataset.tpo); }
   });
+}
+</script>
+
+<style>
+  /* (1.77.24) ĐIỀU ĐỘ IN BÀI — Kiến CM › Điều độ (máy chủ: Sched.gs › schedPlan) */
+  .sd-bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+  .sd-lg{ display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; color:var(--muted) }
+  .sd-lg span{ display:inline-flex; align-items:center; gap:5px }
+  .sd-m{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap }
+  .sd-m.tai_co_so{ background:color-mix(in oklab, var(--ok, #16a34a) 14%, transparent); color:var(--ok, #16a34a) }
+  .sd-m.ghe_co_so{ background:color-mix(in oklab, var(--primary) 14%, transparent); color:var(--primary) }
+  .sd-m.gui_in{ background:color-mix(in oklab, #ED5814 16%, transparent); color:#C2410C }
+  .sd-m.unknown{ background:var(--surface-2); color:var(--muted) }
+  .sd-g{ margin-top:14px } .sd-g > h3{ display:flex; align-items:center; gap:8px; font-size:13px; margin:0 0 6px; color:var(--ink-2) } .sd-g > h3 .n{ font-weight:600; color:var(--muted) }
+  .sd-r{ display:grid; grid-template-columns:118px minmax(0,1.2fr) minmax(0,1.3fr) auto; gap:4px 14px; align-items:center; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); margin-bottom:6px }
+  .sd-r.late{ border-color:color-mix(in oklab, var(--danger) 45%, var(--border)); background:color-mix(in oklab, var(--danger) 5%, var(--surface)) }
+  .sd-r.soon{ border-color:color-mix(in oklab, #ED5814 40%, var(--border)) }
+  .sd-dl b{ display:block; font-size:13px } .sd-dl small{ font-size:11.5px; color:var(--muted) } .sd-r.late .sd-dl b{ color:var(--danger) }
+  .sd-who b{ font-size:13.5px } .sd-who small, .sd-how small{ display:block; font-size:11.5px; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .sd-act{ display:flex; gap:6px; align-items:center; justify-content:flex-end }
+  .sd-st{ font-size:11px; font-weight:700; padding:2px 7px; border-radius:6px; background:var(--surface-2); color:var(--ink-2) } .sd-st.gan{ background:color-mix(in oklab, var(--danger) 12%, transparent); color:var(--danger) }
+  .sd-tu{ width:100%; border-collapse:collapse; font-size:13px } .sd-tu th, .sd-tu td{ text-align:left; padding:7px 8px; border-bottom:1px solid var(--border) } .sd-tu th{ font-size:11.5px; color:var(--muted); font-weight:600 }
+  .sd-warn{ display:flex; gap:10px; padding:10px 12px; border-radius:12px; background:color-mix(in oklab, #ED5814 9%, var(--surface)); font-size:12.5px; line-height:1.55 } .sd-warn code{ font-size:11px }
+  @media (max-width:760px){ .sd-r{ grid-template-columns:1fr auto; } .sd-dl{ grid-column:1 / -1; display:flex; gap:8px; align-items:baseline } .sd-dl small{ display:inline } .sd-how{ grid-column:1 / 2 } .sd-act{ grid-row:2; grid-column:2 } .sd-lg{ display:none } }
+</style>
+<script>
+/* ══ (1.77.24) ĐIỀU ĐỘ IN BÀI — xếp các buổi sắp tới theo HẠN DUYỆT để gia sư kịp in tại cơ sở:
+   In tại cơ sở (học ở cơ sở) · Ghé cơ sở (học tại nhà nhưng có buổi ở cơ sở trước đó) · Gửi QLTT in (hạn 17:00 hôm trước). ══ */
+const SD = { days: 4, all: false, d: null };
+const SD_M = { tai_co_so: ['bi-building-check', 'In tại cơ sở'], ghe_co_so: ['bi-signpost-2', 'Ghé cơ sở'], gui_in: ['bi-send', 'Gửi QLTT in'], unknown: ['bi-question-circle', 'Chưa rõ cơ sở'] };
+function sdDT(ms) { const d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' ' + ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()] + ' ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1); }
+function sdLeft(ms) { const m = Math.round((ms - Date.now()) / 60000); if (m < 0) return 'quá hạn ' + (m > -60 ? -m + ' phút' : Math.round(-m / 60) + ' giờ'); return m < 60 ? 'còn ' + m + ' phút' : m < 48 * 60 ? 'còn ' + Math.round(m / 60) + ' giờ' : 'còn ' + Math.round(m / 1440) + ' ngày'; }
+function sdDay(ymd, t) { const a = String(ymd).split('-').map(Number), w = new Date(a[0], a[1] - 1, a[2]).getDay(); return ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][w] + ' ' + pad(a[2]) + '/' + pad(a[1]) + (t ? ' · ' + String(t).replace(/\s*-\s*.*/, '') : ''); }
+async function clSched(B, v) {
+  setTitle('Điều độ in bài', 'bi-signpost-split', [{ t: S.boot.app, r: 'home' }, { t: 'Lớp gia sư', r: 'classes' }], v);
+  B.innerHTML = '<div class="card"><div class="card-b">' + miniLoader('Đang tính hạn duyệt theo cơ sở…') + '</div></div>';
+  try { SD.d = await rpc('schedPlan', { days: SD.days }, { quiet: true }); } catch (e) { B.innerHTML = '<div class="card"><div class="empty" style="padding:40px">' + esc(e.message) + '</div></div>'; return; }
+  sdPaint(B, v);
+}
+function sdPaint(B, v) {
+  const D = SD.d, now = Date.now(), L = D.rows.filter(r => SD.all || r.need !== 'ok');
+  const kindOf = r => r.kind === 'unknown' && r.mode === 'gui_in' ? 'unknown' : r.mode;
+  const how = r => { const m = SD_M[kindOf(r)];
+    return '<span class="sd-m ' + kindOf(r) + '"><i class="bi ' + m[0] + '"></i>' + m[1] + '</span><small>' +
+      (r.mode === 'tai_co_so' ? esc(r.campus) : r.mode === 'ghe_co_so' ? 'lấy ở ' + esc(r.via.campus) + ' · ' + sdDay(r.via.d, r.via.t) : (r.kind === 'unknown' ? 'KGS chưa có cơ sở · ' : 'tại nhà · ') + 'gửi QLTT trước ' + D.cut + ':00 hôm trước') + '</small>'; };
+  const row = r => { const late = r.need !== 'ok' && r.dl < now, soon = r.need !== 'ok' && !late && r.dl - now < 12 * 3600000;
+    return '<div class="sd-r' + (late ? ' late' : soon ? ' soon' : '') + '" data-sid="' + r.sid + '">' +
+      '<div class="sd-dl"><b>' + (r.need === 'ok' ? '✓ Đã duyệt' : esc(sdLeft(r.dl))) + '</b><small>hạn ' + sdDT(r.dl) + '</small></div>' +
+      '<div class="sd-who"><b>' + esc(r.gs) + '</b><small>' + esc(r.be) + ' · ' + sdDay(r.d, r.t) + '</small></div>' +
+      '<div class="sd-how">' + how(r) + '</div>' +
+      '<div class="sd-act">' + (r.need === 'gan' ? '<span class="sd-st gan">Chưa có bài</span>' : r.need === 'duyet' ? '<span class="sd-st">Nháp</span><button class="btn xs pri" data-sda="' + r.sid + '"><i class="bi bi-check2"></i>Duyệt</button>' : '') +
+        '<button class="btn xs ghost" data-go="classes/c/' + r.cid + '" title="Mở lớp — gán / sửa bài">Mở</button></div></div>'; };
+  const G = [['late', 'Quá hạn', r => r.need !== 'ok' && r.dl < now], ['h12', 'Trong 12 giờ', r => r.dl >= now && r.dl - now < 12 * 3600000], ['h24', 'Trong 24 giờ', r => r.dl - now >= 12 * 3600000 && r.dl - now < 24 * 3600000], ['later', 'Sau đó', r => r.dl - now >= 24 * 3600000]];
+  const done = new Set(); const groups = G.map(g => { const R = L.filter(r => !done.has(r) && g[2](r)); R.forEach(r => done.add(r)); return R.length ? '<div class="sd-g"><h3>' + g[1] + ' <span class="n">' + R.length + '</span></h3>' + R.map(row).join('') + '</div>' : ''; }).join('');
+  const ok = D.rows.filter(r => r.need === 'ok').length, C = D.campus;
+  B.innerHTML = (C.known ? '' : '<div class="sd-warn" style="margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i><div><b>Chưa có Cơ sở từ KGS</b> — mọi buổi đang tính như học tại nhà (gửi QLTT in). Cập nhật tiện ích Kiến Gia Sư lên bản 1.5.3 (hoặc đồng bộ KGS lại) để lấy trường Cơ sở của từng lớp.' +
+      (C.keys.length ? '<br><small>Các trường lớp KGS đang gửi: <code>' + esc(C.keys.join(', ')) + '</code></small>' : '') + '</div></div>') +
+    '<div class="card"><div class="card-h"><h2><i class="bi bi-signpost-split"></i>Buổi cần gán / duyệt theo hạn in</h2><span class="sp"></span>' +
+      '<div class="sd-bar"><select class="sel" id="sdDays" aria-label="Khoảng ngày">' + [2, 3, 4, 7].map(n => '<option value="' + n + '"' + (n === D.days ? ' selected' : '') + '>' + n + ' ngày tới</option>').join('') + '</select>' +
+      '<label class="small" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="sdAll"' + (SD.all ? ' checked' : '') + '>Cả buổi đã duyệt (' + ok + ')</label>' +
+      '<button class="ibtn" id="sdR" title="Tính lại"><i class="bi bi-arrow-clockwise"></i></button></div></div>' +
+      '<div class="card-b"><div class="sd-lg"><span><span class="sd-m tai_co_so"><i class="bi bi-building-check"></i>In tại cơ sở</span>học ở cơ sở · hạn 30 phút trước giờ học</span><span><span class="sd-m ghe_co_so"><i class="bi bi-signpost-2"></i>Ghé cơ sở</span>học tại nhà, có buổi ở cơ sở trước đó · hạn trước lần ghé</span><span><span class="sd-m gui_in"><i class="bi bi-send"></i>Gửi QLTT in</span>không ghé cơ sở · hạn ' + D.cut + ':00 hôm trước</span></div>' +
+      (groups || '<div class="empty" style="padding:30px"><i class="bi bi-check2-circle"></i>Không còn buổi nào cần gán / duyệt trong ' + D.days + ' ngày tới</div>') + '</div></div>' +
+    (D.tutors.length ? '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-person-badge"></i>Gia sư ít tới cơ sở — ưu tiên duyệt sớm</h2></div><div class="card-b" style="overflow-x:auto"><table class="sd-tu"><thead><tr><th>Gia sư</th><th>Tại nhà</th><th>Tại cơ sở</th><th>Lần ghé cơ sở tới</th><th>Cần làm trong 24 giờ</th></tr></thead><tbody>' +
+      D.tutors.map(t => '<tr><td><b>' + esc(t.n) + '</b></td><td>' + (t.home + t.unknown) + '</td><td>' + t.center + '</td><td>' + (t.next ? esc(t.next.campus) + ' · ' + sdDay(t.next.d, t.next.t) : '<span class="sd-m gui_in"><i class="bi bi-send"></i>Không ghé</span>') + '</td><td>' + (t.urgent ? '<b style="color:var(--danger)">' + t.urgent + '</b>' : '—') + '</td></tr>').join('') + '</tbody></table></div></div>' : '');
+  $('#sdDays', B).onchange = e => { SD.days = Number(e.target.value); clSched(B, v); };
+  $('#sdAll', B).onchange = e => { SD.all = e.target.checked; sdPaint(B, v); };
+  $('#sdR', B).onclick = () => clSched(B, v);
+  B.onclick = e => { const a = e.target.closest('[data-sda]'); if (!a) return; const id = a.dataset.sda; a.disabled = true;
+    clQueue('sessionApprove', { ids: [id] }, { label: 'Duyệt buổi (Điều độ)' }); const r = SD.d.rows.find(z => z.sid === id); if (r) r.need = 'ok'; toast('Đã duyệt — buổi được phát cho gia sư', 'ok'); sdPaint(B, v); };
 }
 </script>
 
