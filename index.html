@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-09T06:38:27.976Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T02:31:01.056Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7159,7 +7159,7 @@ const NAV_DEF = [
   { r: 'classes/inbox', t: 'Trao đổi', i: 'bi-chat-dots', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/inbox/, nt: 1 },
   { r: 'classes/notes', t: 'Yêu cầu', i: 'bi-inboxes', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/(notes|reqs)/, on: 'tn' },      // 1.43.15: tab “Yêu cầu” = Gửi quản lý (ghi chú & đề xuất) + Thay đổi chờ duyệt (Classes.html › clAsk) — gia sư hay nhầm hai tab      // 1.31: gia sư gửi ghi chú / đề xuất cho quản lý (bảng chung Kiến Task) — on = chỉ hiện khi máy chủ bật (S.boot.tn)      // nt = không thành tab của gia sư (tin nhắn đã có trên Trang chủ và nút Trao đổi của từng lớp)
   { r: 'ai', t: 'Trợ lý AI', i: 'bi-robot', g: 'lib', cap: ['ai.tutor', 'ai.admin', 'ai.log', 'settings.manage'], m: /^ai(\/|$)/, on: 'ai' },      // (1.76) AiView.html · on = máy chủ bật cho người này (S.boot.ai: AI đang bật + có quyền, hoặc người cài đặt)
-  { r: 'classes/stats', t: 'Thống kê', i: 'bi-clipboard-data', g: 'lib', cap: 'classes.stats', m: /^classes\/stats/ },
+  { r: 'classes/stats', t: 'Thống kê', i: 'bi-clipboard-data', g: 'lib', cap: 'classes.stats', m: /^classes\/stats/, more: 1 },      // (1.77.11) more = tab ít dùng → gom vào nhóm “⋯ Thêm” cuối thanh bên
   { r: 'classes/centers', t: 'Trung tâm & QLTT', i: 'bi-buildings', g: 'lib', cap: 'classes.manage', m: /^classes\/centers/ },      // (1.69) CentersView.html
   { r: 'classes/perms', t: 'Quyền gia sư', i: 'bi-person-lock', g: 'lib', cap: 'classes.manage', m: /^classes\/perms/ },
   { r: 'classes/settings', t: 'Cài đặt lớp', i: 'bi-sliders', g: 'lib', cap: 'classes.manage', m: /^classes\/settings/ },
@@ -7560,13 +7560,13 @@ function buildNav(L) {
   let h = '<div class="nav-mark" id="navMark"></div>';
   // ray: tab của ứng dụng trước, tab dùng chung (chỉ biểu tượng) dồn xuống đáy — không chia nhóm
   [{ id: '_t' }].forEach(G => {      // tên ứng dụng hiện ở cạnh logo (brandPaint) nên không lặp nhãn nhóm ở đây
-    const g = G.id, L1 = items.filter(x => modOf(x.r)), L2 = L1.filter(x => !x.pg || x === L1.find(y => y.pg === x.pg)).reduce((a, x) => a.concat(x.pg ? L1.filter(y => y.pg === x.pg) : [x]), []).concat(items.filter(x => !modOf(x.r)));      // tab cùng nhóm môn (pg) đứng liền nhau
+    const g = G.id, MORE = items.filter(x => x.more && modOf(x.r)), L1 = items.filter(x => modOf(x.r) && !x.more).concat(MORE.map(x => Object.assign({}, x, { pg: '__more', pgt: 'Thêm', pgi: 'bi-three-dots', sec: '' }))), L2 = L1.filter(x => !x.pg || x === L1.find(y => y.pg === x.pg)).reduce((a, x) => a.concat(x.pg ? L1.filter(y => y.pg === x.pg) : [x]), []).concat(items.filter(x => !modOf(x.r)));      // tab cùng nhóm môn (pg) đứng liền nhau
     if (!L2.length) return;
     const shut = lsGet('navPg', {}), cur = navOf(S.route, items);
-    h += L2.map((x, k) => (x.pg && (k === 0 || L2[k - 1].pg !== x.pg) ? (k && L2[k - 1].pg ? '</div>' : '') + '<button type="button" class="nav-i nav-grp" data-pg="' + esc(x.pg) + '" aria-expanded="' + !(shut[x.pg] && !L2.some(y => y.pg === x.pg && y.r === cur)) + '" title="' + esc(x.pg) + '"><i class="bi ' + esc(x.pgi || 'bi-folder2') + '"></i><span class="nav-t">' + esc(x.pg) + '</span><i class="bi bi-chevron-down nav-cv"></i></button><div class="nav-sub">'
+    h += L2.map((x, k) => (x.pg && (k === 0 || L2[k - 1].pg !== x.pg) ? (k && L2[k - 1].pg ? '</div>' : '') + '<button type="button" class="nav-i nav-grp' + (x.pg === '__more' ? ' nav-more' : '') + '" data-pg="' + esc(x.pg) + '" aria-expanded="' + (x.pg === '__more' ? !!(shut.__moreOpen || L2.some(y => y.pg === x.pg && y.r === cur)) : !(shut[x.pg] && !L2.some(y => y.pg === x.pg && y.r === cur))) + '" title="' + esc(x.pgt || x.pg) + '"><i class="bi ' + esc(x.pgi || 'bi-folder2') + '"></i><span class="nav-t">' + esc(x.pgt || x.pg) + '</span><i class="bi bi-chevron-down nav-cv"></i></button><div class="nav-sub">'
         : !x.pg && k && L2[k - 1].pg ? '</div>' : '') +
       (x.sec && (k === 0 || L2[k - 1].sec !== x.sec) ? '<div class="sb-sec nav-sec' + (k ? '' : ' n1') + '" aria-hidden="true">' + esc(x.sec) + '</div>' : '') +      // (1.75.2) nhãn nhóm (CM_SEC)
-      '<a class="nav-i' + (x.pg ? ' nav-k' : '') + (modOf(x.r) ? '' : ' c' + (x === L2.find(y => !modOf(y.r)) ? ' c1' : '')) + '" data-r="' + x.r + '" href="' + esc(routeUrl(x.r)) + '" title="' + esc(x.pg ? x.pg + ' · ' + x.t : x.t) + '"><i class="bi ' + esc(x.i) + '"></i><span class="nav-t">' + esc(x.t) + '</span>' +
+      '<a class="nav-i' + (x.pg ? ' nav-k' : '') + (modOf(x.r) ? '' : ' c' + (x === L2.find(y => !modOf(y.r)) ? ' c1' : '')) + '" data-r="' + x.r + '" href="' + esc(routeUrl(x.r)) + '" title="' + esc(x.pg ? (x.pgt || x.pg) + ' · ' + x.t : x.t) + '"><i class="bi ' + esc(x.i) + '"></i><span class="nav-t">' + esc(x.t) + '</span>' +
       (x.r === 'library' ? '<span class="nav-badge" id="navN">' + fmtN(IX.files.length) + '</span>' : '') + (x.r === 'approve' ? '<span class="nav-badge warn" id="navA" title="Buổi chờ duyệt"' + (S.boot.appr ? '' : ' hidden') + '>' + (S.boot.appr || 0) + '</span>' : '') + (x.r === 'classes' || x.r === 'classes/todo' ? '<span class="nav-badge warn" id="navT" title="Buổi học cần gán bài"' + (S.boot.todo ? '' : ' hidden') + '>' + (S.boot.todo || 0) + '</span>' : '') + (x.r === 'info' ? '<span class="nav-badge" id="navI" hidden></span>' : '') + (x.r === 'today' && isTutor() ? '<span class="nav-badge warn" id="navTd" hidden></span>' : '') + (x.r === 'classes/reqs' || x.r === 'classes/notes' ? '<span class="nav-badge warn" id="navR" hidden></span>' : '') + (x.r === 'classes/inbox' ? '<span class="nav-badge warn" id="navC" hidden></span>' : '') + (x.r === 'users' && S.boot.pending ? '<span class="nav-badge warn" id="navP" title="Tài khoản chờ duyệt">' + S.boot.pending + '</span>' : '') + '</a>').join('') + (L2.length && L2[L2.length - 1].pg ? '</div>' : '');
   });
   $('#sbNav').innerHTML = h;
@@ -7783,7 +7783,7 @@ function startApp() {
   if (!startApp.bound) { startApp.bound = 1;      // đăng nhập lại tại chỗ (sau Đăng xuất) không gắn trùng sự kiện
   $('#sbNav').addEventListener('click', e => {
     const gp = e.target.closest('.nav-grp');      // nhóm môn: bấm để sổ xuống / thu lại (nhớ trên máy)
-    if (gp) { const o = gp.getAttribute('aria-expanded') !== 'true', sh = lsGet('navPg', {}); gp.setAttribute('aria-expanded', o); if (o) delete sh[gp.dataset.pg]; else sh[gp.dataset.pg] = 1; lsSet('navPg', sh); setTimeout(moveMark, 220); return; }
+    if (gp) { const o = gp.getAttribute('aria-expanded') !== 'true', sh = lsGet('navPg', {}); gp.setAttribute('aria-expanded', o); if (gp.dataset.pg === '__more') { if (o) sh.__moreOpen = 1; else delete sh.__moreOpen; } else if (o) delete sh[gp.dataset.pg]; else sh[gp.dataset.pg] = 1; lsSet('navPg', sh); setTimeout(moveMark, 220); return; }      // “⋯ Thêm” (__more) mặc định thu lại
     const a = e.target.closest('[data-r]');
     if (!a) return;
     e.preventDefault(); closeNav(); rip(a, e); tabGo(a.dataset.r);
@@ -18169,6 +18169,74 @@ async function apPreview(x) {
 .ai-fns{ display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:6px } .ai-fns label{ display:flex; gap:6px; align-items:center; font-size:13px }
 .ax-preset{ display:flex; gap:14px; align-items:center; padding:14px 18px; border-radius:var(--r-l); background:linear-gradient(135deg, color-mix(in oklab, var(--primary) 10%, var(--surface)), color-mix(in oklab, var(--brand-500, var(--primary)) 6%, var(--surface))); border:1px solid color-mix(in oklab, var(--primary) 25%, var(--border)) }
 .ax-preset > div{ flex:1 } .ax-preset b{ display:block; color:var(--ink) } .ax-preset small{ color:var(--ink-2) }
+/* ══ (1.77.11) BỐ CỤC ỨNG DỤNG CHAT: thanh bên AI + khu chính ══ */
+.ax-app{ display:grid; grid-template-columns:264px minmax(0, 1fr); gap:18px; align-items:start }
+.ax-main{ min-width:0; display:flex; flex-direction:column; gap:14px }
+.ax-main #aiBan:empty{ display:none }
+.ax-rail{ position:sticky; top:0; display:flex; flex-direction:column; gap:10px; min-height:0; padding:14px 10px 10px; border-radius:var(--r-l); background:var(--surface); border:1px solid var(--border); box-shadow:var(--sh-1); overflow:hidden }
+.ax-rtop{ display:flex; align-items:center; gap:8px; padding:0 6px } .ax-rh{ display:flex; align-items:center; gap:10px; min-width:0; flex:1 }
+.ax-rh .ax-logo{ width:34px; height:34px; border-radius:10px; font-size:17px } .ax-rh .ax-ttl b{ font-size:14.5px } .ax-rh .ax-ttl small{ font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block }
+.ax-rh .ax-ttl small .ax-dot{ margin-right:5px; vertical-align:1px }
+.ax-rx{ display:none }
+.ax-newc{ display:flex; align-items:center; gap:9px; width:100%; border:1px solid var(--border); background:var(--surface); color:var(--ink); border-radius:12px; padding:10px 12px; font:inherit; font-size:13.5px; font-weight:700; cursor:pointer; transition:border-color .15s, background .15s }
+.ax-newc:hover{ border-color:color-mix(in oklab, var(--primary) 50%, var(--border)); background:color-mix(in oklab, var(--primary) 5%, var(--surface)) } .ax-newc i{ color:var(--primary); font-size:15px }
+.ax-nav{ display:flex; flex-direction:column; gap:2px }
+.ax-ni{ display:flex; align-items:center; gap:10px; border:0; background:none; border-radius:10px; padding:8px 10px; font:inherit; font-size:13.5px; font-weight:600; color:var(--ink-2); cursor:pointer; text-align:left }
+.ax-ni i{ font-size:15px; width:18px; text-align:center; color:var(--muted) } .ax-ni:hover{ background:var(--surface-3); color:var(--ink) }
+.ax-ni[aria-pressed="true"]{ background:color-mix(in oklab, var(--primary) 11%, transparent); color:var(--primary) } .ax-ni[aria-pressed="true"] i{ color:var(--primary) }
+.ax-hist{ display:flex; flex-direction:column; gap:8px; min-height:0; flex:1; border-top:1px solid color-mix(in oklab, var(--border) 70%, transparent); padding-top:12px; margin-top:2px }
+.ax-hist .ax-lab{ padding:0 6px }
+.ax-hs{ display:flex; align-items:center; gap:8px; height:40px; padding:0 12px; border-radius:12px; background:var(--surface-3); border:1px solid transparent; cursor:text; transition:border-color .15s, background .15s }
+.ax-hs:focus-within{ background:var(--surface); border-color:color-mix(in oklab, var(--primary) 55%, var(--border)); box-shadow:0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent) }
+.ax-hs i{ color:var(--muted); font-size:14px } .ax-hs input{ flex:1; min-width:0; border:0; outline:0; background:none; font:inherit; font-size:13.5px; color:var(--ink) } .ax-hs input::placeholder{ color:var(--muted) }
+.ax-hf{ display:flex; gap:6px } .ax-hf .sel{ flex:1; min-width:0; width:auto; height:32px; font-size:12.5px; padding-top:0; padding-bottom:0 }
+.ax-rail .ax-convs{ flex:1; min-height:0; overflow:auto; padding:0 0 4px; max-height:none }
+.ax-mbar{ display:none; align-items:center; gap:8px } .ax-mbar b{ font-size:15px; color:var(--ink) } .ax-mbar .sp{ flex:1 }
+.ax-scrim{ display:none }
+/* khung chat: không đóng hộp — tin nhắn trên nền trang, cột giữa rộng tối đa ~820px */
+.ax-app[data-axtab="chat"] .ax-main{ gap:8px }
+.ax-th{ display:flex; flex-direction:column; height:calc(100dvh - 200px); min-height:380px; position:relative }
+.ax-chd{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:2px 2px 8px; width:min(860px, 100%); margin:0 auto }
+.ax-chn{ margin-left:auto }
+.ax-pill{ display:inline-flex; align-items:center; gap:7px; width:auto; max-width:min(360px, 70vw); border:1px solid var(--border); background:var(--surface); color:var(--ink); border-radius:999px; padding:7px 13px; font:inherit; font-size:13px; font-weight:600; cursor:pointer }
+.ax-pill:hover{ border-color:color-mix(in oklab, var(--primary) 50%, var(--border)) } .ax-pill > i:first-child{ color:var(--primary) } .ax-pill .bi-chevron-down{ font-size:11px; color:var(--muted) }
+.ax-chd .ax-pick-p{ min-width:min(380px, 88vw) }
+.ax-mode{ position:relative }
+.ax-mode-p{ position:absolute; z-index:40; left:0; top:calc(100% + 6px); min-width:290px; background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:0 14px 34px -10px rgba(16,24,40,.35); padding:6px; display:flex; flex-direction:column; gap:2px }
+.ax-mode-p button{ display:grid; grid-template-columns:22px 1fr 16px; gap:10px; align-items:center; border:0; background:none; padding:9px 10px; border-radius:10px; cursor:pointer; text-align:left; color:var(--ink); font:inherit }
+.ax-mode-p button:hover{ background:var(--surface-3) } .ax-mode-p button > i:first-child{ font-size:16px; color:var(--primary) } .ax-mode-p b{ display:block; font-size:13.5px } .ax-mode-p small{ display:block; font-size:11.5px; color:var(--muted); line-height:1.35 }
+.ax-mode-p .ck{ visibility:hidden; color:var(--primary) } .ax-mode-p [aria-checked="true"] .ck{ visibility:visible } .ax-mode-p [aria-checked="true"]{ background:color-mix(in oklab, var(--primary) 7%, transparent) }
+.ax-app .ax-msgs{ padding:18px max(10px, calc((100% - 820px) / 2)) 22px; gap:22px }
+.ax-app .ax-m{ max-width:100% } .ax-app .ax-m.me{ max-width:min(620px, 88%) }
+.ax-app .ax-m.me .ax-bb{ background:color-mix(in oklab, var(--primary) 10%, var(--surface)); border:1px solid color-mix(in oklab, var(--primary) 16%, transparent) }
+.ax-app .ax-m.ai .ax-bb{ flex:1 }
+.ax-app .ax-comp{ position:relative; width:min(820px, calc(100% - 4px)); margin:0 auto; border-radius:22px; padding:10px 12px 8px; box-shadow:0 6px 24px -12px rgba(16,24,40,.35) }
+.ax-hint{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.ax-foot{ text-align:center; padding:6px 0 0; font-size:11px }
+.ax-sugs.ax-sks{ padding-top:0 } .ax-chip i{ margin-right:3px; color:var(--primary) }
+/* gõ “/” → bảng kỹ năng nổi trên ô soạn */
+.ax-slash{ position:absolute; left:8px; right:8px; bottom:calc(100% + 8px); z-index:30; max-height:300px; overflow:auto; background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:0 16px 36px -12px rgba(16,24,40,.38); padding:6px }
+.ax-sh{ font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:6px 10px 4px; display:flex; gap:6px; align-items:center } .ax-sh i{ color:var(--primary) }
+.ax-si{ display:flex; gap:10px; align-items:baseline; width:100%; border:0; background:none; padding:8px 10px; border-radius:9px; cursor:pointer; text-align:left; font:inherit; color:var(--ink) }
+.ax-si b{ font-size:13px; color:var(--primary); white-space:nowrap } .ax-si span{ font-size:12.5px; color:var(--ink-2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.ax-si:hover, .ax-si.hl{ background:var(--surface-3) } .ax-si.more{ border-top:1px solid var(--border); border-radius:0 0 9px 9px; margin-top:4px; align-items:center } .ax-si.more i{ color:var(--muted) }
+/* nút hành động trong câu trả lời: không đóng hộp — nút + chú thích nhỏ */
+.ax-app .ax-do{ border:0; background:none; padding:2px 0 2px 12px; border-left:2px solid color-mix(in oklab, var(--primary) 35%, transparent); border-radius:0; margin:6px 0 10px; max-width:640px }
+.ax-app .ax-do.done{ background:none; border-left-color:color-mix(in oklab, var(--ok) 55%, transparent) }
+/* AI tự ghi nhớ */
+.ax-nho{ display:inline-flex; align-items:center; gap:7px; flex-wrap:wrap; margin:4px 0; padding:5px 6px 5px 10px; border-radius:10px; font-size:12.5px; color:var(--ink-2); background:color-mix(in oklab, var(--ok) 8%, transparent) }
+.ax-nho > i{ color:var(--ok) } .ax-nho.gone{ background:var(--surface-3); color:var(--muted) } .ax-nho.gone > i{ color:var(--muted) } .ax-nho.gone b{ text-decoration:line-through; font-weight:500 }
+.ax-nho button{ border:0; background:var(--surface); border-radius:7px; padding:2px 9px; font-size:12px; font-weight:700; color:var(--ink-2); cursor:pointer } .ax-nho button:hover{ color:var(--danger) }
+.ai-ref.out{ border-style:dashed; border-color:color-mix(in oklab, var(--warn) 55%, var(--border)); background:color-mix(in oklab, var(--warn) 7%, var(--surface)); color:var(--ink) } .ai-ref.out small{ color:var(--warn) }
+@media (max-width:900px){
+  .ax-app{ grid-template-columns:minmax(0, 1fr) }
+  .ax-rail{ position:fixed; z-index:70; left:0; top:0; bottom:0; width:min(300px, 86vw); height:auto !important; border-radius:0 var(--r-l) var(--r-l) 0; transform:translateX(-105%); transition:transform .22s ease; padding-top:calc(14px + env(safe-area-inset-top, 0px)) }
+  .ax-app.rail-open .ax-rail{ transform:none } .ax-rx{ display:grid }
+  .ax-app.rail-open .ax-scrim{ display:block; position:fixed; inset:0; z-index:69; background:rgba(10,14,24,.38) }
+  .ax-mbar{ display:flex }
+  .ax-chn{ display:none } .ax-hint{ visibility:hidden } .ax-foot{ display:none }
+  .ax-app .ax-comp{ width:100%; border-radius:18px }
+}
 @media (max-width:1100px){ .ax-kpis{ grid-template-columns:repeat(3, minmax(0, 1fr)) } .ax-grid{ grid-template-columns:1fr } }
 @media (max-width:900px){ .ax-chat{ grid-template-columns:1fr } .ax-side{ position:static } .ax-convs{ max-height:180px; flex:none } .ax-tabs{ margin-left:0; width:100% } .ax-cmd{ grid-template-columns:1fr } .ax-cmd .opt{ justify-content:flex-start } }
 @media (max-width:640px){ .ax-kpis{ grid-template-columns:repeat(2, minmax(0, 1fr)) } .ai-cls{ grid-template-columns:auto 1fr } .ai-bdg{ grid-column:2; justify-content:flex-start } .ai-kv{ grid-template-columns:1fr } .ai-gr{ min-width:0 } .ax-msgs{ padding:16px 12px } .ax-comp{ margin:0 8px 8px } .ax-hero{ padding:12px } }
@@ -18183,14 +18251,21 @@ async function apPreview(x) {
    · log: nhật ký (mở tức thì) · cfg: kết nối, chế độ trợ lý, lịch chạy theo giờ, hỏi gia sư, thư mục Drive cho AI
    Kết nối bằng MAIL tới flow (máy chủ lo) — giao diện không nhắc tới flow / thư; aiWatch hỏi lại (aiPoll) mỗi ~3 giây.
    ══════════════════════════════════════════════════════════════ */
-const AI = { b: null, tab: '', dash: null, chat: { cid: '', mode: 'chat', conv: '', msgs: [], files: [], drive: [], busy: false, convs: null }, as: { days: 0, scan: null, sel: new Set(), plans: [], run: null, hist: null, q: '', apply: '', text: '' }, rq: { plans: [], hist: null }, lg: { q: '', kind: '', who: '', list: null } };
+const AI = { b: null, tab: '', dash: null, chat: { cid: '', mode: 'gen', conv: '', msgs: [], files: [], drive: [], busy: false, convs: null }, as: { days: 0, scan: null, sel: new Set(), plans: [], run: null, hist: null, q: '', apply: '', text: '' }, rq: { plans: [], hist: null }, lg: { q: '', kind: '', who: '', list: null } };
+/* (1.77.11) giao diện như ứng dụng chat: thanh bên của AI (Cuộc trò chuyện mới · công cụ · Đã hỏi) + khung chat không đóng hộp; Hỏi AI đứng đầu, mở trang là vào chat */
 const AI_TABS = [
+  { k: 'chat', t: 'Hỏi AI', i: 'bi-robot', ok: () => AI.b.can.tutor },
   { k: 'dash', t: 'Tổng quan', i: 'bi-speedometer2', ok: () => AI.b.can.admin || AI.b.can.log },
   { k: 'assign', t: 'Gán bài', i: 'bi-magic', ok: () => AI.b.can.admin },
   { k: 'reqs', t: 'Yêu cầu', i: 'bi-inboxes', ok: () => AI.b.can.admin },
-  { k: 'chat', t: 'Hỏi AI', i: 'bi-chat-square-text', ok: () => AI.b.can.tutor },
   { k: 'log', t: 'Nhật ký', i: 'bi-journal-text', ok: () => true },
   { k: 'cfg', t: 'Cài đặt', i: 'bi-sliders', ok: () => AI.b.can.cfg }
+];
+/** chế độ của khung chat — thêm chế độ mới chỉ cần thêm một dòng (menu tự hiện) */
+const AI_CMODES = [
+  { k: 'gen', t: 'Trợ lý chung', i: 'bi-robot', d: 'Mọi việc: yêu cầu, tiến độ, gia sư, soạn tin, kế hoạch…' },
+  { k: 'chat', t: 'Hỏi tài liệu', i: 'bi-search', d: 'Tìm bài / tài liệu theo lộ trình của bé' },
+  { k: 'grade', t: 'Nhận xét bài', i: 'bi-clipboard-check', d: 'Chấm phiếu / bài tập theo tiêu chuẩn' }
 ];
 const AI_EXT = { pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', heic: 'image/heic', txt: 'text/plain', csv: 'text/csv', md: 'text/markdown',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', doc: 'application/msword', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xls: 'application/vnd.ms-excel',
@@ -18256,40 +18331,73 @@ async function viewAi(arg, v) {
   setTitle('Trợ lý AI', 'bi-robot', [{ t: S.boot.app, r: 'today' }], v);
   const ck = 'aiBoot:' + (S.me && S.me.email || ''), cached = lsGet(ck, null);
   v._onArg = a => aiShow(v, a);
-  v._onShow = () => { if (AI.tab === 'log') aiLog(v); if (AI.tab === 'dash') aiDashView($('#aiBody', v)); };
+  v._onShow = () => { if (AI.tab === 'log') aiLog(v); if (AI.tab === 'dash') aiDashView($('#aiBody', v)); aiFit(); };
   if (cached && cached.can) { AI.b = cached; aiShow(v, arg); }      // vẽ ngay bằng bản đã lưu, tải bản mới phía sau
   else v.innerHTML = '<div class="ax-card"><div class="ax-cb" style="padding:40px;text-align:center">' + aiThink('ping') + '</div></div>';
   try {
     const b = await rpc('aiBoot', {}, { quiet: true }), same = cached && JSON.stringify(cached) === JSON.stringify(b); AI.b = b; lsSet(ck, b);
     if (!cached || !cached.can) aiShow(v, arg);
-    else if (!same && v.isConnected) { const hd = $('#aiHero', v); if (hd) hd.outerHTML = aiHeroHtml(AI.tab); if (AI.tab === 'cfg' || AI.tab === 'assign' && !AI.as.run) aiShow(v, [AI.tab].concat(String(arg || '').split('/').slice(1)).join('/')); }
+    else if (!same && v.isConnected) { aiRailPaint(v); if (AI.tab === 'cfg' || AI.tab === 'assign' && !AI.as.run) aiShow(v, [AI.tab].concat(String(arg || '').split('/').slice(1)).join('/')); }
   } catch (e) { if (!cached) v.innerHTML = '<div class="ax-card"><div class="empty" style="padding:40px"><i class="bi bi-stars"></i><b>Chưa mở được Trợ lý AI</b><span>' + esc(e.message) + '</span></div></div>'; }
 }
 function aiTabsOk() { return AI_TABS.filter(t => t.ok()); }
-function aiHeroHtml(k) {
-  const B = AI.b, on = !!B.ready, tabs = aiTabsOk();
-  const sch = B.run === 'hourly' ? 'tự chạy mỗi ' + (B.every > 1 ? B.every + ' giờ' : 'giờ') : B.run === 'daily' ? 'tự chạy mỗi ngày' : 'chưa bật tự chạy';
-  return '<div class="ax-hero" id="aiHero"><span class="ax-logo"><i class="bi bi-robot"></i></span><div class="ax-ttl"><b>Trợ lý AI</b><small><i class="ax-dot ' + (on ? 'on' : 'off') + '"></i>' +
-      (on ? 'Đang bật' + (B.can.admin ? ' · ' + esc(AI_APPLY[B.mode] || '') + ' · ' + sch : '') : !B.on ? 'Đang tắt' : 'Chưa kết nối hộp thư') + '</small></div>' +
-    '<nav class="ax-tabs" id="aiTabs">' + tabs.map(t => '<button class="ax-tab" data-tab="' + t.k + '" aria-pressed="' + (t.k === k) + '"><i class="bi ' + t.i + '"></i>' + esc(t.t) + '</button>').join('') + '</nav></div>';
+/** đầu thanh bên: logo + trạng thái */
+function aiRailTop() {
+  const B = AI.b, on = !!B.ready;
+  const sch = B.run === 'hourly' ? 'tự chạy mỗi ' + (B.every > 1 ? B.every + ' giờ' : 'giờ') : B.run === 'daily' ? 'tự chạy mỗi ngày' : '';
+  return '<span class="ax-logo"><i class="bi bi-robot"></i></span><div class="ax-ttl"><b>Trợ lý AI</b><small title="' + esc(on && B.can.admin ? (AI_APPLY[B.mode] || '') + (sch ? ' · ' + sch : '') : '') + '"><i class="ax-dot ' + (on ? 'on' : 'off') + '"></i>' +
+    (on ? 'Đang bật' + (B.can.admin && sch ? ' · ' + sch : '') : !B.on ? 'Đang tắt' : 'Chưa kết nối hộp thư') + '</small></div>';
 }
+function aiNavHtml(k) { return aiTabsOk().map(t => '<button class="ax-ni" data-tab="' + t.k + '" aria-pressed="' + (t.k === k) + '"><i class="bi ' + t.i + '"></i><span>' + esc(t.t) + '</span></button>').join(''); }
+function aiRailPaint(v) { const r = $('#aiRailTop', v || document), n = $('#aiNav', v || document); if (r) r.innerHTML = aiRailTop(); if (n) n.innerHTML = aiNavHtml(AI.tab); }
+function aiRailHtml() {
+  const C = AI.chat;
+  return '<aside class="ax-rail" id="aiRail" aria-label="Trợ lý AI"><div class="ax-rtop"><div class="ax-rh" id="aiRailTop">' + aiRailTop() + '</div><button class="ibtn ax-rx" data-railx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
+    (AI.b.can.tutor ? '<button class="ax-newc" data-newchat><i class="bi bi-pencil-square"></i>Cuộc trò chuyện mới</button>' : '') +
+    '<nav class="ax-nav" id="aiNav">' + aiNavHtml(AI.tab) + '</nav>' +
+    (AI.b.can.tutor ? '<div class="ax-hist"><div class="ax-lab">Đã hỏi</div>' +
+      '<label class="ax-hs"><i class="bi bi-search"></i><input id="aiCvQ" type="search" placeholder="Tìm cuộc trò chuyện…" value="' + esc(C.cvq || '') + '" autocomplete="off"></label>' +
+      '<div class="ax-hf"><select class="sel" id="aiCvW" aria-label="Lịch sử của ai" hidden></select><select class="sel" id="aiCvD" aria-label="Tải trong">' + [[7, '7 ngày'], [30, '30 ngày'], [90, '90 ngày'], [0, 'Tất cả']].map(o => '<option value="' + o[0] + '"' + (o[0] === (C.cvd == null ? 30 : C.cvd) ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>' +
+      '<div class="ax-convs" id="aiConvs"><div class="small ax-muted" style="padding:8px 10px">Đang tải…</div></div></div>' : '') + '</aside>';
+}
+function aiRail(v, open) { const a = $('.ax-app', v); if (a) a.classList.toggle('rail-open', !!open); }
 function aiShow(v, arg) {
   const tabs = aiTabsOk(), a = String(arg || '').split('/'); let k = a[0];
-  if (!tabs.some(t => t.k === k)) k = (tabs.find(t => t.k === (AI.b.can.admin ? 'dash' : 'chat')) || tabs[0]).k;
-  AI.tab = k;
+  if (!tabs.some(t => t.k === k)) k = (tabs.find(t => t.k === 'chat') || tabs[0]).k;
+  const prev = AI.tab; AI.tab = k;
   const B = AI.b, on = !!B.ready, need = { assign: 'assign', reqs: 'reqs', chat: AI.chat.mode === 'grade' ? 'grade' : 'chat' }[k], noFlow = on && need && !B.flowFor[need];
-  v.innerHTML = '<div class="ax">' + aiHeroHtml(k) +
-    ((!on || noFlow) && k !== 'cfg' && k !== 'log' ? '<div class="ax-ban"><i class="bi bi-exclamation-triangle"></i><div>' + (!B.on ? 'Trợ lý AI đang tắt.' : !on ? 'Trợ lý AI chưa kết nối hộp thư.' : 'Trợ lý AI chưa được cài cho việc này' + (B.can.cfg ? '' : ' với vai trò của bạn') + '.') +
-      (B.can.cfg ? ' Vào <a href="#" data-tab="cfg">Cài đặt</a> để ' + (!B.on ? 'bật' : 'hoàn tất kết nối') + '.' : ' Nhờ Quản trị cài đặt.') + '</div></div>' : '') +
-    '<div id="aiBody" class="ax"></div></div>';
-  v.onclick = e => { const t = e.target.closest('[data-tab]'); if (t && !t.closest('#aiBody')) { e.preventDefault(); go('ai/' + t.dataset.tab); } };
-  const body = $('#aiBody', v);
+  let app = $('.ax-app', v);
+  if (!app) {
+    v.innerHTML = '<div class="ax-app">' + aiRailHtml() + '<div class="ax-scrim" data-railx></div><main class="ax-main"><div class="ax-mbar"><button class="ibtn" data-railo aria-label="Mở thanh bên Trợ lý AI"><i class="bi bi-layout-sidebar"></i></button><b id="aiMbT"></b><span class="sp"></span>' +
+      (B.can.tutor ? '<button class="ibtn" data-newchat aria-label="Cuộc trò chuyện mới" title="Cuộc trò chuyện mới"><i class="bi bi-pencil-square"></i></button>' : '') + '</div><div id="aiBan"></div><div id="aiBody" class="ax"></div></main></div>';
+    app = $('.ax-app', v); const C = AI.chat, q = $('#aiCvQ', v);
+    if (q) { q.oninput = debounce(e => { C.cvq = e.target.value.trim(); C.convs = null; aiConvs(); }, 350);
+      $('#aiCvD', v).onchange = e => { C.cvd = Number(e.target.value); C.convs = null; aiConvs(); };
+      $('#aiCvW', v).onchange = e => { C.cvw = e.target.value; C.convs = null; aiConvs(); }; aiConvs(); }
+    v.onclick = e => {
+      if (e.target.closest('#aiBody')) return;
+      const t = e.target.closest('[data-tab]'); if (t) { e.preventDefault(); aiRail(v, 0); return go('ai/' + t.dataset.tab); }
+      if (e.target.closest('[data-railx]')) return aiRail(v, 0);
+      if (e.target.closest('[data-railo]')) return aiRail(v, 1);
+      if (e.target.closest('[data-newchat]')) { aiRail(v, 0); const C = AI.chat; C.conv = ''; C.msgs = []; C.ro = ''; if (AI.tab !== 'chat') return go('ai/chat'); const b = $('#aiBody', v); aiRoPaint(b); aiPaintMsgs(b); $$('.ax-conv', v).forEach(x => x.classList.remove('on')); const ta = $('#aiIn', v); return ta && ta.focus(); }
+      const cd = e.target.closest('[data-cdel]'); if (cd) { e.stopPropagation(); return aiConvDelete($('#aiBody', v), cd.dataset.cdel, ''); }
+      const cv = e.target.closest('[data-conv]'); if (cv) { aiRail(v, 0); if (AI.tab !== 'chat') return go('ai/chat/v:' + cv.dataset.conv); return aiOpenConv($('#aiBody', v), cv.dataset.conv, cv.dataset.cid, cv.dataset.who); }
+    };
+  } else aiRailPaint(v);
+  app.dataset.axtab = k; aiRail(v, 0);
+  { const t = tabs.find(x => x.k === k), mb = $('#aiMbT', v); if (mb) mb.textContent = t ? t.t : 'Trợ lý AI'; }
+  $('#aiBan', v).innerHTML = (!on || noFlow) && k !== 'cfg' && k !== 'log' ? '<div class="ax-ban"><i class="bi bi-exclamation-triangle"></i><div>' + (!B.on ? 'Trợ lý AI đang tắt.' : !on ? 'Trợ lý AI chưa kết nối hộp thư.' : 'Trợ lý AI chưa được cài cho việc này' + (B.can.cfg ? '' : ' với vai trò của bạn') + '.') +
+      (B.can.cfg ? ' Vào <a href="#" data-tab="cfg">Cài đặt</a> để ' + (!B.on ? 'bật' : 'hoàn tất kết nối') + '.' : ' Nhờ Quản trị cài đặt.') + '</div></div>' : '';
+  const old = $('#aiBody', v), body = document.createElement('div'); body.id = 'aiBody'; body.className = 'ax'; old.replaceWith(body);      // thân mới mỗi lần đổi mục (không dính sự kiện của mục trước)
+  if (k === 'chat' && prev !== 'chat') v.scrollTop = 0;
   if (k === 'chat') aiChatView(body, a.slice(1).join('/'));
   else if (k === 'assign') aiAssignView(body, a[1]);
   else if (k === 'reqs') aiReqView(body, a[1]);
   else if (k === 'cfg') aiCfgView(body);
   else if (k === 'dash') aiDashView(body);
   else aiLog(v);
+  aiFit(); setTimeout(aiFit, 400);      // thanh tab dưới / tiêu đề trang có thể vẽ xong sau
+  if (!aiFit.on) { aiFit.on = 1; window.addEventListener('resize', debounce(() => aiFit(), 80)); }
 }
 
 /* ═════════════ TỔNG QUAN ═════════════ */
@@ -18364,75 +18472,120 @@ function aiChatView(body, arg) {
   const B = AI.b, C = AI.chat; arg = String(arg || '');
   if (/^v:/.test(arg)) { const conv = arg.slice(2); if (conv && conv !== C.conv) { C.conv = conv; C.msgs = []; setTimeout(() => aiOpenConv(body, conv, ''), 0); } }
   else if (arg && B.classes.some(c => c.id === arg) && arg !== C.cid) { C.cid = arg; C.conv = ''; C.msgs = []; }
+  if (!AI_CMODES.some(m => m.k === C.mode)) C.mode = 'gen';
   const cur = B.classes.find(c => c.id === C.cid);
-  body.innerHTML = '<div class="ax-chat"><div class="ax-side"><div class="ax-card"><div class="ax-cb">' +
-      '<div><div class="ax-lab" style="margin-bottom:6px">Bé</div><div class="ax-pick" id="aiPick"><button type="button" class="ax-pick-b">' + aiPickLabel(cur) + '</button>' +
+  /* (1.77.11) như ứng dụng chat: thanh trên mảnh (bé · chế độ) — tin nhắn trải trên nền trang, không đóng hộp — ô soạn nổi ở đáy, gõ “/” hiện kỹ năng */
+  body.innerHTML = '<div class="ax-th"><div class="ax-chd">' +
+      '<div class="ax-pick" id="aiPick"><button type="button" class="ax-pick-b ax-pill">' + aiPickLabel(cur) + '</button>' +
         '<div class="ax-pick-p" hidden><div class="search"><i class="bi bi-search"></i><input class="inp" placeholder="Tìm tên bé, mã lớp, gia sư…" style="padding-left:30px;width:100%"></div><div class="ax-pick-l"></div></div></div>' +
-        (B.classes.length ? '<div class="small ax-muted" style="margin-top:6px">' + B.classes.length + ' bé ' + (B.can.admin ? 'đang học' : 'bạn phụ trách') + '</div>' : '') + '</div>' +
-      '<div class="ax-seg" id="aiMode"><button data-aimode="chat" aria-pressed="' + (C.mode === 'chat') + '"><i class="bi bi-search"></i>Hỏi tài liệu</button><button data-aimode="grade" aria-pressed="' + (C.mode === 'grade') + '"><i class="bi bi-clipboard-check"></i>Nhận xét bài</button></div>' +
-      '<div class="small ax-muted" id="aiModeHint"></div>' +
-      '<button class="btn sm" id="aiNew"><i class="bi bi-plus-lg"></i>Cuộc hỏi mới</button></div></div>' +
-      '<div class="ax-card cv"><div class="ax-ch"><h3 style="font-size:13px"><i class="bi bi-clock-history"></i>Đã hỏi</h3></div>' +
-        '<div class="ax-cvt"><div class="search"><i class="bi bi-search"></i><input class="inp" id="aiCvQ" placeholder="Tìm trong câu hỏi, câu trả lời…" value="' + esc(C.cvq || '') + '"></div>' +
-        '<select class="sel" id="aiCvW" aria-label="Lịch sử của ai" hidden style="max-width:110px"></select><select class="sel" id="aiCvD" aria-label="Tải trong">' + [[7, '7 ngày'], [30, '30 ngày'], [90, '90 ngày'], [0, 'Tất cả']].map(o => '<option value="' + o[0] + '"' + (o[0] === (C.cvd == null ? 30 : C.cvd) ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div><div class="ax-convs" id="aiConvs"><div class="small ax-muted" style="padding:8px 12px">Đang tải…</div></div></div></div>' +
-    '<div class="ax-card ax-th"><div class="ax-msgs" id="aiMsgs"></div>' +
-      '<div class="ax-comp">' + ((B.skills || []).length ? '<div class="ax-chips" title="Kỹ năng — bấm để dùng (hoặc gõ /tên)">' + B.skills.map(k => '<button type="button" class="ax-chip" data-skill="' + esc(k.slug) + '" title="' + esc(k.desc || k.name) + '"><i class="bi bi-lightning-charge"></i> /' + esc(k.slug) + '</button>').join('') + '</div>' : '') +
-      '<div class="ax-fchips" id="aiFiles"></div><textarea id="aiIn" rows="1" placeholder=""></textarea>' +
+      '<div class="ax-mode" id="aiModeW"><button type="button" class="ax-pill ax-mode-b" aria-haspopup="menu"></button><div class="ax-mode-p" role="menu" hidden>' +
+        AI_CMODES.map(m => '<button type="button" role="menuitemradio" data-aimode="' + m.k + '"><i class="bi ' + m.i + '"></i><span><b>' + esc(m.t) + '</b><small>' + esc(m.d) + '</small></span><i class="bi bi-check2 ck"></i></button>').join('') + '</div></div>' +
+      (B.classes.length ? '<span class="small ax-muted ax-chn">' + B.classes.length + ' bé ' + (B.can.admin ? 'đang học' : 'bạn phụ trách') + '</span>' : '') + '</div>' +
+    '<div class="ax-msgs" id="aiMsgs"></div>' +
+    '<div class="ax-comp"><div class="ax-slash" id="aiSlash" role="listbox" hidden></div><div class="ax-fchips" id="aiFiles"></div><textarea id="aiIn" rows="1" placeholder=""></textarea>' +
       '<div class="row"><input type="file" id="aiFile" multiple hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.heic,.txt,.csv,.md,.docx,.doc,.xlsx,.xls,.pptx,.ppt,image/*,application/pdf">' +
         '<button class="ibtn" id="aiAtt" title="Đính kèm tệp (PDF, ảnh, Word, Excel, PowerPoint — tối đa ' + B.limits.files + ' tệp, mỗi tệp ' + B.limits.fileMb + ' MB)" aria-label="Đính kèm"><i class="bi bi-paperclip"></i></button>' +
         '<button class="ibtn" id="aiDrv" title="' + (B.folder ? 'Chọn tệp trong thư mục Drive dành cho AI' : 'Tệp trên Drive: dán link vào ô chat') + '" aria-label="Tệp trên Drive"><i class="bi bi-google"></i></button>' +
-        '<span class="small ax-muted" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Enter để gửi · dán link Drive để AI đọc tệp</span>' +
-        '<button class="ax-send" id="aiSend" aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div></div></div></div>';
+        '<button class="ibtn" id="aiSkB" title="Kỹ năng (gõ /)" aria-label="Kỹ năng"><i class="bi bi-slash-square"></i></button>' +
+        '<span class="small ax-muted ax-hint">Enter để gửi · Shift+Enter xuống dòng</span>' +
+        '<button class="ax-send" id="aiSend" aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div></div>' +
+    '<div class="ax-foot small ax-muted">Trợ lý AI có thể nhầm — kiểm lại trước khi gán bài hay gửi cho gia sư.</div></div>';
   aiPickBind($('#aiPick', body), B.classes, C.cid, id => { C.cid = id; C.conv = ''; C.msgs = []; $('.ax-pick-b', body).innerHTML = aiPickLabel(B.classes.find(c => c.id === id)); aiPaintMsgs(body); aiConvs(body); });
-  aiChatHint(body); aiPaintMsgs(body); aiPaintFiles(body); aiConvs(body); aiFit(body);
-  if (!aiFit.on) { aiFit.on = 1; window.addEventListener('resize', debounce(() => { const b = document.querySelector('#aiBody'); if (b && $('.ax-th', b)) aiFit(b); }, 80)); }
-  $('#aiCvQ', body).oninput = debounce(e => { C.cvq = e.target.value.trim(); C.convs = null; aiConvs(body); }, 350);
-  $('#aiCvD', body).onchange = e => { C.cvd = Number(e.target.value); C.convs = null; aiConvs(body); };
-  $('#aiCvW', body).onchange = e => { C.cvw = e.target.value; C.convs = null; aiConvs(body); };
-  const ta = $('#aiIn', body);
-  ta.oninput = () => { ta.style.height = 'auto'; ta.style.height = Math.min(220, ta.scrollHeight) + 'px'; };
-  ta.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && matchMedia('(min-width:821px)').matches) { e.preventDefault(); aiSend(body); } };
+  aiModePaint(body); aiChatHint(body); aiPaintMsgs(body); aiPaintFiles(body); aiConvs(body); aiFit(); aiRoPaint(body);
+  const ta = $('#aiIn', body), mw = $('#aiModeW', body), mp = $('.ax-mode-p', mw);
+  const mClose = () => { mp.hidden = true; document.removeEventListener('mousedown', mOut, true); }, mOut = e => { if (!mw.contains(e.target)) mClose(); };
+  $('.ax-mode-b', mw).onclick = () => { if (!mp.hidden) return mClose(); mp.hidden = false; document.addEventListener('mousedown', mOut, true); };
+  ta.oninput = () => { ta.style.height = 'auto'; ta.style.height = Math.min(220, ta.scrollHeight) + 'px'; aiSlash(body); };
+  ta.onkeydown = e => {
+    if (aiSlashKey(body, e)) return;
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && matchMedia('(min-width:821px)').matches) { e.preventDefault(); aiSend(body); }
+  };
+  ta.onblur = () => setTimeout(() => { const sl = $('#aiSlash', body); if (sl && !sl.contains(document.activeElement)) sl.hidden = true; }, 150);
   $('#aiFile', body).onchange = e => { aiAddFiles(body, [...e.target.files]); e.target.value = ''; };
   const th = $('.ax-th', body);
   th.ondragover = e => { e.preventDefault(); }; th.ondrop = e => { e.preventDefault(); aiAddFiles(body, [...(e.dataTransfer.files || [])]); };
   ta.onpaste = e => { const fs = [...(e.clipboardData && e.clipboardData.files || [])]; if (fs.length) { e.preventDefault(); aiAddFiles(body, fs); } };
   body.onclick = async e => {
-    const m = e.target.closest('[data-aimode]'); if (m) { C.mode = m.dataset.aimode; $$('[data-aimode]', body).forEach(b => b.setAttribute('aria-pressed', b === m)); aiChatHint(body); aiPaintMsgs(body); return; }
-    if (e.target.closest('#aiNew')) { C.conv = ''; C.msgs = []; C.ro = ''; aiRoPaint(body); aiPaintMsgs(body); $$('.ax-conv', body).forEach(b => b.classList.remove('on')); return $('#aiIn', body).focus(); }
+    const m = e.target.closest('[data-aimode]'); if (m) { C.mode = m.dataset.aimode; mClose(); aiModePaint(body); aiChatHint(body); if (!C.msgs.length) aiPaintMsgs(body); ta.focus(); return; }
     if (e.target.closest('#aiAtt')) return $('#aiFile', body).click();
     if (e.target.closest('#aiDrv')) return aiDrivePick(body);
+    if (e.target.closest('#aiSkB')) { if (!/^\//.test(ta.value)) ta.value = '/' + ta.value; ta.focus(); ta.setSelectionRange(1, 1); return aiSlash(body, 1); }
     if (e.target.closest('#aiSend')) return aiSend(body);
+    const sl = e.target.closest('[data-slash]'); if (sl) return aiSlashPick(body, sl.dataset.slash);
+    if (e.target.closest('[data-skcfg]')) return go('ai/cfg');
     const sg = e.target.closest('[data-sug]'); if (sg) { ta.value = sg.dataset.sug; ta.focus(); ta.oninput(); return; }
     const rf = e.target.closest('[data-rmf]'); if (rf) { C.files.splice(Number(rf.dataset.rmf), 1); return aiPaintFiles(body); }
     const rd = e.target.closest('[data-rmd]'); if (rd) { C.drive.splice(Number(rd.dataset.rmd), 1); return aiPaintFiles(body); }
     const bc = e.target.closest('[data-bcls]'); if (bc) return go('classes/c/' + bc.dataset.bcls);
     const db = e.target.closest('[data-do]'); if (db) { const mm = db.closest('[data-rid]'); if (mm) return aiDoRun(db, mm.dataset.rid, () => aiPaintMsgs(body)); }
-    const cd = e.target.closest('[data-cdel]'); if (cd) { e.stopPropagation(); return aiConvDelete(body, cd.dataset.cdel, ''); }
+    const nd = e.target.closest('[data-nhodel]'); if (nd) { const mm = nd.closest('[data-rid]'); return aiNhoDel(body, nd, mm && mm.dataset.rid); }
     const td = e.target.closest('[data-tdel]'); if (td) return aiConvDelete(body, '', td.dataset.tdel);
-    const cv = e.target.closest('[data-conv]'); if (cv) return aiOpenConv(body, cv.dataset.conv, cv.dataset.cid, cv.dataset.who);
-    const sk = e.target.closest('[data-skill]'); if (sk) { ta.value = '/' + sk.dataset.skill + ' ' + ta.value.replace(/^\/[\w-]+\s*/, ''); ta.focus(); ta.oninput(); return; }
+    const sk = e.target.closest('[data-skill]'); if (sk) { aiSlashPick(body, sk.dataset.skill); return; }
     const r = e.target.closest('[data-ref]'); if (r) return aiRefMenu(r.dataset.ref, JSON.parse(r.dataset.o || '{}'));
   };
 }
-/** (1.77.3) khung chat cao vừa cửa sổ (thu nhỏ / phóng to đều trải tới đáy); cột trái: danh sách cuộc hỏi cuộn trong chiều cao đó */
-function aiFit(body) {
-  const th = $('.ax-th', body); if (!th) return; const top = th.getBoundingClientRect().top + (window.scrollY || 0) - (document.scrollingElement ? document.scrollingElement.scrollTop : 0);
-  const narrow = matchMedia('(max-width:900px)').matches, h = narrow ? Math.max(420, window.innerHeight - 120) : Math.max(420, Math.round(window.innerHeight - Math.max(0, top) - 18));      // màn hẹp: cột chọn bé nằm trên, khung chat gần bằng màn hình
-  th.style.height = h + 'px';
-  const cv = $('.ax-card.cv', body), sd = $('.ax-side', body);
-  if (cv && sd && !narrow) { const t2 = cv.getBoundingClientRect().top - sd.getBoundingClientRect().top; cv.style.maxHeight = Math.max(200, h - t2) + 'px'; } else if (cv) cv.style.maxHeight = '';
+/** nút chế độ (Trợ lý chung · Hỏi tài liệu · Nhận xét bài) */
+function aiModePaint(body) {
+  const C = AI.chat, m = AI_CMODES.find(x => x.k === C.mode) || AI_CMODES[0], b = $('.ax-mode-b', body); if (!b) return;
+  b.innerHTML = '<i class="bi ' + m.i + '"></i><span>' + esc(m.t) + '</span><i class="bi bi-chevron-down"></i>'; b.title = m.d;
+  $$('[data-aimode]', body).forEach(x => x.setAttribute('aria-checked', x.dataset.aimode === C.mode));
+}
+/* ── (1.77.11) GÕ “/” → danh sách kỹ năng đã cài (lọc theo chữ gõ tiếp, ↑↓ chọn, Enter / Tab dùng, Esc đóng) ── */
+function aiSlashList(q) { const w = fold(String(q || '')); return (AI.b.skills || []).filter(k => !w || fold(k.slug + ' ' + k.name + ' ' + (k.desc || '')).indexOf(w) >= 0).slice(0, 12); }
+function aiSlash(body, force) {
+  const ta = $('#aiIn', body), sl = $('#aiSlash', body); if (!ta || !sl) return;
+  const m = /^\/([\w-]*)$/.exec(ta.value.slice(0, ta.selectionStart || ta.value.length).split('\n')[0]);
+  if (!m || ta.value.indexOf(' ') >= 0 && !force) { sl.hidden = true; return; }
+  const L = aiSlashList(m[1]); sl.dataset.hl = Math.min(Number(sl.dataset.hl || 0), Math.max(0, L.length - 1));
+  const hl = Number(sl.dataset.hl);
+  sl.innerHTML = '<div class="ax-sh"><i class="bi bi-lightning-charge"></i>Kỹ năng</div>' + (L.length ? L.map((k, i) => '<button type="button" role="option" class="ax-si' + (i === hl ? ' hl' : '') + '" data-slash="' + esc(k.slug) + '" aria-selected="' + (i === hl) + '"><b>/' + esc(k.slug) + '</b><span>' + esc(k.name) + (k.desc ? ' — ' + esc(k.desc) : '') + '</span></button>').join('')
+    : '<div class="small ax-muted" style="padding:8px 12px">' + ((AI.b.skills || []).length ? 'Không có kỹ năng nào khớp “' + esc(m[1]) + '”' : 'Chưa cài kỹ năng nào') + '</div>') +
+    (AI.b.can.cfg ? '<button type="button" class="ax-si more" data-skcfg><i class="bi bi-sliders"></i><span>Thêm / sửa kỹ năng ở Cài đặt</span></button>' : '');
+  sl.hidden = false;
+}
+function aiSlashKey(body, e) {
+  const sl = $('#aiSlash', body); if (!sl || sl.hidden) return false; const it = $$('[data-slash]', sl);
+  if (e.key === 'Escape') { sl.hidden = true; e.preventDefault(); return true; }
+  if (!it.length) return false;
+  let hl = Number(sl.dataset.hl || 0);
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); hl = (hl + (e.key === 'ArrowDown' ? 1 : -1) + it.length) % it.length; sl.dataset.hl = hl; it.forEach((b, i) => { b.classList.toggle('hl', i === hl); b.setAttribute('aria-selected', i === hl); }); it[hl].scrollIntoView({ block: 'nearest' }); return true; }
+  if ((e.key === 'Enter' || e.key === 'Tab') && !e.shiftKey) { e.preventDefault(); aiSlashPick(body, it[hl].dataset.slash); return true; }
+  return false;
+}
+function aiSlashPick(body, slug) {
+  const ta = $('#aiIn', body), sl = $('#aiSlash', body); if (!ta) return;
+  ta.value = '/' + slug + ' ' + ta.value.replace(/^\/[\w-]*\s*/, ''); if (sl) { sl.hidden = true; sl.dataset.hl = 0; }
+  ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); ta.style.height = 'auto'; ta.style.height = Math.min(220, ta.scrollHeight) + 'px';
+  const k = (AI.b.skills || []).find(x => x.slug === slug); if (k) toast('Kỹ năng “' + k.name + '” — ghi thêm yêu cầu (tuỳ chọn) rồi Enter', 'info', 2500);
+}
+/** (1.77.11) AI tự ghi nhớ → nút “Bỏ” xoá điều đó khỏi bộ nhớ */
+async function aiNhoDel(body, btn, rid) {
+  const id = btn.dataset.nhodel; btn.disabled = true;
+  try { const r = await rpc('aiMemDel', { id: id }, { quiet: true }); AI.b.mem = r.mem;
+    AI.chat.msgs.forEach(m => { if (m.rid === rid && m.refs) Object.keys(m.refs).forEach(k => { if (/^NHO:/.test(k) && m.refs[k].id === id) Object.assign(m.refs[k], { saved: 0, gone: 1 }); }); });
+    toast('Đã bỏ khỏi bộ nhớ', 'ok', 2000); aiPaintMsgs(body); }
+  catch (e) { btn.disabled = false; toast(e.message, 'err'); }
+}
+/** (1.77.11) chiều cao vừa cửa sổ: thanh bên AI + khung chat trải tới đáy (cuộn bên trong), các mục khác cuộn theo trang */
+function aiFit() {
+  const app = document.querySelector('.ax-app'); if (!app || !app.isConnected) return;
+  const narrow = matchMedia('(max-width:900px)').matches, top = Math.max(0, app.getBoundingClientRect().top);
+  const bn = document.getElementById('bnav'), br = bn && getComputedStyle(bn).display !== 'none' ? bn.getBoundingClientRect() : null, bh = br && br.height ? Math.max(0, window.innerHeight - br.top) : 0;      // điện thoại: chừa thanh tab dưới (nổi)
+  const h = Math.max(380, Math.round(window.innerHeight - top - bh - (narrow ? 8 : 14)));
+  const rail = $('.ax-rail', app); if (rail) { rail.style.height = narrow ? '' : h + 'px';
+    if (narrow) { const tb = document.querySelector('header.tb'), t0 = tb ? Math.max(0, tb.getBoundingClientRect().bottom) : 0; rail.style.top = t0 + 'px'; rail.style.bottom = bh + 'px'; } else { rail.style.top = ''; rail.style.bottom = ''; } }      // ngăn kéo nằm giữa thanh trên và thanh tab dưới
+  const th = $('.ax-th', app); if (th) th.style.height = Math.max(380, h - Math.max(0, th.getBoundingClientRect().top - app.getBoundingClientRect().top)) + 'px';
 }
 /** (1.77.10) đang xem cuộc hỏi của người khác (admin) → chỉ xem, ô hỏi khoá */
 function aiRoPaint(body) {
   const C = AI.chat, cp = $('.ax-comp', body); if (!cp) return; let b = $('#aiRo', body);
-  if (C.ro) { if (!b) { b = document.createElement('div'); b.id = 'aiRo'; b.className = 'small ax-muted'; b.style.cssText = 'padding:8px 12px'; cp.prepend(b); } const u = (C.cvUsers || []).find(x => x.email === C.ro); b.innerHTML = '<i class="bi bi-eye"></i> Đang xem cuộc hỏi của <b>' + esc(u ? u.name : C.ro) + '</b> — chỉ xem. Bấm “Cuộc hỏi mới” để hỏi.'; }
+  if (C.ro) { if (!b) { b = document.createElement('div'); b.id = 'aiRo'; b.className = 'small ax-muted'; b.style.cssText = 'padding:8px 12px'; cp.prepend(b); } const u = (C.cvUsers || []).find(x => x.email === C.ro); b.innerHTML = '<i class="bi bi-eye"></i> Đang xem cuộc hỏi của <b>' + esc(u ? u.name : C.ro) + '</b> — chỉ xem. Bấm “Cuộc trò chuyện mới” để hỏi.'; }
   else if (b) b.remove();
   const ta = $('#aiIn', body), sd = $('#aiSend', body); if (ta) ta.disabled = !!C.ro; if (sd) sd.disabled = !!C.ro || C.busy;
 }
 function aiChatHint(body) {
-  const C = AI.chat, h = $('#aiModeHint', body), ta = $('#aiIn', body);
-  if (h) h.innerHTML = C.mode === 'grade' ? 'Đính kèm phiếu / bài tập (hoặc dán link Drive) → AI nhận xét có <b>đạt yêu cầu về nội dung</b> không, theo tiêu chuẩn của trung tâm.' : 'Hỏi bé yếu phần nào nên học topic nào, tài liệu nào phù hợp. Chọn bé để AI biết bé đã học những gì.';
-  if (ta) ta.placeholder = C.mode === 'grade' ? 'Ghi thêm yêu cầu (tuỳ chọn): VD “bài cho bé lớp 4 yếu phân số, 45 phút”…' : 'Hỏi Trợ lý AI…' + (AI.b.memOk ? ' · gõ “Nhớ: …” để AI ghi nhớ' : '') + ((AI.b.skills || []).length ? ' · “/” để dùng kỹ năng' : '');
+  const C = AI.chat, ta = $('#aiIn', body);
+  if (ta) ta.placeholder = C.mode === 'grade' ? 'Đính kèm bài rồi ghi thêm yêu cầu (tuỳ chọn): VD “bé lớp 4 yếu phân số, 45 phút”…' : (C.mode === 'chat' ? 'Hỏi tài liệu cho bé…' : 'Nhắn Trợ lý AI…') + ((AI.b.skills || []).length ? ' · gõ / để dùng kỹ năng' : '');
 }
 function aiPaintFiles(body) {
   const h = $('#aiFiles', body); if (!h) return; const C = AI.chat;
@@ -18469,14 +18622,17 @@ async function aiDrivePick(body) {
 function aiMd(text, refs) {
   refs = refs || {};
   const chip = id => { const o = refs[id]; if (!o) return '';
-    const tag = o.s === 'done' || o.s === 'taught' ? 'đã học' : o.s === 'plan' ? 'đã xếp' : o.s === 'carry' ? 'chưa dạy' : o.in ? 'trong lộ trình' : 'thư viện';
-    return '<button class="ai-ref' + (o.s === 'done' || o.s === 'taught' ? ' learned' : '') + '" data-ref="' + esc(id) + '" data-o="' + esc(JSON.stringify(o)) + '" title="Mở tài liệu / xin bài này"><i class="bi ' + (o.f ? 'bi-file-earmark-text' : 'bi-folder2-open') + '"></i>' + esc(o.n) + ' <small>' + tag + '</small></button>'; };
+    const out = !!o.ngoai, tag = o.s === 'done' || o.s === 'taught' ? 'đã học' : o.s === 'plan' ? 'đã xếp' : o.s === 'carry' ? 'chưa dạy' : o.in ? 'trong lộ trình' : out ? 'ngoài lộ trình' : 'thư viện';      // (1.77.11) bé có lộ trình → bài không thuộc lộ trình ghi rõ “ngoài lộ trình” (máy chủ gắn cờ ngoai)
+    return '<button class="ai-ref' + (o.s === 'done' || o.s === 'taught' ? ' learned' : '') + (out ? ' out' : '') + '" data-ref="' + esc(id) + '" data-o="' + esc(JSON.stringify(o)) + '" title="Mở tài liệu / xin bài này"><i class="bi ' + (o.f ? 'bi-file-earmark-text' : 'bi-folder2-open') + '"></i>' + esc(o.n) + ' <small>' + tag + '</small></button>'; };
   let nDo = 0; const AI_DOI = { gan: 'bi-magic', duyet: 'bi-check2-circle', tuchoi: 'bi-x-circle', traloi: 'bi-reply', xong: 'bi-check2-all', hoigs: 'bi-question-circle' };
   const dochip = () => { const k = nDo++, o = refs['DO:' + k]; if (!o) return '';      // (1.77.4) nút hành động — máy chủ kiểm lại khi bấm
     return '<span class="ax-do' + (o.done ? ' done' : !o.ok ? ' dis' : '') + '"><button type="button" data-do="' + k + '"' + (o.ok ? '' : ' disabled') + '><i class="bi ' + (o.done ? 'bi-check2-circle' : AI_DOI[o.kind] || 'bi-lightning') + '"></i>' + esc(o.label || o.t) + '</button>' +
       (o.sub ? '<small>' + esc(o.sub) + '</small>' : '') + (o.done ? '<small class="ok">✓ ' + esc(o.done.msg || 'Đã làm') + ' · ' + esc(o.done.by || '') + '</small>' : !o.ok && o.why ? '<small class="why">' + esc(o.why) + '</small>' : '') + '</span>'; };
   const bchip = id => { const o = refs['B:' + id]; return o ? '<button class="ai-ref cls" data-bcls="' + esc(id) + '" title="Mở trang bé ' + esc(o.n) + ' · ' + esc(o.code || '') + '" aria-label="Mở trang bé ' + esc(o.n) + '"><i class="bi bi-box-arrow-up-right"></i></button>' : ''; };      // tên bé AI đã ghi ngay trước → chỉ cần nút nhỏ      // (1.77.1)
-  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip());
+  let nNho = 0; const nho = () => { const o = refs['NHO:' + nNho++]; if (!o || (!o.saved && !o.gone)) return '';      // (1.77.11) AI tự ghi nhớ điều lâu dài → dòng nhỏ + nút Bỏ
+    return '<span class="ax-nho' + (o.gone ? ' gone' : '') + '"><i class="bi ' + (o.gone ? 'bi-bookmark-x' : 'bi-bookmark-check') + '"></i><span>' + (o.gone ? 'Đã bỏ khỏi bộ nhớ: ' : 'Đã ghi nhớ' + (o.be ? ' cho bé ' + esc(o.be) : '') + ': ') + '<b>' + esc(o.t) + '</b></span>' +
+      (o.saved && AI.b.memOk ? '<button type="button" data-nhodel="' + esc(o.id) + '" title="Không nhớ điều này">Bỏ</button>' : '') + '</span>'; };
+  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip()).replace(/\[\[NHO:[^\]]{3,800}\]\]/g, () => nho());
   const lines = String(text || '').replace(/\r/g, '').split('\n'); let h = '', list = '';
   const close = () => { if (list) { h += '</' + list + '>'; list = ''; } };
   let tb = null;      // (1.77.3) bảng Markdown | a | b |
@@ -18503,10 +18659,16 @@ function aiPaintMsgs(body) {
   const h = $('#aiMsgs', body); if (!h) return; const C = AI.chat;
   if (!C.msgs.length) {
     const c = AI.b.classes.find(x => x.id === C.cid), nm = c ? (/^bé\s/i.test(c.name) ? c.name : 'bé ' + c.name) : '';
+    const adm = AI.b.can.admin, Nm = nm.charAt(0).toUpperCase() + nm.slice(1);
     const sugs = C.mode === 'grade' ? ['Nhận xét phiếu bài tập này theo tiêu chuẩn', 'Bài tập này có vừa sức bé không?', 'Phiếu này thiếu dạng bài nào?']
-      : c ? [nm.charAt(0).toUpperCase() + nm.slice(1) + ' yếu phần nào, nên ôn topic nào?', 'Buổi tới nên dạy bài gì cho ' + nm + '?', 'Gợi ý tài liệu luyện thêm cho ' + nm, 'Bé đang theo kịp chương trình trên lớp chưa?'] : ['Tài liệu nào luyện phân số lớp 4?', 'Có đề kiểm tra giữa kỳ lớp 5 không?', 'Cách dạy bé hiểu tỉ số phần trăm'];
-    h.innerHTML = '<div class="ax-hello"><span class="ax-logo"><i class="bi bi-robot"></i></span><b>' + (C.mode === 'grade' ? 'Nhận xét bài tập' : c ? 'Hỏi về ' + esc(nm) : 'Mình có thể giúp gì?') + '</b>' + (C.mode === 'grade' ? 'Đính kèm tệp hoặc dán link Drive rồi bấm Gửi.' : c ? 'AI đã biết lộ trình, các buổi đã học và trao đổi gần đây của ' + esc(nm) + '.' : 'Chọn bé bên trái để AI biết bé đang học gì.') + '</div>' +
-      '<div class="ax-sugs">' + sugs.map(s => '<button class="ax-sug" data-sug="' + esc(s) + '">' + esc(s) + '</button>').join('') + '</div>';
+      : c ? (C.mode === 'chat' ? [Nm + ' yếu phần nào, nên ôn topic nào?', 'Buổi tới nên dạy bài gì cho ' + nm + '?', 'Gợi ý tài liệu luyện thêm cho ' + nm] : ['Bé đang theo kịp chương trình trên lớp chưa?', 'Tóm tắt 4 buổi gần nhất của ' + nm, adm ? 'Buổi tới của ' + nm + ' đã có bài và đã duyệt chưa?' : 'Buổi tới nên dạy gì cho ' + nm + '?'])
+      : C.mode === 'chat' ? ['Tài liệu nào luyện phân số lớp 4?', 'Có đề kiểm tra giữa kỳ lớp 5 không?', 'Cách dạy bé hiểu tỉ số phần trăm']
+      : adm ? ['Hôm nay có yêu cầu nào cần xử lý?', 'Bé nào đang chậm tiến độ so với trên lớp?', 'Gia sư nào lâu chưa vào app?', 'Soạn thông báo nghỉ lễ gửi gia sư'] : ['Tuần này mình có những buổi nào?', 'Bé nào của mình đang chậm tiến độ?', 'Cách dạy bé hiểu tỉ số phần trăm'];
+    const md = AI_CMODES.find(x => x.k === C.mode) || AI_CMODES[0], sk = C.mode === 'grade' ? [] : (AI.b.skills || []).slice(0, 6);
+    h.innerHTML = '<div class="ax-hello"><span class="ax-logo"><i class="bi bi-robot"></i></span><b>' + (C.mode === 'grade' ? 'Nhận xét bài tập' : c ? (C.mode === 'chat' ? 'Tìm tài liệu cho ' : 'Hỏi về ') + esc(nm) : 'Mình có thể giúp gì?') + '</b>' +
+      (C.mode === 'grade' ? 'Đính kèm tệp hoặc dán link Drive rồi bấm Gửi.' : c ? 'AI đã biết lộ trình, các buổi đã học và trao đổi gần đây của ' + esc(nm) + ' — gợi ý bài chỉ trong lộ trình của bé.' : md.d + ' · Chọn bé ở trên để hỏi riêng về một bé.') + '</div>' +
+      '<div class="ax-sugs">' + sugs.map(s => '<button class="ax-sug" data-sug="' + esc(s) + '">' + esc(s) + '</button>').join('') + '</div>' +
+      (sk.length ? '<div class="ax-sugs ax-sks">' + sk.map(k => '<button type="button" class="ax-chip" data-skill="' + esc(k.slug) + '" title="' + esc(k.desc || k.name) + '"><i class="bi bi-lightning-charge"></i>/' + esc(k.slug) + '</button>').join('') + '</div>' : '');
     return;
   }
   h.innerHTML = C.msgs.map(m => {
@@ -18567,8 +18729,8 @@ async function aiSend(body) {
   C.busy = false; const b2 = $('#aiSend', body); if (b2) b2.disabled = false;
   if (body.isConnected) { aiPaintMsgs(body); aiConvs(body); }
 }
-async function aiConvs(body) {
-  const h = $('#aiConvs', body); if (!h) return; const C = AI.chat;
+async function aiConvs() {
+  const h = $('#aiConvs'), body = document; if (!h) return; const C = AI.chat;      // (1.77.11) danh sách nằm ở thanh bên AI (ngoài #aiBody)
   try { if (!C.convs) { const R = await rpc('aiLogList', Object.assign({ days: C.cvd == null ? 30 : C.cvd, q: C.cvq || '' }, C.cvw ? (C.cvw === '*' ? {} : { who: C.cvw }) : { mine: 1 }), { quiet: true }); C.convs = R.list.filter(r => r.kind === 'chat' || r.kind === 'grade'); if (R.users) C.cvUsers = R.users; } }
   catch (e) { h.innerHTML = '<div class="small ax-muted" style="padding:8px 12px">' + esc(e.message) + '</div>'; return; }
   if (!h.isConnected) return;
@@ -18585,14 +18747,14 @@ async function aiOpenConv(body, conv, cid, who) {
   try {
     const L = (await rpc('aiLogList', C.ro ? { conv: conv } : { conv: conv, mine: 1 }, { quiet: true })).list.sort((a, b) => String(a.at).localeCompare(String(b.at)));
     if (C.conv !== conv) return;
-    C.mode = L.length && L[L.length - 1].kind === 'grade' ? 'grade' : 'chat'; $$('[data-aimode]', body).forEach(b => b.setAttribute('aria-pressed', b.dataset.aimode === C.mode)); aiChatHint(body);
+    if (L.length) { const z = L[L.length - 1]; C.mode = z.kind === 'grade' ? 'grade' : z.cm || 'chat'; } aiModePaint(body); aiChatHint(body);
     if (L.length && L[0].classId && L[0].classId !== C.cid && AI.b.classes.some(c => c.id === L[0].classId)) { C.cid = L[0].classId; const pb = $('.ax-pick-b', body); if (pb) pb.innerHTML = aiPickLabel(AI.b.classes.find(c => c.id === C.cid)); }
     C.msgs = []; C.busy = false; L.forEach(r => { C.msgs.push({ me: 1, rid: r.id, text: r.prompt === '(chỉ gửi tệp)' ? '' : r.prompt, files: r.files });
       if (r.status === 'ok') C.msgs.push(Object.assign(r.kind === 'grade' && r.grade ? { grade: r.grade, refs: r.refs, ms: r.ms } : { text: r.reply, refs: r.refs, ms: r.ms }, { rid: r.id }));
       else if (AI_WAIT.test(r.status)) { C.msgs.push({ wait: 1, id: r.id, t0: r.at }); C.busy = true; aiWatch(r.id, aiChatGot); }
       else C.msgs.push({ err: r.err || 'Trợ lý AI chưa trả lời được', rid: r.id }); });
   } catch (e) { C.msgs = [{ err: e.message }]; }
-  if (body.isConnected) { aiPaintMsgs(body); $$('.ax-conv', body).forEach(b => b.classList.toggle('on', b.dataset.conv === conv)); }
+  if (body.isConnected) { aiPaintMsgs(body); $$('.ax-conv').forEach(b => b.classList.toggle('on', b.dataset.conv === conv)); }
 }
 /** bấm nút tài liệu trong câu trả lời: mở · xin bài này cho bé */
 function aiRefMenu(id, o) {
@@ -18875,9 +19037,9 @@ async function aiLog(v) {
   const body = $('#aiBody', v); if (!body) return; const G = AI.lg;
   if (!$('#aiLogT', body)) body.innerHTML = '<div class="ax-card"><div class="ax-ch"><h3><i class="bi bi-journal-text"></i>Nhật ký Trợ lý AI</h3><span class="sp"></span>' +
     '<div class="search"><i class="bi bi-search"></i><input class="inp" id="aiLQ" placeholder="Tìm người, câu hỏi, câu trả lời…" value="' + esc(G.q) + '" style="padding-left:30px"></div>' +
-    '<select class="sel" id="aiLK"><option value="">Mọi loại</option>' + ['assign', 'reqs', 'chat', 'grade'].map(k => '<option value="' + k + '"' + (G.kind === k ? ' selected' : '') + '>' + esc({ assign: 'Gán bài', reqs: 'Yêu cầu & trao đổi', chat: 'Hỏi tài liệu', grade: 'Nhận xét bài tập' }[k]) + '</option>').join('') + '</select>' +
+    '<select class="sel" id="aiLK"><option value="">Mọi loại</option>' + ['assign', 'reqs', 'chat', 'grade'].map(k => '<option value="' + k + '"' + (G.kind === k ? ' selected' : '') + '>' + esc({ assign: 'Gán bài', reqs: 'Yêu cầu & trao đổi', chat: 'Hỏi AI', grade: 'Nhận xét bài tập' }[k]) + '</option>').join('') + '</select>' +
     '<select class="sel" id="aiLW" hidden></select></div><div class="ax-cb ax-note" id="aiLInfo" style="padding-top:0"></div><div id="aiLogT">' + (G.list ? '' : miniLoader('Đang tải nhật ký…')) + '</div></div>';
-  const kn = k => ({ assign: 'Gán bài', reqs: 'Yêu cầu', chat: 'Hỏi tài liệu', grade: 'Nhận xét bài tập', ping: 'Kiểm tra' }[k] || k);
+  const kn = k => ({ assign: 'Gán bài', reqs: 'Yêu cầu', chat: 'Hỏi AI', grade: 'Nhận xét bài tập', ping: 'Kiểm tra' }[k] || k);
   const paint = D => {
     const w = $('#aiLW', body); if (!w) return; if (D.all) { w.hidden = false; w.innerHTML = '<option value="">Mọi người</option>' + D.users.map(u => '<option value="' + esc(u.email) + '"' + (G.who === u.email ? ' selected' : '') + '>' + esc(u.name) + '</option>').join(''); }
     $('#aiLInfo', body).innerHTML = '<i class="bi bi-shield-check"></i> ' + (D.all ? 'Bạn xem được nhật ký của <b>mọi người</b>.' : 'Bạn đang xem các lượt hỏi của chính mình.') + ' ' + D.total + ' lượt' + (D.total > D.list.length ? ' · hiện ' + D.list.length + ' lượt mới nhất' : '') + '.';
@@ -18949,6 +19111,8 @@ function aiCfgView(body) {
       '<div class="ai-opt"><div><b>Hộp thư gửi & nhận</b><small>' + (c.box ? '<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> ' + esc(c.box) + '</span> — gửi việc tới AI và đọc câu trả lời.'
           : c.boxSend ? '<span style="color:var(--warn)"><i class="bi bi-exclamation-triangle-fill"></i> ' + esc(c.boxSend) + ' chưa có quyền ĐỌC thư</span> — kết nối lại và tick cả “Đọc email”.' : '<span style="color:var(--danger)">Chưa kết nối</span> — kết nối tài khoản Gmail (nên dùng chính giaovu@kitee.vn), tick cả Gửi và Đọc email.') +
         ' Dùng chung với Tài khoản gửi mail / Vòng mail.</small></div><button class="btn sm ghost" data-go="admin/system"><i class="bi bi-box-arrow-up-right"></i>Tài khoản gửi mail</button></div>' +
+      '<div class="ai-opt"><div><b>Thư với AI không nằm ở Hộp thư đến</b><small>AI trả lời xong → cả luồng thư tự gắn nhãn <b>“Trợ lý AI”</b> và rời Hộp thư đến (vẫn xem được trong nhãn đó). ' +
+        (c.gmoMd ? 'Bấm nút để cất các thư cũ.' : '<span style="color:var(--warn)">Cần kết nối lại Tài khoản gửi mail để có quyền sắp xếp thư.</span>') + '</small></div><button class="btn sm ghost" id="aiTidy"' + (c.gmoMd ? '' : ' disabled') + '><i class="bi bi-tag"></i>Cất thư cũ vào nhãn</button></div>' +
       '<div class="ai-opt"><div><b>Chờ AI trả lời tối đa</b><small>Quá thời gian này lượt hỏi báo lỗi.' + (c.waiting ? ' Đang chờ ' + c.waiting + ' lượt.' : '') + '</small></div><select class="sel" id="aiWait">' + [5, 10, 15, 30, 60].map(n => '<option value="' + n + '"' + (n === c.wait ? ' selected' : '') + '>' + n + ' phút</option>').join('') + '</select></div>') +
     card('bi-calendar-check', 'Tự chạy', '<div class="ai-opt"><div><b>Lịch</b><small>AI tự xem các bé có buổi trống / có yêu cầu mới và đọc yêu cầu của gia sư. Chạy theo giờ: bé không có gì mới (không buổi trống mới, không tin / yêu cầu mới) thì bỏ qua để AI không làm lại.' +
         (last ? '<br>Lần trước: ' + esc(fmtDT(last.at)) + ' · ' + (last.classes || 0) + ' bé' + (last.reqs ? ' + yêu cầu' : '') + (last.skipped ? ' · ' + last.skipped + ' bé không có gì mới' : '') + (last.err && last.err.length ? ' · lỗi: ' + esc(last.err[0]) : '') : '') + (c.next ? '<br>Lần tới: ' + esc(aiThu(c.next) + ' ' + aiDm(c.next) + ' ' + c.next.slice(11, 16)) : '') + '</small>' +
@@ -18971,7 +19135,7 @@ function aiCfgView(body) {
       '<div class="ai-opt"><div><b>Tiêu chuẩn nhận xét bài tập</b><small>AI chấm từng tiêu chuẩn: đạt / đạt một phần / chưa đạt.</small><textarea class="ta" id="aiRub" rows="7" style="margin-top:8px">' + esc(c.rubric) + '</textarea>' +
         '<div class="ax-inl" style="margin-top:8px"><button class="btn sm" id="aiRubSave"><i class="bi bi-check2"></i>Lưu tiêu chuẩn</button><button class="btn sm ghost" id="aiRubDef">Về mặc định</button></div></div></div>' +
       '<div class="ai-opt"><div><b>Chỉ dẫn thêm cho AI khi gia sư hỏi</b><textarea class="ta" id="aiSysT" rows="3" style="margin-top:8px" placeholder="VD: Luôn gợi ý tài liệu của trung tâm trước; nhắc gia sư ghi nhận xét sau buổi">' + esc(c.sysTutor) + '</textarea><button class="btn sm" id="aiSysTSave" style="margin-top:8px">Lưu</button></div></div>') +
-    card('bi-journal-bookmark', 'Bộ nhớ & kỹ năng', '<div class="small ax-muted" style="margin-bottom:10px">AI <b>học tích luỹ</b>: điều trong Bộ nhớ được gửi kèm MỌI lượt (gán bài, yêu cầu, hỏi đáp). Thêm ở đây hoặc gõ <b>“Nhớ: …”</b> trong Hỏi AI (đang chọn bé → nhớ riêng cho bé). <b>Kỹ năng</b> = bộ chỉ dẫn đặt tên, gọi bằng <b>/tên</b> trong Hỏi AI hoặc ô Dặn AI ở Gán bài. ' + (AI.b.mdUrl ? 'Bản Markdown: <a href="' + esc(AI.b.mdUrl) + '" target="_blank" rel="noopener">Trợ lý AI — Bộ nhớ & kỹ năng.md</a> (tự cập nhật).' : 'Bản Markdown tự tạo trong thư mục chính khi có mục đầu tiên.') + '</div>' +
+    card('bi-journal-bookmark', 'Bộ nhớ & kỹ năng', '<div class="small ax-muted" style="margin-bottom:10px">AI <b>học tích luỹ</b>: điều trong Bộ nhớ được gửi kèm MỌI lượt (gán bài, yêu cầu, hỏi đáp). Khi bạn nói trong Hỏi AI một điều <b>lâu dài</b> (quy định, sở thích cách gán bài, đặc điểm của bé…) AI <b>tự ghi nhớ</b> — không cần gõ “Nhớ:”; dưới câu trả lời có dòng “Đã ghi nhớ” kèm nút <b>Bỏ</b>. Thêm tay ở đây cũng được. <b>Kỹ năng</b> = bộ chỉ dẫn đặt tên — gõ <b>/</b> trong Hỏi AI để chọn. ' + (AI.b.mdUrl ? 'Bản Markdown: <a href="' + esc(AI.b.mdUrl) + '" target="_blank" rel="noopener">Trợ lý AI — Bộ nhớ & kỹ năng.md</a> (tự cập nhật).' : 'Bản Markdown tự tạo trong thư mục chính khi có mục đầu tiên.') + '</div>' +
       '<div class="ai-opt"><div><b>Bộ nhớ (' + (AI.b.mem || []).length + ')</b><div class="ax-inl" style="margin-top:8px"><input class="inp" id="aiMemT" style="flex:1;min-width:220px" placeholder="VD: Lớp 5 thi giữa kỳ tuần 9 — 2 tuần trước đó ưu tiên ôn tập"><select class="sel" id="aiMemC"><option value="">Mọi bé</option>' + AI.b.classes.map(k => '<option value="' + esc(k.id) + '">' + esc(k.name) + '</option>').join('') + '</select><button class="btn sm" id="aiMemAdd"><i class="bi bi-plus-lg"></i>Ghi nhớ</button></div>' +
         '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;max-height:280px;overflow:auto">' + ((AI.b.mem || []).length ? AI.b.mem.map(m => '<div class="ax-todo" style="padding:6px 0"><span class="ic"><i class="bi ' + (m.cid ? 'bi-person' : 'bi-pin-angle') + '"></i></span><div class="tx">' + (m.cid ? '<b>' + esc(m.be) + ':</b> ' : '') + esc(m.t) + '<small>' + esc(m.by + ' · ' + fmtDT(m.at)) + '</small></div><button class="ibtn sm" data-memdel="' + esc(m.id) + '" title="Xoá"><i class="bi bi-trash3"></i></button></div>').join('') : '<div class="small ax-muted">Chưa có điều nào.</div>') + '</div></div></div>' +
       '<div class="ai-opt"><div><b>Kỹ năng (' + (c.skillsAll || []).length + ')</b><div id="aiSkL" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div><div class="ax-inl" style="margin-top:8px"><button class="btn sm ghost" id="aiSkAdd"><i class="bi bi-plus-lg"></i>Thêm kỹ năng</button><span class="sp" style="flex:1"></span><button class="btn sm pri" id="aiSkSave"><i class="bi bi-check2"></i>Lưu kỹ năng</button></div></div></div>') +
@@ -19015,6 +19179,9 @@ function aiCfgView(body) {
   };
   body.onclick = async e => {
     const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); return go(g.dataset.go); }
+    const td = e.target.closest('#aiTidy'); if (td) { td.disabled = true; const h0 = td.innerHTML; td.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang cất…';      // (1.77.11)
+      try { const r = await rpc('aiMailTidy', {}, { quiet: true }); toast('Đã cất ' + r.n + ' luồng thư vào nhãn “' + r.label + '”', 'ok', 5000); } catch (er) { toast(er.message, 'err', 8000); }
+      td.disabled = false; td.innerHTML = h0; return; }
     if (e.target.closest('#aiMemAdd')) { const t = $('#aiMemT', body).value.trim(); if (!t) return $('#aiMemT', body).focus(); try { const r = await rpc('aiMemAdd', { t: t, cid: $('#aiMemC', body).value }, { quiet: true }); AI.b.mem = r.mem; toast('Đã ghi nhớ', 'ok', 2000); aiShow(body.closest('.view') || body.parentElement.parentElement, 'cfg'); } catch (er) { toast(er.message, 'err'); } return; }
     const md = e.target.closest('[data-memdel]'); if (md) { if (!await ask('Xoá điều này khỏi bộ nhớ AI?', { ok: 'Xoá', danger: true })) return; try { const r = await rpc('aiMemDel', { id: md.dataset.memdel }, { quiet: true }); AI.b.mem = r.mem; aiShow(body.closest('.view') || body.parentElement.parentElement, 'cfg'); } catch (er) { toast(er.message, 'err'); } return; }
     if (e.target.closest('#aiSkAdd')) { skRead(); SK.push({ name: '', desc: '', ins: '' }); return skPaint(); }
