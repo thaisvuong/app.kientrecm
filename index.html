@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T17:52:24.539Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T17:59:21.555Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -116,6 +116,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Kiến Trẻ</title>
+  <script>/* (thử 1.78) giao diện Hộp thư: lần trước đang bật → tiêu đề + biểu tượng tab trung tính ngay khi tải (MailView.html kiểm lại quyền sau khi đăng nhập) */
+  (function () { try { if (JSON.parse(localStorage.getItem('ktcm.uxLast') || '""') !== 'mail') return; var d = document, h = d.head; d.documentElement.setAttribute('data-ux', 'mail'); d.documentElement.setAttribute('data-uxc', JSON.parse(localStorage.getItem('ktcm.uxcLast') || '"brand"') === 'mail' ? 'mail' : 'brand'); d.title = 'Hộp thư';
+    window.MX_ICONS = [].slice.call(h.querySelectorAll('link[rel~="icon"],link[rel="apple-touch-icon"]')).map(function (l) { var c = l.cloneNode(); l.remove(); return c; });
+    var l = d.createElement('link'); l.rel = 'icon'; l.type = 'image/svg+xml'; l.href = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="3" y="7" width="26" height="19" rx="3" fill="#0B57D0"/><path d="M5 10l11 8 11-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>'); h.appendChild(l);
+    var t = h.querySelector('meta[name="apple-mobile-web-app-title"]'); if (t) { t.dataset.o = t.content; t.content = 'Hộp thư'; } } catch (e) {} })();</script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -5680,6 +5685,160 @@ html[data-mode="dark"] .upx-bulk.bad{ background:#320f0f; border-color:#562c2c }
 html[data-mode="dark"] .upx-bulk.bad > i{ color:#e88982 }
 html[data-mode="dark"] .upx-own{ color:#a9eecc; background:#1f3429 }
 html[data-mode="dark"] .up-fr i{ color:#f7ce5e }
+</style>
+
+  <style>
+/* (thử 1.78) GIAO DIỆN HỘP THƯ — chế độ tuỳ chọn: bố cục kiểu hộp thư / chat / trợ lý. Chỉ có tác dụng khi html[data-ux=mail] (MailView.html bật / tắt).
+   Không dùng logo, tên hay hình của hãng nào: biểu tượng Bootstrap Icons, phông hệ thống. */
+html[data-ux=mail]{
+  --mx-bg:#F6F8FC; --mx-sf:#FFFFFF; --mx-hv:#EAEEF5; --mx-sel:#D3E3FD; --mx-ink:#1F1F1F; --mx-mut:#5E6470; --mx-line:#E3E6EB;
+  --mx-acc:#0B57D0; --mx-cmp:#C2E7FF; --mx-cmp-ink:#001D35; --mx-me:#0B57D0; --mx-me-ink:#FFFFFF; --mx-bub:#F0F2F5; --mx-sh:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15);
+  --mx-font:Roboto,"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+html[data-ux=mail][data-mode=dark]{
+  --mx-bg:#1B1C1F; --mx-sf:#232428; --mx-hv:#2D2F34; --mx-sel:#2E3B52; --mx-ink:#E3E3E6; --mx-mut:#A3A7AF; --mx-line:#34363B;
+  --mx-acc:#A8C7FA; --mx-cmp:#2D4A68; --mx-cmp-ink:#D6E6FF; --mx-me:#2D5BA8; --mx-me-ink:#F2F6FF; --mx-bub:#2D2F34; --mx-sh:0 1px 3px rgba(0,0,0,.5);
+}
+/* GAM MÀU GỐC (mặc định, data-uxc=brand): cùng bộ màu Kiến Trẻ — trỏ thẳng vào token của app nên chế độ tối (Dark.html) tự theo */
+html[data-ux=mail][data-uxc=brand]{
+  --mx-bg:var(--bg); --mx-sf:var(--surface); --mx-hv:var(--lightprimary,var(--surface-3)); --mx-sel:var(--accent-soft); --mx-ink:var(--ink); --mx-mut:var(--muted); --mx-line:var(--border);
+  --mx-acc:var(--primary); --mx-cmp:var(--primary); --mx-cmp-ink:var(--on-primary); --mx-me:var(--primary); --mx-me-ink:var(--on-primary); --mx-bub:var(--surface-3); --mx-sh:var(--sh-2);
+  --mx-font:var(--font-sans);
+}
+html[data-ux=mail][data-uxc=brand][data-mode=dark]{ --mx-hv:var(--surface-3); --mx-cmp:var(--accent-soft); --mx-cmp-ink:var(--ink) }
+/* ── vỏ app ── */
+html[data-ux=mail] body,html[data-ux=mail] .app,html[data-ux=mail] .main,html[data-ux=mail] .views{ background:var(--mx-bg)!important; font-family:var(--mx-font) }
+html[data-ux=mail] #ov .ov-t > *{ display:none }
+html[data-ux=mail] #ov .ov-t::after{ content:"Hộp thư"; font:500 18px var(--mx-font); color:var(--mx-mut) }
+html[data-ux=mail] .sb{ background:var(--mx-bg)!important; border:0!important; box-shadow:none!important }
+html[data-ux=mail] .sb-logo,html[data-ux=mail] .sb-name,html[data-ux=mail] #sbVer,html[data-ux=mail] .md-sw,html[data-ux=mail] .crumb{ display:none!important }
+html[data-ux=mail] .sb-brand{ gap:10px }
+.mx-brand{ display:none; align-items:center; gap:10px; font:400 21px var(--mx-font); color:var(--mx-mut); flex:1; min-width:0 }
+.mx-brand i{ font-size:26px; color:var(--mx-acc) }
+.mx-brand span{ display:flex; flex-direction:column; line-height:1.15 }
+.mx-brand small{ font:400 11px var(--mx-font); color:var(--mx-mut); letter-spacing:.1px }
+html[data-ux=mail] .mx-brand{ display:flex }
+html[data-ux=mail] .app.mini .mx-brand span{ display:none }
+html[data-ux=mail] .tb{ background:var(--mx-bg)!important; border:0!important; box-shadow:none!important }
+html[data-ux=mail] .tb-search{ flex:1; max-width:720px; height:46px; border-radius:24px; background:var(--mx-hv); border:0; color:var(--mx-mut); font:400 15px var(--mx-font) }
+html[data-ux=mail] .tb-search:hover{ background:var(--mx-sf); box-shadow:var(--mx-sh) }
+html[data-ux=mail] .tb-t1{ font:400 18px var(--mx-font); color:var(--mx-ink) }
+html[data-ux=mail] .nav-i{ border-radius:0 18px 18px 0!important; margin-left:-12px; padding-left:24px; height:34px; font:500 14px var(--mx-font); color:var(--mx-ink) }
+html[data-ux=mail] .nav-i:hover{ background:var(--mx-hv) }
+html[data-ux=mail] .nav-i[aria-current=page],html[data-ux=mail] .nav-i.on{ background:var(--mx-sel)!important; color:var(--mx-ink)!important; font-weight:700 }
+html[data-ux=mail] .nav-mark{ display:none }
+html[data-ux=mail]:has(.mx-view:not([hidden])) .nav-i[aria-current],html[data-ux=mail]:has(.mx-view:not([hidden])) .nav-i.on{ background:none!important; font-weight:500 }
+html[data-ux=mail] .sb-sec{ font:500 13px var(--mx-font); color:var(--mx-ink); text-transform:none; letter-spacing:0; padding-left:12px }
+/* ── nút đổi giao diện ── */
+#mxSw[hidden]{ display:none }
+html[data-ux=mail] #mxSw{ color:var(--mx-acc) }
+/* ── cột trái: Soạn + hộp ── */
+.mx-side{ display:none; padding:4px 8px 6px 0 }
+html[data-ux=mail] .mx-side{ display:block }
+.mx-cbtn{ display:inline-flex; align-items:center; gap:12px; height:56px; padding:0 22px 0 18px; margin:2px 0 12px 8px; border:0; border-radius:16px; background:var(--mx-cmp); color:var(--mx-cmp-ink); font:500 14px var(--mx-font); cursor:pointer; transition:box-shadow .15s }
+.mx-cbtn:hover{ box-shadow:var(--mx-sh) }
+.mx-cbtn i{ font-size:20px }
+.mx-f{ position:relative; display:flex; align-items:center; gap:18px; width:100%; height:32px; padding:0 12px 0 26px; border:0; border-radius:0 16px 16px 0; background:none; color:var(--mx-ink); font:400 14px var(--mx-font); cursor:pointer; text-align:left }
+.mx-f:hover{ background:var(--mx-hv) }
+.mx-f[aria-current=true]{ background:var(--mx-sel); font-weight:700 }
+.mx-f i{ font-size:18px; width:20px; text-align:center }
+.mx-f span{ flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.mx-f em{ font-style:normal; font-size:12px; font-weight:700 }
+.mx-f[data-tip]:hover::after{ content:attr(data-tip); position:absolute; left:26px; top:calc(100% + 4px); z-index:60; width:max-content; max-width:250px; padding:7px 10px; border-radius:6px; background:#3C4043; color:#fff; font:400 12px/1.4 var(--mx-font); white-space:normal; pointer-events:none; box-shadow:var(--mx-sh) }
+.mx-lab{ display:flex; align-items:center; justify-content:space-between; margin:18px 8px 4px 26px; font:400 16px var(--mx-font); color:var(--mx-ink) }
+.mx-lab .mx-ib{ width:32px; height:32px; font-size:18px; color:var(--mx-ink) }
+html.mx-nolab[data-ux=mail] .sb-nav{ display:none }
+.mx-f.un span{ font-weight:700 }
+html[data-ux=mail] .app.mini .mx-cbtn{ width:56px; padding:0; justify-content:center }
+html[data-ux=mail] .app.mini .mx-cbtn span,html[data-ux=mail] .app.mini .mx-f span,html[data-ux=mail] .app.mini .mx-f em,html[data-ux=mail] .app.mini .mx-lab{ display:none }
+/* ── trang Hộp thư: danh sách + khung đọc ── */
+.mx-view{ padding:0 16px 16px 0!important; height:100%; font-family:var(--mx-font) }
+.mx-wrap{ display:grid; grid-template-columns:minmax(330px,440px) 1fr; gap:12px; height:calc(100vh - 92px); height:calc(100dvh - 92px) }
+.mx-box{ display:flex; flex-direction:column; min-height:0; background:var(--mx-sf); border-radius:16px; overflow:hidden }
+.mx-bar{ display:flex; align-items:center; gap:4px; min-height:48px; padding:4px 10px; border-bottom:1px solid var(--mx-line); color:var(--mx-mut); font-size:12px }
+.mx-bar .sp{ flex:1 }
+.mx-ib{ width:38px; height:38px; display:inline-grid; place-items:center; border:0; border-radius:50%; background:none; color:var(--mx-mut); font-size:17px; cursor:pointer }
+.mx-ib:hover{ background:var(--mx-hv); color:var(--mx-ink) }
+.mx-rows{ flex:1; overflow:auto; overscroll-behavior:contain }
+.mx-row{ display:grid; grid-template-columns:36px 1fr auto; gap:2px 12px; align-items:center; width:100%; padding:10px 16px; border:0; border-bottom:1px solid var(--mx-line); background:var(--mx-sf); color:var(--mx-ink); text-align:left; font:400 14px var(--mx-font); cursor:pointer }
+.mx-row:hover{ box-shadow:inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0,0 1px 2px 0 rgba(60,64,67,.3); position:relative; z-index:1 }
+.mx-row:not(.un){ background:color-mix(in srgb,var(--mx-bg) 55%,var(--mx-sf)) }
+.mx-row.on,.mx-row.on:not(.un){ background:var(--mx-sel) }
+.mx-av{ grid-row:span 2; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; color:#fff; font:500 15px var(--mx-font); background:var(--av,#5F6368) }
+.mx-av i{ font-size:17px }
+.mx-fr{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.mx-dt{ font-size:12px; color:var(--mx-mut); white-space:nowrap }
+.mx-sn{ grid-column:2/4; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--mx-mut); font-size:13px }
+.mx-sn b{ color:var(--mx-ink); font-weight:400 }
+.mx-row.un .mx-fr,.mx-row.un .mx-dt,.mx-row.un .mx-sn b{ font-weight:700; color:var(--mx-ink) }
+.mx-tag{ display:inline-block; margin-left:6px; padding:0 6px; border-radius:4px; background:var(--mx-hv); color:var(--mx-mut); font-size:11px; font-weight:500; vertical-align:1px }
+.mx-tag.w{ background:#FEEFC3; color:#7A4F01 } .mx-tag.ok{ background:#CEEAD6; color:#0D652D } .mx-tag.bad{ background:#FAD2CF; color:#A50E0E }
+html[data-mode=dark] .mx-tag.w{ background:#4A3B10; color:#FDE293 } html[data-mode=dark] .mx-tag.ok{ background:#0F3D22; color:#A8DAB5 } html[data-mode=dark] .mx-tag.bad{ background:#4C1B19; color:#F6AEA9 }
+.mx-empty{ display:grid; place-items:center; gap:8px; padding:56px 20px; color:var(--mx-mut); text-align:center }
+.mx-empty i{ font-size:42px; opacity:.55 }
+/* khung đọc */
+.mx-read{ overflow:auto }
+.mx-rd{ padding:20px 28px 28px }
+.mx-h{ display:flex; align-items:flex-start; gap:12px; margin:4px 0 18px }
+.mx-h h2{ flex:1; margin:0; font:400 22px/1.35 var(--mx-font); color:var(--mx-ink) }
+.mx-who{ display:grid; grid-template-columns:40px 1fr auto; gap:0 12px; align-items:center; margin-bottom:18px }
+.mx-who .mx-av{ width:40px; height:40px }
+.mx-who b{ font-weight:700; font-size:14px } .mx-who small{ color:var(--mx-mut); font-size:12px }
+.mx-body{ font-size:14px; line-height:1.6; color:var(--mx-ink); white-space:pre-wrap; word-wrap:break-word }
+.mx-kv{ display:grid; grid-template-columns:max-content 1fr; gap:6px 16px; margin:14px 0; font-size:14px } .mx-kv dt{ color:var(--mx-mut) } .mx-kv dd{ margin:0 }
+.mx-acts{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px }
+.mx-b{ display:inline-flex; align-items:center; gap:8px; height:36px; padding:0 18px; border:1px solid var(--mx-line); border-radius:18px; background:var(--mx-sf); color:var(--mx-ink); font:500 14px var(--mx-font); cursor:pointer }
+.mx-b:hover{ background:var(--mx-hv) } .mx-b.p{ background:var(--mx-acc); border-color:var(--mx-acc); color:var(--mx-sf) } .mx-b.p:hover{ filter:brightness(1.08) }
+.mx-b[disabled]{ opacity:.55; cursor:default }
+.mx-back{ display:none }
+/* chat (kiểu tin nhắn) */
+.mx-chat{ display:flex; flex-direction:column; height:100% }
+.mx-msgs{ flex:1; overflow:auto; padding:16px 20px; display:flex; flex-direction:column; gap:4px }
+.mx-m{ max-width:76%; align-self:flex-start; display:flex; flex-direction:column; gap:2px }
+.mx-m.me{ align-self:flex-end; align-items:flex-end }
+.mx-m p{ margin:0; padding:8px 13px; border-radius:18px; background:var(--mx-bub); color:var(--mx-ink); font-size:14px; line-height:1.45; white-space:pre-wrap; word-wrap:break-word }
+.mx-m.me p{ background:var(--mx-me); color:var(--mx-me-ink) }
+.mx-m small{ padding:0 8px; color:var(--mx-mut); font-size:11px }
+.mx-day{ align-self:center; margin:10px 0 6px; color:var(--mx-mut); font-size:12px }
+.mx-in{ display:flex; align-items:flex-end; gap:6px; margin:8px 14px 14px; padding:4px 4px 4px 18px; border-radius:26px; background:var(--mx-hv) }
+.mx-in textarea{ flex:1; min-height:24px; max-height:140px; padding:9px 0; border:0; outline:0; resize:none; background:none; color:var(--mx-ink); font:400 14px/1.45 var(--mx-font) }
+.mx-in .mx-ib{ color:var(--mx-acc) }
+/* cửa sổ Soạn (góc dưới phải) */
+.mx-cmp{ position:fixed; right:24px; bottom:0; z-index:900; width:min(520px,100vw); display:flex; flex-direction:column; background:var(--mx-sf); border-radius:12px 12px 0 0; box-shadow:0 8px 10px 1px rgba(0,0,0,.14),0 3px 14px 2px rgba(0,0,0,.12); font-family:var(--mx-font) }
+.mx-cmp-h{ display:flex; align-items:center; gap:4px; padding:6px 6px 6px 16px; background:var(--mx-hv); border-radius:12px 12px 0 0; font:500 14px var(--mx-font); color:var(--mx-ink) }
+.mx-cmp-h span{ flex:1 } .mx-cmp-h .mx-ib{ width:30px; height:30px; font-size:14px }
+.mx-cmp label{ display:flex; align-items:center; gap:8px; margin:0 16px; padding:6px 0; border-bottom:1px solid var(--mx-line); color:var(--mx-mut); font-size:14px }
+.mx-cmp select{ flex:1; min-width:0; border:0; outline:0; background:none; color:var(--mx-ink); font:400 14px var(--mx-font) }
+.mx-cmp textarea{ height:240px; margin:8px 16px; border:0; outline:0; resize:none; background:none; color:var(--mx-ink); font:400 14px/1.5 var(--mx-font) }
+.mx-cmp-f{ display:flex; align-items:center; gap:8px; padding:8px 16px 14px }
+.mx-cmp.min textarea,.mx-cmp.min label,.mx-cmp.min .mx-cmp-f{ display:none }
+.mx-fab{ display:none }
+/* ── Trợ lý (kiểu trợ lý: ô hỏi bo tròn, nền phẳng) ── */
+html[data-ux=mail] .ax-rail{ background:var(--mx-bg)!important; border:0!important }
+html[data-ux=mail] .ax-newc{ border-radius:20px!important; background:var(--mx-hv)!important; border:0!important; color:var(--mx-ink)!important }
+html[data-ux=mail] .ax-card{ background:var(--mx-sf)!important; border-radius:20px!important; border:0!important; box-shadow:none!important }
+/* ── điện thoại ── */
+@media (max-width:820px){
+  .mx-view{ padding:0!important }
+  .mx-wrap{ display:block; height:calc(100dvh - 60px - var(--sab,0px)) }
+  .mx-box{ height:100%; border-radius:0 }
+  .mx-wrap .mx-read{ display:none }
+  .mx-wrap.open .mx-list{ display:none } .mx-wrap.open .mx-read{ display:flex }
+  .mx-back{ display:inline-grid }
+  .mx-rd{ padding:12px 16px 90px }
+  .mx-h h2{ font-size:20px }
+  .mx-m{ max-width:86% }
+  html[data-ux=mail] #bnav{ display:none!important }
+  html[data-ux=mail] .tb-burger{ display:inline-grid!important; place-items:center }
+  html[data-ux=mail] .sb{ display:flex!important; transition:transform .22s } html[data-ux=mail] .sb-scrim{ display:block!important }
+  html[data-ux=mail] .sb-sec,html[data-ux=mail] .nav-i,html[data-ux=mail] .nav-grp{ display:none!important }   /* điện thoại: ngăn kéo chỉ có Soạn + các hộp (menu cũ quá dài) */
+  html[data-ux=mail] .mx-lab,#app.navopen ~ .mx-fab{ display:none!important }
+  html[data-ux=mail] #tbMode{ display:none }
+  html[data-ux=mail]:has(.mx-view:not([hidden])) #tbBack{ display:none!important }
+  html[data-ux=mail]:not(:has(.mx-view:not([hidden]))) .mx-fab,html[data-ux=mail]:has(.mx-view:not([hidden]) .mx-wrap.open) .mx-fab{ display:none }
+  html[data-ux=mail] .mx-fab{ display:inline-flex; position:fixed; right:16px; bottom:calc(18px + env(safe-area-inset-bottom)); z-index:800; height:56px; margin:0; box-shadow:var(--mx-sh) }
+  .mx-cmp{ right:0; top:0; bottom:0; width:100vw; border-radius:0 } .mx-cmp-h{ border-radius:0 } .mx-cmp textarea{ flex:1 }
+}
 </style>
 
   <script>/* (1.65.1) chế độ tối: bật TRƯỚC khi vẽ trang (không nháy sáng) — 'dark' · 'light' · 'auto' (theo máy, mặc định) */
@@ -28076,6 +28235,288 @@ function bkParseMd(txt) {
     flushList(); html.push('<p>' + inl(l) + '</p>'); });
   flush(); return pages.filter(p => p.title || p.body);
 }
+</script>
+
+<script>
+/* (thử 1.78) GIAO DIỆN HỘP THƯ — chế độ tuỳ chọn, BẢN THỬ.
+   • Ai bật được: Quản trị / chủ hệ thống / người có tên trong Settings.uxMailAllow (máy chủ trả S.boot.uxm).
+   • Bật / tắt bằng nút phong bì trên thanh trên; lựa chọn lưu theo từng email trên máy (ktcm.ux) — quay về giao diện cũ bất cứ lúc nào.
+   • Bật: tiêu đề tab + biểu tượng trung tính (“Hộp thư”), kể cả lúc tải trang (đoạn đầu <head> của Index.html đọc ktcm.uxLast).
+   • Trang mail/<hộp>: danh sách dạng dòng thư (người gửi · tiêu đề · trích · ngày) + khung đọc. Dữ liệu dùng lại API có sẵn
+     (notifList, reqList, reqDecide, classInbox, classChat, classChatSend, apprList, sessionApprove, taskBoot, chỉ mục Thư viện).
+   • Link thử: <địa chỉ app>/mail — người được phép mở link là giao diện tự bật. */
+const MX = { box: '', items: {}, sel: '', ico: null, cmp: null };
+const MX_TITLE = 'Hộp thư';
+const MX_CREDIT = 'Bản thử giao diện Kiến Chuyên môn, mô phỏng bố cục Gmail của Google. Không liên kết với Google.';
+const MX_ICON = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="3" y="7" width="26" height="19" rx="3" fill="#0B57D0"/><path d="M5 10l11 8 11-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>');
+/* các hộp — thứ tự & tên như hộp thư (en); tên tiếng Việt (t) dùng khi chọn “Tên hộp: tiếng Việt”; rê chuột thấy nghĩa (tip) · more = nằm dưới “More” */
+const MX_BOX = [
+  { k: '', en: 'Inbox', t: 'Hộp thư', i: 'bi-inbox', fi: 'bi-inbox-fill', tip: 'Hộp thư — mọi thông báo gom một chỗ: yêu cầu, trao đổi, duyệt bài, việc. Bấm một dòng để đọc ở khung bên phải.', ok: () => true },
+  { k: 'appr', en: 'Starred', t: 'Duyệt & phát', i: 'bi-star', fi: 'bi-star-fill', tip: 'Duyệt & phát — buổi học chờ duyệt bài và phát cho gia sư', ok: () => canAny(['classes.approve', 'classes.manage']) },
+  { k: 'task', en: 'Snoozed', t: 'Việc', i: 'bi-clock', fi: 'bi-clock-fill', tip: 'Việc — việc của bạn ở Kiến Task (có hạn)', ok: () => canAny(TASK_TABS) },
+  { k: 'chat', en: 'Sent', t: 'Trao đổi', i: 'bi-send', fi: 'bi-send-fill', tip: 'Trao đổi — tin nhắn theo lớp / gia sư', ok: () => canAny(['classes.view', 'classes.manage']) },
+  { k: 'req', en: 'Drafts', t: 'Yêu cầu', i: 'bi-file-earmark', fi: 'bi-file-earmark-fill', tip: 'Yêu cầu — yêu cầu của gia sư chờ duyệt', ok: () => canAny(['classes.view', 'classes.manage']) },
+  { k: 'lib', en: 'Purchases', t: 'Tài liệu mới', i: 'bi-bag', fi: 'bi-bag-fill', tip: 'Tài liệu mới — tài liệu mới vào Thư viện', ok: () => canAny(['library.view', '@pub']) },
+  { k: 'ai', en: 'Assistant', t: 'Trợ lý', i: 'bi-stars', fi: 'bi-stars', tip: 'Trợ lý AI — hỏi đáp', ok: () => canAny(ROUTES.ai.cap), r: 'ai', more: 1 }
+];
+function mxEn() { return lsGet('uxn', 'en') !== 'vi'; }
+function mxName(f) { return mxEn() ? f.en : f.t; }
+function mxAllowed() { return !!(S.me && !S.me.guest && !S.as && (S.me.isAdmin || (S.boot && S.boot.uxm))); }
+function mxPref() { const o = lsGet('ux', {}) || {}; return S.me && o[S.me.email] === 'mail'; }
+/** gam màu: 'brand' = màu gốc Kiến Trẻ (mặc định) · 'mail' = màu kiểu hộp thư — để so sánh, lưu theo email */
+function mxPal() { const o = lsGet('uxc', {}) || {}; return (S.me && o[S.me.email]) === 'mail' ? 'mail' : 'brand'; }
+function mxPalSet(c) { const o = lsGet('uxc', {}) || {}; if (S.me) o[S.me.email] = c; lsSet('uxc', o); lsSet('uxcLast', c); document.documentElement.setAttribute('data-uxc', c); mxSide(); const v = $('.mx-view:not([hidden])'); if (v) mxRowsPaint(v); toast(c === 'brand' ? 'Đang dùng màu gốc Kiến Trẻ' : 'Đang dùng màu kiểu hộp thư', 'ok', 2000); }
+function mxOn() { return document.documentElement.getAttribute('data-ux') === 'mail'; }
+/** bật / tắt — lưu theo email người dùng (máy này) + dấu “lần cuối” cho lần tải trang sau */
+function mxSet(on, opt) {
+  opt = opt || {};
+  if (on && !mxAllowed()) return toast('Giao diện Hộp thư đang thử — chưa mở cho tài khoản này', 'warn');
+  const o = lsGet('ux', {}) || {}; if (S.me) { if (on) o[S.me.email] = 'mail'; else delete o[S.me.email]; } lsSet('ux', o); lsSet('uxLast', on ? 'mail' : '');
+  mxApply(on);
+  if (opt.go === false) return;
+  if (on) { go('mail'); toast('Đã bật giao diện Hộp thư (bản thử) — bấm nút phong bì trên thanh trên để quay về giao diện cũ', 'ok', 5000); }
+  else { go(S.route && S.route.split('/')[0] === 'mail' ? homeRoute() : S.route || homeRoute()); toast('Đã quay về giao diện cũ', 'ok', 2500); }
+}
+function mxApply(on) {
+  const h = document.documentElement;
+  if (on) { h.setAttribute('data-ux', 'mail'); h.setAttribute('data-uxc', mxPal()); lsSet('uxcLast', mxPal()); } else { h.removeAttribute('data-ux'); h.removeAttribute('data-uxc'); }
+  document.title = on ? MX_TITLE : (S.boot && S.boot.app) || 'Kiến Chuyên môn';
+  mxIcon(on);
+  const sw = $('#mxSw'); if (sw) { sw.innerHTML = '<i class="bi ' + (on ? 'bi-envelope-open-fill' : 'bi-envelope') + '"></i>'; sw.title = on ? 'Đang dùng giao diện Hộp thư (thử) — bấm để đổi / quay về giao diện cũ' : 'Thử giao diện Hộp thư'; }
+  if (on) mxSide(); else { const s = $('#mxSide'); if (s) s.remove(); const f = $('#mxFab'); if (f) f.remove(); mxCmpClose(); }
+}
+/** biểu tượng tab: bật → phong bì trung tính; tắt → trả lại biểu tượng gốc (đoạn <head> đã cất vào window.MX_ICONS) */
+function mxIcon(on) {
+  const head = document.head; if (!head) return;
+  if (!window.MX_ICONS) window.MX_ICONS = $$('link[rel~="icon"],link[rel="apple-touch-icon"]').map(l => l.cloneNode());
+  $$('link[rel~="icon"],link[rel="apple-touch-icon"]').forEach(l => l.remove());
+  if (on) { const l = document.createElement('link'); l.rel = 'icon'; l.type = 'image/svg+xml'; l.href = MX_ICON; head.appendChild(l); }
+  else window.MX_ICONS.forEach(l => head.appendChild(l.cloneNode()));
+  const t = $('meta[name="apple-mobile-web-app-title"]'); if (t) { if (!t.dataset.o) t.dataset.o = t.content; t.content = on ? MX_TITLE : t.dataset.o; }
+}
+/** cột trái: nút Soạn + các hộp (chèn trên menu cũ; menu cũ vẫn ở dưới như “nhãn”) */
+function mxSide() {
+  const sb = $('.sb'); if (!sb) return;
+  if (!$('.mx-brand')) $('.sb-brand').insertAdjacentHTML('afterbegin', '<div class="mx-brand" title="' + esc(MX_CREDIT) + '"><i class="bi bi-envelope-paper"></i><span>' + MX_TITLE + '<small>Bố cục tham khảo Gmail</small></span></div>');
+  let s = $('#mxSide'); if (!s) { s = document.createElement('div'); s.id = 'mxSide'; s.className = 'mx-side'; sb.insertBefore(s, $('#sbNav'));
+    s.addEventListener('click', e => { const b = e.target.closest('[data-box]'); if (b) { closeNav(); const x = MX_BOX.find(f => f.k === b.dataset.box); return go(x && x.r ? x.r : mxR(b.dataset.box)); }
+      if (e.target.closest('[data-cmp]')) { closeNav(); mxCompose(); }
+      if (e.target.closest('[data-more]')) { MX.more = !MX.more; mxSide(); }
+      if (e.target.closest('[data-labs]')) { lsSet('uxLabs', !lsGet('uxLabs', true)); mxSide(); } }); }
+  const cur = S.route === 'ai' || S.route.indexOf('ai/') === 0 ? 'ai' : S.route.split('/')[0] === 'mail' ? ((S.route.split('/')[1] || '').replace(/^in$/, '')) : null;
+  const en = mxEn(), row = f => { const n = mxCount(f.k), on = cur === f.k;
+      return '<button type="button" class="mx-f' + (n ? ' un' : '') + '" data-box="' + f.k + '" aria-current="' + on + '" data-tip="' + esc(f.tip + (n ? ' · ' + n + ' mục mới' : '')) + '"><i class="bi ' + (on ? f.fi : f.i) + '"></i><span>' + esc(mxName(f)) + '</span>' + (n ? '<em>' + n + '</em>' : '') + '</button>'; };
+  const L = MX_BOX.filter(f => f.ok()), more = MX.more || L.some(f => f.more && cur === f.k);
+  s.innerHTML = '<button type="button" class="mx-cbtn" data-cmp title="' + (en ? 'Compose' : 'Soạn') + '"><i class="bi bi-pencil"></i><span>' + (en ? 'Compose' : 'Soạn') + '</span></button>' +
+    L.filter(f => !f.more).map(row).join('') +
+    (L.some(f => f.more) ? '<button type="button" class="mx-f" data-more><i class="bi ' + (more ? 'bi-chevron-up' : 'bi-chevron-down') + '"></i><span>' + (more ? (en ? 'Less' : 'Thu gọn') : (en ? 'More' : 'Thêm')) + '</span></button>' + (more ? L.filter(f => f.more).map(row).join('') : '') : '') +
+    '<div class="mx-lab"><span>' + (en ? 'Labels' : 'Nhãn') + '</span><button type="button" class="mx-ib" data-labs title="' + (en ? 'Labels' : 'Nhãn') + ' — hiện / ẩn các mục của app"><i class="bi ' + (lsGet('uxLabs', true) ? 'bi-dash-lg' : 'bi-plus-lg') + '"></i></button></div>';
+  document.documentElement.classList.toggle('mx-nolab', !lsGet('uxLabs', true));
+  if (!$('#mxFab')) document.body.insertAdjacentHTML('beforeend', '<button type="button" class="mx-cbtn mx-fab" id="mxFab" onclick="mxCompose()"><i class="bi bi-pencil"></i><span>Soạn</span></button>');
+  { const fb = $('#mxFab span'); if (fb) fb.textContent = en ? 'Compose' : 'Soạn'; }
+}
+function mxCount(k) {
+  const L = MX.items[k];
+  if (k === '') return L ? L.filter(x => x.un).length : (NT.unread || 0);
+  return L ? L.filter(x => x.un).length : 0;
+}
+/* ── trang mail/<hộp> ── */
+ROUTES.mail = { t: MX_TITLE, i: 'bi-inbox', fn: (a, v) => viewMail(a, v), arg: 1, cls: 'mx-view' };
+async function viewMail(arg, v) {
+  if (!mxAllowed()) { setTitle(MX_TITLE, 'bi-inbox', [], v); v.innerHTML = '<div class="mx-empty"><i class="bi bi-envelope-slash"></i><b>Giao diện Hộp thư đang thử</b><span>Chưa mở cho tài khoản này — nhờ Quản trị thêm email của bạn.</span><button class="btn sm" onclick="go(homeRoute())">Về trang chính</button></div>'; return; }
+  if (!mxOn()) mxSet(true, { go: false });
+  v._onArg = a => mxShow(v, a);
+  v._onShow = () => mxSide();
+  mxShow(v, arg);
+}
+function mxShow(v, arg) {
+  const p = String(arg || '').split('/'), k = MX_BOX.some(f => f.k && f.k === p[0] && !f.r && f.ok()) ? p[0] : '', f = MX_BOX.find(x => x.k === k);
+  MX.box = k; MX.sel = p.slice(1).join('/');
+  setTitle(mxName(f), f.i, [], v);
+  if (!v.querySelector('.mx-wrap')) v.innerHTML = '<div class="mx-wrap"><section class="mx-box mx-list"><div class="mx-bar"><button class="mx-ib" data-mxr title="Làm mới"><i class="bi bi-arrow-clockwise"></i></button><button class="mx-ib" data-mxset title="Giao diện"><i class="bi bi-three-dots-vertical"></i></button><span class="sp"></span><span class="mx-cnt"></span></div><div class="mx-rows"></div></section><section class="mx-box mx-read"></section></div>';
+  if (!v._mxBound) { v._mxBound = 1;
+    v.addEventListener('click', e => {
+      const r = e.target.closest('.mx-row'); if (r) return go(mxR(MX.box, r.dataset.id));
+      if (e.target.closest('[data-mxr]')) return mxLoad(v, MX.box, true);
+      if (e.target.closest('[data-mxset]')) return mxMenu(e.target.closest('[data-mxset]'));
+      if (e.target.closest('[data-back]')) return go(mxR(MX.box));
+      const a = e.target.closest('[data-act]'); if (a) mxAct(v, a);
+    }); }
+  mxSide();
+  mxLoad(v, k);
+}
+function mxRowsPaint(v) {
+  const L = MX.items[MX.box] || [], box = v.querySelector('.mx-rows'); if (!box) return;
+  v.querySelector('.mx-cnt').textContent = L.length ? '1–' + L.length + ' / ' + L.length : '';
+  box.innerHTML = L.length ? L.map(x => '<button type="button" class="mx-row' + (x.un ? ' un' : '') + (x.id === MX.sel ? ' on' : '') + '" data-id="' + esc(x.id) + '">' +
+      mxAv(x) + '<span class="mx-fr">' + esc(x.from) + (x.tag ? '<span class="mx-tag ' + (x.tc || '') + '">' + esc(x.tag) + '</span>' : '') + '</span><span class="mx-dt">' + esc(mxDate(x.at)) + '</span>' +
+      '<span class="mx-sn"><b>' + esc(x.subj) + '</b>' + (x.snip ? ' — ' + esc(x.snip) : '') + '</span></button>').join('')
+    : '<div class="mx-empty"><i class="bi bi-inbox"></i><span>Không có gì ở đây</span></div>';
+  const on = box.querySelector('.mx-row.on'); if (on && on.scrollIntoViewIfNeeded) on.scrollIntoViewIfNeeded(false);
+  v.querySelector('.mx-wrap').classList.toggle('open', !!MX.sel);
+  mxRead(v);
+}
+async function mxLoad(v, k, force) {
+  if (MX.items[k] && !force) mxRowsPaint(v);
+  else v.querySelector('.mx-rows').innerHTML = '<div class="mx-empty"><i class="bi bi-hourglass-split"></i><span>Đang tải…</span></div>';
+  try { const L = await MX_SRC[k](); MX.items[k] = L; if (MX.box === k && v.isConnected) mxRowsPaint(v); mxSide(); }
+  catch (e) { if (MX.box === k && !MX.items[k]) v.querySelector('.mx-rows').innerHTML = '<div class="mx-empty"><i class="bi bi-exclamation-octagon"></i><span>' + esc(e.message) + '</span></div>'; }
+}
+/* nguồn dữ liệu từng hộp → [{ id, from, subj, snip, at, un, tag, tc, ic, x }] */
+const MX_APPN = { tutor: 'Chuyên môn', lib: 'Thư viện', task: 'Việc', book: 'Cẩm nang', sys: 'Quản trị', redesign: 'Soạn phiếu', _: 'Hệ thống' };
+const MX_SRC = {
+  '': async () => { const r = await rpc('notifList', {}, { quiet: true }); NT.list = ntOverlay(r.list || []);
+    return NT.list.map(x => ({ id: x.id, from: MX_APPN[ntApp(x)] || 'Hệ thống', subj: x.title || '', snip: x.body || '', at: x.at, un: !x.read, ic: (NT_IC[x.type] || [])[0] || 'bi-bell', x: x })); },
+  req: async () => (await rpc('reqList', {}, { quiet: true })).map(r => ({ id: r.id, from: r.byName || r.by, subj: r.label + (r.cls ? ' · ' + r.cls : ''), snip: r.summary || '', at: r.createdAt, un: r.status === 'pending',
+    tag: r.status === 'pending' ? 'Chờ duyệt' : r.status === 'approved' ? 'Đã duyệt' : 'Từ chối', tc: r.status === 'pending' ? 'w' : r.status === 'approved' ? 'ok' : 'bad', x: r })),
+  chat: async () => {
+    const [r] = await Promise.all([rpc('classInbox', {}, { quiet: true }), CL.d ? null : clReload().catch(() => null)]);
+    const C = {}; ((CL.d && CL.d.classes) || []).forEach(c => { C[c.id] = c; });
+    return Object.keys(r.chat || {}).map(id => { const o = r.chat[id], c = C[id];
+      const nm = /^T:/.test(id) ? 'Gia sư ' + id.slice(2) : c ? (String(c.student || '').trim() || c.code) : id;
+      return { id: id, from: o.by || nm, subj: nm + (c && c.code && nm !== c.code ? ' · ' + c.code : ''), snip: o.t, at: o.at, un: o.un > 0, tag: o.un ? o.un + ' mới' : '', tc: 'w', ic: 'bi-chat-dots', x: { id: id, nm: nm } }; })
+      .sort((a, b) => String(b.at).localeCompare(String(a.at))); },
+  appr: async () => { const d = await rpc('apprList', {}, { quiet: true }), C = {}; (d.classes || []).forEach(c => { C[c.id] = c; });
+    return d.list.slice().sort((a, b) => (b.status === 'draft') - (a.status === 'draft') || String(a.date).localeCompare(String(b.date))).map(x => { const c = C[x.classId] || {};
+      return { id: x.id, from: c.tutor || 'Gia sư', subj: (c.name || '') + ' · Buổi ' + x.no + ' · ' + mxYmd(x.date), snip: x.les.concat(x.extra).join(' · ') || 'Chưa có bài', at: x.date, un: x.status === 'draft',
+        tag: x.status === 'draft' ? 'Chờ duyệt' : 'Đã phát', tc: x.status === 'draft' ? 'w' : 'ok', x: Object.assign({ c: c }, x) }; }); },
+  task: async () => { const d = await rpc('taskBoot', {}, { quiet: true }), em = S.me.email, P = {}; (d.projects || []).forEach(p => { P[p.id] = p; });
+    return (d.tasks || []).filter(t => !t.ctx && !t.doneAt && ((t.assignees || []).indexOf(em) >= 0 || t.reporter === em)).sort((a, b) => String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt))).slice(0, 150)
+      .map(t => ({ id: t.id, from: (P[t.projectId] || {}).name || 'Kiến Task', subj: (t.key ? t.key + ' · ' : '') + t.title, snip: t.desc || '', at: t.updatedAt || t.createdAt, un: (t.assignees || []).indexOf(em) >= 0 && t.status !== 'done',
+        tag: t.due ? 'Hạn ' + mxYmd(t.due) : '', tc: t.due && t.due < new Date().toISOString().slice(0, 10) ? 'bad' : '', x: Object.assign({ pn: (P[t.projectId] || {}).name }, t) })); },
+  lib: async () => { await needIndex(); return IX.files.filter(f => f.added).slice().sort((a, b) => b.added - a.added).slice(0, 120)
+    .map(f => ({ id: f.id, from: kindOf(f.kind).k, subj: f.name, snip: dirPath(f.fid, f.sid).map(d => d.name).join(' › '), at: f.added * 1000, un: isNew(f), ic: ftype(f.type)[0], x: f })); }
+};
+/* khung đọc */
+function mxRead(v) {
+  const R = v.querySelector('.mx-read'), x = (MX.items[MX.box] || []).find(i => i.id === MX.sel);
+  if (!x) { R.innerHTML = '<div class="mx-empty" style="margin:auto"><i class="bi bi-envelope-open"></i><span>' + (MX.sel ? 'Không còn mục này' : 'Chọn một dòng để đọc') + '</span></div>'; return; }
+  const back = '<div class="mx-bar"><button class="mx-ib mx-back" data-back title="Quay lại"><i class="bi bi-arrow-left"></i></button><span class="sp"></span>' + (x.tag ? '<span class="mx-tag ' + (x.tc || '') + '">' + esc(x.tag) + '</span>' : '') + '</div>';
+  if (MX.box === 'chat') return mxChat(v, R, x, back);
+  const o = x.x, B = [];
+  let body = '<div class="mx-body">' + esc(x.snip) + '</div>';
+  if (MX.box === '') { if (o.route) B.push(['open', 'bi-box-arrow-up-right', 'Mở trong app', 'p']); if (x.un) { ntRead([o], { ids: [o.id] }); x.un = false; setTimeout(() => mxSide(), 0); } }
+  if (MX.box === 'req') { body = '<dl class="mx-kv"><dt>Lớp</dt><dd>' + esc(o.cls || '—') + '</dd><dt>Loại</dt><dd>' + esc(o.label) + '</dd>' + (o.decidedAt ? '<dt>Xử lý</dt><dd>' + esc(mxDate(o.decidedAt)) + (o.note ? ' — ' + esc(o.note) : '') + '</dd>' : '') + (o.err ? '<dt>Lỗi</dt><dd>' + esc(o.err) + '</dd>' : '') + '</dl>' + body;
+    if (o.status === 'pending' && can('classes.manage')) B.push(['rok', 'bi-check2', 'Duyệt', 'p'], ['rno', 'bi-x-lg', 'Từ chối']); if (o.classId) B.push(['cls', 'bi-person-video3', 'Mở lớp']); }
+  if (MX.box === 'appr') { body = '<dl class="mx-kv"><dt>Học sinh</dt><dd>' + esc(o.c.name || '') + (o.c.grade ? ' · lớp ' + esc(o.c.grade) : '') + '</dd><dt>Chương trình</dt><dd>' + esc(o.c.prog || '—') + '</dd><dt>Buổi</dt><dd>' + o.no + ' · ' + esc(mxYmd(o.date)) + (o.time ? ' ' + esc(o.time) : '') + '</dd>' + (o.at ? '<dt>Đã duyệt</dt><dd>' + esc(o.by) + ' · ' + esc(mxDate(o.at)) + '</dd>' : '') + '</dl>' +
+      '<div class="mx-body"><b>Bài của buổi</b>\n' + (o.les.concat(o.extra).map(s => '• ' + esc(s)).join('\n') || 'Chưa có bài') + (o.lnote ? '\n\nGhi chú: ' + esc(o.lnote) : '') + '</div>';
+    if (o.status === 'draft') B.push(['aok', 'bi-send-check', 'Duyệt & phát', 'p']); B.push(['cls', 'bi-ui-checks-grid', 'Gán bài']); }
+  if (MX.box === 'task') { body = '<dl class="mx-kv"><dt>Bảng</dt><dd>' + esc(o.pn || '') + '</dd><dt>Phụ trách</dt><dd>' + esc((o.assignees || []).join(', ') || '—') + '</dd>' + (o.due ? '<dt>Hạn</dt><dd>' + esc(mxYmd(o.due)) + '</dd>' : '') + '</dl>' + body; B.push(['task', 'bi-box-arrow-up-right', 'Mở việc', 'p']); }
+  if (MX.box === 'lib') B.push(['file', 'bi-file-earmark-text', 'Xem tài liệu', 'p']);
+  R.innerHTML = back + '<div class="mx-rd"><div class="mx-h"><h2>' + esc(x.subj) + '</h2></div><div class="mx-who">' + mxAv(x) + '<div><b>' + esc(x.from) + '</b><br><small>' + esc(mxDate(x.at, 1)) + '</small></div></div>' + body +
+    '<div class="mx-acts">' + B.map(b => '<button class="mx-b ' + (b[3] || '') + '" data-act="' + b[0] + '"><i class="bi ' + b[1] + '"></i>' + esc(b[2]) + '</button>').join('') + '</div></div>';
+  if (x.un === false) { const r = v.querySelector('.mx-row.on'); if (r) r.classList.remove('un'); }
+}
+async function mxAct(v, a) {
+  const x = (MX.items[MX.box] || []).find(i => i.id === MX.sel); if (!x) return; const o = x.x, k = a.dataset.act;
+  if (k === 'open') return go(o.route);
+  if (k === 'cls') return go('classes/c/' + (o.classId || o.id));
+  if (k === 'task') return go('tasks/t/' + o.id);
+  if (k === 'file') return go('file/' + o.id);
+  if (k === 'send') return mxChatSend(v, o);
+  a.disabled = true;
+  try {
+    if (k === 'rok' || k === 'rno') { let note = ''; if (k === 'rno') { note = prompt('Lý do từ chối (không bắt buộc):', ''); if (note === null) return; }
+      const r = await rpc('reqDecide', { ids: [o.id], act: k === 'rok' ? 'approve' : 'reject', note: note }); if (r.failed) throw new Error(r.errors.join('; ') || 'Chưa duyệt được'); toast(k === 'rok' ? 'Đã duyệt yêu cầu' : 'Đã từ chối yêu cầu', 'ok'); }
+    if (k === 'aok') { await rpc('sessionApprove', { ids: [o.id] }); toast('Đã duyệt & phát buổi ' + o.no, 'ok'); }
+    await mxLoad(v, MX.box, true);
+  } catch (e) { fail(e); } finally { a.disabled = false; }
+}
+/* trao đổi: dạng tin nhắn (bong bóng) + ô gõ */
+async function mxChat(v, R, x, back) {
+  const id = x.x.id;
+  R.innerHTML = '<div class="mx-chat">' + back.replace('<span class="sp"></span>', '<b style="padding-left:6px;font-size:15px;color:var(--mx-ink)">' + esc(x.x.nm) + '</b><span class="sp"></span>') + '<div class="mx-msgs"><div class="mx-empty"><i class="bi bi-hourglass-split"></i></div></div>' +
+    '<div class="mx-in"><textarea rows="1" placeholder="Nhắn tin…" aria-label="Nhắn tin"></textarea><button class="mx-ib" data-act="send" title="Gửi"><i class="bi bi-send-fill"></i></button></div></div>';
+  const ta = R.querySelector('textarea');
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); mxChatSend(v, x.x); } });
+  ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(140, ta.scrollHeight) + 'px'; });
+  try { const d = await rpc('classChat', { id: id }, { quiet: true }); if (MX.sel !== id) return; mxMsgs(R, d.msgs || []);
+    if (x.un) { rpc('classChatRead', { id: id, at: new Date().toISOString() }, { quiet: true }).catch(() => {}); x.un = false; x.tag = ''; const r = v.querySelector('.mx-row.on'); if (r) r.classList.remove('un'); mxSide(); } }
+  catch (e) { R.querySelector('.mx-msgs').innerHTML = '<div class="mx-empty">' + esc(e.message) + '</div>'; }
+}
+function mxMsgs(R, L) {
+  let day = '', h = '';
+  L.filter(m => !m.del).forEach(m => { const d = mxYmd(m.at); if (d !== day) { day = d; h += '<div class="mx-day">' + esc(d) + '</div>'; }
+    const me = m.e === S.me.email; h += '<div class="mx-m' + (me ? ' me' : '') + '"><p>' + esc(m.t) + '</p><small>' + (me ? '' : esc(m.n || m.e) + ' · ') + esc(mxTime(m.at)) + '</small></div>'; });
+  const box = R.querySelector('.mx-msgs'); box.innerHTML = h || '<div class="mx-empty"><i class="bi bi-chat"></i><span>Chưa có tin nào</span></div>'; box.scrollTop = box.scrollHeight;
+}
+async function mxChatSend(v, o) {
+  const R = v.querySelector('.mx-read'), ta = R.querySelector('textarea'), t = ta.value.trim(); if (!t) return;
+  ta.value = ''; ta.style.height = '';
+  const box = R.querySelector('.mx-msgs'); box.insertAdjacentHTML('beforeend', '<div class="mx-m me"><p>' + esc(t) + '</p><small>Đang gửi…</small></div>'); box.scrollTop = box.scrollHeight;
+  try { await rpc('classChatSend', { id: o.id, text: t }); const d = await rpc('classChat', { id: o.id }, { quiet: true }); if (MX.sel === o.id) mxMsgs(R, d.msgs || []); }
+  catch (e) { fail(e); ta.value = t; }
+}
+/* cửa sổ Soạn: tin nhắn mới tới một lớp / gia sư (gửi vào Trao đổi) — không có quyền lớp thì mở Trợ lý */
+async function mxCompose() {
+  if (!canAny(['classes.view', 'classes.manage'])) return go('ai');
+  if (MX.cmp) { MX.cmp.classList.remove('min'); return MX.cmp.querySelector('textarea').focus(); }
+  const w = document.createElement('div'); w.className = 'mx-cmp'; MX.cmp = w;
+  w.innerHTML = '<div class="mx-cmp-h"><span>Tin nhắn mới</span><button class="mx-ib" data-min title="Thu nhỏ"><i class="bi bi-dash-lg"></i></button><button class="mx-ib" data-x title="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
+    '<label>Tới <select aria-label="Tới"><option value="">Đang tải danh sách lớp…</option></select></label><textarea placeholder="Nội dung"></textarea>' +
+    '<div class="mx-cmp-f"><button class="mx-b p" data-send><i class="bi bi-send"></i>Gửi</button><span style="flex:1"></span><button class="mx-ib" data-x title="Bỏ"><i class="bi bi-trash3"></i></button></div>';
+  document.body.appendChild(w);
+  w.addEventListener('click', async e => {
+    if (e.target.closest('[data-x]')) return mxCmpClose();
+    if (e.target.closest('[data-min]') || (e.target.closest('.mx-cmp-h') && w.classList.contains('min'))) return w.classList.toggle('min');
+    const b = e.target.closest('[data-send]'); if (!b) return;
+    const id = w.querySelector('select').value, t = w.querySelector('textarea').value.trim();
+    if (!id) return toast('Chọn người nhận (lớp)', 'warn'); if (!t) return toast('Chưa có nội dung', 'warn');
+    b.disabled = true; try { await rpc('classChatSend', { id: id, text: t }); toast('Đã gửi', 'ok'); mxCmpClose(); delete MX.items.chat; } catch (er) { fail(er); } finally { b.disabled = false; }
+  });
+  setTimeout(() => w.querySelector('textarea').focus(), 50);
+  try { if (!CL.d) await clReload(); } catch (e) {}
+  const sel = w.querySelector('select'), L = ((CL.d && CL.d.classes) || []).filter(c => !c.deleted).slice().sort((a, b) => natCmp(String(a.student || a.code), String(b.student || b.code)));
+  sel.innerHTML = '<option value="">— Chọn lớp —</option>' + L.map(c => '<option value="' + esc(c.id) + '">' + esc((String(c.student || '').trim() || c.code) + (c.tutorName ? ' · ' + c.tutorName : '')) + '</option>').join('');
+  const cur = MX.box === 'chat' && MX.sel; if (cur && L.some(c => c.id === cur)) sel.value = cur;
+}
+function mxCmpClose() { if (MX.cmp) { MX.cmp.remove(); MX.cmp = null; } }
+/* menu ⋮: đổi giao diện, link thử, ai được dùng */
+function mxMenu(anchor) {
+  const pc = mxPal();
+  const L = [{ t: 'Màu gốc Kiến Trẻ' + (pc === 'brand' ? ' ✓' : ''), i: 'bi-palette', fn: () => mxPalSet('brand') },
+    { t: 'Màu kiểu hộp thư' + (pc === 'mail' ? ' ✓' : ''), i: 'bi-palette2', fn: () => mxPalSet('mail') },
+    { t: mxEn() ? 'Tên hộp: tiếng Việt' : 'Tên hộp: như hộp thư (Inbox…)', i: 'bi-translate', fn: () => { lsSet('uxn', mxEn() ? 'vi' : 'en'); mxSide(); const v = $('.mx-view:not([hidden])'); if (v) mxShow(v, S.route.split('/').slice(1).join('/')); } },
+    { t: 'Quay về giao diện cũ', i: 'bi-arrow-counterclockwise', fn: () => mxSet(false) },
+    { t: 'Về giao diện này', i: 'bi-info-circle', fn: mxAbout },
+    { t: 'Sao chép link thử (…/mail)', i: 'bi-link-45deg', fn: () => copyText(linkOf('mail'), 'Đã chép link thử — người được phép mở là thấy giao diện Hộp thư') }];
+  if (can('settings.manage')) L.push({ t: 'Ai được dùng bản thử…', i: 'bi-people', fn: mxWho });
+  openMenu(anchor, L);
+}
+function mxAbout() {
+  modal({ title: 'Về giao diện Hộp thư', icon: 'bi-envelope-paper', body: '<p style="margin:0 0 10px">' + esc(MX_CREDIT) + '</p><p class="small muted" style="margin:0 0 10px">Đây là bản thử để so sánh bố cục: danh sách dạng dòng thư, khung đọc bên cạnh, trao đổi dạng tin nhắn, một nút Compose. Dữ liệu và quyền vẫn là của Kiến Chuyên môn. Gmail là nhãn hiệu của Google LLC.</p><p class="small muted" style="margin:0">Menu ⋮ › Quay về giao diện cũ để trở lại bất cứ lúc nào.</p>', foot: [{ t: 'Đóng' }] });
+}
+function mxWho() {
+  const m = modal({ title: 'Ai được dùng giao diện Hộp thư (thử)', icon: 'bi-envelope-paper', body: '<p class="small muted" style="margin:0 0 8px">Quản trị và chủ hệ thống luôn dùng được. Thêm email từng người (mỗi dòng một email hoặc cách nhau dấu phẩy). Họ vào app hoặc mở link …/mail là thấy nút bật.</p><textarea class="inp" rows="6" style="width:100%" placeholder="ten@gmail.com">' + esc(String((S.boot && S.boot.uxmAllow) || '').split(/[,\s]+/).filter(Boolean).join('\n')) + '</textarea>',
+    foot: [{ t: 'Huỷ' }, { t: 'Lưu', cls: 'pri', i: 'bi-check2', fn: async mm => {
+      const v = mm.$('textarea').value.toLowerCase().split(/[,\s;]+/).filter(e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)).filter((e, i, a) => a.indexOf(e) === i).join(',');
+      await rpc('saveSettings', { values: { uxMailAllow: v } }); S.boot.uxmAllow = v; toast('Đã lưu — ' + (v ? v.split(',').length : 0) + ' người', 'ok'); } }] });
+  return m;
+}
+/* tiện ích */
+/** đường dẫn: mail/in = Hộp thư, mail/<hộp>/<mã mục> */
+function mxR(k, id) { return 'mail/' + (k || 'in') + (id ? '/' + id : ''); }
+const MX_AVC = ['#1A73E8', '#D93025', '#188038', '#E37400', '#9334E6', '#007B83', '#C5221F', '#5F6368', '#B06000', '#3367D6'];
+const MX_AVB = ['#204983', '#F3663D', '#2D5DA3', '#0F6B3D', '#132C55', '#B93F12', '#4A78BD', '#8A5200', '#0891B2', '#6D28D9'];      // màu gốc: xanh Kiến Trẻ + cam
+function mxAv(x) { const n = String(x.from || '?'); let h = 0; for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+  return '<span class="mx-av" style="--av:' + (mxPal() === 'brand' ? MX_AVB : MX_AVC)[h % MX_AVC.length] + '">' + (x.ic && (MX.box === '' || MX.box === 'lib') ? '<i class="bi ' + x.ic + '"></i>' : esc(initials(n).slice(0, 1))) + '</span>'; }
+function mxD(t) { if (!t) return null; const d = typeof t === 'number' ? new Date(t) : /^\d{4}-\d{2}-\d{2}$/.test(String(t)) ? new Date(t + 'T00:00:00') : new Date(t); return isNaN(d) ? null : d; }
+function mxTime(t) { const d = mxD(t); return d ? pad(d.getHours()) + ':' + pad(d.getMinutes()) : ''; }
+function mxYmd(t) { const d = mxD(t); return d ? pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + (d.getFullYear() !== new Date().getFullYear() ? '/' + d.getFullYear() : '') : ''; }
+function mxDate(t, full) { const d = mxD(t); if (!d) return ''; const n = new Date();
+  if (full) return ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][d.getDay()] + ', ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + (typeof t === 'string' && t.length <= 10 ? '' : ', ' + mxTime(t));
+  return d.toDateString() === n.toDateString() ? mxTime(t) : d.getFullYear() === n.getFullYear() ? d.getDate() + ' thg ' + (d.getMonth() + 1) : pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + String(d.getFullYear()).slice(2); }
+/* gắn vào app: sau startApp (không sửa startApp — bọc ngoài, lỗi ở đây không làm hỏng phần đăng nhập / mở app) */
+function mxBoot() {
+  if (!$('#mxSw')) { const b = document.createElement('button'); b.type = 'button'; b.id = 'mxSw'; b.className = 'ibtn'; b.setAttribute('aria-label', 'Giao diện Hộp thư');
+    b.onclick = () => mxOn() ? mxMenu(b) : mxSet(true); $('#tbMode').before(b); }
+  $('#mxSw').hidden = !mxAllowed();
+  const on = mxAllowed() && mxPref(), init = window.INIT_ROUTE || '';
+  mxApply(on); lsSet('uxLast', on ? 'mail' : '');
+  if (on && (!init || init === 'home') && !S.freshIn) go('mail', { replace: true });
+}
+(function () { const sa = startApp; startApp = function () { const r = sa.apply(this, arguments); try { mxBoot(); } catch (e) { console.warn('mxBoot', e); } return r; }; })();
+document.addEventListener('uimode', () => { if (mxOn()) mxSide(); });
 </script>
 
 <script>
