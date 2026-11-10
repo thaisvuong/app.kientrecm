@@ -5200,7 +5200,7 @@ async function start(tries) {
   addEventListener('resize', debounce(() => setZoom(V.zoom, true), 150));
   addEventListener('keydown', e => { if (e.target.closest('input')) return; if (e.key === '+' || e.key === '=') stepZoom(1); if (e.key === '-') stepZoom(-1); if (e.key === '0') setZoom(1); });
   track();
-  { const Q = V.docs.slice(), run = async () => { while (Q.length) await load(Q.shift()); }; await Promise.all([run(), run()]); }      // 2 tài liệu cùng lúc, theo thứ tự (1.37.3) — tài liệu đầu vẫn hiện trước
+  { const Q = V.docs.slice(), run = async () => { while (Q.length) await load(Q.shift()); }; await Promise.all([run(), run(), run(), run()]); }      // (1.77.20) 4 tài liệu cùng lúc (máy chủ đọc theo đoạn byte, không đọc trùng) · trước: 2, theo thứ tự (1.37.3) — tài liệu đầu vẫn hiện trước
 }
 /** TẢI NỘI DUNG THEO PHẦN (1.37.2 · 1.37.3 — máy chủ: contentPart_): mỗi phần ~0,9 MB nên Google nén kịp, hết cảnh “mất kết nối” với PDF lớn.
     guess = số ký tự base64 đoán trước từ dung lượng file (PDF: 4·⌈byte/3⌉) → gửi ngay từ đầu (không chờ phần 0) tối đa 4 phần — file 2–4 phần (đa số) gửi hết một lượt.

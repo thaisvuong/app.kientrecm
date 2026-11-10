@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T08:25:01.541Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T12:40:59.151Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -14398,9 +14398,10 @@ function clRow(x, opt) {
       // tên lớp có mũi tên › → biết là bấm vào để mở chi tiết lớp
       : '<div class="cl-rc"><a class="cl-code" data-go="classes/c/' + c.id + '" title="Sửa nhanh lớp"><span class="cl-cn">' + esc(clName(c)) + '</span><i class="bi bi-chevron-right cl-cv"></i></a>' + clFlags(c) + clChatDot(c) + (c.student ? '<span class="cl-stu cl-cd">' + esc(c.code) + '</span>' : '') + (c.grade ? '<span class="cl-gr">' + esc(c.grade) + '</span>' : '') +
         '<small>' + (man ? (c.tutorEmail ? zlName(c.tutorName || c.tutorEmail.split('@')[0], c.tutorEmail) : 'Chưa có gia sư') + (x.time ? ' · ' + esc(x.time) : '') : dd.ws + ' ' + dd.dm + ' · ' + esc(dd.rel) + (x.time ? ' · ' + esc(x.time) : '')) + '</small></div>') +
-    '<div class="cl-rf">' + (x.sub ? '<span class="cl-sub" title="Gia sư dạy thay buổi này' + (x.sub.src === 'kgs' ? ' (theo lịch KGS)' : '') + '"><i class="bi bi-person-fill-gear"></i>Dạy thay: ' + esc(x.sub.e && S.me && x.sub.e === S.me.email ? 'bạn' : x.sub.n || x.sub.e) + '</span>' : '') + (man ? clKgsMark(x) : '') +      // (1.75) dạy thay · (1.77) sửa: phần tên bài bên dưới từng bị dính vào dòng chú thích này nên không hiện
-      (man || x.released ? clContentHtml(x, c) : c.manual && !x.status && x.gate !== 'prev' ? '' : '<span class="small muted"><i class="bi bi-lock"></i> ' + (x.gate === 'prev' ? 'Xác nhận buổi trước “Đã dạy” để mở nội dung' : 'Nội dung đang chờ quản lý duyệt') + '</span>') +
-      '<span class="cl-st ' + st.c + '"><i class="bi ' + st.i + '"></i>' + st.t + (x.ai ? aiMk('Bài do Trợ lý AI chọn' + (x.status === 'approved' ? ' và duyệt' : '')) : '') + (x.auto && x.status !== 'draft' ? '<small class="cl-sx"> · tự duyệt</small>' : '') + (auto ? '<small class="cl-sx"> · tự duyệt lúc ' + auto + '</small>' : '') + (x.status === 'taught' && x.taughtAt ? '<small class="cl-sx"> · ' + fmtDT(x.taughtAt) + '</small>' : '') + '</span>' + (x.rate && CL_RATE[x.rate] ? '<span class="cl-rate r-' + x.rate + '" title="Gia sư đánh giá bài với bé' + (x.rnote ? ': ' + esc(x.rnote) : '') + '"><i class="bi ' + CL_RATE[x.rate][1] + '"></i>' + CL_RATE[x.rate][0] + '</span>' : '') + '</div>' +
+    '<div class="cl-rf">' + (man && x.sub ? '<span class="cl-sub" title="Gia sư dạy thay buổi này' + (x.sub.src === 'kgs' ? ' (theo lịch KGS)' : '') + '"><i class="bi bi-person-fill-gear"></i>Dạy thay: ' + esc(x.sub.e && S.me && x.sub.e === S.me.email ? 'bạn' : x.sub.n || x.sub.e) + '</span>' : '') + (man ? clKgsMark(x) : '') +      // (1.75) dạy thay · (1.77) sửa: phần tên bài bên dưới từng bị dính vào dòng chú thích này nên không hiện
+      (man || x.released ? clContentHtml(x, c) : c.manual && !x.status && x.gate !== 'prev' ? '' : '<span class="small muted"><i class="bi bi-lock"></i> ' + (x.gate === 'prev' ? 'Mở sau khi bấm “Đã dạy” buổi trước' : 'Chờ duyệt') + '</span>') +
+      // (1.77.17) gia sư: buổi chưa phát đã có dòng khoá ở trên → không lặp nhãn “Chờ duyệt”; không hiện chi tiết nội bộ (AI chọn, tự duyệt lúc…, dạy thay) — chỉ quản lý thấy
+      (!man && !x.released && x.status !== 'taught' ? '' : '<span class="cl-st ' + st.c + '"><i class="bi ' + st.i + '"></i>' + st.t + (!man ? '' : (x.ai ? aiMk('Bài do Trợ lý AI chọn' + (x.status === 'approved' ? ' và duyệt' : '')) : '') + (x.auto && x.status !== 'draft' ? '<small class="cl-sx"> · tự duyệt</small>' : '') + (auto ? '<small class="cl-sx"> · tự duyệt lúc ' + auto + '</small>' : '')) + (x.status === 'taught' && x.taughtAt ? '<small class="cl-sx"> · ' + fmtDT(x.taughtAt) + '</small>' : '') + '</span>') + (x.rate && CL_RATE[x.rate] ? '<span class="cl-rate r-' + x.rate + '" title="Gia sư đánh giá bài với bé' + (x.rnote ? ': ' + esc(x.rnote) : '') + '"><i class="bi ' + CL_RATE[x.rate][1] + '"></i>' + CL_RATE[x.rate][0] + '</span>' : '') + '</div>' +
     // các nút nằm trong ô cố định → thẳng hàng giữa các dòng kể cả khi dòng không có nút đó
     '<div class="cl-ra ' + (man ? 'm' : 't') + '">' +
       (man ? '<span class="cl-slot">' + (x.status === 'draft' ? '<button class="btn xs pri" data-act="approve"><i class="bi bi-check2"></i>Duyệt</button>' : '') + '</span>' +
@@ -15762,7 +15763,7 @@ function clKaHtml(c) {
   const o = c.kask; if (!o || !o.at) return ''; const man = CL.d.manage;
   if (o.done) return man ? '<div class="cd-ka ok" id="cdKb"><i class="bi bi-patch-check-fill"></i><span><b>' + esc(o.doneName || 'Gia sư') + ' đã xác nhận kiến thức</b><small>' + esc([fmtDT(o.done), o.why || '', (c.done || []).length ? c.done.length + ' topic bỏ qua' : ''].filter(Boolean).join(' · ')) + '</small></span><span class="sp"></span><button type="button" class="btn xs ghost" data-ka="x" title="Ẩn dải này">Ẩn</button></div>' : '';
   return man ? '<div class="cd-ka" id="cdKb"><i class="bi bi-hourglass-split"></i><span><b>Đã nhờ gia sư xác nhận kiến thức — chờ gia sư</b><small>Gửi mail ' + esc(fmtDT(o.at)) + (o.round ? ' · theo đợt' : '') + '</small>' + (o.note ? '<small>' + esc(o.note) + '</small>' : '') + '</span><span class="sp"></span><button type="button" class="btn xs" data-ka="again"><i class="bi bi-envelope"></i>Nhắc lại</button><button type="button" class="btn xs ghost" data-ka="x">Huỷ</button></div>'
-    : '<div class="cd-ka ask" id="cdKb"><i class="bi bi-envelope-paper"></i><span><b>' + esc(o.name || 'Quản lý') + ' nhờ bạn xác nhận kiến thức của bé</b>' + (o.note ? '<small>' + esc(o.note) + '</small>' : '') + '<small>Tick các topic bé đã có kiến thức (đã học / không cần học) để bỏ qua, giúp bé theo kịp chương trình trên lớp.</small></span><span class="sp"></span><button type="button" class="btn xs pri" data-ka="do"><i class="bi bi-check2-square"></i>Xác nhận kiến thức</button><button type="button" class="btn xs" data-ka="none">Bé học theo lộ trình</button></div>';
+    : '<div class="cd-ka ask" id="cdKb"><i class="bi bi-envelope-paper"></i><span><b>' + esc(o.name || 'Quản lý') + ' nhờ bạn xác nhận kiến thức của bé</b>' + (o.note ? '<small>' + esc(o.note) + '</small>' : '') + '</span><span class="sp"></span><button type="button" class="btn xs pri" data-ka="do"><i class="bi bi-check2-square"></i>Xác nhận kiến thức</button><button type="button" class="btn xs" data-ka="none">Bé học theo lộ trình</button></div>';
 }
 async function clKaClick(e, c, done) {
   const b = e.target.closest('[data-ka]'); if (!b) return; const k = b.dataset.ka;
@@ -16759,8 +16760,8 @@ function clProgressHtml(c, Ls, used, sel) {
   let g0 = null;
   return (ed ? '' : clHistHtml(Ls)) + '<div class="cd-pgt0"><i class="bi bi-mortarboard"></i>' + esc(Ls.prog || 'Chương trình đang học') +
       (Ls.canStart && !ed ? '<span class="sp"></span><button type="button" class="btn xs pri" data-pge title="Tick những topic bé đã có kiến thức — có thể bỏ qua để theo kịp chương trình trên lớp"><i class="bi bi-check2-square"></i>Xác nhận kiến thức</button>' : '') + '</div>' +
-    (pend && !ed ? '<div class="cd-pge-h pq"><i class="bi bi-hourglass-split"></i><span><b>Đang chờ quản lý duyệt</b> cập nhật bài đã học' + (pd.a ? ' · +' + pd.a + ' bài' : '') + (pd.r ? ' · bỏ ' + pd.r + ' bài' : '') + (Ls.pendAt ? ' · gửi ' + ago(Ls.pendAt) : '') + '. Danh sách dưới đây hiện đúng như bạn đã tick; duyệt xong sẽ áp dụng.</span></div>' : '') +
-    (ed ? '<div class="cd-pge-h"><i class="bi bi-check2-square"></i><span><b>Xác nhận kiến thức:</b> tick các topic bé <b>đã có kiến thức</b> — đã học (ở trường, nơi khác, trước khi lên app) hoặc <b>không cần học</b>. Các topic này được <b>bỏ qua</b> để bé chuyển sang chủ đề khác, theo kịp chương trình trên lớp. Xong bấm <b>' + (Ls.ap ? 'Gửi duyệt' : 'Lưu') + '</b>. Bài đã dạy / đã phát theo buổi bị khoá — sửa ở nút “Đã dạy” của buổi đó.' + (Ls.ap ? ' Cập nhật được <b>quản lý duyệt</b> rồi mới áp dụng.' : ' Lưu xong, các buổi chưa duyệt tự xếp lại từ bài chưa học.') + '</span></div>' : '') +
+    (pend && !ed ? '<div class="cd-pge-h pq"><i class="bi bi-hourglass-split"></i><span><b>Chờ quản lý duyệt</b>' + (pd.a ? ' · +' + pd.a + ' bài' : '') + (pd.r ? ' · bỏ ' + pd.r + ' bài' : '') + (Ls.pendAt ? ' · gửi ' + ago(Ls.pendAt) : '') + '</span></div>' : '') +
+    (ed ? '<div class="cd-pge-h" title="Topic bé đã học (ở trường, nơi khác…) hoặc không cần học sẽ được bỏ qua. Bài đã dạy / đã phát bị khoá — sửa ở nút “Đã dạy” của buổi đó.' + (Ls.ap ? ' Quản lý duyệt rồi mới áp dụng.' : ' Lưu xong các buổi chưa duyệt tự xếp lại.') + '"><i class="bi bi-check2-square"></i><span>Tick topic bé <b>đã biết</b> để bỏ qua, rồi bấm <b>' + (Ls.ap ? 'Gửi duyệt' : 'Lưu') + '</b>.</span></div>' : '') +      // (1.77.17) gọn: chi tiết vào tooltip
     '<div class="cd-pgh"><b>' + doneN + ' / ' + Ls.lessons.length + '</b> bài đã học<div class="cd-pgb"><i style="width:' + Math.round(doneN * 100 / Ls.lessons.length) + '%"></i></div></div><div class="cd-pgl' + (ed ? ' ed' : '') + '">' +
     Ls.lessons.map((l, i) => { const u = st(l.id), gh = l.g !== g0 ? (g0 = l.g, l.g ? '<div class="cd-pgg"><i class="bi bi-folder2"></i>' + esc(l.g) + '</div>' : '') : '', lk = lock(l.id);
       const badge = u && lab[u.k] ? '<em class="cl-ub ' + u.c + '">' + lab[u.k] + '</em>' : '';
@@ -18176,6 +18177,7 @@ async function apPreview(x) {
 .ax-meta .tdel{ border:0; background:none; color:var(--muted); cursor:pointer; padding:0 4px; font-size:11.5px; opacity:0; transition:opacity .15s } .ax-m:hover .ax-meta .tdel{ opacity:1 } .ax-meta .tdel:hover{ color:var(--danger) }
 .ax-do{ display:flex; flex-direction:column; gap:3px; margin:6px 0 4px; padding:8px 10px; border:1px solid color-mix(in oklab, var(--primary) 30%, var(--border)); border-radius:12px; background:color-mix(in oklab, var(--primary) 4%, var(--surface)); max-width:560px }
 .ax-do button{ align-self:flex-start; display:inline-flex; gap:6px; align-items:center; border:0; border-radius:999px; padding:6px 12px; font-size:12.5px; font-weight:700; cursor:pointer; background:var(--primary); color:var(--on-primary, #fff) }
+.ax-in.done{ flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 8px } .ax-in .ok{ color:var(--ok) }      /* (1.77.19) nút In */
 .ax-do button:hover{ filter:brightness(1.08) } .ax-do button:disabled{ cursor:default; filter:none } .ax-do small{ font-size:12px; color:var(--ink-2); line-height:1.45 } .ax-do .why{ color:var(--muted) }
 .ax-do.done{ border-color:color-mix(in oklab, var(--ok) 35%, var(--border)); background:color-mix(in oklab, var(--ok) 6%, var(--surface)) } .ax-do.done button{ background:color-mix(in oklab, var(--ok) 16%, transparent); color:var(--ok) }
 .ax-do.dis button{ background:var(--surface-3); color:var(--muted) } .ax-do .ok{ color:var(--ok); font-weight:700 }
@@ -18596,6 +18598,7 @@ function aiChatView(body, arg) {
     const rd = e.target.closest('[data-rmd]'); if (rd) { C.drive.splice(Number(rd.dataset.rmd), 1); return aiPaintFiles(body); }
     const bc = e.target.closest('[data-bcls]'); if (bc) return go('classes/c/' + bc.dataset.bcls);
     const db = e.target.closest('[data-do]'); if (db) { const mm = db.closest('[data-rid]'); if (mm) return aiDoRun(db, mm.dataset.rid, () => aiPaintMsgs(body)); }
+    const ib = e.target.closest('[data-inp]'); if (ib) return aiInRun(ib);      // (1.77.19) nút In
     const nd = e.target.closest('[data-nhodel]'); if (nd) { const mm = nd.closest('[data-rid]'); return aiNhoDel(body, nd, mm && mm.dataset.rid); }
     const td = e.target.closest('[data-tdel]'); if (td) return aiConvDelete(body, '', td.dataset.tdel);
     const sk = e.target.closest('[data-skill]'); if (sk) { aiSlashPick(body, sk.dataset.skill); return; }
@@ -18711,7 +18714,7 @@ function aiMd(text, refs) {
   let nNho = 0; const nho = () => { const o = refs['NHO:' + nNho++]; if (!o || (!o.saved && !o.gone)) return '';      // (1.77.11) AI tự ghi nhớ điều lâu dài → dòng nhỏ + nút Bỏ
     return '<span class="ax-nho' + (o.gone ? ' gone' : '') + '"><i class="bi ' + (o.gone ? 'bi-bookmark-x' : 'bi-bookmark-check') + '"></i><span>' + (o.gone ? 'Đã bỏ khỏi bộ nhớ: ' : 'Đã ghi nhớ' + (o.be ? ' cho bé ' + esc(o.be) : '') + ': ') + '<b>' + esc(o.t) + '</b></span>' +
       (o.saved && AI.b.memOk ? '<button type="button" data-nhodel="' + esc(o.id) + '" title="Không nhớ điều này">Bỏ</button>' : '') + '</span>'; };
-  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip()).replace(/\[\[NHO:[^\]]{3,800}\]\]/g, () => nho()).replace(/\[([^\[\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>').replace(/(^|[\s(:;,])(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, (m, a, u) => a + '<a href="' + u + '" target="_blank" rel="noopener">' + (u.length > 60 ? u.slice(0, 57) + '…' : u) + '</a>')      // (1.77.13) link [chữ](url) và link trần → bấm mở tab mới
+  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip()).replace(/\[\[IN:([^\]]{3,3000})\]\]/g, (m, x) => aiInChip(x)).replace(/\[\[NHO:[^\]]{3,800}\]\]/g, () => nho()).replace(/\[([^\[\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>').replace(/(^|[\s(:;,])(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, (m, a, u) => a + '<a href="' + u + '" target="_blank" rel="noopener">' + (u.length > 60 ? u.slice(0, 57) + '…' : u) + '</a>')      // (1.77.13) link [chữ](url) và link trần → bấm mở tab mới
     .replace(/\[\[GOIY:([^\]]{2,800})\]\]/g, (m, x) => '<span class="ax-fu">' + x.split('|').map(t => t.trim()).filter(Boolean).slice(0, 4).map(t => '<button type="button" data-fu="' + t + '"><i class="bi bi-arrow-up-right"></i>' + t + '</button>').join('') + '</span>');      // (1.77.12) gợi ý hỏi tiếp / lựa chọn khi AI hỏi lại (chữ đã esc)
   const lines = String(text || '').replace(/\r/g, '').split('\n'); let h = '', list = '';
   const close = () => { if (list) { h += '</' + list + '>'; list = ''; } };
@@ -18727,6 +18730,27 @@ function aiMd(text, refs) {
     close(); if (!l.trim()) return; h += hd ? '<h4>' + inl(hd[1]) + '</h4>' : '<p>' + inl(l) + '</p>';
   });
   flushT(); close(); return h;
+}
+/* ── (1.77.19) NÚT IN: [[IN:<sid>=<tệp>,<tệp>;<sid>=…|<nhãn>]] → bấm tạo link in gộp (máy chủ printPick kiểm lại) ── */
+function aiInParse(spec) {
+  const [sel, lab] = String(spec).split('|'), items = String(sel || '').split(';').map(z => { const m = /^\s*([\w-]{4,})\s*=\s*(.+)$/.exec(z); return m ? { id: m[1], f: m[2].split(',').map(x => x.trim()).filter(x => /^[\w-]{8,}$/.test(x)) } : null; }).filter(o => o && o.f.length);
+  return { items: items, lab: String(lab || '').trim(), n: items.reduce((a, o) => a + o.f.length, 0) };
+}
+function aiInChip(spec) {
+  const P = aiInParse(spec); if (!P.n) return '';
+  return '<span class="ax-do ax-in"><button type="button" data-inp="' + esc(spec) + '"><i class="bi bi-printer"></i>' + esc(P.lab || 'Tạo link in') + (/tệp/i.test(P.lab) ? '' : ' · ' + P.n + ' tệp') + '</button><small>Tạo link in gộp đúng các tệp này — mở ra để in / lưu PDF</small></span>';
+}
+async function aiInRun(btn) {
+  const P = aiInParse(btn.dataset.inp), box = btn.closest('.ax-in'); if (!P.n || btn.disabled) return;
+  btn.disabled = true; const h0 = btn.innerHTML; btn.innerHTML = '<span class="dot spin"></span>Đang tạo link in…';
+  try {
+    const r = await rpc('printPick', { items: P.items, mode: 'print' }, { quiet: true });
+    const L = r.links || [{ url: r.url, who: r.name, files: r.files }];
+    try { window.open(L[0].url, '_blank', 'noopener'); } catch (e) {}
+    box.classList.add('done');
+    box.innerHTML = L.map(k => '<a class="btn xs" href="' + esc(k.url) + '" target="_blank" rel="noopener"><i class="bi bi-printer"></i>Mở bản in · ' + esc(k.who || '') + ' (' + k.files + ' tệp)</a>').join(' ') +
+      '<small class="ok">✓ Đã tạo link in ' + r.files + ' tệp' + (L.length > 1 ? ' · mỗi bé một link' : '') + '</small>';
+  } catch (e) { btn.disabled = false; btn.innerHTML = h0; const w = box.querySelector('.why') || box.appendChild(document.createElement('small')); w.className = 'why'; w.textContent = e.message || 'Không tạo được link in'; }
 }
 /* ── (1.77.13) BIỂU ĐỒ trong câu trả lời: [[CHART:loại|Tiêu đề|Nhãn A=12; Nhãn B=7|đơn vị]] · loại: bar (ngang) · col (cột) · line (đường) · pie (tròn) — rê chuột xem số, bấm chú thích để ẩn / hiện ── */
 const AI_CC = ['var(--primary)', '#ED5814', '#16A34A', '#7C3AED', '#0891B2', '#DB2777', '#CA8A04', '#64748B'];
