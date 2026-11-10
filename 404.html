@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T12:40:59.151Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T15:06:46.060Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -8275,6 +8275,7 @@ async function viewHome(arg, v) {
     if (e.target.closest('[data-libhid]')) return libHideMgr();
     const d = e.target.closest('[data-hmd]'); if (d) { HM.day = d.dataset.hmd; HM.all = 0; return hmWeek(v); }
     if (e.target.closest('[data-hmall]')) { HM.all = !HM.all; return hmWeek(v); }
+    const hp = e.target.closest('[data-hmpr]'); if (hp && CL.d) { clPbOpen(CL.d.sessions, hp); return; }      // (1.77.22) In tài liệu ở Trang chủ
     const ht = e.target.closest('[data-hmt]'); if (ht && CL.d) { const x = CL.d.sessions.find(z => z.id === ht.dataset.hmt); if (x) clAct(ht, 'taught', x, () => { hmWeek(v); hmCards(v); }); return; }
     const w = e.target.closest('[data-hmw]'); if (w) { HM.wk = w.dataset.hmw === '0' ? 0 : HM.wk + Number(w.dataset.hmw); HM.day = ''; return hmWeek(v); }
   };
@@ -8319,6 +8320,7 @@ function viewTutorHome(v) {
     '<div id="hTodo"></div>' +
     '<button type="button" class="tn-gd" data-go="guide"><i class="bi bi-book"></i><span><b>Mới dùng app?</b><small>Xem hướng dẫn ngắn — 3 mục là dùng được</small></span><i class="bi bi-chevron-right"></i></button></div>';
   v.onclick = e => {
+    const hp = e.target.closest('[data-hmpr]'); if (hp && CL.d) { clPbOpen(CL.d.sessions, hp); return; }
     const ht = e.target.closest('[data-hmt]'); if (ht && CL.d) { const x = CL.d.sessions.find(z => z.id === ht.dataset.hmt); if (x) clAct(ht, 'taught', x, paint); }
   };
   const ann = () => { const host = $('#tnAn', v); if (host) host.innerHTML = tnAnnCard(); };
@@ -9011,6 +9013,77 @@ const PNK = {
     page.drawText(text, { x: tx, y: top - h / 2 - fs * 0.35, size: fs, font: font, color: PNK.rgb(b.color || '#333333', L) });
   }
 };
+</script>
+
+<style>
+  .lv{ position:fixed; inset:0; z-index:1200; display:flex; flex-direction:column; background:var(--bg, #eef2f8) }
+  .lv-h{ display:flex; align-items:center; gap:8px; padding:8px 12px; padding-top:max(8px, env(safe-area-inset-top)); background:var(--surface, #fff); border-bottom:1px solid var(--border, #dde3ee) }
+  .lv-b{ display:inline-flex; align-items:center; gap:6px; border:0; background:var(--surface-2, #f1f4f9); color:var(--ink, #111); border-radius:999px; padding:7px 12px; font-weight:700; font-size:13px; cursor:pointer }
+  .lv-t{ flex:1; min-width:0; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .lv-f{ flex:1; width:100%; border:0; background:var(--bg, #eef2f8) }
+  html.lv-on, html.lv-on body{ overflow:hidden }
+  @media (max-width:640px){ .lv-b span{ display:none } .lv-h{ padding:6px 8px } }
+</style>
+<script>
+/* ══ (1.77.22) KHO PDF TRÊN MÁY (IndexedDB) — dùng chung cho app và trang link tạm (cùng tên miền → cùng kho)
+   · KPS.get / KPS.put: bytes PDF theo mã tệp + ngày sửa (tệp đổi bản → khoá khác, không dùng nhầm bản cũ) · giữ 4 ngày, tối đa ~400 MB
+   · kpsPrefetch() (chỉ trong app): TẢI SẴN tài liệu các buổi đã phát trong ~36 giờ tới của gia sư — chạy ngầm sau khi mở app và mỗi 20 phút,
+     2 tệp một lúc (không giành đường mạng). Gia sư bấm Link / In → trang link lấy thẳng từ máy, không chờ máy chủ. ══ */
+const KPS = (() => {
+  let dbp = null;
+  const db = () => dbp || (dbp = new Promise((res, rej) => { try { const r = indexedDB.open('kgs-pdf', 1); r.onupgradeneeded = () => r.result.createObjectStore('f'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }));
+  const tx = async (mode, fn) => { const d = await db(); return new Promise((res, rej) => { const t = d.transaction('f', mode), s = t.objectStore('f'); const out = fn(s); t.oncomplete = () => res(out && out.result !== undefined ? out.result : out); t.onerror = () => rej(t.error); }); };
+  const key = (id, m) => String(id) + ':' + String(m || '');
+  return {
+    key: key,
+    async get(id, m) { try { const o = await tx('readonly', s => s.get(key(id, m))); return o && o.b ? o.b : null; } catch (e) { return null; } },
+    async has(id, m) { try { const k = await tx('readonly', s => s.getKey(key(id, m))); return k !== undefined; } catch (e) { return false; } },
+    /** (1.77.22) thông tin link (shareOpen) lưu trên máy → trang link vẽ ngay, hỏi máy chủ ngầm */
+    async meta(tok) { try { const o = await tx('readonly', s => s.get('L:' + tok)); return o && o.j ? o.j : null; } catch (e) { return null; } },
+    async metaPut(tok, j) { try { await tx('readwrite', s => s.put({ j: j, at: Date.now(), n: 0 }, 'L:' + tok)); } catch (e) {} },
+    async put(id, m, bytes) { try { await tx('readwrite', s => s.put({ b: bytes, at: Date.now(), n: bytes.byteLength || bytes.length }, key(id, m))); } catch (e) {} },
+    /** dọn: bỏ bản quá 4 ngày, rồi bỏ bản cũ nhất tới khi tổng ≤ 400 MB */
+    async tidy() { try { const all = []; await tx('readonly', s => { const c = s.openCursor(); c.onsuccess = () => { const k = c.result; if (k) { all.push([k.key, k.value.at, k.value.n || 0]); k.continue(); } }; return c; });
+      const old = Date.now() - 4 * 86400000; let tot = all.reduce((a, x) => a + x[2], 0); const drop = [];
+      all.sort((a, b) => a[1] - b[1]).forEach(x => { if (x[1] < old || tot > 400e6) { drop.push(x[0]); tot -= x[2]; } });
+      if (drop.length) await tx('readwrite', s => { drop.forEach(k => s.delete(k)); }); } catch (e) {} }
+  };
+})();
+/* tải sẵn trong app — chỉ khi đang mở app trên tên miền (trang link tạm cùng kho), không ở chế độ tiết kiệm dữ liệu */
+async function kpsPrefetch() {
+  if (kpsPrefetch.run || typeof rpc !== 'function' || typeof partsGet !== 'function' || typeof S === 'undefined' || !S.me || S.me.preview || S.me.guest) return;
+  if (navigator.connection && navigator.connection.saveData) return;
+  kpsPrefetch.run = true;
+  try {
+    await KPS.tidy();
+    const r = await rpc('myLinkFiles', {}, { quiet: true }), Q = [];
+    for (const L of r.links || []) { if (L.open) KPS.metaPut(L.token, L.open); for (const f of L.files) if (!await KPS.has(f.id, f.m)) Q.push({ t: L.token, f: f }); }
+    const one = async () => { while (Q.length) { const o = Q.shift();
+      try { const x = await partsGet((fn, pl) => rpc(fn, pl, { quiet: true }), 'shareFile', { t: o.t, id: o.f.id }, o.f.t === 'pdf' && o.f.s ? Math.ceil(o.f.s / 3) * 4 : 0);
+        if (x && x.type === 'pdf' && x.b64) await KPS.put(o.f.id, o.f.m, b64bytes(x.b64)); } catch (e) { console.warn('tải sẵn', o.f.id, e && e.message); } } };
+    await Promise.all([one(), one()]);
+    kpsPrefetch.at = Date.now();
+  } catch (e) { console.warn('tải sẵn tài liệu', e && e.message); }
+  finally { kpsPrefetch.run = false; }
+}
+/* (1.77.22) MỞ LINK NGAY TRONG APP: khung toàn màn hình, thanh trên có ← Quay lại (cả nút Back của trình duyệt / điện thoại) + tên + sao chép / mở tab mới.
+   Trang link chạy trong khung (cùng tên miền → dùng kho PDF tải sẵn, vẫn In / Chọn tệp in như mở riêng). */
+function kpsOpen(url, title) {
+  if (!url) return; kpsClose(true);
+  const w = document.createElement('div'); w.className = 'lv'; w.id = 'kpsLv';
+  w.innerHTML = '<div class="lv-h"><button type="button" class="lv-b" data-lvx aria-label="Quay lại"><i class="bi bi-arrow-left"></i><span>Quay lại</span></button><b class="lv-t">' + esc(title || 'Tài liệu') + '</b>' +
+    '<button type="button" class="ibtn" data-lvc title="Sao chép link" aria-label="Sao chép link"><i class="bi bi-copy"></i></button><a class="ibtn" href="' + esc(url) + '" target="_blank" rel="noopener" title="Mở ở tab mới" aria-label="Mở ở tab mới"><i class="bi bi-box-arrow-up-right"></i></a></div>' +
+    '<iframe class="lv-f" src="' + esc(url) + '" title="' + esc(title || 'Tài liệu') + '" allow="clipboard-write"></iframe>';
+  w.onclick = e => { if (e.target.closest('[data-lvx]')) history.state && history.state.kpsLv ? history.back() : kpsClose(); if (e.target.closest('[data-lvc]')) (typeof copyText === 'function' ? copyText(url, 'Đã sao chép link') : navigator.clipboard.writeText(url)); };
+  document.body.appendChild(w); document.documentElement.classList.add('lv-on');
+  try { history.pushState(Object.assign({}, history.state || {}, { kpsLv: 1 }), ''); } catch (e) {}
+}
+function kpsClose(quiet) { const w = document.getElementById('kpsLv'); if (w) w.remove(); document.documentElement.classList.remove('lv-on'); }
+addEventListener('popstate', () => { if (document.getElementById('kpsLv') && !(history.state && history.state.kpsLv)) kpsClose(); });
+if (!document.getElementById('sh')) document.addEventListener('click', e => { const a = e.target.closest('a[data-lv]'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); e.stopPropagation(); kpsOpen(a.href, a.dataset.lv); }, true);      // link có data-lv → mở trong app
+if (!document.getElementById('sh')) {      // trong app (trang link tạm có khung #sh): bắt đầu ~5 giây sau khi đăng nhập xong, lặp mỗi 20 phút
+  (function kpsArm() { if (typeof S !== 'undefined' && S.me && !S.me.preview) { setTimeout(kpsPrefetch, 5000); setInterval(kpsPrefetch, 20 * 60000); } else setTimeout(kpsArm, 3000); })();
+}
 </script>
 
 <script>
@@ -14468,6 +14541,7 @@ async function clAct(anchor, act, x, done) {
     }
     if (act === 'edit') return clContent(x, done);
     if (act === 'link') { const r = await rpc('sessionLink', { id: x.id }); copyText(r.url, 'Đã tạo & sao chép link tạm'); return refresh(); }
+    if (act === 'copy' && !man && x.link.state === 'active') return kpsOpen(clLinkUrl(x), clName(c) + ' · ' + clDay(x.date, CL.d.today).dm);      // (1.77.22) gia sư: mở ngay trong app (có Quay lại, vẫn In)
     if (act === 'copy') return x.link.state === 'active' ? copyText(clLinkUrl(x), 'Đã sao chép link tạm') : toast('Link đã ' + (x.link.state === 'expired' ? 'hết hạn' : 'khoá'), 'warn');
     if (act === 'taught' && !man && (x.folders || []).length) return clTaughtDlg(x, c, done);      // gia sư: xác nhận từng bài đã dạy (bài chưa dạy chuyển buổi sau, bài dạy thêm không bị xếp lại)
     if (act === 'taught') { x.status = 'taught'; x.taughtAt = new Date().toISOString(); clQueue('sessionTaught', { id: x.id }, { key: 'taught:' + x.id, label: 'Đã dạy · ' + clName(c) + ' ' + clDay(x.date, CL.d.today).dm }).then(() => { delete CL_LES[c.id]; }, () => {});      // Lịch sử học có thêm buổi này
@@ -17003,7 +17077,7 @@ async function clPerms(B, v) {
    (1.69) NHANH HƠN: danh sách tệp tải sẵn lúc mở Buổi học + lưu trên máy (mở hộp là có ngay, tải ngầm bản mới) · MỖI BÉ MỘT LINK, mã link tạo trên máy
    → hiện link ngay, máy chủ lưu ngầm (hàng đợi ghi, rớt mạng tự gửi lại không trùng) · trang link chờ vài giây nếu mở trước khi lưu xong (Share.html). */
 function clPbIds(L) { return (L || []).filter(x => x.released && x.status !== 'taught' && !clSelf(x) && ((x.folders || []).length || (x.extra || []).length)).map(x => x.id); }
-function clPbBtn(L) { return clPbIds(L).length ? '<button type="button" class="btn sm cm-pb" id="cmPrint" title="In hàng loạt tài liệu các buổi đã phát"><i class="bi bi-printer"></i><span>In tài liệu</span></button>' : ''; }
+function clPbBtn(L) { return clPbIds(L).length ? '<button type="button" class="btn sm pri cm-pb" id="cmPrint" title="In hàng loạt tài liệu các buổi đã phát"><i class="bi bi-printer"></i><span>In tài liệu</span></button>' : ''; }
 const clPbKey = () => 'pbList:' + ((S.me && S.me.email) || '') + (S.as ? '#' + S.as : '');
 const clPbSig = ids => ids.slice().sort().join(',');
 const clPbRnd = (n, a) => Array.from(crypto.getRandomValues(new Uint8Array(n)), x => a[x % a.length]).join('');
@@ -17852,11 +17926,11 @@ function hmAgendaCard() {
   const L = D.sessions.filter(x => x.status !== 'off' && clClass(x.classId) && (x.date === t || x.date === clAdd(t, 1) || (x.date < t && x.released && x.status !== 'taught' && x.date >= clAdd(t, -7))))
     .sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : tm(a).localeCompare(tm(b)));
   const late = L.filter(x => x.date < t).length;
-  return '<div class="card-h"><h2><i class="bi bi-easel"></i>Bài dạy sắp tới</h2>' + (late ? '<span class="hm-pill red">' + late + ' buổi chưa bấm “Đã dạy”</span>' : '') + '<span class="sp"></span><button class="btn xs ghost" data-go="classes/todo">Buổi học<i class="bi bi-arrow-right"></i></button></div><div class="card-b hm-ag">' +
+  return '<div class="card-h"><h2><i class="bi bi-easel"></i>Bài dạy sắp tới</h2>' + (late ? '<span class="hm-pill red">' + late + ' buổi chưa bấm “Đã dạy”</span>' : '') + '<span class="sp"></span>' + (clPbIds(D.sessions).length ? '<button class="btn xs pri" data-hmpr title="In tài liệu các buổi đã phát (chọn tệp, bỏ đáp án)"><i class="bi bi-printer"></i>In tài liệu</button>' : '') + '<button class="btn xs ghost" data-go="classes/todo">Buổi học<i class="bi bi-arrow-right"></i></button></div><div class="card-b hm-ag">' +
     (L.length ? L.slice(0, 7).map(x => { const c = clClass(x.classId), dd = clDay(x.date, t), s = clState(x), fs = x.released ? (x.folders || []).map(f => clDirName(f) || (x.fnames && x.fnames[f]) || '').filter(Boolean) : [];
       return '<div class="hm-ar' + (x.date < t ? ' late' : '') + '" data-sid="' + x.id + '"><span class="hm-at"><b>' + (dd.diff === 0 ? (tm(x) || 'Hôm nay') : dd.diff === 1 ? 'Mai' : dd.dm) + '</b><small>' + (dd.diff === 0 ? 'hôm nay' : dd.diff === 1 ? (tm(x) || 'ngày mai') : dd.rel) + '</small></span>' +
         '<span class="hm-an"><b>' + esc(clName(c)) + '</b><small>' + (x.released ? (fs.length ? esc(fs.join(' · ')) : clSelf(x) ? 'Không có link tài liệu' : 'Chưa có bài') : '<i class="bi bi-lock"></i> ' + (x.gate === 'prev' ? 'Chờ bạn xác nhận buổi trước' : 'Chờ quản lý duyệt')) + '</small></span>' +
-        (x.released && x.link && x.link.state === 'active' ? '<a class="btn xs cl-lk" href="' + esc(clLinkUrl(x)) + '" target="_blank" rel="noopener" title="Mở link tài liệu của buổi"><i class="bi bi-link-45deg"></i>Link</a>' : '') +
+        (x.released && x.link && x.link.state === 'active' ? '<a class="btn xs cl-lk" href="' + esc(clLinkUrl(x)) + '" data-lv="' + esc(clName(c) + ' · ' + dd.dm) + '" title="Mở tài liệu của buổi (ngay trong app)"><i class="bi bi-link-45deg"></i>Link</a>' : '') +
         (x.released && x.status !== 'taught' ? '<button class="btn xs pri" data-hmt="' + x.id + '"><i class="bi bi-check2-all"></i>Đã dạy</button>' : x.status === 'taught' ? '<span class="cl-st ok"><i class="bi bi-check2-all"></i>Đã dạy</span>' : '<span class="cl-st ' + s.c + '"><i class="bi ' + s.i + '"></i></span>') + '</div>'; }).join('')
       : '<div class="hm-free"><i class="bi bi-cup-hot"></i>Hôm nay và ngày mai không có buổi dạy</div>') + '</div>';
 }

@@ -5011,7 +5011,11 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
     .pnl{ position:absolute; z-index:2; display:flex; align-items:center; box-sizing:border-box; font-family:ui-sans-serif, system-ui, -apple-system, Helvetica, Arial, sans-serif; line-height:1; white-space:nowrap; overflow:hidden; pointer-events:none; font-variant-numeric:tabular-nums }
     .pg canvas{ -webkit-user-drag:none; user-select:none; -webkit-touch-callout:none }
     @media (pointer:coarse){ .sh-zoom .ibtn{ width:36px; height:36px } .tc{ min-height:46px } }
+    /* (1.77.22) mở TRONG APP (khung nhúng): thanh trên của app đã có Quay lại + tên → ở đây chỉ còn danh sách tài liệu + nút In · điện thoại: bỏ dòng hiệu lực, bỏ thu phóng (dùng hai ngón) */
+    html.emb .sh-logo, html.emb .sh-t{ display:none } html.emb .sh-h{ padding:6px 10px } html.emb .sh-a{ margin-left:auto }
+    @media (max-width:640px){ .sh-t .meta, .sh-zoom{ display:none } }
   </style>
+  <script>if (window.top !== window.self) document.documentElement.classList.add('emb');</script>
 </head>
 <body>
 <div class="sh" id="sh">
@@ -5089,6 +5093,77 @@ const PNK = {
 };
 </script>
 
+<style>
+  .lv{ position:fixed; inset:0; z-index:1200; display:flex; flex-direction:column; background:var(--bg, #eef2f8) }
+  .lv-h{ display:flex; align-items:center; gap:8px; padding:8px 12px; padding-top:max(8px, env(safe-area-inset-top)); background:var(--surface, #fff); border-bottom:1px solid var(--border, #dde3ee) }
+  .lv-b{ display:inline-flex; align-items:center; gap:6px; border:0; background:var(--surface-2, #f1f4f9); color:var(--ink, #111); border-radius:999px; padding:7px 12px; font-weight:700; font-size:13px; cursor:pointer }
+  .lv-t{ flex:1; min-width:0; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .lv-f{ flex:1; width:100%; border:0; background:var(--bg, #eef2f8) }
+  html.lv-on, html.lv-on body{ overflow:hidden }
+  @media (max-width:640px){ .lv-b span{ display:none } .lv-h{ padding:6px 8px } }
+</style>
+<script>
+/* ══ (1.77.22) KHO PDF TRÊN MÁY (IndexedDB) — dùng chung cho app và trang link tạm (cùng tên miền → cùng kho)
+   · KPS.get / KPS.put: bytes PDF theo mã tệp + ngày sửa (tệp đổi bản → khoá khác, không dùng nhầm bản cũ) · giữ 4 ngày, tối đa ~400 MB
+   · kpsPrefetch() (chỉ trong app): TẢI SẴN tài liệu các buổi đã phát trong ~36 giờ tới của gia sư — chạy ngầm sau khi mở app và mỗi 20 phút,
+     2 tệp một lúc (không giành đường mạng). Gia sư bấm Link / In → trang link lấy thẳng từ máy, không chờ máy chủ. ══ */
+const KPS = (() => {
+  let dbp = null;
+  const db = () => dbp || (dbp = new Promise((res, rej) => { try { const r = indexedDB.open('kgs-pdf', 1); r.onupgradeneeded = () => r.result.createObjectStore('f'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }));
+  const tx = async (mode, fn) => { const d = await db(); return new Promise((res, rej) => { const t = d.transaction('f', mode), s = t.objectStore('f'); const out = fn(s); t.oncomplete = () => res(out && out.result !== undefined ? out.result : out); t.onerror = () => rej(t.error); }); };
+  const key = (id, m) => String(id) + ':' + String(m || '');
+  return {
+    key: key,
+    async get(id, m) { try { const o = await tx('readonly', s => s.get(key(id, m))); return o && o.b ? o.b : null; } catch (e) { return null; } },
+    async has(id, m) { try { const k = await tx('readonly', s => s.getKey(key(id, m))); return k !== undefined; } catch (e) { return false; } },
+    /** (1.77.22) thông tin link (shareOpen) lưu trên máy → trang link vẽ ngay, hỏi máy chủ ngầm */
+    async meta(tok) { try { const o = await tx('readonly', s => s.get('L:' + tok)); return o && o.j ? o.j : null; } catch (e) { return null; } },
+    async metaPut(tok, j) { try { await tx('readwrite', s => s.put({ j: j, at: Date.now(), n: 0 }, 'L:' + tok)); } catch (e) {} },
+    async put(id, m, bytes) { try { await tx('readwrite', s => s.put({ b: bytes, at: Date.now(), n: bytes.byteLength || bytes.length }, key(id, m))); } catch (e) {} },
+    /** dọn: bỏ bản quá 4 ngày, rồi bỏ bản cũ nhất tới khi tổng ≤ 400 MB */
+    async tidy() { try { const all = []; await tx('readonly', s => { const c = s.openCursor(); c.onsuccess = () => { const k = c.result; if (k) { all.push([k.key, k.value.at, k.value.n || 0]); k.continue(); } }; return c; });
+      const old = Date.now() - 4 * 86400000; let tot = all.reduce((a, x) => a + x[2], 0); const drop = [];
+      all.sort((a, b) => a[1] - b[1]).forEach(x => { if (x[1] < old || tot > 400e6) { drop.push(x[0]); tot -= x[2]; } });
+      if (drop.length) await tx('readwrite', s => { drop.forEach(k => s.delete(k)); }); } catch (e) {} }
+  };
+})();
+/* tải sẵn trong app — chỉ khi đang mở app trên tên miền (trang link tạm cùng kho), không ở chế độ tiết kiệm dữ liệu */
+async function kpsPrefetch() {
+  if (kpsPrefetch.run || typeof rpc !== 'function' || typeof partsGet !== 'function' || typeof S === 'undefined' || !S.me || S.me.preview || S.me.guest) return;
+  if (navigator.connection && navigator.connection.saveData) return;
+  kpsPrefetch.run = true;
+  try {
+    await KPS.tidy();
+    const r = await rpc('myLinkFiles', {}, { quiet: true }), Q = [];
+    for (const L of r.links || []) { if (L.open) KPS.metaPut(L.token, L.open); for (const f of L.files) if (!await KPS.has(f.id, f.m)) Q.push({ t: L.token, f: f }); }
+    const one = async () => { while (Q.length) { const o = Q.shift();
+      try { const x = await partsGet((fn, pl) => rpc(fn, pl, { quiet: true }), 'shareFile', { t: o.t, id: o.f.id }, o.f.t === 'pdf' && o.f.s ? Math.ceil(o.f.s / 3) * 4 : 0);
+        if (x && x.type === 'pdf' && x.b64) await KPS.put(o.f.id, o.f.m, b64bytes(x.b64)); } catch (e) { console.warn('tải sẵn', o.f.id, e && e.message); } } };
+    await Promise.all([one(), one()]);
+    kpsPrefetch.at = Date.now();
+  } catch (e) { console.warn('tải sẵn tài liệu', e && e.message); }
+  finally { kpsPrefetch.run = false; }
+}
+/* (1.77.22) MỞ LINK NGAY TRONG APP: khung toàn màn hình, thanh trên có ← Quay lại (cả nút Back của trình duyệt / điện thoại) + tên + sao chép / mở tab mới.
+   Trang link chạy trong khung (cùng tên miền → dùng kho PDF tải sẵn, vẫn In / Chọn tệp in như mở riêng). */
+function kpsOpen(url, title) {
+  if (!url) return; kpsClose(true);
+  const w = document.createElement('div'); w.className = 'lv'; w.id = 'kpsLv';
+  w.innerHTML = '<div class="lv-h"><button type="button" class="lv-b" data-lvx aria-label="Quay lại"><i class="bi bi-arrow-left"></i><span>Quay lại</span></button><b class="lv-t">' + esc(title || 'Tài liệu') + '</b>' +
+    '<button type="button" class="ibtn" data-lvc title="Sao chép link" aria-label="Sao chép link"><i class="bi bi-copy"></i></button><a class="ibtn" href="' + esc(url) + '" target="_blank" rel="noopener" title="Mở ở tab mới" aria-label="Mở ở tab mới"><i class="bi bi-box-arrow-up-right"></i></a></div>' +
+    '<iframe class="lv-f" src="' + esc(url) + '" title="' + esc(title || 'Tài liệu') + '" allow="clipboard-write"></iframe>';
+  w.onclick = e => { if (e.target.closest('[data-lvx]')) history.state && history.state.kpsLv ? history.back() : kpsClose(); if (e.target.closest('[data-lvc]')) (typeof copyText === 'function' ? copyText(url, 'Đã sao chép link') : navigator.clipboard.writeText(url)); };
+  document.body.appendChild(w); document.documentElement.classList.add('lv-on');
+  try { history.pushState(Object.assign({}, history.state || {}, { kpsLv: 1 }), ''); } catch (e) {}
+}
+function kpsClose(quiet) { const w = document.getElementById('kpsLv'); if (w) w.remove(); document.documentElement.classList.remove('lv-on'); }
+addEventListener('popstate', () => { if (document.getElementById('kpsLv') && !(history.state && history.state.kpsLv)) kpsClose(); });
+if (!document.getElementById('sh')) document.addEventListener('click', e => { const a = e.target.closest('a[data-lv]'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); e.stopPropagation(); kpsOpen(a.href, a.dataset.lv); }, true);      // link có data-lv → mở trong app
+if (!document.getElementById('sh')) {      // trong app (trang link tạm có khung #sh): bắt đầu ~5 giây sau khi đăng nhập xong, lặp mỗi 20 phút
+  (function kpsArm() { if (typeof S !== 'undefined' && S.me && !S.me.preview) { setTimeout(kpsPrefetch, 5000); setInterval(kpsPrefetch, 20 * 60000); } else setTimeout(kpsArm, 3000); })();
+}
+</script>
+
 <script>
 'use strict';
 const SHQ = new URLSearchParams(location.search), TOKEN = (SHQ.get('t') || (/^\/s\/([\w-]+)/.exec(location.pathname) || [])[1] || '').replace(/[^\w-]/g, '');
@@ -5137,7 +5212,14 @@ const targetW = () => Math.min(1000, Math.max(240, V.main.clientWidth - (innerWi
 
 async function start(tries) {
   let L;
-  try { L = await rpc('shareOpen', { t: TOKEN, ua: navigator.userAgent }); }
+  // (1.77.22) thông tin link đã lưu trên máy (app tải sẵn / lần mở trước) → vẽ ngay; máy chủ kiểm ngầm: hết hạn / thu hồi → báo, danh sách tệp đổi → tải lại
+  const C0 = await KPS.meta(TOKEN), fresh = rpc('shareOpen', { t: TOKEN, ua: navigator.userAgent, v: 2 });
+  rpc('shareSeen', { t: TOKEN, ua: navigator.userAgent }).catch(() => {});
+  if (C0 && (!C0.expiresAt || new Date(C0.expiresAt) > new Date())) {
+    fresh.then(j => { KPS.metaPut(TOKEN, j); if (j.files.map(f => f.id + f.m).join() !== C0.files.map(f => f.id + f.m).join()) location.reload(); },
+      e => { if (e.code === 'EXPIRED' || e.code === 'GONE') { KPS.metaPut(TOKEN, null); const b = document.querySelector('.sh-b'); if (b) b.remove(); fail(e.code === 'EXPIRED' ? 'Link đã hết hạn' : 'Link không còn hiệu lực', e.message, 'bi-link-45deg'); } });
+  }
+  try { L = C0 && (!C0.expiresAt || new Date(C0.expiresAt) > new Date()) ? C0 : await fresh; if (L !== C0) KPS.metaPut(TOKEN, L); }      // (1.77.21) lượt xem ghi ngầm, song song
   catch (e) {
     // (1.69) link in vừa tạo trên máy gia sư (hiện ngay, lưu ngầm) — mở trước khi máy chủ lưu xong → chờ thêm vài giây rồi thử lại
     if (e.code === 'GONE' && /không tồn tại/.test(e.message || '') && (tries || 0) < 12) { const t = document.querySelector('#load .ld-t'); if (t) t.textContent = 'Link đang được chuẩn bị… (' + ((tries || 0) + 1) + ')'; return setTimeout(() => start((tries || 0) + 1), 2500); }
@@ -5200,7 +5282,7 @@ async function start(tries) {
   addEventListener('resize', debounce(() => setZoom(V.zoom, true), 150));
   addEventListener('keydown', e => { if (e.target.closest('input')) return; if (e.key === '+' || e.key === '=') stepZoom(1); if (e.key === '-') stepZoom(-1); if (e.key === '0') setZoom(1); });
   track();
-  { const Q = V.docs.slice(), run = async () => { while (Q.length) await load(Q.shift()); }; await Promise.all([run(), run(), run(), run()]); }      // (1.77.20) 4 tài liệu cùng lúc (máy chủ đọc theo đoạn byte, không đọc trùng) · trước: 2, theo thứ tự (1.37.3) — tài liệu đầu vẫn hiện trước
+  await Promise.all(V.docs.map(load));      // (1.77.21) mọi tài liệu cùng lúc — số lệnh gửi máy chủ do slot() giới hạn ≤ 24 (theo thứ tự) · trước: 2 → 4 tài liệu      // (1.77.20) 4 tài liệu cùng lúc (máy chủ đọc theo đoạn byte, không đọc trùng) · trước: 2, theo thứ tự (1.37.3) — tài liệu đầu vẫn hiện trước
 }
 /** TẢI NỘI DUNG THEO PHẦN (1.37.2 · 1.37.3 — máy chủ: contentPart_): mỗi phần ~0,9 MB nên Google nén kịp, hết cảnh “mất kết nối” với PDF lớn.
     guess = số ký tự base64 đoán trước từ dung lượng file (PDF: 4·⌈byte/3⌉) → gửi ngay từ đầu (không chờ phần 0) tối đa 4 phần — file 2–4 phần (đa số) gửi hết một lượt.
@@ -5222,6 +5304,20 @@ async function partsGet(call, fn, base, guess) {
   return out;
 }
 /** số ký tự base64 đoán trước của một PDF theo dung lượng (0 = không đoán) */
+/** (1.77.21) GIỚI HẠN LỆNH ĐANG CHẠY: Apps Script cho ~30 lượt chạy cùng lúc mỗi web app → giữ ≤ 24 lệnh tải tệp, phần còn lại xếp hàng theo thứ tự gửi
+    (tài liệu đầu vẫn ra trước). Mỗi lệnh chờ máy chủ vài giây nên gửi song song nhiều lệnh nhanh hơn hẳn tải lần lượt. */
+const SLOT = { n: 0, max: 24, q: [] };
+function slot(fn) {
+  return new Promise((res, rej) => { const go = () => { SLOT.n++; fn().then(res, rej).finally(() => { SLOT.n--; const nx = SLOT.q.shift(); if (nx) nx(); }); };
+    if (SLOT.n < SLOT.max) go(); else SLOT.q.push(go); });
+}
+/** (1.77.22) TẢI THẲNG TỪ DRIVE (chế độ xem “Ai có link”: khoá API + tệp chia sẻ theo link) — không qua Apps Script (~3 giây / lệnh). Lỗi → null (qua máy chủ) */
+async function direct(f) {
+  const G = 'https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(f.id), k = '&key=' + encodeURIComponent(V.L.dk);
+  const url = f.t === 'pdf' ? G + '?alt=media&supportsAllDrives=true' + k : /^g(doc|sheet|slides|draw)$/.test(f.t) ? G + '/export?mimeType=application%2Fpdf' + k : '';
+  if (!url) return null;
+  try { const r = await fetch(url); if (!r.ok) return null; const b = new Uint8Array(await r.arrayBuffer()); return b.length > 4 && b[0] === 0x25 && b[1] === 0x50 ? b : null; } catch (e) { return null; }      // %P = PDF
+}
 function partsGuess(type, size) { return type === 'pdf' && Number(size) > 0 ? Math.ceil(Number(size) / 3) * 4 : 0; }
 function debounce(fn, ms) { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; }
 
@@ -5234,9 +5330,15 @@ function load(d) {
     if (d.i < 3 && !(d.f.p && d.f.p.length && d.f.p[0] !== 1)) rpc('sharePeek', { t: TOKEN, id: d.f.id, w: Math.round(Math.min(1000, innerWidth) * Math.min(2, devicePixelRatio || 1)) })
       .then(r => { const ph = sec && $('.ph', sec); if (r && r.url && ph && !ph.firstChild) ph.innerHTML = '<img src="' + r.url + '" alt="" style="width:100%;height:100%;object-fit:contain;display:block">'; }).catch(() => {});
     try {
-      const r = await partsGet((fn, pl) => rpc(fn, pl), 'shareFile', { t: TOKEN, id: d.f.id }, partsGuess(d.f.t, d.f.s));      // theo phần, gửi mọi phần ngay từ đầu (1.37.3)
-      if (r.type !== 'pdf') throw Object.assign(new Error(r.type === 'big' ? 'Tài liệu quá lớn để xem trực tuyến (' + fmtSize(r.size) + ')' : 'Không xem được định dạng này'), { soft: 1 });
-      const bytes = b64bytes(r.b64);
+      // (1.77.22) 1 · bản đã tải sẵn trên máy (app tải ngầm cho gia sư / lần mở trước) → 2 · tải thẳng từ Drive (chế độ “Ai có link”) → 3 · qua máy chủ
+      let bytes = d.f.m ? await KPS.get(d.f.id, d.f.m) : null; d.src = bytes ? 'máy' : '';
+      if (!bytes && V.L.dk) { bytes = await direct(d.f); if (bytes) d.src = 'drive'; }
+      if (!bytes) {
+        const r = await partsGet((fn, pl) => slot(() => rpc(fn, pl)), 'shareFile', { t: TOKEN, id: d.f.id }, partsGuess(d.f.t, d.f.s));      // theo phần, gửi mọi phần ngay từ đầu (1.37.3)
+        if (r.type !== 'pdf') throw Object.assign(new Error(r.type === 'big' ? 'Tài liệu quá lớn để xem trực tuyến (' + fmtSize(r.size) + ')' : 'Không xem được định dạng này'), { soft: 1 });
+        bytes = b64bytes(r.b64); d.src = 'máy chủ';
+      }
+      if (d.src !== 'máy' && d.f.m) KPS.put(d.f.id, d.f.m, bytes.slice());      // lần sau mở lại có ngay
       if (V.L.download || V.L.pickDl) d.bytes = bytes.slice();
       const lib = await pdfReady();
       d.pdf = await lib.getDocument({ data: bytes }).promise;
