@@ -288,6 +288,9 @@ select.sel{ appearance:none; -webkit-appearance:none; padding-right:28px; cursor
 .search{ position:relative }
 .search i{ position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:12px }
 .search .inp{ padding-left:30px }
+.tn-ka{ border:1px solid color-mix(in oklab, var(--primary) 35%, var(--border)) } .tn-kar{ display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--border) } .tn-kar:first-child{ border-top:0 }
+.tn-kar > span{ flex:1; min-width:0 } .tn-kar small{ display:block; color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }      /* (1.77.25) Trang chủ gia sư: lời nhờ xác nhận kiến thức */
+textarea.inp{ height:auto; min-height:84px; padding:9px 10px; line-height:1.5; resize:vertical }      /* (1.77.25) ô nhiều dòng dùng lớp .inp bị ép cao 34px → chữ gợi ý bị cắt, che lấp (Lưu ý đặc biệt…) */
 
 .seg{ display:inline-flex; position:relative; background:var(--surface-3); border-radius:20px; padding:3px; box-shadow:inset 0 1px 2px rgba(16,24,40,.07) }
 .seg-b{ position:relative; z-index:1; min-height:28px; padding:0 12px; border:0; background:none; border-radius:16px; font-size:11px; font-weight:800; color:var(--muted); cursor:pointer;
@@ -4911,9 +4914,14 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 /* (1.75.2) NHÃN NHÓM thanh bên Kiến CM (CM_SEC · buildNav): chữ nhỏ, nhạt; nhóm sau cách nhóm trước một khoảng · thanh bên thu gọn → vạch mảnh thay chữ */
 .app .sb-nav .nav-sec{ display:block; flex:none; padding:12px 12px 4px; font-size:11px; line-height:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--sb-ink-3, var(--muted)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .app .sb-nav .nav-sec.n1{ padding-top:2px }
-.app.mini .sb-nav .nav-sec{ display:block !important; font-size:0; height:1px; padding:0; margin:10px 14px; background:var(--border) } .app.mini .sb-nav .nav-sec.n1{ display:none !important }
+.app.mini .sb-nav .nav-sec{ display:block !important; font-size:0; height:1px; padding:0; margin:15px 14px 16px; background:var(--border) } .app.mini .sb-nav .nav-sec.n1{ display:block !important; height:22px; margin:0; background:none }      /* (1.77.25) giữ đúng chiều cao nhãn nhóm (32px / nhóm đầu 22px) → thu gọn thanh bên các mục không dịch lên */
 .app.mini .sb-nav .nav-sec::after{ content:none }
-@media (min-width:821px) and (max-width:1100px){ .app:not(.wide) .sb-nav .nav-sec{ display:block !important; font-size:0; height:1px; padding:0; margin:10px 14px; background:var(--border) } .app:not(.wide) .sb-nav .nav-sec.n1{ display:none !important } }
+@media (min-width:821px) and (max-width:1100px){ .app:not(.wide) .sb-nav .nav-sec{ display:block !important; font-size:0; height:1px; padding:0; margin:15px 14px 16px; background:var(--border) } .app:not(.wide) .sb-nav .nav-sec.n1{ display:block !important; height:22px; margin:0; background:none } }
+/* (1.77.25) Trang chủ gia sư trên điện thoại: đầu thẻ “Bài dạy sắp tới” một hàng — tên không xuống từng chữ; bỏ nhãn “n buổi chưa bấm Đã dạy” (đã có ở ô số phía trên) và nút Buổi học (đã có ở thanh tab dưới) */
+@media (max-width:640px){
+  .hm-ag2 > .card-h{ flex-wrap:nowrap; gap:8px } .hm-ag2 > .card-h h2{ white-space:nowrap; min-width:0; overflow:hidden; text-overflow:ellipsis; font-size:15px }
+  .hm-ag2 > .card-h .hm-pill, .hm-ag2 > .card-h [data-go="classes/todo"]{ display:none }
+}
 </style>
 
   <style>
@@ -5094,7 +5102,7 @@ const PNK = {
 </script>
 
 <style>
-  .lv{ position:fixed; inset:0; z-index:1200; display:flex; flex-direction:column; background:var(--bg, #eef2f8) }
+  .lv{ position:fixed; inset:0; z-index:5000; display:flex; flex-direction:column; background:var(--bg, #eef2f8) }
   .lv-h{ display:flex; align-items:center; gap:8px; padding:8px 12px; padding-top:max(8px, env(safe-area-inset-top)); background:var(--surface, #fff); border-bottom:1px solid var(--border, #dde3ee) }
   .lv-b{ display:inline-flex; align-items:center; gap:6px; border:0; background:var(--surface-2, #f1f4f9); color:var(--ink, #111); border-radius:999px; padding:7px 12px; font-weight:700; font-size:13px; cursor:pointer }
   .lv-t{ flex:1; min-width:0; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
@@ -5158,8 +5166,8 @@ function kpsOpen(url, title) {
 }
 function kpsClose(quiet) { const w = document.getElementById('kpsLv'); if (w) w.remove(); document.documentElement.classList.remove('lv-on'); }
 addEventListener('popstate', () => { if (document.getElementById('kpsLv') && !(history.state && history.state.kpsLv)) kpsClose(); });
-if (!document.getElementById('sh')) document.addEventListener('click', e => { const a = e.target.closest('a[data-lv]'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); e.stopPropagation(); kpsOpen(a.href, a.dataset.lv); }, true);      // link có data-lv → mở trong app
-if (!document.getElementById('sh')) {      // trong app (trang link tạm có khung #sh): bắt đầu ~5 giây sau khi đăng nhập xong, lặp mỗi 20 phút
+if (!document.getElementById('sh') && !document.getElementById('pg')) document.addEventListener('click', e => { const a = e.target.closest('a[data-lv]'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); e.stopPropagation(); kpsOpen(a.href, a.dataset.lv); }, true);      // link có data-lv → mở trong app
+if (!document.getElementById('sh') && !document.getElementById('pg')) {      // trong app (không phải trang link #sh / trang in QLTT #pg) (trang link tạm có khung #sh): bắt đầu ~5 giây sau khi đăng nhập xong, lặp mỗi 20 phút
   (function kpsArm() { if (typeof S !== 'undefined' && S.me && !S.me.preview) { setTimeout(kpsPrefetch, 5000); setInterval(kpsPrefetch, 20 * 60000); } else setTimeout(kpsArm, 3000); })();
 }
 </script>
@@ -5318,6 +5326,7 @@ async function direct(f) {
   if (!url) return null;
   try { const r = await fetch(url); if (!r.ok) return null; const b = new Uint8Array(await r.arrayBuffer()); return b.length > 4 && b[0] === 0x25 && b[1] === 0x50 ? b : null; } catch (e) { return null; }      // %P = PDF
 }
+const IOS_PRINT = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);      // (1.77.25) in trên iOS
 function partsGuess(type, size) { return type === 'pdf' && Number(size) > 0 ? Math.ceil(Number(size) / 3) * 4 : 0; }
 function debounce(fn, ms) { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; }
 
@@ -5464,7 +5473,10 @@ async function printAll(list) {
       if (pass) stampPrint(cv, pass);
       const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.9));
       const box = document.createElement('div'); box.className = 'pp';
-      box.style.cssText = 'page:' + sizes[key] + ';width:' + W + 'pt;height:' + (H - 0.6) + 'pt';   // thấp hơn 0,6pt để làm tròn không đẩy sang tờ mới
+      // (1.77.25) iPhone / iPad: Safari bỏ qua khổ @page, tự thêm lề + đầu / chân trang (link, ngày, “Page 1 of 4”) → vùng in nhỏ hơn tờ giấy,
+      // trang đủ khổ bị tràn sang tờ sau = TRANG TRẮNG. Thu trang vừa vùng in (88%) và căn giữa
+      const sc = IOS_PRINT ? 0.88 : 1;
+      box.style.cssText = 'page:' + sizes[key] + ';width:' + (W * sc).toFixed(2) + 'pt;height:' + (H * sc - 0.6).toFixed(2) + 'pt' + (sc < 1 ? ';margin:0 auto' : '');   // thấp hơn 0,6pt để làm tròn không đẩy sang tờ mới
       const img = new Image(); img.src = URL.createObjectURL(blob); box.appendChild(img); area.appendChild(box);
       await img.decode().catch(() => {});
       n++;

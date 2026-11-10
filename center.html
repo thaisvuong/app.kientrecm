@@ -34,10 +34,86 @@ button.bt.ok{ background:#0F7B45 } button.bt.gh{ background:#E8EDF6; color:#1E3A
 .ft{ display:flex; justify-content:flex-end; margin-top:10px; gap:8px }
 .tag{ font-size:12px; font-weight:700; padding:2px 9px; border-radius:999px; background:#DCFCE7; color:#15803D }
 .empty{ padding:28px; text-align:center; color:#6B7385; background:#fff; border-radius:16px }
+/* (1.77.25) trạng thái tải sẵn từng link: xám chờ · cam đang tải · xanh sẵn sàng in · đỏ lỗi */
+.pf{ display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; padding:2px 9px; border-radius:999px; margin-top:4px; background:#EEF1F6; color:#6B7385 }
+.pf::before{ content:''; width:7px; height:7px; border-radius:50%; background:currentColor }
+.pf.load{ background:#FFF1E6; color:#C2410C } .pf.ok{ background:#DCFCE7; color:#15803D } .pf.err{ background:#FEE2E2; color:#B91C1C }
+a.bt.rdy{ background:#0F7B45 }
   </style>
 </head>
 <body>
 <main id="pg"><div class="empty">Đang tải trang in…</div></main>
+<style>
+  .lv{ position:fixed; inset:0; z-index:5000; display:flex; flex-direction:column; background:var(--bg, #eef2f8) }
+  .lv-h{ display:flex; align-items:center; gap:8px; padding:8px 12px; padding-top:max(8px, env(safe-area-inset-top)); background:var(--surface, #fff); border-bottom:1px solid var(--border, #dde3ee) }
+  .lv-b{ display:inline-flex; align-items:center; gap:6px; border:0; background:var(--surface-2, #f1f4f9); color:var(--ink, #111); border-radius:999px; padding:7px 12px; font-weight:700; font-size:13px; cursor:pointer }
+  .lv-t{ flex:1; min-width:0; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .lv-f{ flex:1; width:100%; border:0; background:var(--bg, #eef2f8) }
+  html.lv-on, html.lv-on body{ overflow:hidden }
+  @media (max-width:640px){ .lv-b span{ display:none } .lv-h{ padding:6px 8px } }
+</style>
+<script>
+/* ══ (1.77.22) KHO PDF TRÊN MÁY (IndexedDB) — dùng chung cho app và trang link tạm (cùng tên miền → cùng kho)
+   · KPS.get / KPS.put: bytes PDF theo mã tệp + ngày sửa (tệp đổi bản → khoá khác, không dùng nhầm bản cũ) · giữ 4 ngày, tối đa ~400 MB
+   · kpsPrefetch() (chỉ trong app): TẢI SẴN tài liệu các buổi đã phát trong ~36 giờ tới của gia sư — chạy ngầm sau khi mở app và mỗi 20 phút,
+     2 tệp một lúc (không giành đường mạng). Gia sư bấm Link / In → trang link lấy thẳng từ máy, không chờ máy chủ. ══ */
+const KPS = (() => {
+  let dbp = null;
+  const db = () => dbp || (dbp = new Promise((res, rej) => { try { const r = indexedDB.open('kgs-pdf', 1); r.onupgradeneeded = () => r.result.createObjectStore('f'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }));
+  const tx = async (mode, fn) => { const d = await db(); return new Promise((res, rej) => { const t = d.transaction('f', mode), s = t.objectStore('f'); const out = fn(s); t.oncomplete = () => res(out && out.result !== undefined ? out.result : out); t.onerror = () => rej(t.error); }); };
+  const key = (id, m) => String(id) + ':' + String(m || '');
+  return {
+    key: key,
+    async get(id, m) { try { const o = await tx('readonly', s => s.get(key(id, m))); return o && o.b ? o.b : null; } catch (e) { return null; } },
+    async has(id, m) { try { const k = await tx('readonly', s => s.getKey(key(id, m))); return k !== undefined; } catch (e) { return false; } },
+    /** (1.77.22) thông tin link (shareOpen) lưu trên máy → trang link vẽ ngay, hỏi máy chủ ngầm */
+    async meta(tok) { try { const o = await tx('readonly', s => s.get('L:' + tok)); return o && o.j ? o.j : null; } catch (e) { return null; } },
+    async metaPut(tok, j) { try { await tx('readwrite', s => s.put({ j: j, at: Date.now(), n: 0 }, 'L:' + tok)); } catch (e) {} },
+    async put(id, m, bytes) { try { await tx('readwrite', s => s.put({ b: bytes, at: Date.now(), n: bytes.byteLength || bytes.length }, key(id, m))); } catch (e) {} },
+    /** dọn: bỏ bản quá 4 ngày, rồi bỏ bản cũ nhất tới khi tổng ≤ 400 MB */
+    async tidy() { try { const all = []; await tx('readonly', s => { const c = s.openCursor(); c.onsuccess = () => { const k = c.result; if (k) { all.push([k.key, k.value.at, k.value.n || 0]); k.continue(); } }; return c; });
+      const old = Date.now() - 4 * 86400000; let tot = all.reduce((a, x) => a + x[2], 0); const drop = [];
+      all.sort((a, b) => a[1] - b[1]).forEach(x => { if (x[1] < old || tot > 400e6) { drop.push(x[0]); tot -= x[2]; } });
+      if (drop.length) await tx('readwrite', s => { drop.forEach(k => s.delete(k)); }); } catch (e) {} }
+  };
+})();
+/* tải sẵn trong app — chỉ khi đang mở app trên tên miền (trang link tạm cùng kho), không ở chế độ tiết kiệm dữ liệu */
+async function kpsPrefetch() {
+  if (kpsPrefetch.run || typeof rpc !== 'function' || typeof partsGet !== 'function' || typeof S === 'undefined' || !S.me || S.me.preview || S.me.guest) return;
+  if (navigator.connection && navigator.connection.saveData) return;
+  kpsPrefetch.run = true;
+  try {
+    await KPS.tidy();
+    const r = await rpc('myLinkFiles', {}, { quiet: true }), Q = [];
+    for (const L of r.links || []) { if (L.open) KPS.metaPut(L.token, L.open); for (const f of L.files) if (!await KPS.has(f.id, f.m)) Q.push({ t: L.token, f: f }); }
+    const one = async () => { while (Q.length) { const o = Q.shift();
+      try { const x = await partsGet((fn, pl) => rpc(fn, pl, { quiet: true }), 'shareFile', { t: o.t, id: o.f.id }, o.f.t === 'pdf' && o.f.s ? Math.ceil(o.f.s / 3) * 4 : 0);
+        if (x && x.type === 'pdf' && x.b64) await KPS.put(o.f.id, o.f.m, b64bytes(x.b64)); } catch (e) { console.warn('tải sẵn', o.f.id, e && e.message); } } };
+    await Promise.all([one(), one()]);
+    kpsPrefetch.at = Date.now();
+  } catch (e) { console.warn('tải sẵn tài liệu', e && e.message); }
+  finally { kpsPrefetch.run = false; }
+}
+/* (1.77.22) MỞ LINK NGAY TRONG APP: khung toàn màn hình, thanh trên có ← Quay lại (cả nút Back của trình duyệt / điện thoại) + tên + sao chép / mở tab mới.
+   Trang link chạy trong khung (cùng tên miền → dùng kho PDF tải sẵn, vẫn In / Chọn tệp in như mở riêng). */
+function kpsOpen(url, title) {
+  if (!url) return; kpsClose(true);
+  const w = document.createElement('div'); w.className = 'lv'; w.id = 'kpsLv';
+  w.innerHTML = '<div class="lv-h"><button type="button" class="lv-b" data-lvx aria-label="Quay lại"><i class="bi bi-arrow-left"></i><span>Quay lại</span></button><b class="lv-t">' + esc(title || 'Tài liệu') + '</b>' +
+    '<button type="button" class="ibtn" data-lvc title="Sao chép link" aria-label="Sao chép link"><i class="bi bi-copy"></i></button><a class="ibtn" href="' + esc(url) + '" target="_blank" rel="noopener" title="Mở ở tab mới" aria-label="Mở ở tab mới"><i class="bi bi-box-arrow-up-right"></i></a></div>' +
+    '<iframe class="lv-f" src="' + esc(url) + '" title="' + esc(title || 'Tài liệu') + '" allow="clipboard-write"></iframe>';
+  w.onclick = e => { if (e.target.closest('[data-lvx]')) history.state && history.state.kpsLv ? history.back() : kpsClose(); if (e.target.closest('[data-lvc]')) (typeof copyText === 'function' ? copyText(url, 'Đã sao chép link') : navigator.clipboard.writeText(url)); };
+  document.body.appendChild(w); document.documentElement.classList.add('lv-on');
+  try { history.pushState(Object.assign({}, history.state || {}, { kpsLv: 1 }), ''); } catch (e) {}
+}
+function kpsClose(quiet) { const w = document.getElementById('kpsLv'); if (w) w.remove(); document.documentElement.classList.remove('lv-on'); }
+addEventListener('popstate', () => { if (document.getElementById('kpsLv') && !(history.state && history.state.kpsLv)) kpsClose(); });
+if (!document.getElementById('sh') && !document.getElementById('pg')) document.addEventListener('click', e => { const a = e.target.closest('a[data-lv]'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); e.stopPropagation(); kpsOpen(a.href, a.dataset.lv); }, true);      // link có data-lv → mở trong app
+if (!document.getElementById('sh') && !document.getElementById('pg')) {      // trong app (không phải trang link #sh / trang in QLTT #pg) (trang link tạm có khung #sh): bắt đầu ~5 giây sau khi đăng nhập xong, lặp mỗi 20 phút
+  (function kpsArm() { if (typeof S !== 'undefined' && S.me && !S.me.preview) { setTimeout(kpsPrefetch, 5000); setInterval(kpsPrefetch, 20 * 60000); } else setTimeout(kpsArm, 3000); })();
+}
+</script>
+
 <script>
 /* (1.72.2) TRANG IN CỦA TRUNG TÂM chạy thẳng trên tên miền (…/pc/<mã>) — thay trang script.google.com/…?pc=<mã>.
    Dựng bởi tools/build-static.js → domain/center.html · gọi máy chủ bằng fetch (centerOpen · centerDone là lệnh công khai, chỉ cần mã trang in). */
@@ -53,7 +129,7 @@ function card(r) {
   return '<div class="rq' + (dn ? ' done' : '') + '"><div class="hd"><b>Gia sư ' + esc(r.byName) + '</b><small>gửi ' + tm(r.at) + ' · ' + r.items.length + ' bé</small>' + (dn ? '<span class="tag">Đã in ' + tm(r.doneAt) + '</span>' : '') + '</div>' +
     (r.note ? '<div class="note">' + esc(r.note) + '</div>' : '') +
     r.items.map(x => '<div class="kid"><span><b>Bé ' + esc(x.who) + '</b><small>' + esc([x.code, x.files + ' tệp', x.sessions + ' buổi', x.dates].filter(Boolean).join(' · ')) + '</small></span>' +
-      (x.url ? '<a class="bt" href="' + esc(x.url) + '" target="_blank" rel="noopener">🖨 Mở để in</a>' : '') + '</div>').join('') +
+      (x.url ? '<span style="display:flex;flex-direction:column;align-items:flex-end"><a class="bt' + (pfSt(x.url).k === 'ok' ? ' rdy' : '') + '" href="' + esc(x.url) + '" target="_blank" rel="noopener">🖨 Mở để in</a>' + pfChip(x.url) + '</span>' : '') + '</div>').join('') +
     '<div class="ft">' + (dn ? '<button class="bt gh" data-id="' + esc(r.id) + '" data-v="0">Chưa in</button>'
       : '<button class="bt ok" data-id="' + esc(r.id) + '" data-v="1" data-ask="Đánh dấu đã in xong yêu cầu của ' + esc(r.byName) + '?">✓ Đã in xong</button>') + '</div></div>';
 }
@@ -73,7 +149,35 @@ async function load(quiet) {
   busy = true; if (D) paint();
   try { D = await rpc('centerOpen', { t: TOKEN }); if (!quiet) msg = null; }
   catch (e) { if (!D) { $pg.innerHTML = '<div class="empty"><b>Chưa tải được trang in</b><br>' + esc(e.message) + '<br><br><button class="bt" id="rl">Thử lại</button></div>'; busy = false; return; } msg = ['bad', e.message]; }
-  busy = false; paint();
+  busy = false; paint(); pfRun();
+}
+/* (1.77.25) TẢI SẴN CHO QLTT: mở trang in → tải sẵn mọi tệp của các yêu cầu CHƯA IN vào kho PDF trên máy (dùng chung với trang link cùng tên miền)
+   → bấm “Mở để in” là có ngay. Mỗi link một trạng thái: chờ · đang tải x/y tệp · sẵn sàng in · lỗi. */
+const PF = {};
+const pfTok = url => (/\/s\/([\w-]+)/.exec(url) || /[?&]s=([\w-]+)/.exec(url) || [])[1] || '';
+function pfSt(url) { return PF[pfTok(url)] || { k: 'wait' }; }
+function pfChip(url) { const s = pfSt(url); return '<span class="pf ' + s.k + '">' + (s.k === 'ok' ? 'Sẵn sàng in' : s.k === 'load' ? 'Đang tải ' + (s.d || 0) + '/' + (s.n || '?') + ' tệp' : s.k === 'err' ? 'Lỗi tải sẵn — vẫn mở được' : 'Chờ tải sẵn') + '</span>'; }
+async function pfFile(t, f) {
+  if (f.m && await KPS.has(f.id, f.m)) return;
+  const p0 = await rpc('shareFile', { t: t, id: f.id, part: 0 }); if (!p0 || p0.type !== 'pdf') return;
+  let b64 = p0.data || p0.b64 || '';
+  if (p0.n > 1) { const rest = await Promise.all(Array.from({ length: p0.n - 1 }, (z, i) => rpc('shareFile', { t: t, id: f.id, part: i + 1 }))); b64 += rest.map(r => r.data).join(''); }
+  const bin = atob(b64), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+  if (f.m) await KPS.put(f.id, f.m, a);
+}
+async function pfRun() {
+  if (pfRun.on || !D || D.gone || typeof KPS === 'undefined') return; pfRun.on = true;
+  try {
+    const urls = []; D.reqs.filter(r => r.status !== 'done').forEach(r => r.items.forEach(x => { if (x.url && pfTok(x.url) && urls.indexOf(x.url) < 0) urls.push(x.url); }));
+    for (const url of urls) { const t = pfTok(url); if (PF[t] && PF[t].k === 'ok') continue;
+      try { let L = await KPS.meta(t); if (!L) { L = await rpc('shareOpen', { t: t, v: 2 }); KPS.metaPut(t, L); }
+        const F = (L.files || []).filter(f => f.t === 'pdf' || /^g(doc|sheet|slides)$/.test(f.t) || f.t);
+        PF[t] = { k: 'load', d: 0, n: F.length }; paint();
+        const Q = F.slice(); const one = async () => { while (Q.length) { const f = Q.shift(); try { await pfFile(t, f); } catch (e) { PF[t].bad = 1; } PF[t].d++; paint(); } };
+        await Promise.all([one(), one(), one()]);
+        PF[t].k = PF[t].bad ? 'err' : 'ok'; paint();
+      } catch (e) { PF[t] = { k: 'err' }; paint(); } }
+  } finally { pfRun.on = false; }
 }
 document.addEventListener('click', async e => {
   if (e.target.closest('#rl')) { msg = null; return load(); }
