@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T08:15:41.844Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-10T08:25:01.541Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -935,6 +935,7 @@ html[data-theme="graphite"]{ --brand-950:#0B0F17; --brand-900:#111827; --brand-8
 .scan-n{ display:flex; flex-wrap:wrap; gap:4px 16px; font-size:11.5px; color:var(--muted) }
 .scan-n b{ color:var(--ink); font-variant-numeric:tabular-nums }
 .scan-cur{ font-size:11px; color:var(--muted); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:var(--font-mono) }
+.scan.rel-box{ margin:0 0 12px }      /* (1.77.16) hộp tiến độ Làm mới link ở đầu trang Nguồn dữ liệu */
 .probe{ display:flex; flex-direction:column; gap:6px; margin-top:10px }
 .probe-i{ display:flex; align-items:center; gap:10px; padding:9px 11px; border-radius:10px; border:1px solid var(--border); background:#fff; font-size:12px }
 .probe-i.bad{ border-color:#F5C2C3; background:var(--brand-50) }
@@ -10188,20 +10189,35 @@ async function viewSources(arg, v) {
     if (v.isConnected && can('classes.manage') && !Object.values(SCANS).some(x => x.err)) await relinkAll();      // (1.77.15) quét xong → link buổi học có tệp mới
   };
   /** (1.77.15) làm mới toàn bộ link buổi học — chạy theo lượt, hiện tiến độ trên nút */
-  let relBusy = false;
+  let relBusy = false, relBox = null;
+  /** (1.77.16) hộp tiến độ ngay khi bấm: đang chạy (thanh chạy + số buổi đã xem) → kết quả (giữ lại tới khi bấm Ẩn) */
+  const relPaint = R => {
+    if (!relBox) { relBox = document.createElement('div'); relBox.className = 'scan rel-box'; relBox.onclick = e => { if (e.target.closest('[data-relx]')) { relBox.remove(); relBox = null; } }; }
+    if (!relBox.isConnected) v.prepend(relBox);
+    const n = (k, t) => '<span><b>' + fmtN(R[k] || 0) + '</b> ' + t + '</span>';
+    relBox.classList.toggle('done', !!R.done);
+    relBox.innerHTML = '<div class="scan-t">' + (R.err0 ? '<i class="bi bi-exclamation-octagon-fill" style="color:var(--danger)"></i>Lỗi khi làm mới link' : R.done ? '<i class="bi bi-check-circle-fill" style="color:var(--ok)"></i>Làm mới link xong' : '<span class="dot spin"></span>Đang làm mới link tài liệu các buổi đã duyệt…') +
+      '<span class="sp"></span>' + (R.done || R.err0 ? '<button class="btn xs ghost" data-relx><i class="bi bi-x"></i>Ẩn</button>' : '') + '</div>' +
+      (R.err0 ? '<div class="small" style="color:var(--danger);margin-top:6px">' + esc(R.err0) + '</div>' : '<div class="scan-bar"><b' + (R.total ? ' style="width:' + Math.max(4, Math.round(100 * R.at / R.total)) + '%;animation:none"' : '') + '></b></div>') +
+      '<div class="scan-n">' + (R.total ? '<span>đã xem <b>' + fmtN(Math.min(R.at, R.total)) + '/' + fmtN(R.total) + '</b> buổi</span>' : '<span>đang đọc danh sách buổi…</span>') + n('upd', 'link cập nhật tệp') + n('add', 'link mới') + n('same', 'không đổi') + (R.err ? '<span style="color:var(--danger)"><b>' + R.err + '</b> chưa ghép được</span>' : '') + '<span>' + Math.round((Date.now() - R.t0) / 1000) + ' giây</span></div>' +
+      (R.errs && R.errs.length ? '<ul class="small" style="margin:8px 0 0;padding-left:18px;line-height:1.6;color:var(--muted)">' + R.errs.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' : '');
+  };
   const relinkAll = async () => {
     if (relBusy) return; relBusy = true; const b = $('#sRel', top), h0 = b ? b.innerHTML : '';
-    const T = { upd: 0, add: 0, same: 0, err: 0, errs: [] }; let from = '', r;
+    if (b) { b.disabled = true; b.innerHTML = '<span class="dot spin"></span>Đang làm mới…'; }
+    const R = { t0: Date.now(), upd: 0, add: 0, same: 0, err: 0, errs: [], at: 0, total: 0 }; let from = '', r;
+    relPaint(R); relBox.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    const tick = setInterval(() => relPaint(R), 1000);
     try {
-      do { r = await rpc('sessRelinkAll', { from: from }, { quiet: true }); from = r.next;
-        ['upd', 'add', 'same', 'err'].forEach(k => { T[k] += r[k]; }); T.errs = T.errs.concat(r.errs).slice(0, 10);
-        if (b) { b.disabled = true; b.innerHTML = '<span class="dot spin"></span>Link ' + Math.min(r.at, r.total) + '/' + r.total; }
+      do { r = await rpc('sessRelinkAll', { from: from, budget: 8000 }, { quiet: true }); from = r.next;
+        ['upd', 'add', 'same', 'err'].forEach(k => { R[k] += r[k]; }); R.errs = R.errs.concat(r.errs).slice(0, 10); R.at = r.at; R.total = r.total;
+        if (b) b.innerHTML = '<span class="dot spin"></span>Link ' + fmtN(Math.min(r.at, r.total)) + '/' + fmtN(r.total);
+        relPaint(R);
       } while (!r.done);
-      const msg = 'Làm mới link: ' + T.upd + ' link cập nhật tệp · ' + T.add + ' link mới · ' + T.same + ' không đổi';
-      if (T.err) modal({ title: 'Làm mới link — ' + T.err + ' buổi chưa ghép được', icon: 'bi-link-45deg', body: '<div class="small" style="margin-bottom:8px">' + esc(msg) + '</div><ul class="small" style="margin:0;padding-left:18px;line-height:1.6">' + T.errs.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>', foot: [{ t: 'Đóng', cls: 'pri' }] });
-      else toast(msg, 'ok', 6000);
-    } catch (e) { fail(e); }
-    finally { relBusy = false; if (b) { b.disabled = false; b.innerHTML = h0; } }
+      R.done = true; relPaint(R);
+      toast('Làm mới link xong: ' + R.upd + ' cập nhật tệp · ' + R.add + ' link mới · ' + R.same + ' không đổi' + (R.err ? ' · ' + R.err + ' chưa ghép được' : ''), R.err ? 'warn' : 'ok', 6000);
+    } catch (e) { R.err0 = e.message; relPaint(R); fail(e); }
+    finally { clearInterval(tick); relBusy = false; if (b) { b.disabled = false; b.innerHTML = h0; } }
   };
   v.onclick = e => {
     const gs = e.target.closest('[data-gscan]'); if (gs) { e.stopPropagation(); const k = gs.dataset.gscan; (async () => { for (const x of shown().filter(y => (y.grp || '') === k && y.status !== 'paused')) { if (!v.isConnected) break; await scan(x.id); } })(); return; }
