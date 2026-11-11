@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-11T06:43:48.356Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-11T09:05:30.307Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -2910,6 +2910,7 @@ html{ touch-action:manipulation; -webkit-tap-highlight-color:transparent }
 /* v1.2.2 — thẻ đầu lớp: mỗi dòng đúng một hàng (dài thì …), trạng thái = chấm trên ảnh */
 .cd-t{ min-width:0; flex:1 } .cd-t small, .cd-sch{ display:block !important; white-space:nowrap !important; overflow:hidden; text-overflow:ellipsis; flex-wrap:nowrap !important }
 .cd-sch i{ margin-right:4px }
+.cd-cp{ color:#b45309; font-weight:600 } .cd-cp.home{ color:#0f766e } .cd-cp i{ margin-right:3px; font-size:11px }
 .cd-av{ position:relative; overflow:visible } .cd-st{ position:absolute; right:-1px; bottom:-1px; width:11px; height:11px; border-radius:50%; background:#94A3B8; box-shadow:0 0 0 2px var(--surface) } .cd-st.on{ background:#22C55E }
 /* Liquid Glass: chỉ khung (thanh trên, thanh tab, thanh bên) là kính; bảng / hộp / bảng “Thêm” / menu đặc lại để không thấy chữ bên dưới đè lên */
 html[data-glass] .sheet, html[data-glass] .modal, html[data-glass] .menu, html[data-glass] .nt-pop, html[data-glass] .fpop, html[data-glass] .pal{ background:rgba(250,251,253,.985) !important }
@@ -14722,6 +14723,12 @@ function clKrep(x, open) {
     K.map(k => '<div class="cl-krr"><small>' + esc(clKrLabel(k)) + '</small><p>' + esc(o[k]) + '</p></div>').join('') + '</details>';
 }
 /** (1.78.6) THỜI KHOÁ BIỂU CỦA BÉ: mọi buổi của bé trên các lớp (cùng mã học sinh KGS, không có mã thì cùng tên) — sắp tới + 45 ngày đã qua, kèm người dạy + gia sư ghi gì bên KGS */
+/** (1.78.10) địa điểm học (KGS › Vận hành › Cơ sở → Classes.campus): “Tại nhà” / tên cơ sở */
+function clCampus(c) {
+  const v = String(c.campus || '').trim(); if (!v) return '';
+  const home = /tại nhà|tai nha|tận nhà|tan nha|online/i.test(v);
+  return '<span class="cd-cp' + (home ? ' home' : '') + '" title="Địa điểm học (theo KGS)"><i class="bi ' + (home ? 'bi-house-door' : 'bi-geo-alt-fill') + '"></i>' + esc(v) + '</span>';
+}
 function clTkb(c) {
   const sc = String(c.scode || '').split(',').filter(Boolean), one = sc.length === 1 ? sc[0] : '', key = fold(String(c.student || '')).trim();
   const C = CL.d.classes.filter(k => k.id === c.id || (one ? String(k.scode || '').split(',').indexOf(one) >= 0 : key && fold(String(k.student || '')).trim() === key));
@@ -16413,7 +16420,7 @@ function clDetail(B, v, id) {
     const mEd = man && p && CL_PGSEL[c.id];      // quản lý đang ở chế độ “Xác nhận kiến thức” → cột phải là danh sách tick thay cho cây thư mục
     B.innerHTML = '<div class="card cd-head"><div class="cd-h1"><span class="cd-av" style="--pc:' + clColor(c) + '" title="' + esc(c.status || '') + '">' + esc(initials(clName(c))) + '<i class="cd-st' + (act ? ' on' : '') + '"></i>' + clPkBadge(c) + '</span>' +
         // trạng thái = chấm trên ảnh chữ cái (xanh = đang học); lớp không còn học mới ghi chữ → dòng không bị xuống hàng
-        '<div class="cd-t"><small>' + [c.student ? '<b>' + esc(c.student) + '</b>' : '', esc(c.code), esc(c.grade || ''), act ? '' : esc(c.status || '—')].filter(Boolean).join(' · ') + '</small>' +
+        '<div class="cd-t"><small>' + [c.student ? '<b>' + esc(c.student) + '</b>' : '', esc(c.code), esc(c.grade || ''), clCampus(c), act ? '' : esc(c.status || '—')].filter(Boolean).join(' · ') + '</small>' +
           '<span class="cd-sch" id="cdTkb" role="button" tabindex="0" title="Thời khoá biểu của bé — mọi lớp, người dạy, nội dung dạy / nhận xét bên KGS"><i class="bi bi-calendar-week"></i>' + esc(c.days || 'Chưa có lịch') + (c.times ? ' · ' + esc(c.times) : '') + (man ? ' · ' + (c.tutorEmail ? zlName(c.tutorName || String(c.tutorEmail).split('@')[0], c.tutorEmail) : 'Chưa có gia sư') : '') + clCoHtml(c) + '</span></div>' +
         (man && typeof aiCanTask === 'function' && aiCanTask() ? '<button class="ibtn cd-more cd-ai" id="cdAi" aria-label="Giao việc cho Trợ lý AI" title="Giao việc cho Trợ lý AI — gán bài, ôn tập… cho bé này"><i class="bi bi-stars"></i></button>' : '') +      // (1.77)
         '<button class="ibtn cd-more cd-chat" data-chat="' + c.id + '" aria-label="Trao đổi" title="Trao đổi về lớp"><i class="bi bi-chat-dots"></i>' + ((D.chat && D.chat[c.id] && D.chat[c.id].un) ? '<em class="bn-b">' + D.chat[c.id].un + '</em>' : '') + '</button>' +
