@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-11T11:37:27.832Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-11T11:57:33.714Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -18666,6 +18666,39 @@ async function apPreview(x) {
   .ax-app .ax-comp{ width:100%; border-radius:18px }
 }
 @media (max-width:1100px){ .ax-kpis{ grid-template-columns:repeat(3, minmax(0, 1fr)) } .ax-grid{ grid-template-columns:1fr } }
+/* (1.78.13) TIẾN TRÌNH TRỢ LÝ AI — làn theo agent, cột theo bước; điện thoại: các bước xếp dọc như dòng thời gian */
+.fb-top{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px }
+.fb-sum{ display:flex; gap:6px; flex-wrap:wrap } .fb-top .sp{ flex:1 }
+.fb-chips{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; max-width:100%; padding-bottom:2px } .fb-chips::-webkit-scrollbar{ display:none }
+.fb-chip{ border:1px solid var(--border); background:var(--surface); color:var(--ink-2); border-radius:999px; padding:5px 11px; font:inherit; font-size:12.5px; font-weight:600; display:inline-flex; gap:6px; align-items:center; white-space:nowrap; cursor:pointer }
+.fb-chip[aria-pressed="true"]{ background:color-mix(in oklab, var(--primary) 12%, var(--surface)); border-color:color-mix(in oklab, var(--primary) 45%, var(--border)); color:var(--primary) }
+.fb-chip em{ font-style:normal; font-size:11px; min-width:18px; padding:0 5px; border-radius:999px; background:var(--surface-3); color:var(--ink-2); text-align:center }
+.fb-lane{ margin-bottom:14px; container-type:inline-size } .fb-top .sel{ width:auto; flex:none } .fb-lane .ax-ch h3 i{ color:var(--tone, var(--primary)) }
+.fb-cols{ display:grid; grid-template-columns:repeat(var(--n), minmax(0, 1fr)); gap:10px; padding:0 14px 14px }
+.fb-col{ min-width:0; display:flex; flex-direction:column; gap:8px }
+.fb-sh{ display:flex; align-items:center; gap:7px; font-size:12px; font-weight:700; color:var(--ink-2); position:relative; padding:4px 0 }
+.fb-sh .no{ width:20px; height:20px; border-radius:50%; display:grid; place-items:center; font-size:11px; background:var(--surface-3); color:var(--ink-2); flex:none }
+.fb-sh.has .no{ background:var(--tone, var(--primary)); color:#fff }
+.fb-sh .ln{ flex:1; height:2px; background:var(--border); border-radius:2px } .fb-col:last-child .fb-sh .ln{ display:none }
+.fb-sh small{ font-weight:600; color:var(--muted) }
+.fb-c{ text-align:left; font:inherit; color:inherit; background:var(--surface-2, var(--surface)); border:1px solid var(--border); border-left:3px solid var(--c, var(--border)); border-radius:10px; padding:9px 10px; display:flex; flex-direction:column; gap:4px; cursor:pointer; min-width:0; width:100% }
+.fb-c:hover{ border-color:color-mix(in oklab, var(--c, var(--primary)) 50%, var(--border)) }
+.fb-c .nm{ display:flex; gap:7px; align-items:center; min-width:0 } .fb-c b{ font-size:13px; color:var(--ink); overflow-wrap:anywhere } .fb-c .gs{ font-size:11.5px; color:var(--muted); font-weight:500; overflow-wrap:anywhere }
+.fb-c .tx{ font-size:12.5px; color:var(--ink-2); line-height:1.4; overflow-wrap:anywhere }
+.fb-c .ft{ display:flex; flex-wrap:wrap; gap:5px; align-items:center; font-size:11px; color:var(--muted) }
+.fb-c[data-st="run"]{ --c:var(--primary) } .fb-c[data-st="human"]{ --c:var(--warn) } .fb-c[data-st="err"]{ --c:var(--danger) } .fb-c[data-st="ok"]{ --c:var(--ok) } .fb-c[data-st="idle"], .fb-c[data-st="off"]{ --c:var(--muted) }
+.fb-dot{ width:7px; height:7px; border-radius:50%; background:var(--c); flex:none } .fb-c[data-st="run"] .fb-dot{ animation:fbPulse 1.4s ease-in-out infinite }
+@keyframes fbPulse{ 0%,100%{ box-shadow:0 0 0 0 color-mix(in oklab, var(--primary) 50%, transparent) } 50%{ box-shadow:0 0 0 5px transparent } }
+.fb-pg{ display:flex; gap:3px } .fb-pg i{ width:12px; height:3px; border-radius:2px; background:var(--border) } .fb-pg i.on{ background:var(--c) }
+.fb-more{ font-size:12px; color:var(--muted); padding:0 18px 12px }
+.fb-none{ font-size:12px; color:var(--muted); padding:0 18px 14px }
+@container (max-width:720px){
+  .fb-cols{ grid-template-columns:1fr; gap:0; padding:0 12px 12px }
+  .fb-col{ position:relative; padding:0 0 10px 28px; gap:6px }
+  .fb-col::before{ content:''; position:absolute; left:9px; top:22px; bottom:0; width:2px; background:var(--border) } .fb-col:last-child::before{ display:none }
+  .fb-sh{ margin-left:-28px } .fb-sh .ln{ display:none }
+  .fb-col.nil{ padding-bottom:4px }
+}
 @media (max-width:900px){ .ax-chat{ grid-template-columns:1fr } .ax-side{ position:static } .ax-convs{ max-height:180px; flex:none } .ax-tabs{ margin-left:0; width:100% } .ax-cmd{ grid-template-columns:1fr } .ax-cmd .opt{ justify-content:flex-start } }
 @media (max-width:640px){ .ax-kpis{ grid-template-columns:repeat(2, minmax(0, 1fr)) } .ai-cls{ grid-template-columns:auto 1fr } .ai-bdg{ grid-column:2; justify-content:flex-start } .ai-kv{ grid-template-columns:1fr } .ai-gr{ min-width:0 } .ax-msgs{ padding:16px 12px } .ax-comp{ margin:0 8px 8px } .ax-hero{ padding:12px } }
 </style>
@@ -18684,6 +18717,7 @@ const AI = { b: null, tab: '', dash: null, chat: { cid: '', mode: 'gen', conv: '
 const AI_TABS = [
   { k: 'chat', t: 'Hỏi AI', i: 'bi-robot', ok: () => AI.b.can.tutor },
   { k: 'dash', t: 'Tổng quan', i: 'bi-speedometer2', ok: () => AI.b.can.admin || AI.b.can.log },
+  { k: 'flow', t: 'Tiến trình', i: 'bi-diagram-3', ok: () => AI.b.can.admin || AI.b.can.log },      // (1.78.13) sơ đồ luồng các agent
   { k: 'assign', t: 'Gán bài', i: 'bi-magic', ok: () => AI.b.can.admin },
   { k: 'reqs', t: 'Yêu cầu', i: 'bi-inboxes', ok: () => AI.b.can.admin },
   { k: 'log', t: 'Nhật ký', i: 'bi-journal-text', ok: () => true },
@@ -18759,7 +18793,7 @@ async function viewAi(arg, v) {
   setTitle('Trợ lý AI', 'bi-robot', [{ t: S.boot.app, r: 'today' }], v);
   const ck = 'aiBoot:' + (S.me && S.me.email || ''), cached = lsGet(ck, null);
   v._onArg = a => aiShow(v, a);
-  v._onShow = () => { if (AI.tab === 'log') aiLog(v); if (AI.tab === 'dash') aiDashView($('#aiBody', v)); aiFit(); };
+  v._onShow = () => { if (AI.tab === 'log') aiLog(v); if (AI.tab === 'dash') aiDashView($('#aiBody', v)); if (AI.tab === 'flow') aiFlowView($('#aiBody', v)); aiFit(); };
   if (cached && cached.can) { AI.b = cached; aiShow(v, arg); }      // vẽ ngay bằng bản đã lưu, tải bản mới phía sau
   else v.innerHTML = '<div class="ax-card"><div class="ax-cb" style="padding:40px;text-align:center">' + aiThink('ping') + '</div></div>';
   try {
@@ -18838,6 +18872,7 @@ function aiShow(v, arg) {
   else if (k === 'reqs') aiReqView(body, a[1]);
   else if (k === 'cfg') aiCfgView(body);
   else if (k === 'dash') aiDashView(body);
+  else if (k === 'flow') aiFlowView(body);
   else aiLog(v);
   aiFit(); setTimeout(aiFit, 400);      // thanh tab dưới / tiêu đề trang có thể vẽ xong sau
   if (!aiFit.on) { aiFit.on = 1; window.addEventListener('resize', debounce(() => aiFit(), 80)); }
@@ -18889,6 +18924,58 @@ async function aiDashView(body) {
   };
   try { AI.dash = await rpc('aiStats', { days: 7 }, { quiet: true }); paint(AI.dash); }
   catch (e) { if (!AI.dash && body.isConnected) body.innerHTML = '<div class="ax-card"><div class="empty" style="padding:30px">' + esc(e.message) + '</div></div>'; }
+}
+
+/* ═════════════ (1.78.13) TIẾN TRÌNH — mỗi loại việc là một agent có làn riêng · thẻ = việc AI đang / đã làm cho bé nào, ở bước nào ═════════════ */
+const AI_FB_ST = { run: ['AI đang làm', 'p'], human: ['Chờ người', 'w'], err: ['Lỗi', 'r'], ok: ['Xong', 'o'] };
+const AI_FB_TONE = { assign: 'var(--ok)', reqs: 'var(--info)', ask: 'var(--warn)', chat: 'var(--primary)', job: 'var(--brand-500, var(--primary))' };
+function aiAgo(ms) { const m = Math.round((ms || 0) / 60000); return m < 1 ? 'vừa xong' : m < 60 ? m + ' phút' : m < 1440 ? Math.round(m / 60) + ' giờ' : Math.round(m / 1440) + ' ngày'; }
+function aiFbCard(c, L) {
+  const tm = c.lane === 'job' && c.step === 0 ? '' : c.st === 'run' || c.st === 'human' ? (c.st === 'run' ? 'đã chạy ' : 'chờ ') + aiAgo(c.age) : c.at ? aiAgo(c.age) + ' trước' : '';
+  const res = [c.res && c.res.n && c.lane === 'assign' ? c.res.n + ' buổi gán' : '', c.res && c.res.n && c.lane === 'reqs' ? c.res.done + '/' + c.res.n + ' mục' : '', c.res && c.res.warn ? c.res.warn + ' cảnh báo' : '', c.ms && c.st !== 'run' ? 'AI ' + aiSec(c.ms) : ''].filter(Boolean);
+  return '<button type="button" class="fb-c" data-st="' + esc(c.st) + '"' + (c.log ? ' data-fblog="' + esc(c.log) + '"' : c.cid ? ' data-fbcid="' + esc(c.cid) + '"' : c.lane === 'job' ? ' data-fbjob' : '') + ' title="' + esc(c.title || '') + '">' +
+    '<span class="nm"><span class="fb-dot"></span><b>' + esc(c.be || '') + '</b></span>' + (c.gs ? '<span class="gs"><i class="bi bi-person"></i> ' + esc(c.gs) + '</span>' : '') +
+    '<span class="tx">' + esc(c.txt || '') + '</span>' +
+    '<span class="ft"><span class="fb-pg" aria-label="Bước ' + (c.step + 1) + '/' + L.steps.length + '">' + L.steps.map((s, i) => '<i class="' + (i <= c.step ? 'on' : '') + '"></i>').join('') + '</span>' +
+      (tm ? '<span><i class="bi bi-clock"></i> ' + esc(tm) + '</span>' : '') + res.map(x => '<span>· ' + esc(x) + '</span>').join('') + (c.auto ? '<span class="ax-auto">tự động</span>' : '') + '</span></button>';
+}
+async function aiFlowView(body) {
+  if (!body) return;
+  const F = AI.fb = AI.fb || { lane: lsGet('aiFbLane', ''), st: '', days: 3, data: null, t: 0 };
+  const paint = () => {
+    const D = F.data; if (!D || !body.isConnected) return;
+    const show = c => !F.st || c.st === F.st, T = D.tot || {};
+    const chip = (attr, val, cur, label, n, ic) => '<button type="button" class="fb-chip" ' + attr + '="' + esc(val) + '" aria-pressed="' + (cur === val) + '">' + (ic ? '<i class="bi ' + ic + '"></i>' : '') + esc(label) + (n != null ? '<em>' + n + '</em>' : '') + '</button>';
+    const lanes = D.lanes.filter(L => !F.lane || L.k === F.lane);
+    body.innerHTML = '<div class="fb-top"><div class="fb-chips">' + chip('data-fbl', '', F.lane, 'Tất cả agent', null, 'bi-diagram-3') + D.lanes.map(L => chip('data-fbl', L.k, F.lane, L.t, L.cnt.run + L.cnt.human + L.cnt.err || null, L.i)).join('') + '</div>' +
+      '<div class="fb-chips">' + chip('data-fbs', '', F.st, 'Mọi trạng thái', null) + Object.keys(AI_FB_ST).map(k => chip('data-fbs', k, F.st, AI_FB_ST[k][0], T[k] || 0)).join('') + '</div><span class="sp"></span>' +
+      '<select class="sel" id="aiFbD" aria-label="Việc đã xong trong">' + [[1, 'Xong trong 1 ngày'], [3, '3 ngày'], [7, '7 ngày'], [14, '14 ngày']].map(o => '<option value="' + o[0] + '"' + (o[0] === F.days ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' +
+      '<button class="btn xs ghost" id="aiFbR" title="Tải lại"><i class="bi bi-arrow-clockwise"></i><span>' + esc(String(fmtDT(D.at)).split(' ').pop()) + '</span></button></div>' +
+      lanes.map(L => { const C = L.cards.filter(show), n = L.steps.length;
+        return '<section class="ax-card fb-lane" style="--tone:' + (AI_FB_TONE[L.k] || 'var(--primary)') + '"><div class="ax-ch"><h3><i class="bi ' + L.i + '"></i>' + esc(L.t) + '</h3><span class="sp"></span>' +
+          Object.keys(AI_FB_ST).filter(k => L.cnt[k]).map(k => '<span class="ai-b ' + AI_FB_ST[k][1] + '">' + L.cnt[k] + ' ' + esc(AI_FB_ST[k][0].toLowerCase()) + '</span>').join('') + '</div>' +
+          (C.length ? '<div class="fb-cols" style="--n:' + n + '">' + L.steps.map((s, i) => { const K = C.filter(c => c.step === i);
+            return '<div class="fb-col' + (K.length ? '' : ' nil') + '"><div class="fb-sh' + (K.length ? ' has' : '') + '"><span class="no">' + (i + 1) + '</span><span>' + esc(s) + '</span>' + (K.length ? '<small>' + K.length + '</small>' : '') + '<span class="ln"></span></div>' + K.map(c => aiFbCard(c, L)).join('') + '</div>'; }).join('') + '</div>' +
+            (L.more ? '<div class="fb-more">… và ' + L.more + ' việc cũ hơn — xem ở Nhật ký</div>' : '')
+          : '<div class="fb-none">' + (F.st ? 'Không có việc ở trạng thái này' : 'Chưa có việc nào trong ' + F.days + ' ngày') + '</div>') + '</section>'; }).join('');
+    const d = $('#aiFbD', body); if (d) d.onchange = e => { F.days = Number(e.target.value); F.data = null; load(); };
+  };
+  const load = async () => {
+    clearTimeout(F.t);
+    try { F.data = await rpc('aiFlowBoard', { days: F.days }, { quiet: true }); paint(); }
+    catch (e) { if (!F.data && body.isConnected) body.innerHTML = '<div class="ax-card"><div class="empty" style="padding:30px">' + esc(e.message) + '</div></div>'; }
+    if (body.isConnected && AI.tab === 'flow' && F.data && (F.data.tot.run || 0)) F.t = setTimeout(() => { if (body.isConnected && AI.tab === 'flow' && !document.hidden) load(); }, 15000);      // còn việc AI đang làm → tự tải lại
+  };
+  body.onclick = e => {
+    const l = e.target.closest('[data-fbl]'); if (l) { F.lane = l.dataset.fbl; lsSet('aiFbLane', F.lane); return paint(); }
+    const s = e.target.closest('[data-fbs]'); if (s) { F.st = s.dataset.fbs; return paint(); }
+    if (e.target.closest('#aiFbR')) return load();
+    const g = e.target.closest('[data-fblog]'); if (g) return aiLogOpen(g.dataset.fblog);
+    const c = e.target.closest('[data-fbcid]'); if (c) return go('classes/c/' + c.dataset.fbcid);
+    if (e.target.closest('[data-fbjob]') && AI.b.can.cfg) return go('ai/cfg');
+  };
+  if (F.data) paint(); else body.innerHTML = '<div class="ax-card"><div class="ax-cb" style="padding:36px;text-align:center">' + aiThink('assign') + '</div></div>';
+  load();
 }
 
 /* ═════════════ CHỌN BÉ (tìm được) ═════════════ */
