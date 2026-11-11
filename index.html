@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-11T02:40:28.977Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-11T03:01:47.730Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -20202,9 +20202,10 @@ async function clMergeDlg() {
     '<small>' + esc([x.student, x.grade, x.tutor].filter(Boolean).join(' · ')) + '</small><small>' + esc(x.sched || 'Chưa có lịch') + (kgs && d && d.drop.prog && d.drop.prog !== x.prog ? ' · <s>' + esc(x.prog || 'chưa có chương trình') + '</s> → <b class="mg-pr">' + esc(d.drop.prog) + '</b> (theo Kiến CM)' : x.prog ? ' · ' + esc(x.prog) : '') + '</small>' +
     '<small>' + x.n + ' buổi' + (x.taught ? ' · ' + x.taught + ' đã dạy' : '') + (x.appr ? ' · ' + x.appr + ' đã duyệt / có link' : '') + (x.done ? ' · ' + x.done + ' bài học trước' : '') + (x.at ? ' · tạo ' + esc(dmy(x.at)) : '') + '</small>' +
     (kgs ? '' : '<small class="mg-go"><i class="bi bi-arrow-return-right"></i>' + (x.taught || x.appr || x.done ? 'Chuyển sang lớp ' + (d && d.why ? 'giữ lại' : 'KGS') + ': ' + [x.taught ? x.taught + ' buổi đã dạy' : '', x.appr ? x.appr + ' buổi đã duyệt' : '', x.done ? x.done + ' bài học trước' : ''].filter(Boolean).join(' · ') + ', trao đổi — rồi xoá lớp này (Thùng rác)' : 'Chưa có tiến trình — xoá lớp này (Thùng rác), dùng lớp ' + (d && d.why ? 'giữ lại' : 'KGS')) + '</small>') + '</span>';      // (1.74) nói rõ tiến trình nào chuyển sang, lớp tự nhập bị xoá
+  r.list.sort((a, b) => (a.why === 'name' ? 1 : 0) - (b.why === 'name' ? 1 : 0));      // (1.78.4) cùng mã HS lên trước, chỉ cùng tên xuống cuối
   const row = d => one(d.drop, 0, d) + '<i class="bi bi-arrow-right" style="align-self:center;color:var(--muted)"></i>' + one(d.keep, 1, d) +
     '<span style="align-self:center;display:flex;flex-direction:column;gap:6px;align-items:flex-end"><button class="btn xs pri" data-mg><i class="bi bi-intersect"></i>Gộp</button>' +
-    (d.why ? '<small class="muted">' + (d.why === 'sc' ? 'Cùng mã HS ' + esc(d.sc) : 'Cùng tên bé') + '</small>' : '') + (d.why && d.keep.kgs && d.drop.kgs ? '<button class="btn xs ghost" data-sw title="Giữ lớp bên trái, gộp lớp bên phải vào"><i class="bi bi-arrow-left-right"></i>Đổi chiều</button>' : '') + '</span>';
+    (d.why ? '<small class="muted">' + (d.why === 'sc' ? 'Cùng mã HS ' + esc(d.sc) : '<b style="color:var(--warn,#B45309)">Chỉ cùng tên — kiểm lại</b>') + '</small>' + (d.tut && d.tut.e ? '<small class="muted" title="Người dạy nhiều nhất trong các buổi sắp tới gần nhất (buổi dạy thay lẻ không tính)">Giao cho: <b>' + esc(d.tut.n || d.tut.e) + '</b>' + (d.tut.d ? ' · buổi ' + esc(dmy(d.tut.d).slice(0, 5)) : '') + '</small>' : '') : '') + (d.why && d.keep.kgs && d.drop.kgs ? '<button class="btn xs ghost" data-sw title="Giữ lớp bên trái, gộp lớp bên phải vào"><i class="bi bi-arrow-left-right"></i>Đổi chiều</button>' : '') + '</span>';
   let n = 0;
   const go1 = async (rw, quiet) => {
     const b = rw.querySelector('[data-mg]'); if (!b) return; b.disabled = true; b.innerHTML = '<span class="spin"></span>';
@@ -20218,16 +20219,17 @@ async function clMergeDlg() {
   };
   const done = () => { if (!n) return; if (CL.d) CL.d.dupN = r.list.length; if (typeof clReload === 'function') clReload().then(() => CL.repaint && CL.repaint()).catch(() => {}); };
   B.innerHTML = !r.list.length ? '<div class="small muted" style="padding:12px 2px"><i class="bi bi-check2-circle" style="color:var(--ok)"></i> Không còn lớp trùng.</div>' :
-    '<div class="small muted" style="line-height:1.6">Mỗi cặp là cùng một bé: lớp tự nhập ↔ lớp KGS (cùng gia sư), hoặc các lớp của <b>cùng một bé</b> (cùng mã học sinh KGS / cùng tên — bé chuyển gia sư, KGS mở lớp mới). <b>Gộp</b> = giữ một lớp; buổi đã dạy / đã duyệt / có link, bài đã học, trao đổi đi theo — không mất tiến trình. Mã lớp KGS cũ không bị thêm lại khi đồng bộ. Hoàn tác ở Thùng rác.</div>' +
-    '<div style="display:flex;justify-content:flex-end;margin:8px 0"><button class="btn sm pri" id="mgAll"><i class="bi bi-intersect"></i>Gộp tất cả (' + r.list.length + ')</button></div>' +
+    '<div class="small muted" style="line-height:1.6">Mỗi cặp là cùng một bé: lớp tự nhập ↔ lớp KGS (cùng gia sư), hoặc các lớp của <b>cùng một bé</b> (cùng mã học sinh KGS / cùng tên — bé chuyển gia sư, KGS mở lớp mới). <b>Gộp</b> = giữ một lớp; buổi đã dạy / đã duyệt / có link, bài đã học, trao đổi đi theo — không mất tiến trình. Lớp giữ lại giao cho <b>gia sư của buổi hiện tại</b> (dạy thay lẻ không tính); buổi cũ ghi đúng người đã dạy. Mã HS khác nhau thì không bao giờ ghép. Mã lớp KGS cũ không bị thêm lại khi đồng bộ. Hoàn tác ở Thùng rác.</div>' +
+    (r.list.some(d => d.why !== 'name') ? '<div style="display:flex;justify-content:flex-end;margin:8px 0"><button class="btn sm pri" id="mgAll"><i class="bi bi-intersect"></i>Gộp tất cả (' + r.list.filter(d => d.why !== 'name').length + ')</button></div>' : '') +
     (r.list.length > 3 ? '<div class="search" style="margin:0 0 8px"><i class="bi bi-search"></i><input class="inp" id="mgQ" placeholder="Tìm bé, mã lớp, gia sư"></div>' : '') +      // (1.75)
     r.list.map(d => '<div class="tm-row mg-pair" data-k="' + esc(d.keep.id) + '" data-d="' + esc(d.drop.id) + '"' + (d.why ? ' data-sc="' + esc(d.why) + '"' : '') + ' data-q="' + esc(fold([d.drop.code, d.drop.student, d.drop.tutor, d.keep.code, d.keep.student].join(' '))) + '" style="align-items:stretch">' + row(d) + '</div>').join('');
   { const q = B.querySelector('#mgQ'); if (q) q.oninput = () => { const w = fold(q.value).split(/\s+/).filter(Boolean); B.querySelectorAll('.mg-pair').forEach(rw => { rw.hidden = !w.every(z => rw.dataset.q.indexOf(z) >= 0); }); }; }
   B.addEventListener('click', async e => {
     const all = e.target.closest('#mgAll');
     if (all) {
-      const L = [...B.querySelectorAll('.mg-pair')].filter(rw => !rw.hidden && rw.querySelector('[data-mg]'));      // đang tìm → chỉ gộp các cặp đang hiện
-      if (!L.length || !await ask('Gộp ' + L.length + ' cặp lớp trùng? Mỗi cặp giữ lớp bên phải, lớp bên trái vào Thùng rác (hoàn tác được).', { ok: 'Gộp tất cả' })) return;
+      const L = [...B.querySelectorAll('.mg-pair')].filter(rw => !rw.hidden && rw.querySelector('[data-mg]') && rw.dataset.sc !== 'name');      // đang tìm → chỉ gộp các cặp đang hiện · (1.78.4) cặp chỉ cùng tên phải gộp từng cặp
+      if (!L.length) return toast('Các cặp còn lại chỉ cùng tên — kiểm rồi gộp từng cặp', 'info');
+      if (!await ask('Gộp ' + L.length + ' cặp lớp trùng? Mỗi cặp giữ lớp bên phải, lớp bên trái vào Thùng rác (hoàn tác được). Cặp chỉ cùng tên không gộp ở đây.', { ok: 'Gộp tất cả' })) return;
       all.disabled = true; for (const rw of L) await go1(rw, 1); toast('Đã gộp ' + n + ' cặp lớp trùng — hoàn tác ở Thùng rác nếu nhầm'); done(); return;
     }
     const sw = e.target.closest('[data-sw]');
