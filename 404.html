@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-11T05:46:29.423Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-11T06:43:48.356Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -15484,6 +15484,7 @@ function clStruct(p, done, c) {
     '<div class="stack">' + (c ? '<div class="small muted cl-hint"><i class="bi bi-person"></i><span>Cấu trúc <b>riêng cho ' + esc(clName(c)) + '</b> — không ảnh hưởng lớp khác. ' + (c.lcfg ? 'Đang dùng cấu trúc riêng.' : 'Hiện theo cấu trúc chung của <b>' + esc(clProgName(p)) + '</b>; lưu để tách riêng.') + '</span></div>'
       : '<div class="small muted cl-hint"><i class="bi bi-diagram-3"></i><span>Cấu trúc <b>chung</b> của chương trình — áp dụng cho mọi lớp chưa đặt cấu trúc riêng.</span></div>') + '<div class="fg"><label class="flabel">Loại tài liệu được ghép vào link tạm (không chọn = mọi loại)</label><div class="cs-k" id="csK"></div><span class="small muted">VD chỉ chọn <b>Phiếu học tập</b> + <b>Bài tập về nhà</b>: link tạm chỉ ghép hai loại này, các tệp khác (Lời giải, Bổ sung…) gia sư xem trong app. Quản lý vẫn thêm tay được từng buổi.</span></div>' +
     '<div class="fg"><label class="flabel">Số bài (thư mục) mỗi buổi</label><div class="row"><input class="inp" type="number" min="1" max="10" id="csP" value="' + lc.per + '" style="width:90px"><span class="small muted">VD 2 = mỗi buổi học 2 thư mục bài liên tiếp · mỗi lớp đặt riêng được ở cột “Bài / buổi”</span></div></div>' +
+    '<div class="fg"><label class="flabel">Không xếp tự động thư mục có tên chứa</label><input class="inp" id="csN" placeholder="VD: Lý thuyết, Đề cương — cách nhau dấu phẩy" value="' + esc([...skip].filter(s => /^n:/.test(s)).map(s => s.slice(2)).join(', ')) + '"><div class="small muted" style="margin-top:4px">Áp dụng cho MỌI thư mục trùng tên trong chương trình (cả thư mục con) — không tự xếp, Trợ lý AI cũng không gán; vẫn chọn tay được.</div></div>' +      // (1.78.9)
     '<div class="fg"><label class="flabel">Thứ tự xếp tự động — bỏ tích để loại trừ bài (cả thư mục con)</label><div class="cl-tree cs-t" id="csT"></div></div><div class="small muted" id="csPv"></div></div>',
     foot: [{ t: 'Huỷ', cls: 'ghost' }].concat(c && c.lcfg ? [{ t: 'Dùng cấu trúc chung', i: 'bi-arrow-counterclockwise', fn: () => {
       c.lcfg = null; toast('Đã chuyển ' + clName(c) + ' về cấu trúc chung'); done && done();
@@ -15499,15 +15500,16 @@ function clStruct(p, done, c) {
   const paintT = () => {
     const item = (d, depth, off) => {
       if ('fid' in d) { const sk = off || skip.has(d.id); return '<div class="cl-ti' + (sk ? ' skip' : '') + '" style="--d:' + depth + '"><i class="bi bi-chevron-right cr" style="visibility:hidden"></i><label class="cc-ck"><input type="checkbox" data-sk="' + d.id + '"' + (skip.has(d.id) ? '' : ' checked') + (off ? ' disabled' : '') + '>' + clFIc(d) + '<span>' + esc(clFName(d.name)) + '</span>' + (sk ? '<em class="cl-ub gray">loại trừ</em>' : '') + '</label></div>'; }
-      const kids = clKids(IX, d.id, FS), isOpen = !!open[d.id], sk = off || skip.has(d.id), n = (IX.byDir[d.id] || []).length;
+      const kids = clKids(IX, d.id, FS), isOpen = !!open[d.id], nk = clSkipName(skip)(d), sk = off || skip.has(d.id) || nk, n = (IX.byDir[d.id] || []).length;
       return '<div class="cl-ti' + (sk ? ' skip' : '') + '" style="--d:' + depth + '"><i class="bi bi-chevron-right cr' + (isOpen ? ' open' : '') + '" style="visibility:' + (kids.length ? 'visible' : 'hidden') + '" data-tg="' + d.id + '"></i>' +
-        '<label class="cc-ck"><input type="checkbox" data-sk="' + d.id + '"' + (skip.has(d.id) ? '' : ' checked') + (off ? ' disabled' : '') + '><i class="bi bi-folder-fill"></i><span>' + esc(d.name) + '</span>' + (sk ? '<em class="cl-ub gray">loại trừ</em>' : '') + '<small>' + (n || '') + '</small></label></div>' +
+        '<label class="cc-ck"><input type="checkbox" data-sk="' + d.id + '"' + (skip.has(d.id) ? '' : ' checked') + (off ? ' disabled' : '') + '><i class="bi bi-folder-fill"></i><span>' + esc(d.name) + '</span>' + (sk ? '<em class="cl-ub gray">' + (nk && !off && !skip.has(d.id) ? 'loại trừ theo tên' : 'loại trừ') + '</em>' : '') + '<small>' + (n || '') + '</small></label></div>' +
         (isOpen ? kids.map(k => item(k, depth + 1, sk)).join('') : ''); };
     setKeep(m.$('#csT'), clKids(IX, T.key, FS).map(d => item(d, 0, false)).join(''));
     const L = lessonList(), P = Math.max(1, Number(m.$('#csP').value) || 1), groups = [];
     for (let i = 0; i < L.length && groups.length < 4; i += P) groups.push(L.slice(i, i + P).map(clDirName).join(' + '));
     m.$('#csPv').innerHTML = '<i class="bi bi-list-ol"></i> ' + L.length + ' bài được xếp tự động · ' + Math.ceil(L.length / P) + ' buổi. Bắt đầu: ' + groups.map((g, i) => '<b>' + (i + 1) + '.</b> ' + esc(g)).join(' · ');
   };
+  { const ni = m.$('#csN'); if (ni) ni.oninput = () => { [...skip].filter(x => /^n:/.test(x)).forEach(x => skip.delete(x)); ni.value.split(/[,;]/).map(t => t.trim()).filter(Boolean).slice(0, 20).forEach(t => skip.add('n:' + t)); paintT(); }; }      // (1.78.9)
   m.el.addEventListener('click', e => {
     const k = e.target.closest('[data-k]'); if (k) { kinds.has(k.dataset.k) ? kinds.delete(k.dataset.k) : kinds.add(k.dataset.k); return paintK(); }
     const tg = e.target.closest('[data-tg]'); if (tg) { open[tg.dataset.tg] = !open[tg.dataset.tg]; return paintT(); }
@@ -15962,15 +15964,17 @@ function clProgPick(anchor, curId, progs, onPick) {
 }
 
 /* ══════════ TIẾN ĐỘ — mỗi lộ trình (chương trình): các bé đang ở buổi thứ mấy + thống kê thư mục / tệp ══════════ */
+/** (1.78.9) “n:<tên>” trong danh sách loại trừ = bỏ mọi thư mục / tệp có tên chứa chữ đó → hàm kiểm (d) => true khi bị loại */
+function clSkipName(skip) { const T = [...(skip || [])].map(String).filter(s => /^n:./.test(s)).map(s => fold(s.slice(2)).trim()).filter(Boolean); return d => T.length > 0 && T.some(t => fold(d && d.name || '').indexOf(t) >= 0); }
 /** danh sách bài của chương trình theo thứ tự xếp (bỏ nhánh loại trừ) */
 function clLessonList(p, skipSet, X, key) {
   // cùng quy tắc với lessons_() ở máy chủ: thư mục có ≥ 2 thư mục con chứa tệp là thư mục nhóm → đi xuống;
   // tệp ghép được nằm ngay trong thư mục nhóm / gốc chương trình → mỗi tệp là một bài (xếp xen với thư mục theo tên)
   X = X || IX; const T = key ? { ok: true, key: key } : progTarget(p); if (!T.ok) return [];
-  const skip = skipSet || new Set(clLcfg(p).skip), out = [], memo = {};
+  const skip = skipSet || new Set(clLcfg(p).skip), out = [], memo = {}, nsk = clSkipName(skip);
   const sub = id => X === IX ? (IX.sub[id] || 0) > 0 : id in memo ? memo[id] : (memo[id] = (X.byDir[id] || []).length > 0 || (X.kids[id] || []).some(d => sub(d.id)));
-  const kidsOf = id => (X.kids[id] || []).filter(d => !skip.has(d.id) && sub(d.id));
-  const walk = k => kidsOf(k).concat((X.byDir[k] || []).filter(f => LINKABLE[f.type] && !skip.has(f.id))).sort((a, b) => natCmp(a.name, b.name)).forEach(d => {
+  const kidsOf = id => (X.kids[id] || []).filter(d => !skip.has(d.id) && !nsk(d) && sub(d.id));
+  const walk = k => kidsOf(k).concat((X.byDir[k] || []).filter(f => LINKABLE[f.type] && !skip.has(f.id) && !nsk(f))).sort((a, b) => natCmp(a.name, b.name)).forEach(d => {
     if ('fid' in d) return out.push(d.id);
     const ck = kidsOf(d.id); if (ck.length >= 2 || (ck.length && !(X.byDir[d.id] || []).length)) walk(d.id); else out.push(d.id); });
   if (skip.has(T.key)) return out;
