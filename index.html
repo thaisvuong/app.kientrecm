@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-11T04:27:16.808Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-11T05:46:29.423Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -11606,7 +11606,11 @@ async function setKgs(B) {
         '<p class="small muted" style="margin:0;line-height:1.6">So bài gán các buổi sắp tới ở Kiến CM với topic KGS đang gắn cho đúng buổi đó. “Buổi ngoài lộ trình” là buổi KGS gắn topic chung vì bài không theo lộ trình hoặc buổi để trống.</p>' +
         '<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn xs' + (!RpF ? ' pri' : '') + '" data-rpf="">Có bài gán · ' + (C.length - (cnt.empty || 0)) + '</button>' + orderS.map(k => '<button class="btn xs' + (RpF === k ? ' pri' : '') + '" data-rpf="' + k + '">' + esc(RP_ST[k][2]) + ' · ' + cnt[k] + '</button>').join('') + '</div>' +
         (L.length ? '<div class="tbl-wrap"><table class="tbl kg-rp"><thead><tr><th>Lớp</th><th>Bài gán</th><th>Khớp KGS</th><th>Tình trạng</th><th>Lý do · việc cần làm</th></tr></thead><tbody>' + L.map(row).join('') + '</tbody></table></div>' : '<div class="small muted">Không có lớp nào.</div>') + '</div></div>' +
-      ((Rp.schKeys || []).length ? '<details class="adv" style="margin-top:12px"><summary><i class="bi bi-chevron-right"></i><span>Trường dữ liệu buổi học KGS gửi về (' + Rp.schKeys.length + ') — để đọc nội dung dạy / nhận xét</span></summary><div class="small muted" style="line-height:1.7;word-break:break-word">' + esc(Rp.schKeys.join(' · ')) + '</div></details>' : '') +      // (1.78.6)
+      ((Rp.schKeys || []).length || Rp.schKeys2 || Rp.schProbe ? '<details class="adv" style="margin-top:12px"><summary><i class="bi bi-chevron-right"></i><span>Trường dữ liệu buổi học KGS gửi về — để đọc nội dung dạy / nhận xét</span></summary><div class="small" style="line-height:1.7;word-break:break-word">' +
+        '<div><b>Lịch của bé</b> (' + (Rp.schKeys || []).length + '): <span class="muted">' + esc((Rp.schKeys || []).join(' · ') || '—') + '</span></div>' +
+        '<div><b>Lịch theo lớp</b> (' + (Rp.schKeys2 || []).length + '): <span class="muted">' + esc(Rp.schKeys2 ? Rp.schKeys2.join(' · ') || 'không có buổi nào' : 'chưa đọc — chờ lượt đồng bộ máy chủ') + '</span></div>' +
+        (Rp.schProbe || []).map(o => '<div><b>' + esc(o.p) + '</b>: <span class="muted">' + esc(o.err ? 'lỗi — ' + o.err : (o.k || []).join(' · ') || 'rỗng') + '</span>' + (o.rep ? ' <span class="tag ok">có nội dung</span>' : '') + '</div>').join('') +
+        '</div></details>' : '') +      // (1.78.6) (1.78.8) cả lịch theo lớp + dò trang chi tiết buổi
       '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-clock-history"></i>Các lượt đồng bộ gần nhất</h2></div><div class="card-b stack">' + ((Rp.runs || []).length ? Rp.runs.map(rpRun).join('') : '<div class="small muted">Chưa có lượt nào được ghi báo cáo — báo cáo bắt đầu từ lượt đồng bộ tiếp theo.</div>') + '</div></div>';
   };
   const tabs = () => '<div class="row" style="margin-bottom:12px"><div class="seg" id="kgTab"><button class="seg-b" data-kt="sync" aria-pressed="' + (tab === 'sync') + '"><i class="bi bi-arrow-left-right"></i>Đồng bộ</button><button class="seg-b" data-kt="report" aria-pressed="' + (tab === 'report') + '"><i class="bi bi-clipboard-data"></i>Báo cáo</button></div></div>';
