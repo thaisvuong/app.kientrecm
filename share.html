@@ -288,7 +288,7 @@ select.sel{ appearance:none; -webkit-appearance:none; padding-right:28px; cursor
 .search{ position:relative }
 .search i{ position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:12px }
 .search .inp{ padding-left:30px }
-.kr-nl{ display:block; margin-top:3px; font-size:11px; color:#B45309 }      /* (1.77.26) Lộ trình KGS: bài chưa có trong kho topic */
+.kr-nl{ display:block; margin-top:3px; font-size:11px; color:#B45309 } .kr-nl.kr-same{ color:var(--ok, #15803D) }      /* (1.80) cùng bài, KGS đánh số khác */      /* (1.77.26) Lộ trình KGS: bài chưa có trong kho topic */
 .tn-ka{ border:1px solid color-mix(in oklab, var(--primary) 35%, var(--border)) } .tn-kar{ display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--border) } .tn-kar:first-child{ border-top:0 }
 .tn-kar > span{ flex:1; min-width:0 } .tn-kar small{ display:block; color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }      /* (1.77.25) Trang chủ gia sư: lời nhờ xác nhận kiến thức */
 textarea.inp{ height:auto; min-height:84px; padding:9px 10px; line-height:1.5; resize:vertical }      /* (1.77.25) ô nhiều dòng dùng lớp .inp bị ép cao 34px → chữ gợi ý bị cắt, che lấp (Lưu ý đặc biệt…) */
@@ -2408,6 +2408,10 @@ html[data-glass] .lk-steps.seg{ background:#E6E9F0 !important }
   .vw-tool .grp{ padding:1px 2px } .vw-tool .grp .ibtn{ width:30px; height:30px; font-size:14px }
   .vw-tool .pg-in{ width:34px; height:26px; padding:0 } .vw-tool #pN{ padding:0 4px 0 2px !important; font-size:11.5px } .vw-tool .zm{ min-width:36px; font-size:11px; padding:0 2px }
   .vw-tool > .ibtn{ width:34px; height:34px }
+  /* (1.80) điện thoại: bỏ ô số trang + nút phóng to (phóng bằng hai ngón) · nút In hiện ngay · khung bên vào ⋯ · ⋯ nổi bật (nền đậm) */
+  .vw-tool .grp, .vw-tool #vSide{ display:none !important } .vw-tool #vPr{ display:grid !important; margin-left:auto } .vw-tool #vPr ~ .vw-more{ margin-left:6px }
+  .vw-tool .vw-more{ background:var(--brand-700); color:#fff; border-radius:999px; box-shadow:0 2px 8px rgba(29,78,216,.28) } .vw-tool .vw-more i{ font-size:17px }
+  .vw-pages{ touch-action:pan-x pan-y }
   /* thanh công cụ danh sách lớp: chỉ biểu tượng, ẩn số đếm & thao tác hàng loạt */
   .cl-bar > .small.muted, #cgByG{ display:none }
   .cl-bar #cgAdd .bl, .cg-vw .bl{ display:none } .cl-bar #cgAdd{ padding:0 12px }
@@ -2867,6 +2871,8 @@ html[data-glass] .tabbar{ background:rgba(255,255,255,.82); border-color:rgba(25
 .ct-selbar b{ font-size:13px; white-space:nowrap } .ct-selbar .btn:disabled{ opacity:.45 }
 .ct-tw{ padding:0; overflow:hidden }
 .ct-tbl{ min-width:780px } .ct-tbl td{ vertical-align:top } .ct-tbl td small{ display:block; color:var(--muted); font-size:11px; font-weight:500 }
+.ct-tbl .ct-ct .cl-warn{ white-space:nowrap }      /* (1.80) “Chưa có bài” một dòng, không vỡ chữ cạnh biểu tượng */
+@media (max-width:820px){ .ct-tbl .ct-ct{ min-width:190px; font-size:12.5px } }
 .ct-tbl .nw{ white-space:nowrap } .ct-tbl .ck{ width:38px } .ct-tbl .ct-ct{ font-size:12px; max-width:340px; line-height:1.45 }
 .ct-tbl td.act{ text-align:right } .ct-tbl td.act > *{ vertical-align:middle; margin-left:2px }
 .ct-tbl tr.s-draft td:first-child{ box-shadow:inset 3px 0 0 var(--brand-500) } .ct-tbl tr.s-none td:first-child{ box-shadow:inset 3px 0 0 var(--danger) } .ct-tbl tr.s-off{ opacity:.55 }
@@ -4812,6 +4818,16 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .zb-ex > .zb-exa{ align-self:flex-start; height:36px; padding:0 10px; font-size:12.5px }
 .zb-r .zb-fg > .inp{ max-width:none }
 @media (max-width:640px){ .zb-r{ padding:12px } .zb-r .zb-rh{ flex-wrap:nowrap } .zb-r .zb-msb{ font-size:16px } .zb-fg{ grid-template-columns:1fr; gap:6px } .zb-fl{ line-height:1.4 } .zb-exr{ grid-template-columns:minmax(0, 1fr) 36px } .zb-exr .inp:first-child{ grid-column:1 / -1 } }
+/* (1.79) Bot Zalo · mẫu tin tự soạn (ô soạn + chip biến + xem trước) · hỏi đáp hai chiều */
+.zb-tp{ display:flex; flex-direction:column; gap:8px; min-width:0 } .zb-tm{ display:flex; gap:6px; flex-wrap:wrap }
+.zb-r textarea.zb-ta{ height:auto; min-height:132px; padding:8px 10px; font-size:13px; line-height:1.55; resize:vertical; white-space:pre-wrap }
+.zb-vs{ display:flex; flex-wrap:wrap; gap:4px }
+.zb-chip{ border:1px solid var(--border-strong); background:var(--surface-2); color:var(--ink); border-radius:999px; padding:2px 9px; font:12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; cursor:pointer }
+.zb-chip:hover, .zb-chip:focus-visible{ border-color:var(--primary); color:var(--primary) }
+.zb-pv{ border:1px solid var(--border); border-radius:12px; overflow:hidden } .zb-pvh{ display:flex; align-items:center; gap:6px; padding:6px 10px; font-size:12px; color:var(--muted); background:var(--surface-2) }
+.zb-pvb{ padding:10px 12px; font-size:13.5px; line-height:1.55; overflow-wrap:anywhere; background:var(--surface); color:var(--ink) }
+.zb-code pre{ max-height:240px; overflow:auto; margin:6px 0 0; padding:8px 10px; border-radius:8px; background:var(--surface-2); white-space:pre }
+@media (max-width:640px){ .zb-g .btn.sm{ flex:1 1 auto } .zb-r textarea.zb-ta{ font-size:16px } }
 
 /* (1.65.1) Chế độ hiển thị: Theo máy · Sáng · Tối */
 .ui-modes{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px }
@@ -4977,6 +4993,7 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
     .sec .msg{ width:min(560px, 100%); padding:22px; border-radius:16px; background:var(--surface); text-align:center; color:var(--ink-2); box-shadow:var(--sh-1) }
     .sec .msg i{ font-size:26px; display:block; margin-bottom:6px; color:var(--warn) }
     .sh-pill{ position:absolute; left:50%; bottom:calc(16px + env(safe-area-inset-bottom)); transform:translateX(-50%); padding:7px 14px; border-radius:999px; background:rgba(19,26,36,.86); color:#fff; font:700 11.5px var(--font-mono); pointer-events:none; white-space:nowrap; box-shadow:var(--sh-2); backdrop-filter:blur(8px); transition:opacity var(--t-base) }
+    .pk-ld{ display:inline-flex; align-items:center; gap:4px; color:var(--brand-700) } .pk-ld .spin{ display:inline-block; width:10px; height:10px; border-radius:50%; border:2px solid var(--border-strong); border-top-color:var(--brand-600); animation:spin .8s linear infinite }
     .sh-sel{ align-items:center !important; background:#EEF3FF !important; border-color:#C7D4FB !important; color:#1E3A8A !important; flex-wrap:wrap } .sh-sel > div{ flex:1; min-width:160px } .sh-sel > i{ font-size:16px }
     .sh-attn{ background:#FFFBEB !important; border-color:#FCD34D !important; color:#78350F !important; font-size:13.5px !important } .sh-attn > i{ color:#D97706; font-size:18px } .sh-attn b{ display:block; margin-bottom:2px } .sh-attn p{ margin:0; white-space:pre-line; line-height:1.55 }
     .sh-note{ max-width:1000px; margin:0 auto 14px; display:flex; gap:9px; align-items:flex-start; padding:10px 14px; border-radius:14px; background:#FFF8EB; border:1px solid #F5D9A8; color:#7A4A06; font-size:12.5px }
@@ -5298,6 +5315,8 @@ async function start(tries) {
   addEventListener('resize', debounce(() => setZoom(V.zoom, true), 150));
   addEventListener('keydown', e => { if (e.target.closest('input')) return; if (e.key === '+' || e.key === '=') stepZoom(1); if (e.key === '-') stepZoom(-1); if (e.key === '0') setZoom(1); });
   track();
+  // (1.80) LINK GỘP (≥ 2 tệp, được in): mở là hiện ngay bảng chọn tệp in — không phải chờ xem; các tệp tải ngầm, chọn xong bấm In là in khi tải xong
+  if (L.print && L.files.length >= 2 && !SEL && (L.pickOnly || matchMedia('(max-width:820px)').matches)) setTimeout(printPick, 0);
   await Promise.all(V.docs.map(load));      // (1.77.21) mọi tài liệu cùng lúc — số lệnh gửi máy chủ do slot() giới hạn ≤ 24 (theo thứ tự) · trước: 2 → 4 tài liệu      // (1.77.20) 4 tài liệu cùng lúc (máy chủ đọc theo đoạn byte, không đọc trùng) · trước: 2, theo thứ tự (1.37.3) — tài liệu đầu vẫn hiện trước
 }
 /** TẢI NỘI DUNG THEO PHẦN (1.37.2 · 1.37.3 — máy chủ: contentPart_): mỗi phần ~0,9 MB nên Google nén kịp, hết cảnh “mất kết nối” với PDF lớn.
@@ -5376,10 +5395,10 @@ function load(d) {
       const n0 = n; n = want.length;
       if (!n) ph.replaceWith(Object.assign(document.createElement('div'), { className: 'msg', textContent: 'Không có trang nào được chọn' }));
       d.state = 'ok';
-      paintNums();
+      paintNums(); if (V.onDoc) V.onDoc();
       st.textContent = n + ' tr'; $('#pc' + d.i).textContent = n + (n < n0 ? '/' + n0 : '') + ' trang' + (d.f.s ? ' · ' + fmtSize(d.f.s) : '');
     } catch (e) {
-      d.state = 'err'; paintNums();
+      d.state = 'err'; paintNums(); if (V.onDoc) V.onDoc();
       st.innerHTML = '<i class="bi bi-exclamation-triangle" style="color:var(--warn)"></i>';
       const ph = $('.ph', sec); const m = document.createElement('div'); m.className = 'msg';
       m.innerHTML = '<i class="bi bi-exclamation-triangle"></i>' + esc(e.message) + (e.soft ? '' : '<div style="margin-top:10px"><button class="btn sm">Thử lại</button></div>');
@@ -5462,6 +5481,7 @@ async function printAll(list) {
   let area = $('#printArea');
   let pass = null;
   try {
+    const wait = docs.filter(d => d.state !== 'ok' && d.state !== 'err').length; if (wait) toast('Đang tải ' + wait + ' tệp — tải xong tự mở hộp in…', 'info', 4000);      // (1.80)
     await Promise.all(docs.map(load));
     if (V.L.maxPrints) pass = await printPass();      // in có kiểm soát: xin lượt in trước (hết lượt / huỷ → dừng)
     if (V.L.maxPrints && !pass) return;
@@ -5533,7 +5553,7 @@ function printPick() {
   const paint = () => {
     const n = order.filter(o => o.on).length;
     L.innerHTML = order.map((o, i) => '<div class="pk-r' + (o.on ? ' on' : '') + '" draggable="true" data-i="' + i + '"><i class="bi bi-grip-vertical pk-h"></i><label><input type="checkbox" data-c="' + i + '"' + (o.on ? ' checked' : '') + '><span class="pk-no">' + (o.on ? order.slice(0, i + 1).filter(x => x.on).length : '–') + '</span>' +
-      '<span class="pk-t"><b title="' + esc(o.d.f.n) + '">' + esc(o.d.f.n) + '</b><small>' + (o.on ? 'In' : 'Chỉ xem') + (o.d.pages.length ? ' · ' + o.d.pages.length + ' trang' : '') + '</small></span></label>' +
+      '<span class="pk-t"><b title="' + esc(o.d.f.n) + '">' + esc(o.d.f.n) + '</b><small>' + (o.on ? 'In' : 'Chỉ xem') + (o.d.state === 'ok' ? ' · ' + o.d.pages.length + ' trang' : o.d.state === 'err' ? ' · <span style="color:var(--warn)">chưa tải được</span>' : ' · <span class="pk-ld"><span class="spin"></span>đang tải</span>') + '</small></span></label>' +
       '<button class="ibtn" data-m="' + i + '" data-d="-1" aria-label="Lên"' + (i ? '' : ' disabled') + '><i class="bi bi-arrow-up"></i></button><button class="ibtn" data-m="' + i + '" data-d="1" aria-label="Xuống"' + (i < order.length - 1 ? '' : ' disabled') + '><i class="bi bi-arrow-down"></i></button></div>').join('');
     go.querySelector('span').textContent = n ? 'In ' + n + ' tệp' : 'Chưa chọn tệp';
     go.disabled = !n;
@@ -5541,7 +5561,8 @@ function printPick() {
     const dl = bg.querySelector('#pkDl'); if (dl) { dl.disabled = !n; dl.querySelector('span').textContent = n ? 'Tải PDF ' + n + ' tệp' : 'Tải PDF'; }
   };
   const save = () => { try { localStorage.setItem(key, JSON.stringify({ o: order.map(o => [o.d.f.id + '#' + o.d.i, o.on ? 1 : 0]) })); } catch (e) {} };
-  const close = () => bg.remove();
+  const close = () => { bg.remove(); if (V.onDoc === paint) V.onDoc = null; };
+  V.onDoc = paint;      // (1.80) tệp tải xong ngầm → cập nhật số trang / trạng thái ngay trong bảng
   bg.addEventListener('click', e => {
     if (e.target.closest('[data-x]') || e.target === bg) return close();
     const m = e.target.closest('[data-m]'); if (m) { const i = Number(m.dataset.m), j = i + Number(m.dataset.d); const t = order[i]; order[i] = order[j]; order[j] = t; save(); return paint(); }
