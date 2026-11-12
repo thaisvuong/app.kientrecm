@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T08:59:28.489Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T09:35:27.473Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5107,6 +5107,8 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .cl-row.arch{ opacity:.8 } .cl-row.arch .cl-ra button:not(.cl-mo), .cl-row.arch .cl-ra .cl-mo{ display:none }
 .cd-arch{ margin-top:8px } .cd-archd{ display:flex; align-items:center; gap:6px; justify-content:center; margin:8px 0 2px; font-size:12px; color:var(--muted) }
 .arch-mo{ display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px } .arch-mo b{ min-width:74px } .arch-mo .sp{ flex:1 }
+.cl-kgs.cl-kdel{ cursor:pointer; color:#B91C1C; background:#FEF2F2; border-color:#FECACA } .cl-kgs.cl-kdel:hover{ background:#FEE2E2 }      /* (1.80.9) */
+.cl-kdbar{ border-color:#FECACA; background:#FEF2F2 } .cl-kdbar > i{ color:#B91C1C }
 </style>
 
   <style>
@@ -14751,7 +14753,24 @@ function clKgsSt(x) {
   return (st === 'diff' || st === 'empty') && x.date < CL.d.today ? 'past' : st;      // (1.66.5) buổi đã qua: KGS giữ topic đã tính, không sửa từ đây → chỉ ghi nhận, không báo lệch
 }
 const CL_KGS = { out: ['gray', 'bi-box-arrow-up-right', 'KGS: Buổi ngoài lộ trình (bài ngoài kho KGS)'], ok: ['ok', 'bi-check2-circle', 'Khớp KGS'], diff: ['warn', 'bi-arrow-left-right', 'KGS: '], empty: ['info', 'bi-signpost', 'KGS: '], none: ['gray', 'bi-dash-circle', 'KGS chưa gắn topic'], past: ['gray', 'bi-clock-history', 'Đã qua · KGS ghi khác'] };
+/** (1.80.9) BUỔI KHÔNG CÓ BÊN KGS → BÁO XOÁ: lớp lấy lịch từ KGS, buổi không mã KGS, chưa dạy / chưa nghỉ, và KGS không có buổi nào cùng ngày.
+    Chỉ tính trong khoảng lịch KGS đã biết (tới buổi KGS xa nhất) — buổi dư sau đó vẫn là “chờ KGS có buổi” */
+function clKgsOrphan(x) {
+  if (!x || x.kid || x.arch || x.status === 'off' || x.status === 'taught') return false;
+  const c = clClass(x.classId); if (!c || !c.kgs) return false;
+  const L = clSess(c.id), last = L.reduce((a, y) => y.kid && y.date > a ? y.date : a, '');
+  return !!last && x.date <= last && !L.some(y => y.kid && y.date === x.date);
+}
+function clKgsOrphans(c) { return c && c.kgs ? clSess(c.id).filter(clKgsOrphan) : []; }
+async function clKgsDel(c, L, done) {
+  if (!L.length) return; const nB = L.filter(x => (x.folders || []).length || (x.extra || []).length).length;
+  if (!await ask('Xoá ' + (L.length === 1 ? 'buổi ' + clDay(L[0].date, CL.d.today).dm : L.length + ' buổi (' + L.map(x => clDay(x.date, CL.d.today).dm).join(', ') + ')') + ' của ' + clName(c) + '?\nKiến Gia Sư không có buổi học cùng ngày.' +
+    (nB ? '\n' + nB + ' buổi đang có bài — bài được xếp lại vào buổi KGS kế tiếp.' : '') + '\nBuổi xoá nằm trong Thùng rác, khôi phục được.', { ok: 'Xoá', danger: true })) return;
+  const ids = new Set(L.map(x => x.id)); CL.d.sessions = CL.d.sessions.filter(z => !ids.has(z.id));
+  clQueue('sessionDelete', { ids: [...ids] }, { label: 'Xoá ' + ids.size + ' buổi không có bên KGS · ' + clName(c) }); toast('Đã xoá ' + ids.size + ' buổi không có bên KGS', 'ok'); done ? done() : CL.repaint && CL.repaint();
+}
 function clKgsMark(x) {
+  if (clKgsOrphan(x)) return '<button type="button" class="cl-kgs cl-kdel" data-act="kdel" title="Lớp lấy lịch từ Kiến Gia Sư nhưng KGS KHÔNG có buổi học ngày này — bấm để xoá buổi (vào Thùng rác)"><i class="bi bi-trash3"></i><span>Không có bên KGS · Xoá</span></button>';
   if (x && x.spare) return '<span class="cl-kgs gray" title="Lớp lấy lịch từ Kiến Gia Sư: buổi này chưa có bên KGS (bài gán dư). Gia sư chưa thấy; KGS thêm buổi mới thì buổi dư sớm nhất nhận buổi đó, giữ nguyên bài"><i class="bi bi-hourglass"></i><span>Dư · chờ KGS có buổi</span></span>';
   // (1.80.2) lớp lấy lịch KGS mà buổi này không có bên KGS (buổi có sẵn từ trước, không mã KGS) → đánh dấu khác, bấm để đổi ngày cho khớp lịch KGS
   if (x && !x.kid && x.status !== 'off' && (clClass(x.classId) || {}).kgs) return '<button type="button" class="cl-kgs cl-knone" data-act="kdate" title="Lớp lấy lịch từ Kiến Gia Sư nhưng buổi này không có bên KGS (buổi tạo sẵn ở Kiến CM). Bấm để đổi ngày cho khớp buổi bên KGS — đồng bộ lần sau tự nối và gộp bài vào buổi KGS cùng ngày."><i class="bi bi-calendar-x"></i><span>Ngoài lịch KGS</span><i class="bi bi-pencil-square"></i></button>';
@@ -15064,7 +15083,8 @@ async function clAct(anchor, act, x, done) {
       return anchor ? clSoon(done) : done();
     }
     if (act === 'edit') return clContent(x, done);
-    if (act === 'kdate') return clEditSess(x, done);      // (1.80.2) buổi không có bên KGS → đổi ngày
+    if (act === 'kdate') return clEditSess(x, done);
+    if (act === 'kdel') return clKgsDel(c, [x], done);      // (1.80.9) buổi không có bên KGS → xoá      // (1.80.2) buổi không có bên KGS → đổi ngày
     if (act === 'link') { const r = await rpc('sessionLink', { id: x.id }); copyText(r.url, 'Đã tạo & sao chép link tạm'); return refresh(); }
     if (act === 'copy' && !man && x.link.state === 'active') return kpsOpen(clLinkUrl(x), clName(c) + ' · ' + clDay(x.date, CL.d.today).dm);      // (1.77.22) gia sư: mở ngay trong app (có Quay lại, vẫn In)
     if (act === 'copy') return x.link.state === 'active' ? copyText(clLinkUrl(x), 'Đã sao chép link tạm') : toast('Link đã ' + (x.link.state === 'expired' ? 'hết hạn' : 'khoá'), 'warn');
@@ -16735,7 +16755,7 @@ function clDetail(B, v, id) {
         // (1.75.1) cụm việc chính bên phải, cùng cỡ: Gán bài (dùng nhiều) · In gộp
         (man || canPrint ? '<span class="cd-act">' + (man ? '<button type="button" class="btn xs cd-asg" id="cdAsg" title="Bảng gán bài: kéo thả bài cho nhiều buổi, đẩy lùi, hoàn tác"><i class="bi bi-grid-3x3-gap"></i><span class="cd-bl">Gán bài</span></button>' : '') +
           (canPrint ? '<button class="btn xs pri" id="cdPrint" title="In gộp ' + nPrint + ' buổi đã duyệt chưa dạy"><i class="bi bi-printer"></i><span class="cd-bl">In gộp </span>' + nPrint + '<span class="cd-bl"> buổi</span></button>' : '') + '</span>' : '') + '</div></div>' +
-      clKaHtml(c) + clSnHtml(c) +      // (1.74) lưu ý đặc biệt của bé · (1.75) nhờ gia sư xác nhận kiến thức
+      clKaHtml(c) + clSnHtml(c) + (man && clKgsOrphans(c).length > 1 ? '<div class="cl-np cl-kdbar"><i class="bi bi-calendar-x"></i><span><b>' + clKgsOrphans(c).length + ' buổi không có bên KGS</b> (KGS không có buổi cùng ngày) — nên xoá để lịch khớp KGS.</span><button class="btn xs" id="cdKdel"><i class="bi bi-trash3"></i>Xoá hết</button></div>' : '') +      // (1.74) lưu ý đặc biệt của bé · (1.75) nhờ gia sư xác nhận kiến thức
       (rq.length ? '<button class="cl-rqb" data-go="classes/reqs"><i class="bi bi-hourglass-split"></i><span><b>' + rq.length + ' yêu cầu chờ duyệt</b><small>' + rq.map(q => esc(q.label)).join(' · ') + '</small></span><i class="bi bi-chevron-right"></i></button>' : '') +
       '<div class="seg cd-tabs" id="cdTabs"><button class="seg-b cd-tab" data-pane="s" aria-pressed="' + (pane === 's') + '">Buổi học <small>' + (notOut.length + out.length) + '</small></button><button class="seg-b cd-tab" data-pane="l" aria-pressed="' + (pane === 'l') + '">' + (man ? 'Bài trong chương trình' : 'Tiến trình học') + '</button></div>' +
       '<div class="cd-lay' + (man ? '' : p ? ' tut' : ' one') + '" data-pane="' + pane + '">' +
@@ -16795,7 +16815,8 @@ function clDetail(B, v, id) {
     clProgPick(anchor, c.programId, progs, pid => clSave(c, { programId: pid }, 'Đổi chương trình', { after: () => toast('Đã đổi chương trình') })); };
   const bind = () => {
     $('#cdMore', B).onclick = e => more(e.currentTarget);
-    { const ab = $('#cdArch', B); if (ab) ab.onclick = () => clArchLoad(c.id, ab); }      // (1.80.8)
+    { const ab = $('#cdArch', B); if (ab) ab.onclick = () => clArchLoad(c.id, ab); }
+    { const kd = $('#cdKdel', B); if (kd) kd.onclick = () => clKgsDel(c, clKgsOrphans(c)); }      // (1.80.9)      // (1.80.8)
     const cai = $('#cdAi', B); if (cai) cai.onclick = () => aiTaskModal([c.id], clName(c));      // (1.77) Trợ lý AI cho bé này
     const pr = $('#cdPrint', B); if (pr) pr.onclick = () => clPrintAll(c, pr);
     const sn = $('#cdSn', B); if (sn) sn.onclick = e => clSnClick(e, c, () => paint());
