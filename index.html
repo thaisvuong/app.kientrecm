@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T17:42:56.246Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T18:02:09.401Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7300,6 +7300,7 @@ async function ntLoad() {
     if (NT.em !== em) return;      // đã đổi tài khoản trong lúc tải
     if (NT.rdAt > t0) return ntLoad();      // vừa ghi “đã đọc” xong trong lúc đang tải → bản này có thể cũ, tải lại
     NT.list = ntOverlay(r.list); NT.at = Date.now(); lsSet(ntK('ntCache'), NT.list); ntSet(ntByList()); ntPaint(); bnBadges();
+    { const k = (r.list || []).filter(n => /^ai\/assign/.test(String(n.route || ''))).map(n => n.id).join(); if (NT.aiK != null && k !== NT.aiK && typeof aiAfterAssign === 'function') aiAfterAssign(); NT.aiK = k; }      // (1.80.28) AI gán xong ở lượt tự chạy / tab khác → dữ liệu lớp tải lại ngay
     if (typeof tnUnread === 'function') { const k = [...tnUnread()].sort().join(); if (k !== NT.tnK) { NT.tnK = k; if (/^classes\/(notes|reqs)/.test(S.route || '') && typeof CL !== 'undefined' && CL.repaint) CL.repaint(); } }      // phản hồi mới cho yêu cầu đang xem → vẽ lại dấu “Có phản hồi mới”
   } catch (e) {}
 }
@@ -7350,6 +7351,7 @@ async function warmUp() {
       await step(mod === 'tutor' && canAny(['classes.view', 'classes.manage']) && typeof clReload === 'function', async () => { if (!CL.d || !homeTodo.at) await clReload(); });
       await step(mod === 'tutor' && canAny(['classes.view', 'classes.manage']), async () => { const R0 = await rpc('reqList', { lite: 1 }, { quiet: true }); lsSet('reqCache:' + em, Array.isArray(R0) ? R0 : R0.list); if (R0 && R0.n) lsSet('reqN:' + em, R0.n); });      // (1.80.21) chỉ chờ duyệt + mới xử lý
       await step(mod === 'tutor' && can('classes.manage'), async () => lsSet('tpCache', await rpc('tutorPermsGet', {}, { quiet: true })));
+      await step(mod === 'tutor' && can('classes.manage') && typeof sdWarm === 'function', () => sdWarm());      // (1.80.28) Điều độ in bài (30 ngày) lấy trước → bấm tab là hiện ngay
       await step(mod === 'tutor' && canAny(['classes.view', 'classes.manage']) && typeof TN !== 'undefined', async () => { const d = await rpc('tnList', {}, { quiet: true }), ck = 'tnCache:' + em; lsSet(ck, d); if (!S.as) { TN.d = d; TN.ck = ck; } });      // (1.44) tab Yêu cầu (Gửi quản lý) mở ra là có ngay
       await step(mod === 'lib' && canAny(['sources.manage', '@up']) && typeof upWarm === 'function', () => upWarm());      // Upload file: lấy trước danh sách + thư mục đầu → bấm tab là hiện ngay
       await step(mod === 'lib' && can('links.manage'), async () => { const d = await rpc('listLinks', {}, { quiet: true }); lsSet('lkCache:' + em, d); if (window.LK && !LK.data) LK.data = d; });
@@ -14819,10 +14821,9 @@ async function viewClasses(arg, v) {
   CL.repaint = () => {
     if (v.hidden || !v.isConnected) { v._dirty = 1; return; }
     if (body.dataset.tab === 'inbox' && body._ibList && route() === 'inbox') { body._ibList(); clBadge(); clInboxBadge(); return; }    // hộp thư: chỉ vẽ lại danh sách, giữ nguyên khung trò chuyện đang mở
-    const sc = $('.ct-scroll', v), keep = { v: v.scrollTop, s: sc ? sc.scrollTop : 0 }, st = CL.st;
-    paint();
+    const st = CL.st;
+    clKeepScroll(v, paint);      // (1.80.28) giữ cả chỗ cuộn của các khung bên trong (danh sách buổi trang bé…), không chỉ trang
     if (CL.st !== st) CL.st = st;
-    v.scrollTop = keep.v; const sc2 = $('.ct-scroll', v); if (sc2) sc2.scrollTop = keep.s;
   };
   tab.onclick = e => {
     if (e.target.closest('#clMore')) return openMenu($('#clMore', tab), $$('.seg-x', tab).map(b => ({ t: b.textContent, i: b.querySelector('i').className.replace('bi ', ''), fn: () => go('classes/' + b.dataset.t) })));
@@ -16911,6 +16912,13 @@ function clPeek(id, after) {
   clDetail(B, null, id);
   return m;
 }
+/** (1.80.28) GIỮ CHỖ CUỘN khi vẽ lại: nhớ vị trí cuộn của trang và của mọi khung tự cuộn bên trong (danh sách buổi, cây bài…) theo tên lớp CSS + thứ tự, vẽ lại xong đặt lại đúng chỗ */
+function clKeepScroll(root, fn) {
+  const K = [], vw = root.closest('.view'); if (vw) K.push([vw, vw.scrollTop]);
+  root.querySelectorAll('[class]').forEach(el => { if (el.scrollTop > 0) { const k = el.className, same = [...root.querySelectorAll('[class]')].filter(z => z.className === k); K.push([k, same.indexOf(el), el.scrollTop]); } });
+  fn();
+  K.forEach(s => { if (s[0] && s[0].nodeType) { s[0].scrollTop = s[1]; return; } const same = [...root.querySelectorAll('[class]')].filter(z => z.className === s[0]), el = same[s[1]] || same[0]; if (el) el.scrollTop = s[2]; });
+}
 function clDetail(B, v, id) {
   let c = clClass(id);
   // (1.77.23) gia sư: buổi đã dạy quá 45 ngày không nằm trong dữ liệu mở app → mở trang lớp mới tải riêng, ghép vào danh sách buổi
@@ -17035,7 +17043,7 @@ function clDetail(B, v, id) {
     // điện thoại: chạm vào phần nội dung của buổi là mở hộp chọn bài (giống trang Duyệt & phát)
     const a = e.target.closest('[data-act],[data-open]') || (CL.d.manage && matchMedia('(max-width:820px)').matches && !e.target.closest('a,button,label,input') && e.target.closest('.cl-rf'));
     const row = a && a.closest('[data-sid]');
-    if (row) { const x = CL.d.sessions.find(s => s.id === row.dataset.sid); if (x) return clAct(a, (a.dataset && a.dataset.act) || 'open', x, paint); }
+    if (row) { const x = CL.d.sessions.find(s => s.id === row.dataset.sid); if (x) return clAct(a, (a.dataset && a.dataset.act) || 'open', x, () => clKeepScroll(B, paint)); }      // (1.80.28) bấm Đổi bài / Duyệt… → vẽ lại mà giữ nguyên chỗ đang cuộn
   };
   paint();
 }
@@ -19466,9 +19474,16 @@ const AIW = { cb: new Map(), t: 0 };
 function aiWatch(id, cb) { const L = AIW.cb.get(id) || []; L.push(cb); AIW.cb.set(id, L); if (!AIW.t) AIW.t = setTimeout(aiWatchTick, 2500); }
 async function aiWatchTick() {
   AIW.t = 0; const ids = [...AIW.cb.keys()]; if (!ids.length) return;
-  try { const r = await rpc('aiPoll', { ids: ids }, { quiet: true }); (r.list || []).forEach(o => { if (AI_WAIT.test(o.status)) return; const L = AIW.cb.get(o.id) || []; AIW.cb.delete(o.id); L.forEach(cb => { try { cb(o); } catch (e) { console.error(e); } }); }); }
+  try { const r = await rpc('aiPoll', { ids: ids }, { quiet: true }); (r.list || []).forEach(o => { if (AI_WAIT.test(o.status)) return; const L = AIW.cb.get(o.id) || []; AIW.cb.delete(o.id); L.forEach(cb => { try { cb(o); } catch (e) { console.error(e); } }); if (o.kind === 'assign' && o.status !== 'err') aiAfterAssign(); }); }
   catch (e) { console.warn('aiPoll', e); }
   if (AIW.cb.size) AIW.t = setTimeout(aiWatchTick, document.hidden ? 8000 : 3000);
+}
+/** (1.80.28) AI GÁN XONG → tải lại dữ liệu lớp NGAY và vẽ lại trang đang mở (trang bé, Buổi học, Điều độ) — không phải tự tải lại mới thấy bài nháp; giữ chỗ cuộn */
+function aiAfterAssign() {
+  clearTimeout(aiAfterAssign.t); aiAfterAssign.t = setTimeout(() => {
+    if (typeof clReload !== 'function' || typeof CL === 'undefined') return;
+    clReload(Date.now()).then(() => { try { CL.repaint && CL.repaint(); } catch (e) {} try { if (typeof SD !== 'undefined' && SD.B && SD.B.isConnected && !SD.B.closest('[hidden]')) clSched(SD.B, SD.v); } catch (e) {} }).catch(() => {});
+  }, 400);
 }
 /** đề xuất (gán bài / yêu cầu) đang chờ → có kết quả thì thay thẻ trên màn hình */
 function aiWatchPlan(L) {
@@ -21367,7 +21382,11 @@ function clTutorPlan(em) {
 <script>
 /* ══ (1.77.24) ĐIỀU ĐỘ IN BÀI — xếp các buổi sắp tới theo HẠN DUYỆT để gia sư kịp in tại cơ sở:
    In tại cơ sở (học ở cơ sở) · Ghé cơ sở (học tại nhà nhưng có buổi ở cơ sở trước đó) · Gửi QLTT in (hạn 17:00 hôm trước). ══ */
-const SD = { days: 4, all: false, d: null };
+const SD = { days: 30, all: false, d: null, init: 0 };      // (1.80.28) mặc định 30 ngày tới (nhớ lựa chọn trên máy)
+/** (1.80.28) lấy trước khi vào app (warmUp) + cất trên máy → mở Điều độ là có ngay, không phải đợi */
+function sdKey() { return 'sdPlan:' + (S.me && S.me.email || '') + (S.as ? '#' + S.as : ''); }
+function sdInit() { if (SD.init) return; SD.init = 1; const v = lsGet('sdDays', 30); SD.days = v === 'month' ? 'month' : Number(v) || 30; if (!SD.d) { const c = lsGet(sdKey(), null); if (c && String(c.days) === String(SD.days)) SD.d = c; } }
+async function sdWarm() { sdInit(); const d = await rpc('schedPlan', { days: SD.days }, { quiet: true }); SD.d = d; lsSet(sdKey(), d); return d; }
 const SD_M = { tai_co_so: ['bi-building-check', 'In tại cơ sở'], ghe_co_so: ['bi-signpost-2', 'Ghé cơ sở'], gui_in: ['bi-send', 'Gửi QLTT in'], unknown: ['bi-question-circle', 'Chưa rõ cơ sở'] };
 function sdDT(ms) { const d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' ' + ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][d.getDay()] + ' ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1); }
 function sdLeft(ms) { const m = Math.round((ms - Date.now()) / 60000); if (m < 0) return 'quá hạn ' + (m > -60 ? -m + ' phút' : Math.round(-m / 60) + ' giờ'); return m < 60 ? 'còn ' + m + ' phút' : m < 48 * 60 ? 'còn ' + Math.round(m / 60) + ' giờ' : 'còn ' + Math.round(m / 1440) + ' ngày'; }
@@ -21375,8 +21394,9 @@ function sdDay(ymd, t) { const a = String(ymd).split('-').map(Number), w = new D
 async function clSched(B, v) {
   setTitle('Điều độ in bài', 'bi-signpost-split', [{ t: S.boot.app, r: 'home' }, { t: 'Lớp gia sư', r: 'classes' }], v);
   // (1.77.27) quay lại tab: vẽ ngay bản đã có (cùng khoảng ngày), tải bản mới ngầm rồi vẽ lại — không còn màn chờ mỗi lần đổi tab
+  sdInit(); SD.B = B; SD.v = v;
   const have = SD.d && String(SD.d.days) === String(SD.days); if (have) sdPaint(B, v); else B.innerHTML = '<div class="card"><div class="card-b">' + miniLoader('Đang tính hạn duyệt theo cơ sở…') + '</div></div>';
-  try { const d = await rpc('schedPlan', { days: SD.days }, { quiet: true }); SD.d = d; } catch (e) { if (!have) B.innerHTML = '<div class="card"><div class="empty" style="padding:40px">' + esc(e.message) + '</div></div>'; return; }
+  try { const d = await rpc('schedPlan', { days: SD.days }, { quiet: true }); SD.d = d; lsSet(sdKey(), d); } catch (e) { if (!have) B.innerHTML = '<div class="card"><div class="empty" style="padding:40px">' + esc(e.message) + '</div></div>'; return; }
   if (B.isConnected) sdPaint(B, v);
 }
 function sdPaint(B, v) {
@@ -21411,7 +21431,7 @@ function sdPaint(B, v) {
       '<button class="ibtn" id="sdR" title="Tính lại"><i class="bi bi-arrow-clockwise"></i></button></div></div>' +
       '<div class="card-b"><div class="sd-lg"><span><span class="sd-m tai_co_so"><i class="bi bi-building-check"></i>In tại cơ sở</span>hạn 30 phút trước giờ học</span><span><span class="sd-m ghe_co_so"><i class="bi bi-signpost-2"></i>Ghé cơ sở</span>hạn trước lần ghé</span><span><span class="sd-m gui_in"><i class="bi bi-send"></i>Gửi QLTT in</span>hạn ' + D.cut + ':00 hôm trước</span></div>' +
       (list || '<div class="empty" style="padding:30px"><i class="bi bi-check2-circle"></i>Không còn buổi nào cần gán / duyệt trong ' + D.days + ' ngày tới</div>') + '</div></div>';
-  $('#sdDays', B).onchange = e => { SD.days = e.target.value === 'month' ? 'month' : Number(e.target.value); clSched(B, v); };
+  $('#sdDays', B).onchange = e => { SD.days = e.target.value === 'month' ? 'month' : Number(e.target.value); lsSet('sdDays', SD.days); clSched(B, v); };
   $('#sdAll', B).onchange = e => { SD.all = e.target.checked; sdPaint(B, v); };
   $('#sdR', B).onclick = () => clSched(B, v);
   B.onclick = async e => {
@@ -21434,7 +21454,9 @@ function sdPaint(B, v) {
         if (ai.dataset.stop) { if (r.log) rpc('aiCancel', { id: r.log.id }).then(z => toast(z.cancelled ? 'Đã huỷ lượt AI gán bài' : 'AI đã gán xong (lưu NHÁP) — bỏ ở Buổi học nếu không dùng', z.cancelled ? 'ok' : 'warn', 6000)).catch(fail);
           delete ai.dataset.busy; delete ai.dataset.stop; ai.innerHTML = '<i class="bi bi-robot"></i>AI gán bài'; return; }
         if (r.log) { ai.dataset.log = r.log.id; toast('AI đang gán bài (lưu NHÁP để bạn / CTV duyệt) — xem kết quả ở Trợ lý AI › Gán bài', 'ok', 7000); ai.innerHTML = r.log.status === 'wait' ? '<i class="bi bi-hourglass-split"></i>AI đang gán… <small>· chạm để huỷ</small>' : '<i class="bi bi-check2"></i>AI đã gán (nháp)';
-          if (r.log.status !== 'wait') { delete ai.dataset.busy; ai.disabled = true; } }
+          if (r.log.status !== 'wait') { delete ai.dataset.busy; ai.disabled = true; if (typeof aiAfterAssign === 'function') aiAfterAssign(); }
+          else if (typeof aiWatch === 'function') aiWatch(r.log.id, o => { delete ai.dataset.busy; delete ai.dataset.log; ai.disabled = o.status !== 'err'; ai.innerHTML = o.status === 'err' ? '<i class="bi bi-exclamation-triangle"></i>AI lỗi — thử lại' : '<i class="bi bi-check2"></i>AI đã gán (nháp)';      // (1.80.28) xong → nút báo xong, trang tự cập nhật
+            if (typeof aiDoneMsg === 'function') toast(aiDoneMsg(o), o.status === 'err' ? 'err' : 'ok', 6000, 'ai/assign/' + o.id); }); }
         else { toast(r.msg || 'Không có buổi để gán', 'info', 5000); delete ai.dataset.busy; ai.innerHTML = '<i class="bi bi-robot"></i>AI gán bài'; } }
       catch (x) { fail(x); delete ai.dataset.busy; ai.innerHTML = '<i class="bi bi-robot"></i>AI gán bài'; } }
   };
