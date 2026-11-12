@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T09:58:14.326Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T10:01:35.287Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -16730,8 +16730,11 @@ function clPeek(id, after) {
   const r0 = S.route;
   const m = modal({ title: clName(c), icon: 'bi-person-video3', size: 'xl cl-peek', body: '<div class="cl-body cl-pk"></div>',
     foot: [{ t: 'Mở trang đầy đủ', cls: 'ghost', i: 'bi-box-arrow-up-right', fn: () => go('classes/c/' + id) }, { t: 'Đóng', cls: 'pri' }],
-    onClose: () => { clearInterval(tk); after && after(); } });
+    onClose: () => { clearInterval(tk); if (CL.repaint === rp) CL.repaint = rp0; after && after(); } });
   const B = m.$('.cl-pk'); B.dataset.tab = 'detail:' + id;
+  /* (1.80.12) dữ liệu đổi khi cửa sổ đang mở (Bảng gán bài lưu, sửa buổi, đồng bộ ngầm) → vẽ lại cả trang bé trong cửa sổ, giữ chỗ đang cuộn */
+  const rp0 = CL.repaint, rp = () => { try { rp0 && rp0(); } catch (e) { console.warn(e); } if (!B.isConnected) return; const mb = m.$('.modal-b'), y = mb ? mb.scrollTop : 0; clDetail(B, null, id); if (mb) mb.scrollTop = y; };
+  CL.repaint = rp;
   const tk = setInterval(() => { if (S.route !== r0 || !B.isConnected) m.close(); }, 300);      // bấm link trong cửa sổ sang trang khác → đóng cửa sổ
   clDetail(B, null, id);
   return m;
