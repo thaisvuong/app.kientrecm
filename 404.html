@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T11:06:54.840Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T11:20:24.492Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5140,6 +5140,18 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
   .modal.mid .modal-f{ border-radius:0 0 20px 20px; padding-bottom:12px }
 }
 @keyframes midIn{ from{ opacity:0; transform:translateY(14px) scale(.94) } to{ opacity:1; transform:none } }
+/* (1.80.15) bong bóng yêu cầu đang xử lý — nổi trên cửa sổ trang bé */
+.rq-bub{ position:fixed; right:18px; bottom:calc(18px + var(--sab, 0px)); z-index:2600; display:flex; align-items:stretch; max-width:min(380px, calc(100vw - 24px)); background:var(--surface); border:1px solid color-mix(in srgb, var(--brand-600, #1E40AF) 30%, var(--border)); border-radius:18px; box-shadow:0 14px 40px rgba(15,30,70,.25), 0 0 0 4px color-mix(in srgb, var(--brand-600, #1E40AF) 10%, transparent) }
+.rq-bub.in{ animation:rqIn 380ms cubic-bezier(.2,1.3,.4,1) both } .rq-bub.out{ animation:rqOut 200ms ease-in both }
+@keyframes rqIn{ from{ opacity:0; transform:translateY(24px) scale(.9) } to{ opacity:1; transform:none } } @keyframes rqOut{ to{ opacity:0; transform:translateY(16px) scale(.95) } }
+.rq-bo{ flex:1; min-width:0; display:flex; align-items:center; gap:10px; padding:10px 6px 10px 12px; background:none; border:0; text-align:left; cursor:pointer; color:inherit; font:inherit }
+.rq-bi{ flex:none; width:38px; height:38px; border-radius:12px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg, #2563EB, #7C3AED); font-size:17px; animation:rqPulse 2.4s ease-in-out infinite }
+@keyframes rqPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(124,58,237,.45) } 50%{ box-shadow:0 0 0 7px rgba(124,58,237,0) } }
+.rq-bt{ min-width:0; display:flex; flex-direction:column; gap:1px } .rq-bt small{ font-size:10.5px; color:var(--muted); font-weight:600 } .rq-bt small b{ color:#DC2626 }
+.rq-bt > b{ font-size:13px; line-height:1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical } .rq-bt em{ font-style:normal; font-size:11.5px; color:var(--brand-700, #1E3A8A); white-space:nowrap; overflow:hidden; text-overflow:ellipsis } .rq-bt em i{ margin-right:4px }
+.rq-bgo{ flex:none; align-self:center; display:flex; align-items:center; gap:3px; font-size:12px; font-weight:700; color:var(--brand-700, #1E3A8A); padding:6px 8px; border-radius:10px; background:color-mix(in srgb, var(--brand-600, #1E40AF) 9%, transparent) }
+.rq-bx{ flex:none; width:34px; border:0; background:none; color:var(--muted); cursor:pointer; border-left:1px solid var(--border); border-radius:0 18px 18px 0 } .rq-bx:hover{ color:var(--text); background:var(--surface-2) }
+@media (max-width:900px){ .rq-bub{ right:12px; left:12px; max-width:none; bottom:calc(84px + var(--sab, 0px)) } }
 </style>
 
   <style>
@@ -17358,6 +17370,17 @@ function tnForm(done, x0) {
   selSearch(m.$('#tnC'), 6);      // nhiều lớp (quản lý thấy mọi lớp) → ô chọn lớp có tìm kiếm
   setTimeout(() => { const i = m.$('#tnT'); if (i) i.focus(); }, 80);
 }
+/** (1.80.15) BONG BÓNG YÊU CẦU: nổi góc dưới phải (trên cả cửa sổ trang bé) — bấm để mở lại yêu cầu đang xử lý, × để tắt. Mỗi lúc một bong bóng */
+function clReqBubble(x, done) {
+  let b = document.getElementById('rqBub'); if (!b) { b = document.createElement('div'); b.id = 'rqBub'; b.className = 'rq-bub'; document.body.appendChild(b); }
+  const D = TN.d || {}, kn = (D.kinds || {})[x.kind] || 'Yêu cầu';
+  b.innerHTML = '<button type="button" class="rq-bo" title="Mở lại yêu cầu này"><span class="rq-bi"><i class="bi ' + (TN_IC[x.kind] || 'bi-journal-text') + '"></i></span><span class="rq-bt"><small>' + esc((x.key ? x.key + ' · ' : '') + kn) + (x.pri === 'high' ? ' · <b>Gấp</b>' : '') + '</small><b>' + esc(x.title || '') + '</b>' +
+    (x.cls ? '<em><i class="bi bi-person-video3"></i>' + esc(x.cls.name || '') + '</em>' : '') + '</span><span class="rq-bgo">Mở<i class="bi bi-arrow-up-right"></i></span></button><button type="button" class="rq-bx" title="Tắt bong bóng" aria-label="Tắt bong bóng"><i class="bi bi-x-lg"></i></button>';
+  b.classList.remove('out'); void b.offsetWidth; b.classList.add('in');
+  b.querySelector('.rq-bx').onclick = () => { b.classList.add('out'); setTimeout(() => b.remove(), 220); };
+  b.querySelector('.rq-bo').onclick = () => { const y = ((TN.d || {}).items || []).find(z => z.id === x.id) || x; document.querySelectorAll('.modal.cl-peek').forEach(el => { const bg = el.closest('.modal-bg'); const xb = el.querySelector('[data-x]'); if (xb) xb.click(); else if (bg) bg.remove(); });
+    b.classList.add('out'); setTimeout(() => b.remove(), 220); tnView(y, done); };
+}
 /** xem một ghi chú: trạng thái, lớp, bài, chi tiết, bình luận qua lại · gia sư rút lại được khi chưa xử lý */
 function tnView(x, done) {
   const D = TN.d, st = TN_ST[x.stage] || TN_ST.todo, mine = x.by === S.me.email;
@@ -17378,6 +17401,9 @@ function tnView(x, done) {
   const cm = L => { m.$('#tnCm').innerHTML = L.length ? L.map(c => '<div class="tk-cm' + (c.kind === 'a' ? ' a' : '') + '">' + (c.kind === 'a' ? '<i class="bi bi-dot muted"></i>' : '<span class="av sm">' + esc(initials(c.name)) + '</span>') +
     '<div class="b"><span class="h"><b>' + esc(c.name) + '</b>' + (c.ai ? aiMk('Trợ lý AI trả lời') : '') + (c.kind === 'a' ? ' ' : ' · ' + esc(ago(c.at))) + '</span>' + (c.kind === 'a' ? '<span class="x">' + esc(c.text) + ' · ' + esc(ago(c.at)) + '</span>' : '<div class="x">' + tnRich(c.text) + '</div>') + '</div></div>').join('') : '<div class="small muted">Chưa có trao đổi</div>'; };
   const ml = () => { const c = m.$('#tnMl'); return c ? c.checked : false; };
+  /* (1.80.15) bấm tên bé → cửa sổ trang bé để xử lý ngay + bong bóng yêu cầu nổi góc màn hình (bấm là mở lại đúng yêu cầu này, khỏi lướt tìm) */
+  m.el.addEventListener('click', e => { const a = e.target.closest('.gc-vm a[data-go^="classes/c/"]'); if (!a || !x.cls || !clClass(x.cls.id) || e.metaKey || e.ctrlKey) return;
+    e.preventDefault(); e.stopPropagation(); m.close(); clReqBubble(x, done); clPeek(x.cls.id); }, true);
   { const c = m.$('#tnMl'); if (c) c.onchange = () => lsSet('tnMail', c.checked ? 1 : 0); }
   const du = m.$('#tnDu'); if (du) du.onchange = () => { const old = x.due; x.due = du.value; done && done();
     queueRpc('tnDue', { id: x.id, due: du.value }, { key: 'tndue:' + x.id, label: 'Đặt hạn ' + (x.key || 'ghi chú'), merge: (a, b) => b })
