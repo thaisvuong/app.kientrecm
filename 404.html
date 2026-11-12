@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T17:09:33.275Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T17:19:28.808Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -19267,7 +19267,8 @@ async function apPreview(x) {
 .rp2-ls{ display:flex; flex-direction:column; padding:6px 16px 12px } .rp2-ls > div{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px dashed var(--border); font-size:13px } .rp2-ls > div:last-child{ border:0 } .rp2-ls .rt{ color:#DC2626 } .rp2-ls .wt{ color:#D97706 }
 .rp2-note{ line-height:1.5 }
 .rp2-sec:not(.open) .rp2-more{ display:none } .rp2-mb{ margin:6px 10px 10px }
-.rp2-cols{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start } .rp2-col{ display:flex; flex-direction:column; gap:14px; min-width:0 }
+.rp2-cols{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:stretch } .rp2-col > .rp2-sec:last-child{ flex:1 1 auto }      /* (1.80.26) hai cột cao bằng nhau — khung cuối cột ngắn kéo dài, không hở nền */ .rp2-mz .rp2-col > .rp2-sec:last-child{ flex:none }
+.rp2-td{ padding-bottom:6px } .rp2-col{ display:flex; flex-direction:column; gap:14px; min-width:0 }
 .rp2-h{ background:var(--brand-700, #1E3A8A) !important }      /* (1.80.22) một tông xanh thương hiệu cho mọi thanh tiêu đề */
 .rp2-ai-k{ display:flex; gap:8px; padding:12px 14px 6px; flex-wrap:wrap; align-items:center } .rp2-ai-k > div{ padding:6px 10px; border-radius:12px; background:#F8FAFF; min-width:74px }
 .rp2-ai-k b{ display:block; font-size:20px; font-weight:800; color:#1E3A8A; font-variant-numeric:tabular-nums } .rp2-ai-k small{ font-size:11px; color:var(--muted) } .rp2-ai-k .bad b{ color:#DC2626 }
@@ -19393,8 +19394,7 @@ const AI = { b: null, tab: '', dash: null, chat: { cid: '', mode: 'gen', conv: '
 /* (1.77.11) giao diện như ứng dụng chat: thanh bên của AI (Cuộc trò chuyện mới · công cụ · Đã hỏi) + khung chat không đóng hộp; Hỏi AI đứng đầu, mở trang là vào chat */
 const AI_TABS = [
   { k: 'chat', t: 'Hỏi AI', i: 'bi-robot', ok: () => AI.b.can.tutor },
-  { k: 'dash', t: 'Tổng quan', i: 'bi-speedometer2', ok: () => AI.b.can.admin || AI.b.can.log },
-  { k: 'report', t: 'Báo cáo', i: 'bi-bar-chart-line', ok: () => AI.b.can.admin || AI.b.can.log },      // (1.80.19) báo cáo điều hành chuyên môn
+  { k: 'dash', t: 'Tổng quan', i: 'bi-speedometer2', ok: () => AI.b.can.admin || AI.b.can.log },      // (1.80.26) gộp Báo cáo điều hành + AI đã làm thành một trang (ai/report vẫn vào đây)
   { k: 'flow', t: 'Tiến trình', i: 'bi-diagram-3', ok: () => AI.b.can.admin || AI.b.can.log },      // (1.78.13) sơ đồ luồng các agent (1.78.14: + Đồng bộ KGS · Điều độ in bài · Link tài liệu)
   { k: 'assign', t: 'Gán bài', i: 'bi-magic', ok: () => AI.b.can.admin },
   { k: 'reqs', t: 'Yêu cầu', i: 'bi-inboxes', ok: () => AI.b.can.admin },
@@ -19472,7 +19472,7 @@ async function viewAi(arg, v) {
   setTitle('Trợ lý AI', 'bi-robot', [{ t: S.boot.app, r: 'today' }], v);
   const ck = 'aiBoot:' + (S.me && S.me.email || ''), cached = lsGet(ck, null);
   v._onArg = a => aiShow(v, a);
-  v._onShow = () => { if (AI.tab === 'log') aiLog(v); if (AI.tab === 'dash') aiDashView($('#aiBody', v)); if (AI.tab === 'flow') aiFlowView($('#aiBody', v)); aiFit(); };
+  v._onShow = () => { if (AI.tab === 'log') aiLog(v); if (AI.tab === 'dash') aiReportView($('#aiBody', v)); if (AI.tab === 'flow') aiFlowView($('#aiBody', v)); aiFit(); };
   if (cached && cached.can) { AI.b = cached; aiShow(v, arg); }      // vẽ ngay bằng bản đã lưu, tải bản mới phía sau
   else v.innerHTML = '<div class="ax-card"><div class="ax-cb" style="padding:40px;text-align:center">' + aiThink('ping') + '</div></div>';
   try {
@@ -19509,7 +19509,7 @@ function aiRailToggle(v) {
   const off = !a.classList.contains('rail-off'); a.classList.toggle('rail-off', off); lsSet('aiRailOff', off ? 1 : 0); setTimeout(aiFit, 0);
 }
 function aiShow(v, arg) {
-  const tabs = aiTabsOk(), a = String(arg || '').split('/'); let k = a[0];
+  const tabs = aiTabsOk(), a = String(arg || '').split('/'); let k = a[0] === 'report' ? 'dash' : a[0];
   if (!tabs.some(t => t.k === k)) k = (tabs.find(t => t.k === 'chat') || tabs[0]).k;
   const prev = AI.tab; AI.tab = k;
   const B = AI.b, on = !!B.ready, need = { assign: 'assign', reqs: 'reqs', chat: AI.chat.mode === 'grade' ? 'grade' : 'chat' }[k], noFlow = on && need && !B.flowFor[need];
@@ -19550,8 +19550,7 @@ function aiShow(v, arg) {
   else if (k === 'assign') aiAssignView(body, a[1]);
   else if (k === 'reqs') aiReqView(body, a[1]);
   else if (k === 'cfg') aiCfgView(body);
-  else if (k === 'dash') aiDashView(body);
-  else if (k === 'report') aiReportView(body);
+  else if (k === 'dash') aiReportView(body);
   else if (k === 'flow') aiFlowView(body);
   else aiLog(v);
   aiFit(); setTimeout(aiFit, 400);      // thanh tab dưới / tiêu đề trang có thể vẽ xong sau
@@ -19585,7 +19584,9 @@ async function aiReportView(body) {
   const C = AI.rep || lsGet(aiRepKey(), null);
   if (C && C.k) aiReportPaint(body, C, 1); else body.innerHTML = '<div class="rp2">' + aiThink('rep') + '</div>';
   const seq = aiReportView.seq = (aiReportView.seq || 0) + 1;
-  let R; try { R = await rpc('aiReport', {}, { quiet: true }); }
+  if (!AI.dash) { const c = lsGet('aiDash:' + (S.me && S.me.email || ''), null); if (c && c.today && c.run) AI.dash = c; }      // (1.80.26) phần AI đã làm / Cần chú ý / Lịch tự chạy (aiStats) — tải song song
+  const st = rpc('aiStats', { days: 7 }, { quiet: true }).then(D => { AI.dash = D; lsSet('aiDash:' + (S.me && S.me.email || ''), D); return 1; }, () => 0);
+  let R; try { R = await rpc('aiReport', {}, { quiet: true }); await st; }
   catch (e) { if (seq !== aiReportView.seq || !body.isConnected) return;
     if (!(C && C.k)) { body.innerHTML = '<div class="ax-card"><div class="empty" style="padding:40px"><i class="bi bi-exclamation-triangle"></i>' + esc(e.message) + '</div></div>'; return; }
     aiRepBusy(body, 0, 'chưa tải được số mới'); return; }
@@ -19647,7 +19648,7 @@ function aiReportPaint(body, R, busy) {
       '<div class="rp2-sec">' + head('bi-journal-richtext', 'Tiến độ theo chương trình', 'so với phân phối chương trình trường (tuần ' + R.wk + ')') + pgT + '</div>' +
       '<div class="rp2-sec">' + head('bi-graph-down-arrow', 'Bé chậm tiến độ', R.slow.length + ' bé chậm từ 2 bài' + (R.unk ? ' · ' + R.unk + ' bé chưa rõ tiến độ (chưa tính)' : '') + ' · bấm để mở trang bé') + slT + '</div></div>' +
       '<div class="rp2-col">' +
-      '<div class="rp2-sec rp2-ai">' + head('bi-cpu', 'AI đang làm', '<span id="rpAiAt">tự cập nhật</span>') + '<div id="rpAiB">' + aiRunHtml(R.ai) + '</div></div>' +
+      '<div class="rp2-sec rp2-ai">' + head('bi-cpu', 'AI đang làm', '<span id="rpAiAt">tự cập nhật</span>') + '<div id="rpAiB">' + aiRunHtml(R.ai) + '</div></div>' + aiDashSecs(AI.dash, head) +
       '<div class="rp2-sec">' + head('bi-person-badge', 'Gia sư · 30 ngày', 'tỉ lệ bấm Đã dạy thấp lên đầu') + gsT + '</div>' +
       '<div class="rp2-sec">' + head('bi-arrow-left-right', 'Kiến Gia Sư & link tài liệu') + '<div class="rp2-ls">' +
         '<div><span>Lần đồng bộ KGS gần nhất</span><b class="' + (kg.run && !kg.run.ok ? 'rt' : '') + '">' + (kg.run ? new Date(kg.run.at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) + (kg.run.ok ? '' : ' · lỗi') : 'chưa có') + '</b></div>' +
@@ -19655,15 +19656,25 @@ function aiReportPaint(body, R, busy) {
         '<div><span>Link hôm nay gia sư đã mở</span><b>' + lk.opened + ' / ' + lk.links + '</b></div></div></div></div></div>' +
     '<div class="small muted rp2-note">Số tính thẳng từ dữ liệu Kiến CM lúc ' + hh + '. “Chưa xác nhận đã dạy” = buổi đã phát nhưng gia sư chưa bấm Đã dạy và KGS chưa báo hoàn thành. “Chậm tiến độ” = bài xa nhất bé đã học thấp hơn bài ước lượng theo tuần học của trường từ 2 bài trở lên.</div></div>';
   const bal = () => { const C = [...body.querySelectorAll('.rp2-col')]; if (C.length !== 2 || !C[0].offsetWidth || getComputedStyle(C[0].parentNode).gridTemplateColumns.split(' ').length < 2) return;      // (1.80.20) chia khung vào cột đang ngắn hơn → hai cột cân
-    const S2 = [...body.querySelectorAll('.rp2-col > .rp2-sec')], H = S2.map(x => x.offsetHeight + 14), N = S2.length;
+    body.classList.add('rp2-mz'); const S2 = [...body.querySelectorAll('.rp2-col > .rp2-sec')], H = S2.map(x => x.offsetHeight + 14), N = S2.length; body.classList.remove('rp2-mz');      // (1.80.26) đo chiều cao thật (tắt kéo dài khung cuối)
     let best = 0, bd = Infinity; for (let m = 0; m < (1 << N); m++) { let a = 0, b = 0; for (let i = 0; i < N; i++) (m >> i) & 1 ? b += H[i] : a += H[i]; const d = Math.abs(a - b); if (d < bd) { bd = d; best = m; } }      // (1.80.22) thử mọi cách chia → hai cột gần bằng nhau nhất
     S2.forEach(x => x.remove()); S2.forEach((x, i) => C[(best >> i) & 1].appendChild(x)); };
-  bal();
+  bal(); body._bal = bal;
   clearInterval(aiReportView.t); aiReportView.t = setInterval(async () => {      // (1.80.20) khung AI đang làm: hỏi lại mỗi 10 giây khi trang đang mở
     const b = $('#rpAiB', body); if (!b || !body.isConnected) return clearInterval(aiReportView.t); if (document.hidden) return;
     try { const A = await rpc('aiRunning', {}, { quiet: true }); if (b.isConnected) { b.innerHTML = aiRunHtml(A); const t = $('#rpAiAt', body); if (t) t.textContent = 'cập nhật ' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); } } catch (e) {} }, 10000);
-  body.onclick = e => { if (e.target.closest('#rpRe')) { aiRepBusy(body, 1, 'đang cập nhật…'); return aiReportView(body); } const ai = e.target.closest('[data-ailog]'); if (ai) return go('ai/log');
-    const mb = e.target.closest('[data-more]'); if (mb) { mb.closest('.rp2-sec').classList.add('open'); mb.remove(); return; } if (e.target.closest('#rpAi')) { AI.pendQ = 'Nhận định báo cáo điều hành hôm nay: điểm đáng lo, bé / gia sư cần xử lý trước, và 3 việc nên làm ngay. Dùng thẻ số liệu, bảng, biểu đồ.'; return go('ai/chat'); } };
+  body.onclick = async e => { if (e.target.closest('#rpRe')) { aiRepBusy(body, 1, 'đang cập nhật…'); return aiReportView(body); } const ai = e.target.closest('[data-ailog]'); if (ai) return go('ai/log');
+    { const Q = AI.dq = AI.dq || { day: '', off: {}, open: 0 }, box = $('#aiDone', body), re = () => { if (box && AI.dash) box.innerHTML = aiDoneHtml(AI.dash); bal(); };      // (1.80.26) biểu đồ AI đã làm (từ tab Tổng quan cũ)
+      const dd = e.target.closest('[data-dday]'); if (dd) { Q.day = Q.day === dd.dataset.dday ? '' : dd.dataset.dday; return re(); }
+      const dt = e.target.closest('[data-dtype]'); if (dt) { Q.off[dt.dataset.dtype] = !Q.off[dt.dataset.dtype]; if (AI_DT.every(t => Q.off[t[0]])) Q.off = {}; return re(); }
+      if (e.target.closest('[data-dclr]')) { Q.day = ''; return re(); }
+      if (e.target.closest('[data-dlist]')) { if (Q.open || Q.day) { Q.open = 0; Q.day = ''; } else Q.open = 1; return re(); } }
+    const g2 = e.target.closest('[data-go2]'); if (g2) { e.preventDefault(); return go('ai/' + g2.dataset.go2); }
+    const fd = e.target.closest('[data-feed]'); if (fd) return fd.dataset.feed ? go('classes/c/' + fd.dataset.feed) : aiLogOpen(fd.dataset.flog);
+    const jb = e.target.closest('#aiJobD'); if (jb) { jb.disabled = true; jb.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang giao việc…';
+      try { const r = await rpc('aiJobNow', {}, { quiet: true }); toast(r.skip ? 'Trợ lý AI đang tắt' : 'Đã giao AI ' + r.classes + ' bé' + (r.reqs ? ' + yêu cầu của gia sư' : '') + ' — xong sẽ báo chuông', 'ok', 6000); aiRepBusy(body, 1, 'đang cập nhật…'); aiReportView(body); }
+      catch (er) { toast(er.message, 'err', 8000); jb.disabled = false; jb.innerHTML = '<i class="bi bi-play-fill"></i>Chạy ngay một lượt'; } return; }
+    const mb = e.target.closest('[data-more]'); if (mb) { mb.closest('.rp2-sec').classList.add('open'); mb.remove(); bal(); return; } if (e.target.closest('#rpAi')) { AI.pendQ = 'Nhận định báo cáo điều hành hôm nay: điểm đáng lo, bé / gia sư cần xử lý trước, và 3 việc nên làm ngay. Dùng thẻ số liệu, bảng, biểu đồ.'; return go('ai/chat'); } };
 }
 
 /* ═════════════ TỔNG QUAN ═════════════ */
@@ -19697,47 +19708,24 @@ function aiDoneHtml(D) {
     (Q.day ? '<button class="btn xs ghost" data-dclr>Cả 7 ngày</button>' : '') + '<button class="btn xs ' + (open ? 'ghost' : '') + '" data-dlist><i class="bi bi-list-ul"></i>' + (open ? 'Ẩn danh sách' : 'Xem chi tiết') + '</button></div>';
   return sum + chart + leg + bar + (open ? '<div class="ax-dlist"><div class="ax-feed">' + (pick.length ? aiFeedHtml(pick) : '<div class="small ax-muted" style="padding:14px 18px">Không có việc</div>') + '</div></div>' : '');
 }
-async function aiDashView(body) {
-  if (!body) return;
-  const paint = D => {
-    if (!body.isConnected) return; const T = D.today, R = D.run, B = AI.b;
-    const kpi = (n, lab, sub, ic, tone) => '<div class="ax-kpi" style="--tone:' + tone + '"><span class="ic"><i class="bi ' + ic + '"></i></span><b>' + n + '</b><span>' + lab + '</span><small>' + sub + '</small></div>';
-    const P = D.pend, todo = [
-      P.classes ? ['bi-calendar-x', P.empty + ' buổi chưa có bài', P.classes + ' bé trong ' + B.days + ' ngày tới', B.can.admin ? '<button class="btn xs pri" data-go2="assign"><i class="bi bi-magic"></i>Giao AI gán</button>' : ''] : null,
-      P.reqs ? ['bi-hourglass-split', P.reqs + ' yêu cầu chờ duyệt', 'Đổi giờ, sửa thông tin, bài đã học…', B.can.admin ? '<button class="btn xs" data-go2="reqs"><i class="bi bi-stars"></i>AI đọc</button>' : ''] : null,
-      P.asking ? ['bi-question-circle', P.asking + ' bé chờ gia sư xác nhận', 'AI đã hỏi — gia sư trả lời xong AI tự gán lại', ''] : null,
-      P.queue ? ['bi-arrow-repeat', P.queue + ' bé đang được gán lại', 'Gia sư vừa xác nhận kiến thức', ''] : null
-    ].filter(Boolean);
-    const wait = D.wait.length ? D.wait.map(w => '<div class="ax-todo"><span class="ic"><i class="bi bi-stars"></i></span><div class="tx">' + esc(w.title) + '<small>' + aiThink(w.kind, w.at) + '</small></div></div>').join('') : '';
-    const runTxt = !R.on ? 'Trợ lý AI đang tắt' : R.run === 'hourly' ? 'Mỗi ' + (R.every > 1 ? R.every + ' giờ' : 'giờ') + ', từ ' + R.from + 'h đến ' + R.to + 'h' : R.run === 'daily' ? 'Mỗi ngày lúc ' + R.hour + 'h' : 'Chưa bật tự chạy';
-    body.innerHTML = '<div class="ax-kpis">' + kpi(T.assign, 'Buổi AI đã gán', T.approve + ' đã duyệt & phát · ' + T.draft + ' nháp', 'bi-calendar2-check', 'var(--ok)') +
-        kpi(T.req, 'Yêu cầu đã xử lý', 'Duyệt / từ chối thay bạn', 'bi-check2-square', 'var(--info)') + kpi(T.note + T.chat, 'Đã trả lời gia sư', T.note + ' ghi chú · ' + T.chat + ' tin', 'bi-reply', 'var(--primary)') +
-        kpi(T.ask, 'Đã hỏi gia sư', 'Bé lệch tiến độ / sót bài', 'bi-question-circle', 'var(--warn)') + kpi(T.qa + T.grade, 'Lượt hỏi AI', T.qa + ' hỏi tài liệu · ' + T.grade + ' chấm bài', 'bi-chat-square-text', 'var(--brand-500, var(--primary))') + '</div>' +
-      '<div class="ax-grid"><div class="ax-card"><div class="ax-ch"><h3><i class="bi bi-activity"></i>AI đã làm</h3><span class="sp"></span><small>7 ngày</small></div><div id="aiDone">' + aiDoneHtml(D) + '</div></div>' +
-        '<div class="ax-col">' + (wait ? '<div class="ax-card"><div class="ax-ch"><h3><i class="bi bi-cpu"></i>Đang làm</h3></div><div style="padding-bottom:6px">' + wait + '</div></div>' : '') +
-          '<div class="ax-card"><div class="ax-ch"><h3><i class="bi bi-flag"></i>Cần chú ý</h3></div><div style="padding-bottom:6px">' + (todo.length ? todo.map(x => '<div class="ax-todo"><span class="ic"><i class="bi ' + x[0] + '"></i></span><div class="tx"><b>' + esc(x[1]) + '</b><small>' + esc(x[2]) + '</small></div>' + x[3] + '</div>').join('') : '<div class="ax-todo"><span class="ic" style="color:var(--ok)"><i class="bi bi-check2-circle"></i></span><div class="tx">Mọi việc đã gọn</div></div>') + '</div></div>' +
-          ((P.gaps || []).length ? '<div class="ax-card"><div class="ax-ch"><h3><i class="bi bi-exclamation-triangle"></i>Lộ trình thiếu topic</h3><span class="sp"></span><small>cần soạn bổ sung</small></div><div style="padding-bottom:6px">' + P.gaps.map(g => '<div class="ax-todo"><span class="ic" style="color:var(--warn)"><i class="bi bi-journal-x"></i></span><div class="tx"><b>' + esc(g.ct || 'Lộ trình') + ' · thiếu ' + g.miss + ' topic</b><small>' + esc(g.t) + ' · ' + g.n + ' bé (' + esc(g.be.join(', ')) + (g.n > 3 ? '…' : '') + ')</small></div></div>').join('') + '</div></div>' : '') +
-          '<div class="ax-card"><div class="ax-ch"><h3><i class="bi bi-clock-history"></i>Lịch tự chạy</h3><span class="sp"></span>' + (B.can.cfg ? '<button class="btn xs ghost" data-go2="cfg">Đổi</button>' : '') + '</div><div class="ax-cb"><div class="ax-kv">' +
-            '<span>Lịch</span><b>' + esc(runTxt) + '</b><span>Khi AI chọn bài</span><b>' + esc(AI_APPLY[R.mode] || '') + '</b>' + (R.next ? '<span>Lần tới</span><b>' + esc(aiThu(R.next) + ' ' + aiDm(R.next) + ' · ' + R.next.slice(11, 16)) + '</b>' : '') +
-            (R.last ? '<span>Lần trước</span><span>' + esc(fmtDT(R.last.at)) + ' · ' + (R.last.classes || 0) + ' bé' + (R.last.reqs ? ' + yêu cầu' : '') + (R.last.skipped ? ' · ' + R.last.skipped + ' bé không có gì mới' : '') + '</span>' : '') + '</div>' +
-            (B.can.cfg && R.on ? '<button class="btn sm" id="aiJobD" style="margin-top:12px"><i class="bi bi-play-fill"></i>Chạy ngay một lượt</button>' : '') + '</div></div></div></div>';
-  };
-  if (!AI.dash) { const c = lsGet('aiDash:' + (S.me && S.me.email || ''), null); if (c && c.today && c.run) AI.dash = c; }      // (1.80.23) mở lại trang / tải lại trình duyệt: vẽ ngay bản lưu trên máy
-  if (AI.dash) paint(AI.dash); else body.innerHTML = '<div class="ax-card"><div class="ax-cb" style="padding:36px;text-align:center">' + aiThink('assign') + '</div></div>';
-  body.onclick = async e => {
-    { const Q = AI.dq = AI.dq || { day: '', off: {}, open: 0 }, box = $('#aiDone', body), re = () => { if (box && AI.dash) box.innerHTML = aiDoneHtml(AI.dash); };      // (1.78.14) biểu đồ AI đã làm
-      const dd = e.target.closest('[data-dday]'); if (dd) { Q.day = Q.day === dd.dataset.dday ? '' : dd.dataset.dday; return re(); }
-      const dt = e.target.closest('[data-dtype]'); if (dt) { Q.off[dt.dataset.dtype] = !Q.off[dt.dataset.dtype]; if (AI_DT.every(t => Q.off[t[0]])) Q.off = {}; return re(); }
-      if (e.target.closest('[data-dclr]')) { Q.day = ''; return re(); }
-      if (e.target.closest('[data-dlist]')) { if (Q.open || Q.day) { Q.open = 0; Q.day = ''; } else Q.open = 1; return re(); } }
-    const g2 = e.target.closest('[data-go2]'); if (g2) { e.preventDefault(); return go('ai/' + g2.dataset.go2); }
-    const f = e.target.closest('[data-feed]'); if (f) return f.dataset.feed ? go('classes/c/' + f.dataset.feed) : aiLogOpen(f.dataset.flog);
-    const jb = e.target.closest('#aiJobD'); if (jb) { jb.disabled = true; jb.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang giao việc…';
-      try { const r = await rpc('aiJobNow', {}, { quiet: true }); toast(r.skip ? 'Trợ lý AI đang tắt' : 'Đã giao AI ' + r.classes + ' bé' + (r.reqs ? ' + yêu cầu của gia sư' : '') + ' — xong sẽ báo chuông', 'ok', 6000); AI.dash = null; aiDashView(body); }
-      catch (er) { toast(er.message, 'err', 8000); jb.disabled = false; } }
-  };
-  try { AI.dash = await rpc('aiStats', { days: 7 }, { quiet: true }); lsSet('aiDash:' + (S.me && S.me.email || ''), AI.dash); paint(AI.dash); }
-  catch (e) { if (!AI.dash && body.isConnected) body.innerHTML = '<div class="ax-card"><div class="empty" style="padding:30px">' + esc(e.message) + '</div></div>'; }
+/** (1.80.26) phần của tab Tổng quan cũ, nay là các khung trong trang Tổng quan (báo cáo điều hành): AI đã làm 7 ngày · Cần chú ý · Lộ trình thiếu topic · Lịch tự chạy */
+function aiDashSecs(D, head) {
+  if (!D || !D.today || !D.run) return '';
+  const T = D.today, R = D.run, B = AI.b, P = D.pend || {}, k = (v, t) => '<div><b>' + (v || 0) + '</b><small>' + t + '</small></div>';
+  const todo = [
+    P.classes ? ['bi-calendar-x', P.empty + ' buổi chưa có bài', P.classes + ' bé trong ' + B.days + ' ngày tới', B.can.admin ? '<button class="btn xs pri" data-go2="assign"><i class="bi bi-magic"></i>Giao AI gán</button>' : ''] : null,
+    P.reqs ? ['bi-hourglass-split', P.reqs + ' yêu cầu chờ duyệt', 'Đổi giờ, sửa thông tin, bài đã học…', B.can.admin ? '<button class="btn xs" data-go2="reqs"><i class="bi bi-stars"></i>AI đọc</button>' : ''] : null,
+    P.asking ? ['bi-question-circle', P.asking + ' bé chờ gia sư xác nhận', 'AI đã hỏi — gia sư trả lời xong AI tự gán lại', ''] : null,
+    P.queue ? ['bi-arrow-repeat', P.queue + ' bé đang được gán lại', 'Gia sư vừa xác nhận kiến thức', ''] : null
+  ].filter(Boolean);
+  const runTxt = !R.on ? 'Trợ lý AI đang tắt' : R.run === 'hourly' ? 'Mỗi ' + (R.every > 1 ? R.every + ' giờ' : 'giờ') + ', từ ' + R.from + 'h đến ' + R.to + 'h' : R.run === 'daily' ? 'Mỗi ngày lúc ' + R.hour + 'h' : 'Chưa bật tự chạy';
+  return '<div class="rp2-sec">' + head('bi-activity', 'Trợ lý AI đã làm', '7 ngày') + '<div class="rp2-ai-k">' + k(T.assign, 'buổi đã gán') + k(T.req, 'yêu cầu đã xử lý') + k(T.note + T.chat, 'trả lời gia sư') + k(T.ask, 'hỏi gia sư') + k(T.qa + T.grade, 'lượt hỏi AI') + '</div><div id="aiDone">' + aiDoneHtml(D) + '</div></div>' +
+    (todo.length ? '<div class="rp2-sec">' + head('bi-flag', 'Cần chú ý') + '<div class="rp2-td">' + todo.map(x => '<div class="ax-todo"><span class="ic"><i class="bi ' + x[0] + '"></i></span><div class="tx"><b>' + esc(x[1]) + '</b><small>' + esc(x[2]) + '</small></div>' + x[3] + '</div>').join('') + '</div></div>' : '') +
+    ((P.gaps || []).length ? '<div class="rp2-sec">' + head('bi-exclamation-triangle', 'Lộ trình thiếu topic', 'cần soạn bổ sung') + '<div class="rp2-td">' + P.gaps.map((g, i) => '<div class="ax-todo' + (i >= 6 ? ' rp2-more' : '') + '"><span class="ic" style="color:var(--warn)"><i class="bi bi-journal-x"></i></span><div class="tx"><b>' + esc(g.ct || 'Lộ trình') + ' · thiếu ' + g.miss + ' topic</b><small>' + esc(g.t) + ' · ' + g.n + ' bé (' + esc(g.be.join(', ')) + (g.n > 3 ? '…' : '') + ')</small></div></div>').join('') + '</div>' + (P.gaps.length > 6 ? '<button type="button" class="btn xs ghost rp2-mb" data-more>Xem thêm ' + (P.gaps.length - 6) + ' lộ trình</button>' : '') + '</div>' : '') +
+    '<div class="rp2-sec">' + head('bi-clock-history', 'Lịch tự chạy', B.can.cfg ? '<a href="#" data-go2="cfg">Đổi</a>' : '') + '<div class="ax-cb"><div class="ax-kv">' +
+      '<span>Lịch</span><b>' + esc(runTxt) + '</b><span>Khi AI chọn bài</span><b>' + esc(AI_APPLY[R.mode] || '') + '</b>' + (R.next ? '<span>Lần tới</span><b>' + esc(aiThu(R.next) + ' ' + aiDm(R.next) + ' · ' + R.next.slice(11, 16)) + '</b>' : '') +
+      (R.last ? '<span>Lần trước</span><span>' + esc(fmtDT(R.last.at)) + ' · ' + (R.last.classes || 0) + ' bé' + (R.last.reqs ? ' + yêu cầu' : '') + (R.last.skipped ? ' · ' + R.last.skipped + ' bé không có gì mới' : '') + '</span>' : '') + '</div>' +
+      (B.can.cfg && R.on ? '<button class="btn sm" id="aiJobD" style="margin-top:12px"><i class="bi bi-play-fill"></i>Chạy ngay một lượt</button>' : '') + '</div></div>';
 }
 
 /* ═════════════ (1.78.14) TIẾN TRÌNH — mỗi loại việc là một agent có làn riêng · thẻ = việc đang / đã làm cho bé nào, ở bước nào ═════════════
