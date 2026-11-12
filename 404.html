@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T18:02:09.401Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T18:19:30.382Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7345,6 +7345,7 @@ async function warmUp() {
     // bộ đọc PDF (pdf.js + worker ~1 MB từ CDN): nạp sẵn một lần lúc rảnh → lần mở tài liệu đầu tiên khỏi chờ tải worker
     if (!warmUp.pdf && typeof pdfReady === 'function') { warmUp.pdf = 1; await step(ixWanted(), () => pdfReady()); }
     await step(!NT.at || Date.now() - NT.at > 60000, () => ntLoad());      // (1.44) thông báo lấy trước → bấm chuông là có ngay bản mới
+    await step(S.boot && S.boot.ai && typeof aiBoot0 === 'function', async () => { const b = await rpc('aiBoot', {}, { quiet: true }); b._at = Date.now(); lsSet('aiBoot:' + em, b); if (typeof AI !== 'undefined' && (!AI.b || AI.b._tmp)) AI.b = b; });      // (1.80.29) Trợ lý AI: lấy sẵn → bấm là vào chat ngay
     for (const mod of mods) {
       if (document.hidden || !S.me || S.me.email !== em) break;
       await step((mod === 'lib' || mod === 'tutor') && ixWanted(), () => needIndex());
@@ -19504,16 +19505,27 @@ function aiDoneMsg(o) {
 
 async function viewAi(arg, v) {
   setTitle('Trợ lý AI', 'bi-robot', [{ t: S.boot.app, r: 'today' }], v);
-  const ck = 'aiBoot:' + (S.me && S.me.email || ''), cached = lsGet(ck, null);
+  const ck = 'aiBoot:' + (S.me && S.me.email || ''), cached = (AI.b && AI.b.can && !AI.b._tmp ? AI.b : null) || lsGet(ck, null), first = !(cached && cached.can);
   v._onArg = a => aiShow(v, a);
   v._onShow = () => { if (AI.tab === 'log') aiLog(v); if (AI.tab === 'dash') aiReportView($('#aiBody', v)); if (AI.tab === 'flow') aiFlowView($('#aiBody', v)); aiFit(); };
-  if (cached && cached.can) { AI.b = cached; aiShow(v, arg); }      // vẽ ngay bằng bản đã lưu, tải bản mới phía sau
-  else v.innerHTML = '<div class="ax-card"><div class="ax-cb" style="padding:40px;text-align:center">' + aiThink('ping') + '</div></div>';
+  // (1.80.29) MỞ LÀ VÀO CHAT NGAY: có bản lưu thì vẽ bằng bản lưu; chưa có thì vẽ bằng bản tạm dựng từ quyền + danh sách lớp trên máy — không còn màn “Đang kiểm tra kết nối…”; bản thật tải ngầm
+  AI.b = first ? aiBoot0() : cached; aiShow(v, arg);
+  if (!first && AI.b._at && Date.now() - AI.b._at < 60000) return;      // vừa lấy (warmUp / lần mở trước) → khỏi hỏi lại
   try {
-    const b = await rpc('aiBoot', {}, { quiet: true }), same = cached && JSON.stringify(cached) === JSON.stringify(b); AI.b = b; lsSet(ck, b);
-    if (!cached || !cached.can) aiShow(v, arg);
-    else if (!same && v.isConnected) { aiRailPaint(v); if (AI.tab === 'cfg' || AI.tab === 'assign' && !AI.as.run) aiShow(v, [AI.tab].concat(String(arg || '').split('/').slice(1)).join('/')); }
-  } catch (e) { if (!cached) v.innerHTML = '<div class="ax-card"><div class="empty" style="padding:40px"><i class="bi bi-stars"></i><b>Chưa mở được Trợ lý AI</b><span>' + esc(e.message) + '</span></div></div>'; }
+    const b = await rpc('aiBoot', {}, { quiet: true }), same = !first && JSON.stringify(Object.assign({}, cached, { _at: 0 })) === JSON.stringify(Object.assign({}, b, { _at: 0 })); b._at = Date.now(); AI.b = b; lsSet(ck, b);
+    if (!v.isConnected) return;
+    const cur = [AI.tab].concat(String(arg || '').split('/').slice(1)).join('/');
+    if (first) { const ta = $('#aiIn', v); if (AI.tab === 'chat' && ((ta && ta.value.trim()) || AI.chat.msgs.length || AI.chat.busy)) aiRailPaint(v); else aiShow(v, cur); }      // đang gõ / đang hỏi → chỉ cập nhật thanh bên, không vẽ lại khung chat
+    else if (!same) { aiRailPaint(v); if (AI.tab === 'cfg' || AI.tab === 'assign' && !AI.as.run) aiShow(v, cur); }
+  } catch (e) { if (first && v.isConnected) toast('Trợ lý AI: ' + (e.message || e), 'err', 6000); }
+}
+/** (1.80.29) bản boot TẠM (chưa tải xong aiBoot): quyền theo vai trò trên máy, danh sách bé theo dữ liệu lớp đã có — đủ để vẽ khung chat và gửi câu hỏi */
+function aiBoot0() {
+  const adm = can('ai.admin') && can('classes.manage'), cl = (typeof CL !== 'undefined' && CL.d && CL.d.classes) || [];
+  return { _tmp: 1, on: 1, ready: 1, tutorOn: 1, mode: 'draft', modes: {}, days: 7, wait: 0, run: '', every: 1, gap: 3, me: S.me && S.me.email, folder: 0, kbN: 0, tk: [], skills: [], memOk: 0,
+    can: { admin: adm ? 1 : 0, tutor: can('ai.tutor') || can('ai.admin') ? 1 : 0, log: can('ai.log') || (S.me && S.me.isAdmin) ? 1 : 0, cfg: can('settings.manage') ? 1 : 0 },
+    engine: 'flow', flowFor: { assign: 1, reqs: 1, chat: 1, grade: 1 }, limits: { files: 5, fileMb: 10, totalMb: 15, batch: 6 },
+    classes: cl.filter(c => typeof classActiveC !== 'function' || classActiveC(c)).map(c => ({ id: c.id, name: c.student || c.code, code: c.code, grade: c.grade || '', prog: '', tutor: c.tutorName || '' })).sort((a, b) => String(a.name).localeCompare(String(b.name), 'vi')) };
 }
 function aiTabsOk() { return AI_TABS.filter(t => t.ok()); }
 /** đầu thanh bên: logo + trạng thái */
@@ -19583,7 +19595,7 @@ function aiShow(v, arg) {
   if (k === 'chat') aiChatView(body, a.slice(1).join('/'));
   else if (k === 'assign') aiAssignView(body, a[1]);
   else if (k === 'reqs') aiReqView(body, a[1]);
-  else if (k === 'cfg') aiCfgView(body);
+  else if (k === 'cfg') { if (AI.b._tmp) body.innerHTML = '<div class="ax-card"><div class="ax-cb" style="padding:40px;text-align:center">' + aiThink('ping') + '</div></div>'; else aiCfgView(body); }      // (1.80.29) Cài đặt cần bản boot thật
   else if (k === 'dash') aiReportView(body);
   else if (k === 'flow') aiFlowView(body);
   else aiLog(v);
