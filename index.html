@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T08:47:52.512Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T08:59:28.489Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5103,6 +5103,10 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
   .hm-ag2 > .card-h{ flex-wrap:nowrap; gap:8px } .hm-ag2 > .card-h h2{ white-space:nowrap; min-width:0; overflow:hidden; text-overflow:ellipsis; font-size:15px }
   .hm-ag2 > .card-h .hm-pill, .hm-ag2 > .card-h [data-go="classes/todo"]{ display:none }
 }
+/* (1.80.8) buổi đã lưu trữ — chỉ xem */
+.cl-row.arch{ opacity:.8 } .cl-row.arch .cl-ra button:not(.cl-mo), .cl-row.arch .cl-ra .cl-mo{ display:none }
+.cd-arch{ margin-top:8px } .cd-archd{ display:flex; align-items:center; gap:6px; justify-content:center; margin:8px 0 2px; font-size:12px; color:var(--muted) }
+.arch-mo{ display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px } .arch-mo b{ min-width:74px } .arch-mo .sp{ flex:1 }
 </style>
 
   <style>
@@ -12513,6 +12517,37 @@ function iconPick(anchor, cb) {
   setTimeout(() => document.addEventListener('mousedown', function h(e) { if (!p.contains(e.target)) { p.remove(); document.removeEventListener('mousedown', h); } }), 0);
 }
 
+/** (1.80.8) LƯU TRỮ BUỔI CŨ: xem trước → chuyển (buổi đã dạy / nghỉ cũ hơn N ngày sang Sheet lưu trữ theo năm / tháng) · đưa về từng tháng */
+function archCard(B) {
+  const ac = document.createElement('div'); ac.className = 'card'; ac.style.marginTop = '12px'; B.appendChild(ac);
+  let days = 180;
+  const head = '<div class="card-h"><h2><i class="bi bi-archive"></i>Lưu trữ buổi học cũ</h2></div>';
+  const paint = (I, P) => {
+    ac.innerHTML = head + '<div class="card-b stack">' +
+      '<div class="small muted" style="line-height:1.6">Buổi <b>đã dạy / nghỉ</b> cũ hơn số ngày chọn được chép sang thư mục <b>Kiến CM · Lưu trữ</b> (mỗi năm một Google Sheet, mỗi tháng một trang, đủ các cột), kiểm đủ rồi mới xoá khỏi kho chính → app đọc nhanh hơn. ' +
+        'Bài đã dạy vẫn tính là bé đã học (không bị xếp lại). Xem lại: trang lớp của bé › <b>Tải thêm buổi cũ hơn</b>. Bỏ qua buổi có yêu cầu đang chờ / link còn mở.</div>' +
+      '<div class="row" style="gap:8px;flex-wrap:wrap"><span class="small">Kho chính: <b>' + I.sess + '</b> buổi · đã lưu trữ: <b>' + I.total + '</b> buổi</span><span class="sp"></span>' +
+        (I.folder ? '<a class="btn sm" target="_blank" href="' + esc(I.folder) + '"><i class="bi bi-folder2-open"></i>Mở thư mục lưu trữ</a>' : '') + '</div>' +
+      '<div class="row" style="gap:8px;flex-wrap:wrap"><label class="small">Cũ hơn <select class="sel" id="arD" style="width:auto">' + [[90, '3 tháng'], [180, '6 tháng'], [365, '1 năm']].map(o => '<option value="' + o[0] + '"' + (o[0] === days ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></label>' +
+        '<button class="btn sm" id="arP"><i class="bi bi-search"></i>Xem trước</button>' + (P && P.n ? '<button class="btn sm pri" id="arR"><i class="bi bi-archive"></i>Lưu trữ ' + Math.min(P.n, P.max) + ' buổi</button>' : '') + '</div>' +
+      (P ? '<div class="small" style="line-height:1.6">' + (P.n ? '<b>' + P.n + ' buổi</b> của ' + P.classes + ' lớp (trước ' + esc(P.cut.split('-').reverse().join('/')) + '): ' + P.months.map(m => esc(m.ym) + ' · ' + m.n).join(', ') + (P.n > P.max ? ' — mỗi lần tối đa ' + P.max + ', bấm lại để chuyển tiếp' : '')
+        : 'Không có buổi nào cũ hơn mốc này để lưu trữ') + (P.skip.req || P.skip.link ? '<br><span class="muted">Giữ lại: ' + [P.skip.req && P.skip.req + ' buổi có yêu cầu đang chờ', P.skip.link && P.skip.link + ' buổi còn link đang mở'].filter(Boolean).join(' · ') + '</span>' : '') + '</div>' : '') +
+      (I.months.length ? '<details class="small"><summary style="cursor:pointer">Các tháng đã lưu trữ (' + I.months.length + ')' + (I.books.length ? ' · ' + I.books.map(b => '<a target="_blank" href="' + esc(b.url) + '">Sheet ' + esc(b.y) + '</a>').join(' · ') : '') + '</summary>' +
+        I.months.map(m => '<div class="arch-mo"><b>' + esc(m.ym) + '</b><span>' + m.n + ' buổi</span><span class="sp"></span><button class="btn xs ghost" data-arb="' + esc(m.ym) + '" title="Chép các buổi tháng này về kho chính, xoá trang lưu trữ của tháng"><i class="bi bi-arrow-counterclockwise"></i>Đưa về</button></div>').join('') + '</details>' : '') +
+      '</div>';
+    $('#arD', ac).onchange = e => { days = Number(e.target.value); paint(I, null); };
+    $('#arP', ac).onclick = async e => { const stop = btnWait(e.currentTarget, 'Đang đếm…'); try { const p2 = await rpc('archPlan', { days: days }, { quiet: true }); paint(I, p2); } catch (er) { stop(); fail(er); } };
+    const r = $('#arR', ac); if (r) r.onclick = async e => {
+      if (!await ask('Chuyển ' + Math.min(P.n, P.max) + ' buổi cũ sang Sheet lưu trữ?\nBuổi được chép và kiểm đủ trước khi xoá khỏi kho chính. Đưa về được từng tháng.', { ok: 'Lưu trữ' })) return;
+      const stop = btnWait(e.currentTarget, 'Đang chuyển…');
+      try { const z = await rpc('archRun', { days: days }, { quiet: true }); toast('Đã lưu trữ ' + z.n + ' buổi' + (z.left ? ' · còn ' + z.left + ' buổi, bấm lại để chuyển tiếp' : ''), 'ok', 7000); load(); } catch (er) { stop(); fail(er); } };
+    ac.querySelectorAll('[data-arb]').forEach(b => b.onclick = async e => { const ym = b.dataset.arb;
+      if (!await ask('Đưa các buổi tháng ' + ym + ' về kho chính?', { ok: 'Đưa về' })) return;
+      const stop = btnWait(e.currentTarget, '…'); try { const z = await rpc('archRestore', { ym: ym }, { quiet: true }); toast('Đã đưa về ' + z.n + ' buổi tháng ' + ym, 'ok'); load(); } catch (er) { stop(); fail(er); } });
+  };
+  const load = () => { ac.innerHTML = head + '<div class="card-b">' + miniLoader('Đang tải…') + '</div>'; rpc('archInfo', {}, { quiet: true }).then(I => { if (ac.isConnected) paint(I, null); }).catch(e => { ac.innerHTML = head + '<div class="card-b small">' + esc(e.message) + '</div>'; }); };
+  load();
+}
 function setSystem(B, cfg, setCfg) {
   const row = (ic, t, d, act) => '<div class="sys-row"><i class="bi ' + ic + '"></i><div class="sb2"><b>' + t + '</b><small>' + d + '</small></div>' + (act || '') + '</div>';
   B.innerHTML = '<div class="card"><div class="card-h"><h2><i class="bi bi-cpu"></i>Hệ thống</h2></div><div class="card-b">' +
@@ -12524,6 +12559,7 @@ function setSystem(B, cfg, setCfg) {
       '<label class="sw"><input type="checkbox" id="sTrig"' + (cfg.trigger ? ' checked' : '') + '><span></span></label>') +
     row('bi-lightning-charge', 'Xoá bộ đệm', 'Buộc máy chủ và trình duyệt đọc lại dữ liệu mới nhất (khi vừa sửa tay trong kho dữ liệu).', '<button class="btn sm" id="sFlush"><i class="bi bi-arrow-clockwise"></i>Xoá bộ đệm</button>') +
     '</div></div>';
+  archCard(B);      // (1.80.8) lưu trữ buổi cũ (Archive.gs)
   // ── tài khoản gửi mail: kết nối một tài khoản Gmail khác bằng Google (OAuth, quyền gmail.send) ──
   const gc = document.createElement('div'); gc.className = 'card gmo-card'; gc.style.marginTop = '12px'; B.appendChild(gc);
   gc.innerHTML = '<div class="card-h"><h2><i class="bi bi-send-check"></i>Tài khoản gửi mail</h2></div><div class="card-b">' + miniLoader('Đang tải…') + '</div>';
@@ -14904,10 +14940,23 @@ function clContentHtml(x, c) {
     ((x.extra || []).length ? '<span class="tag gray"><i class="bi bi-paperclip"></i>+' + x.extra.length + ' tệp thêm</span>' : '') + (x.pick ? '<span class="tag gray" title="Đã chọn tay các tệp vào link"><i class="bi bi-ui-checks"></i>chọn tay</span>' : '') + '</div>' +
     (x.lnote ? '<div class="cl-lnote" title="Ghi chú trên link học"><i class="bi bi-sticky"></i><span>' + esc(x.lnote) + '</span></div>' : '');
 }
+/** (1.80.8) BUỔI ĐÃ LƯU TRỮ (Archive.gs): nút “Tải buổi cũ hơn” cuối danh sách buổi — chỉ mở đúng các tháng của bé, ghép vào danh sách để xem */
+function clArchBtn(c) {
+  const n = ((CL.d && CL.d.arch) || {})[c.id] || 0, got = (CL.archL || {})[c.id]; if (!n) return '';
+  return got != null ? '<div class="cd-archd"><i class="bi bi-archive"></i>Đã tải ' + got + ' buổi đã lưu trữ (chỉ xem)</div>'
+    : '<button type="button" class="btn sm cl-more cd-arch" id="cdArch" title="Buổi đã dạy / nghỉ cũ hơn 6 tháng được cất ở Sheet lưu trữ"><i class="bi bi-archive"></i>Tải thêm ' + n + ' buổi cũ hơn (đã lưu trữ)</button>';
+}
+async function clArchLoad(id, btn) {
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i>Đang mở Sheet lưu trữ…'; }
+  try { const r = await rpc('archLoad', { cid: id }, { quiet: true }), L = (r.sessions || []).filter(x => x.classId === id);
+    CL.old = CL.old || {}; const has = new Set((CL.old[id] || []).map(x => x.id)); CL.old[id] = (CL.old[id] || []).concat(L.filter(x => !has.has(x.id)));
+    CL.archL = CL.archL || {}; CL.archL[id] = L.length; toast('Đã tải ' + L.length + ' buổi đã lưu trữ', 'ok'); CLP.dO = Math.max(CLP.dO || 20, 200); if (CL.repaint) CL.repaint(); }
+  catch (e) { fail(e); if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-archive"></i>Thử tải lại buổi đã lưu trữ'; } }
+}
 function clRow(x, opt) {
   opt = opt || {};
   const c = clClass(x.classId), st = clState(x), dd = clDay(x.date, CL.d.today), man = CL.d.manage, auto = clAutoAt(x);
-  return '<div class="cl-row s-' + st.k + (man ? '' : ' tr') + (clSelf(x) ? ' self' : '') + '" data-sid="' + x.id + '">' +
+  return '<div class="cl-row s-' + st.k + (man ? '' : ' tr') + (clSelf(x) ? ' self' : '') + (x.arch ? ' arch' : '') + '" data-sid="' + x.id + '"' + (x.arch ? ' title="Buổi đã lưu trữ — chỉ xem"' : '') + '>' +      // (1.80.8) buổi đã lưu trữ: chỉ xem
     (opt.noClass ? '<div class="cl-rc"><b class="cl-dt">' + dd.ws + ' ' + dd.dm + '</b><small>' + esc(dd.rel) + (x.time ? ' · ' + esc(x.time) : '') + '</small></div>'
       // tên lớp có mũi tên › → biết là bấm vào để mở chi tiết lớp
       : '<div class="cl-rc"><a class="cl-code" data-go="classes/c/' + c.id + '" title="Sửa nhanh lớp"><span class="cl-cn">' + esc(clName(c)) + '</span><i class="bi bi-chevron-right cl-cv"></i></a>' + clFlags(c) + clChatDot(c) + (c.student ? '<span class="cl-stu cl-cd">' + esc(c.code) + '</span>' : '') + (c.grade ? '<span class="cl-gr">' + esc(c.grade) + '</span>' : '') +
@@ -16693,7 +16742,7 @@ function clDetail(B, v, id) {
       '<section class="card cd-col cd-s"><div class="lk-ch"><span class="lk-cn"><i class="bi bi-calendar3"></i></span><div><b>Buổi học</b><small>' + notOut.length + ' chưa phát · ' + out.length + ' đã phát</small></div></div><div class="cd-sess">' +
         '<div class="cl-sh"><b>Chưa phát</b><span class="lk-n">' + notOut.length + '</span></div>' + (notOut.length ? clPage('dN', notOut, x => clRow(x, { noClass: 1 })) : '<div class="lk-empty sm"><span>' + (c.days ? 'Buổi kế tiếp tự hiện trước ' + clLead(c) + ' ngày' : 'Lớp chưa có lịch học') + '</span></div>') +
         '<div class="cl-sh"><b>Đã phát</b><span class="lk-n">' + out.length + '</span></div>' + (out.length ? clPage('dO', out, x => clRow(x, { noClass: 1 }), 20) : '<div class="lk-empty sm"><span>Chưa có</span></div>') +
-        (off.length ? '<div class="cl-sh"><b>Nghỉ</b><span class="lk-n">' + off.length + '</span></div>' + off.map(x => clRow(x, { noClass: 1 })).join('') : '') + '</div></section>' +
+        (off.length ? '<div class="cl-sh"><b>Nghỉ</b><span class="lk-n">' + off.length + '</span></div>' + off.map(x => clRow(x, { noClass: 1 })).join('') : '') + clArchBtn(c) + '</div></section>' +
       (man ? '<section class="card cd-col cd-l"><div class="lk-ch"><span class="lk-cn"><i class="bi bi-folder2"></i></span><div><b>Bài trong chương trình</b><small>Thứ tự xếp tự động · <span class="nt-lg" title="Ký hiệu cuối số topic">NT = Nền tảng · NC = Nâng cao · KT = Kiểm tra</span></small></div>' +
           (p && !mEd ? '<span class="sp"></span><button type="button" class="btn xs ghost" id="cdKa" title="Nhờ gia sư xác nhận kiến thức của bé (gửi mail)"><i class="bi bi-envelope"></i><span class="cd-bl">Nhờ GS</span></button><button type="button" class="btn xs pri" id="cdPgE" title="Tick những topic bé đã có kiến thức — có thể bỏ qua để theo kịp chương trình trên lớp"><i class="bi bi-check2-square"></i>Xác nhận kiến thức</button>' : '') + '</div>' +
         (mEd ? '<div class="cd-pg" id="cdPg">' + miniLoader('Đang tải các bài…') + '</div>' :
@@ -16746,6 +16795,7 @@ function clDetail(B, v, id) {
     clProgPick(anchor, c.programId, progs, pid => clSave(c, { programId: pid }, 'Đổi chương trình', { after: () => toast('Đã đổi chương trình') })); };
   const bind = () => {
     $('#cdMore', B).onclick = e => more(e.currentTarget);
+    { const ab = $('#cdArch', B); if (ab) ab.onclick = () => clArchLoad(c.id, ab); }      // (1.80.8)
     const cai = $('#cdAi', B); if (cai) cai.onclick = () => aiTaskModal([c.id], clName(c));      // (1.77) Trợ lý AI cho bé này
     const pr = $('#cdPrint', B); if (pr) pr.onclick = () => clPrintAll(c, pr);
     const sn = $('#cdSn', B); if (sn) sn.onclick = e => clSnClick(e, c, () => paint());
