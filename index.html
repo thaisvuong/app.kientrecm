@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T10:01:35.287Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T10:18:12.195Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -14544,7 +14544,9 @@ function clOverlay(d) {
   if (delS.size || delC.size) { d.sessions = d.sessions.filter(x => !delS.has(x.id) && !delC.has(x.classId)); d.classes = d.classes.filter(c => !delC.has(c.id)); }
   P('sessionSave').forEach(p => { const x = X[p.id]; if (!x) return; ['date', 'time', 'note'].forEach(k => { if (k in p) x[k] = p[k]; }); if ('off' in p) x.status = p.off ? 'off' : ((x.folders || []).length ? 'draft' : ''); });
   P('sessionOff').forEach(p => (p.ids || []).forEach(id => { const x = X[id]; if (x && x.status !== 'taught') x.status = p.off ? 'off' : ((x.folders || []).length ? 'draft' : ''); }));
-  P('sessionBlank').forEach(p => (p.ids || []).forEach(id => { const x = X[id]; if (x && x.status !== 'taught' && x.status !== 'off' && !(x.folders || []).length) Object.assign(x, { status: 'approved', folders: [], extra: [], pick: null, hold: 0, link: null, auto: false }); }));      // (1.77.8)
+  P('sessionBlank').forEach(p => (p.ids || []).forEach(id => { const x = X[id]; if (!x || x.status === 'taught' || x.status === 'off') return;
+    if (p.undo) { if (x.status === 'approved' && !(x.folders || []).length) Object.assign(x, { status: '', hold: 1 }); return; }      // (1.80.13) hoàn tác đang chờ gửi
+    if (!(x.folders || []).length) Object.assign(x, { status: 'approved', folders: [], extra: [], pick: null, hold: 0, link: null, auto: false }); }));      // (1.77.8)
   P('sessionClear').forEach(p => (p.ids || []).forEach(id => { const x = X[id]; if (x && x.status !== 'taught' && x.status !== 'off') Object.assign(x, { folders: [], extra: [], pick: null, tags: [], status: '', hold: 1, link: null, auto: false }); }));      // (1.44.11) xoá nội dung đang chờ gửi
   if (d.manage && d.reqs) { const dec = new Set(); P('reqDecide').forEach(p => (p.ids || []).forEach(i => dec.add(i))); if (dec.size) d.reqs = d.reqs.filter(r => !dec.has(r.id)); }
   return d;
@@ -15316,7 +15318,7 @@ function clTodo(B, v) {
       '<button class="btn xs" id="csAsg"' + (nSel ? '' : ' disabled') + '><i class="bi bi-collection"></i><span class="bl">Gán bài</span></button>' +
       '<button class="btn xs pri" id="csOk"' + (selDraft ? '' : ' disabled') + '><i class="bi bi-check2-all"></i>Duyệt' + (selDraft ? ' ' + selDraft : '') + '</button>' +
       '<button class="btn xs" id="csClr"' + (selCont ? '' : ' disabled') + ' title="Bỏ bài / tệp của các buổi đã chọn — buổi về “Để trống — chờ chèn bài”"><i class="bi bi-eraser"></i><span class="bl">Xoá nội dung' + (selCont ? ' ' + selCont : '') + '</span></button>' +
-      '<button class="btn xs" id="csBlank"' + (selBlank ? '' : ' disabled') + ' title="Buổi không cần bài (VD buổi đã qua chưa gán): đánh dấu đã xong, không tạo link, không tự xếp bài, không hiện lại ở Chưa có bài / Quá hạn"><i class="bi bi-dash-circle-dotted"></i><span class="bl">Bỏ trống' + (selBlank ? ' ' + selBlank : '') + '</span></button>' +
+      '<button class="btn xs" id="csBlank"' + (selBlank ? '' : ' disabled') + ' title="Duyệt không cần link: buổi chưa có bài được duyệt ngay, không tạo link, không tự xếp bài, không hiện lại ở Chưa có bài / Quá hạn — gia sư được báo các buổi sắp tới"><i class="bi bi-link-45deg"></i><span class="bl">Không cần link' + (selBlank ? ' ' + selBlank : '') + '</span></button>' +      // (1.80.13) trước: Bỏ trống
       '<button class="btn xs" id="csOff"' + (nSel ? '' : ' disabled') + '><i class="bi bi-slash-circle"></i><span class="bl">Nghỉ</span></button>' +
       '<button class="btn xs red" id="csDel"' + (nSel ? '' : ' disabled') + '><i class="bi bi-trash"></i>Xoá buổi' + (nSel ? ' ' + nSel : '') + '</button></div>' : ''));
   const sc = $('.ct-scroll', B); if (sc && prevScroll) sc.scrollTop = prevScroll;
@@ -15379,10 +15381,13 @@ function clTodo(B, v) {
       toast('Đã xoá nội dung ' + cs.length + ' buổi'); again();
       clQueue('sessionClear', { ids: cs.map(x => x.id) }, { label: 'Xoá nội dung ' + cs.length + ' buổi' }); return; }
     if (e.target.closest('#csBlank')) { const bs = L.filter(blankOk); if (!bs.length) return toast('Các buổi đã chọn đều đã có bài / đã dạy / nghỉ', 'warn');      // (1.77.8)
-      if (!await ask('Bỏ trống ' + bs.length + ' buổi (không cần bài)?\nBuổi được đánh dấu xong, không tạo link, hệ thống không tự xếp bài và không hiện lại ở “Chưa có bài” / “Quá hạn”.' + (L.length > bs.length ? '\n' + (L.length - bs.length) + ' buổi đã có bài / đã dạy / nghỉ giữ nguyên.' : '') + '\nMuốn gán lại: mở ⋯ của buổi → Bỏ duyệt (về để trống).', { ok: 'Bỏ trống ' + bs.length + ' buổi' })) return;
-      bs.forEach(x => { x.status = 'approved'; x.folders = []; x.extra = []; x.pick = null; x.hold = 0; x.link = null; x.auto = false; }); CL.sel.clear(); CL._fl = null;
-      toast('Đã bỏ trống ' + bs.length + ' buổi — không hiện lại để chờ gán bài'); again();
-      clQueue('sessionBlank', { ids: bs.map(x => x.id) }, { label: 'Bỏ trống ' + bs.length + ' buổi' }); return; }
+      /* (1.80.13) bấm là duyệt không cần link luôn — không hỏi lại, có Hoàn tác */
+      const was = bs.map(x => ({ x: x, st: x.status, hold: x.hold, auto: x.auto, rel: x.released }));
+      bs.forEach(x => { x.status = 'approved'; x.folders = []; x.extra = []; x.pick = null; x.hold = 0; x.link = null; x.auto = false; x.released = true; }); CL.sel.clear(); CL._fl = null; again();
+      clQueue('sessionBlank', { ids: bs.map(x => x.id) }, { label: 'Duyệt không cần link ' + bs.length + ' buổi' });
+      toast('Đã duyệt không cần link ' + bs.length + ' buổi' + (L.length > bs.length ? ' · ' + (L.length - bs.length) + ' buổi đã có bài / đã dạy / nghỉ giữ nguyên' : ''), 'ok', 8000, '', { t: 'Hoàn tác', fn: () => {
+        was.forEach(o => { Object.assign(o.x, { status: o.st === 'approved' ? '' : o.st, hold: 1, auto: o.auto, released: o.rel }); }); CL._fl = null; again();
+        clQueue('sessionBlank', { ids: was.map(o => o.x.id), undo: 1 }, { label: 'Hoàn tác · không cần link' }); } }); return; }
     if (e.target.closest('#csOff')) { const ls = L.filter(x => x.status !== 'taught'); if (!ls.length) return toast('Buổi đã dạy không đánh dấu nghỉ được', 'warn');
       const off = ls.some(x => x.status !== 'off');
       ls.forEach(x => { x.status = off ? 'off' : ((x.folders || []).length ? 'draft' : ''); }); CL.sel.clear();
