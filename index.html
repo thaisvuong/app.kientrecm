@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T15:23:54.137Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T15:51:58.035Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7338,7 +7338,7 @@ async function warmUp() {
       if (document.hidden || !S.me || S.me.email !== em) break;
       await step((mod === 'lib' || mod === 'tutor') && ixWanted(), () => needIndex());
       await step(mod === 'tutor' && canAny(['classes.view', 'classes.manage']) && typeof clReload === 'function', async () => { if (!CL.d || !homeTodo.at) await clReload(); });
-      await step(mod === 'tutor' && canAny(['classes.view', 'classes.manage']), async () => lsSet('reqCache:' + em, await rpc('reqList', {}, { quiet: true })));
+      await step(mod === 'tutor' && canAny(['classes.view', 'classes.manage']), async () => { const R0 = await rpc('reqList', { lite: 1 }, { quiet: true }); lsSet('reqCache:' + em, Array.isArray(R0) ? R0 : R0.list); if (R0 && R0.n) lsSet('reqN:' + em, R0.n); });      // (1.80.21) chỉ chờ duyệt + mới xử lý
       await step(mod === 'tutor' && can('classes.manage'), async () => lsSet('tpCache', await rpc('tutorPermsGet', {}, { quiet: true })));
       await step(mod === 'tutor' && canAny(['classes.view', 'classes.manage']) && typeof TN !== 'undefined', async () => { const d = await rpc('tnList', {}, { quiet: true }), ck = 'tnCache:' + em; lsSet(ck, d); if (!S.as) { TN.d = d; TN.ck = ck; } });      // (1.44) tab Yêu cầu (Gửi quản lý) mở ra là có ngay
       await step(mod === 'lib' && canAny(['sources.manage', '@up']) && typeof upWarm === 'function', () => upWarm());      // Upload file: lấy trước danh sách + thư mục đầu → bấm tab là hiện ngay
@@ -14641,6 +14641,7 @@ function clReload(after) {
   // gửi kèm phiên bản đang có: máy chủ chưa đổi gì → trả { same } ngay (không tải lại cả bảng, không vẽ lại)
   const p = rpc('classList', CL.v && CL.d ? { v: CL.v } : {}, { quiet: true }).then(d => {
     obSettle(t0);                                   // lệnh lưu xong trước lúc bắt đầu tải → bản này đã có, thôi phủ
+    setTimeout(() => { try { if (typeof clAskWarm === 'function') clAskWarm(); } catch (e) {} }, 800);      // (1.80.21) tải sẵn yêu cầu + ghi chú ngầm (tối đa 2 phút / lần)
     if (d && d.same) return 'same';
     CL.v = d.v || '';
     lsSet(clCacheKey(), d);
@@ -17139,6 +17140,14 @@ function clAsk(B, v, r, openId) {
   $$('[data-ask]', B).forEach(b => { b.onclick = () => { if (b.dataset.ask !== r) go('classes/' + b.dataset.ask); }; });
   if (r === 'notes') clNotes(inner, v, openId); else clReqs(inner, v);
 }
+/** (1.80.21) TẢI SẴN NGẦM yêu cầu chờ duyệt + ghi chú (mỗi 2 phút, cùng lúc đồng bộ hộp thư) → mở trang Yêu cầu là có ngay bản mới, không chờ tải */
+function clAskWarm(force) {
+  if (!CL.d || !S.me || S.me.guest || document.hidden) return; if (!force && clAskWarm.at && Date.now() - clAskWarm.at < 120000) return; clAskWarm.at = Date.now();
+  if (!clAskWarm.iv) clAskWarm.iv = setInterval(() => { try { clAskWarm(); } catch (e) {} }, 125000);
+  const sx = S.me.email + (S.as || '');
+  rpc('reqList', { lite: 1 }, { quiet: true }).then(R0 => { const A = Array.isArray(R0) ? R0 : R0 && R0.list; if (R0 && R0.n) lsSet('reqN:' + sx, R0.n); if (Array.isArray(A)) { lsSet('reqCache:' + sx, A); if (CL.d.manage) { CL.d.reqs = A.filter(r => r.status === 'pending'); if (typeof clBadge === 'function') clBadge(); } } }).catch(() => {});
+  if (S.boot && S.boot.tn) rpc('tnList', {}, { quiet: true }).then(d => { if (d) { tnMerge(d, 'tnCache:' + sx); lsSet('tnCache:' + sx, TN.d); } }).catch(() => {});
+}
 /** ghi chú có cập nhật mới cho mình (thông báo chưa đọc trỏ tới classes/notes/<mã>) */
 function tnUnread() {
   const o = new Set(); if (typeof NT === 'undefined' || !NT.list) return o;
@@ -17159,12 +17168,14 @@ async function clReqs(B, v) {
   // (1.80.3) số trên tab “Chờ duyệt” vẽ lúc mở trang theo dữ liệu cũ (VD 1) → tải xong cập nhật lại đúng số chờ duyệt · đang tải hiện dấu xoay trên thanh lọc
   const tabN = () => { const t = B.closest('.ask-w') && B.closest('.ask-w').querySelector('[data-ask="reqs"]'); if (!t) return; const n = L.filter(r => r.status === 'pending').length; let em = t.querySelector('.ask-n');
     if (!n) { if (em) em.remove(); return; } if (!em) { em = document.createElement('em'); em.className = 'ask-n'; t.appendChild(em); } em.textContent = n; };
-  const load = async () => { B.classList.add('rq-ld'); try { const A = await rpc('reqList', {}, { quiet: true }); L = over(A); lsSet(ck, A); CL.d.reqs = L.filter(r => r.status === 'pending' || !man); clBadge(); tabN(); } finally { B.classList.remove('rq-ld'); } };
+  // (1.80.21) mặc định chỉ tải chờ duyệt + đã xử lý 3 ngày qua; bấm Đã duyệt / Từ chối / Tất cả mới tải đủ 30 ngày (một lần)
+  let full = false, N = lsGet('reqN:' + (S.me && S.me.email) + (S.as || ''), null);
+  const load = async () => { B.classList.add('rq-ld'); try { const R0 = await rpc('reqList', full ? {} : { lite: 1 }, { quiet: true }), A = Array.isArray(R0) ? R0 : R0.list; if (!Array.isArray(R0) && R0.n) { N = R0.n; lsSet('reqN:' + (S.me && S.me.email) + (S.as || ''), N); } L = over(A); if (!full) lsSet(ck, A); CL.d.reqs = L.filter(r => r.status === 'pending' || !man); clBadge(); tabN(); } finally { B.classList.remove('rq-ld'); } };
   // (1.80.3) bản lưu trên máy có thể cũ (thiếu yêu cầu mới gửi) → trộn ngay các yêu cầu CHỜ DUYỆT có trong dữ liệu lớp vừa đồng bộ (CL.d.reqs), hiện đủ ngay không chờ tải
   if (L && man && Array.isArray(CL.d.reqs)) { const ids = {}; L.forEach(r => { ids[r.id] = r; }); CL.d.reqs.forEach(r => { if (!r || !r.id) return; if (!ids[r.id]) L.unshift(r); else if (ids[r.id].status !== r.status && r.status === 'pending') Object.assign(ids[r.id], r); }); L.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))); }
   if (L) over(L);
   const paint = () => {
-    const cnt = k => L.filter(r => k === 'all' || r.status === k).length;
+    const cnt = k => !full && N && k !== 'pending' ? (k === 'all' ? L.filter(r => r.status === 'pending').length + N.approved + N.rejected : N[k]) : L.filter(r => k === 'all' || r.status === k).length;
     if (!f) f = cnt('pending') || !L.length ? 'pending' : 'all';
     const list = L.filter(r => f === 'all' || r.status === f);
     [...pk].forEach(id => { if (!list.some(r => r.id === id && r.status === 'pending')) pk.delete(id); });
@@ -17192,7 +17203,7 @@ async function clReqs(B, v) {
       .then(r => { if (r && r.failed) toast(r.failed + ' yêu cầu chưa áp dụng được: ' + r.errors[0], 'warn', 7000); else if (r && r.done && act !== 'reject') toast('Đã áp dụng ' + r.done + ' yêu cầu · đã báo cho người gửi'); load().then(() => { if (B.dataset.tab === 'reqs') paint(); }).catch(() => {}); });
   };
   B.onclick = e => {
-    const fb = e.target.closest('[data-f]'); if (fb) { f = fb.dataset.f; return paint(); }      // chọn tay → giữ nguyên
+    const fb = e.target.closest('[data-f]'); if (fb) { f = fb.dataset.f; if (f !== 'pending' && !full) { full = true; paint(); load().then(() => { if (B.dataset.tab === 'reqs') paint(); }).catch(e2 => fail(e2)); return; } return paint(); }      // chọn tay → giữ nguyên · (1.80.21) tab đã xử lý: tải đủ khi cần
     const o = e.target.closest('[data-ok]'); if (o) return decide([o.dataset.ok], 'approve');
     const n = e.target.closest('[data-no]'); if (n) return decide([n.dataset.no], 'reject');
     if (e.target.closest('#rqOk')) return decide([...pk], 'approve');
@@ -17458,7 +17469,8 @@ function tnView(x, done) {
     queueRpc('tnDue', { id: x.id, due: du.value }, { key: 'tndue:' + x.id, label: 'Đặt hạn ' + (x.key || 'ghi chú'), merge: (a, b) => b })
       .then(r => { Object.assign(x, r); lsSet(TN.ck, D); done && done(); }, e => { x.due = old; du.value = old || ''; done && done(); toast('Chưa đặt được hạn — ' + e.message, 'err'); }); };
   m.$('#tnCt').onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); m.$('#tnCs').click(); } };      // Ctrl / ⌘ + Enter = gửi
-  rpc('tnGet', { id: x.id }, { quiet: true }).then(r => { if (m.closed) return; cm(r.comments); Object.assign(x, r.item);
+  { const C0 = (lsGet('tnCm', {}) || {})[x.id]; if (C0 && Array.isArray(C0.L)) cm(C0.L); }      // (1.80.21) trao đổi của ghi chú: hiện NGAY bản cất lần mở trước, tải xong thay
+  rpc('tnGet', { id: x.id }, { quiet: true }).then(r => { if (m.closed) return; cm(r.comments); try { const K = lsGet('tnCm', {}) || {}; K[x.id] = { at: Date.now(), L: (r.comments || []).slice(-40) }; Object.keys(K).sort((a, b) => (K[b].at || 0) - (K[a].at || 0)).slice(30).forEach(k => { delete K[k]; }); lsSet('tnCm', K); } catch (e) {} Object.assign(x, r.item);
     obPending('tnMove', true).forEach(q => { const c = q.id === x.id && tnCols(D).find(k => k.id === q.status); if (c) tnColSet(D, x, c); });      // vừa đổi cột mà chưa lưu xong → giữ cột mới
     const mv = m.$('#tnMv'); if (mv) mv.value = tnColOf(D, x); done && done(); }).catch(e => { if (!m.closed) m.$('#tnCm').innerHTML = '<div class="small muted">' + esc(e.message) + '</div>'; });
   const mv = m.$('#tnMv'); if (mv) mv.onchange = () => tnMoveTo(x, mv.value, done, ml());
@@ -18578,6 +18590,7 @@ function clChatWarm(force) {
 /** tải nhẹ tóm tắt hộp thư (chỉ khi có tin mới / đọc mới — máy chủ trả same) */
 function clInboxSync() {
   if (!CL.d) return Promise.resolve(false);
+  try { if (typeof clAskWarm === 'function') clAskWarm(); } catch (e) {}      // (1.80.21) cùng lúc: tải sẵn yêu cầu + ghi chú
   return rpc('classInbox', IB.v ? { v: IB.v } : {}, { quiet: true }).then(r => { if (!r || r.same) return false; IB.v = r.v; CL.d.chat = r.chat || {}; clKeep(); clInboxBadge(); setTimeout(() => clChatWarm(1), 300); return true; });
 }
 function clInboxBadge() { const n = clUnreadAll(), b = $('#clCN'); if (b) b.textContent = n > 99 ? '99+' : n || ''; if (typeof bnBadges === 'function') bnBadges(); }
