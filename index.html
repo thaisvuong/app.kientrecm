@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T03:50:57.672Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T04:09:31.432Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -1703,6 +1703,20 @@ details.adv > summary .bi{ font-size:11px; transition:transform var(--t-base) } 
 .cl-ti{ display:flex; align-items:center; gap:2px; padding-left:calc(var(--d) * 16px); border-radius:10px }
 .cl-ti .cr{ width:18px; text-align:center; font-size:10px; color:var(--muted); cursor:pointer; transition:transform var(--t-base); flex-shrink:0; padding:8px 0 }
 .cl-ti .cr.open{ transform:rotate(90deg) }
+/* (1.80.2) nút bỏ thư mục khỏi chương trình (trang bé) — hiện khi rê chuột; điện thoại luôn hiện */
+.cl-ti .cl-tx{ opacity:0; flex-shrink:0; color:var(--muted) }
+.cl-ti:hover .cl-tx,.cl-ti .cl-tx:focus-visible{ opacity:1 }
+@media (hover:none){ .cl-ti .cl-tx{ opacity:.6 } }
+.cl-thid{ padding:8px 10px; line-height:1.5 }
+/* (1.80.2) trang bé trong cửa sổ nổi (Điều độ) */
+.modal.cl-peek{ width:min(1320px,97vw); height:94vh }
+.modal.cl-peek .modal-b{ flex:1; min-height:0; overflow:auto; background:var(--bg,#F4F6FA); padding:12px }
+.modal.cl-peek .cd-lay{ min-height:0 }
+/* (1.80.2) buổi không có bên KGS (lớp lấy lịch KGS) — nhãn viền đứt, bấm đổi ngày */
+.cl-kgs.cl-knone{ border:1px dashed #C2410C; background:#FFF7ED; color:#9A3412; cursor:pointer; font:inherit }
+.cl-kgs.cl-knone:hover{ background:#FFEDD5 }
+.cl-row:has(.cl-knone){ border-style:dashed }
+.cl-thid a{ cursor:pointer; color:var(--brand-700,#204983); font-weight:600 }
 .cl-ti > button[data-pick]{ flex:1; min-width:0; display:flex; align-items:center; gap:7px; padding:7px 8px; border:0; border-radius:10px; background:none; text-align:left; cursor:pointer; color:var(--ink); font-size:12.5px }
 .cl-ti > button[data-pick]:hover:not(:disabled){ background:var(--brand-50) } .cl-ti > button[data-pick]:disabled{ cursor:default }
 .cl-ti > button i{ color:#D99A16 } .cl-ti > button span{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
@@ -7424,7 +7438,8 @@ const MOD_LAST = lsGet('modLast', {});
 const MOD_SHARED = { programs: ['tutor', 'lib'] };
 function modOf(route, forMod) { const k = String(route || '').split('/')[0], cur = forMod === undefined ? S.mod : forMod;
   if (MOD_SHARED[k] && MOD_SHARED[k].indexOf(cur) >= 0) return cur;
-  if (k === 'library' && (cur === 'tutor' || !cur) && S.me && isTutor() && myMods().some(m => m.id === 'tutor')) return 'tutor';      // gia sư: Thư viện là một tab của Kiến Chuyên môn (không phải đổi ứng dụng)
+  if (k === 'library' && (cur === 'tutor' || !cur) && S.me && isTutor() && myMods().some(m => m.id === 'tutor')) return 'tutor';
+  if (k === 'library' && cur === 'tutor' && S.me && !isTutor() && can('settings.manage')) return 'tutor';      // (1.80.2) admin: Thư viện trong nhóm “Tài liệu” của Kiến CM      // gia sư: Thư viện là một tab của Kiến Chuyên môn (không phải đổi ứng dụng)
   return Object.keys(MOD_ROUTES).find(m => MOD_ROUTES[m].indexOf(k) >= 0) || ''; }
 /** các ứng dụng người này vào được (có thư mục công khai / được chia sẻ / được cấp thư mục nhận file (1.38.2) → vào được Thư viện dù vai trò không có quyền Thư viện) */
 function myMods() { const a = (S.me && S.me.apps) || []; return ((S.boot && S.boot.mods) || []).filter(m => a.indexOf(m.id) >= 0 || (m.id === 'lib' && (S.boot.pub || S.boot.prog || S.boot.up) && S.me)); }
@@ -7752,6 +7767,17 @@ function navItems(lay) {
   if (!isTutor() && S.mod === 'tutor') { const at = [], sub = []; items.forEach((x, i) => { if (CM_ORDER.indexOf(x.r) >= 0) { at.push(i); sub.push(x); } }); sub.sort((a, b) => CM_ORDER.indexOf(a.r) - CM_ORDER.indexOf(b.r)); items = items.slice(); at.forEach((i, k) => { items[i] = sub[k]; });
     items = items.map(x => CM_SEC[x.r] ? Object.assign({}, x, { sec: CM_SEC[x.r] }) : x); }
   if (isTutor()) items = items.slice().sort((a, b) => { const ia = TUT_ORDER.indexOf(a.r), ib = TUT_ORDER.indexOf(b.r); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
+  // (1.80.2) Kiến CM · admin: nhóm “Tài liệu” sổ xuống → Thư viện · Lộ trình (chương trình) — mở ngay trong Kiến CM, không đổi ứng dụng
+  if (S.mod === 'tutor' && !isTutor() && can('settings.manage')) {
+    const def = r => lay.items.find(x => x.r === r) || NAV_DEF.find(x => x.r === r), sub = [];
+    if (canAny(def('library').cap)) sub.push(Object.assign({}, def('library'), { t: 'Thư viện' }));
+    if (canAny(def('programs').cap)) sub.push(Object.assign({}, def('programs'), { t: 'Lộ trình' }));
+    if (sub.length) {
+      items = items.filter(x => x.r !== 'library' && x.r !== 'programs');
+      const at = Math.max(0, items.findIndex(x => x.r === 'classes/sched') + 1) || items.length;
+      items = items.slice(0, at).concat(sub.map(x => Object.assign(x, { pg: 'Tài liệu', pgi: 'bi-folder2-open', sec: CM_SEC['classes/sched'] || '', more: 0 })), items.slice(at));
+    }
+  }
   return items;
 }
 function buildNav(L) {
@@ -8232,9 +8258,7 @@ function paintTitle(t, icon, crumbs) {
   shellRoute();
 }
 document.addEventListener('click', e => { const a = e.target.closest('[data-go]'); if (!a) return; e.preventDefault();
-  // bấm vào một lớp → mở bảng sửa nhanh ngay tại chỗ (không chuyển trang); “Mở trang lớp” trong bảng mới sang trang chi tiết
-  const m = /^classes\/c\/([^/]+)$/.exec(a.dataset.go);
-  if (m && !a.hasAttribute('data-full') && typeof clQuick === 'function' && typeof CL !== 'undefined' && CL.d && clClass(m[1])) { closeMenu(); return clQuick(m[1]); }
+  // (1.80.2) bấm vào một lớp → mở thẳng trang bé (bảng sửa nhanh ít dùng; sửa thông tin ở ⋯ › Sửa thông tin lớp trên trang bé)
   go(a.dataset.go === 'home' && S.mod && S.mod !== 'lib' ? homeRoute() : a.dataset.go); });      // “trang chủ” trên đường dẫn = trang mở đầu của ứng dụng đang dùng
 function setTitle(t, icon, crumbs, v) {
   const rec = viewRec(v);
@@ -14644,6 +14668,8 @@ function clKgsSt(x) {
 const CL_KGS = { out: ['gray', 'bi-box-arrow-up-right', 'KGS: Buổi ngoài lộ trình (bài ngoài kho KGS)'], ok: ['ok', 'bi-check2-circle', 'Khớp KGS'], diff: ['warn', 'bi-arrow-left-right', 'KGS: '], empty: ['info', 'bi-signpost', 'KGS: '], none: ['gray', 'bi-dash-circle', 'KGS chưa gắn topic'], past: ['gray', 'bi-clock-history', 'Đã qua · KGS ghi khác'] };
 function clKgsMark(x) {
   if (x && x.spare) return '<span class="cl-kgs gray" title="Lớp lấy lịch từ Kiến Gia Sư: buổi này chưa có bên KGS (bài gán dư). Gia sư chưa thấy; KGS thêm buổi mới thì buổi dư sớm nhất nhận buổi đó, giữ nguyên bài"><i class="bi bi-hourglass"></i><span>Dư · chờ KGS có buổi</span></span>';
+  // (1.80.2) lớp lấy lịch KGS mà buổi này không có bên KGS (buổi có sẵn từ trước, không mã KGS) → đánh dấu khác, bấm để đổi ngày cho khớp lịch KGS
+  if (x && !x.kid && x.status !== 'off' && (clClass(x.classId) || {}).kgs) return '<button type="button" class="cl-kgs cl-knone" data-act="kdate" title="Lớp lấy lịch từ Kiến Gia Sư nhưng buổi này không có bên KGS (buổi tạo sẵn ở Kiến CM). Bấm để đổi ngày cho khớp buổi bên KGS — đồng bộ lần sau tự nối và gộp bài vào buổi KGS cùng ngày."><i class="bi bi-calendar-x"></i><span>Ngoài lịch KGS</span><i class="bi bi-pencil-square"></i></button>';
   const sj = x && x.ksj ? '<span class="cl-kgs ' + (x.ksjw ? 'warn' : 'gray') + '" title="Môn của buổi này bên Kiến Gia Sư' + (x.ksjw ? ' — môn không áp dụng, buổi đã dạy nên giữ lại làm lịch sử' : '') + '"><i class="bi bi-book"></i><span>' + esc(x.ksj) + '</span></span> ' : '';      // (1.66) môn của buổi
   const st = clKgsSt(x); if (!st) return sj;
   const k = x.kt, t = CL_KGS[st];
@@ -14939,6 +14965,7 @@ async function clAct(anchor, act, x, done) {
       return anchor ? clSoon(done) : done();
     }
     if (act === 'edit') return clContent(x, done);
+    if (act === 'kdate') return clEditSess(x, done);      // (1.80.2) buổi không có bên KGS → đổi ngày
     if (act === 'link') { const r = await rpc('sessionLink', { id: x.id }); copyText(r.url, 'Đã tạo & sao chép link tạm'); return refresh(); }
     if (act === 'copy' && !man && x.link.state === 'active') return kpsOpen(clLinkUrl(x), clName(c) + ' · ' + clDay(x.date, CL.d.today).dm);      // (1.77.22) gia sư: mở ngay trong app (có Quay lại, vẫn In)
     if (act === 'copy') return x.link.state === 'active' ? copyText(clLinkUrl(x), 'Đã sao chép link tạm') : toast('Link đã ' + (x.link.state === 'expired' ? 'hết hạn' : 'khoá'), 'warn');
@@ -15618,6 +15645,19 @@ function clLinkDlg(c, done) {
   };
   m.$('#lkM').onclick = e => { const b = e.target.closest('[data-own]'); if (!b) return; read(); own = b.dataset.own === '1'; paint(); };
   paint();
+}
+/** (1.80.2) bỏ một thư mục khỏi chương trình ngay từ trang bé: lớp có cấu trúc riêng → bỏ ở cấu trúc riêng · còn lại → cấu trúc CHUNG (mọi lớp học chương trình này) */
+function clSkipAdd(p, c, id, done) {
+  const own = !!(c && c.lcfg), lc = own ? clLcfgC(c) : clLcfg(p), nm = (IX.dirs[id] || {}).name || 'thư mục';
+  if (lc.skip.indexOf(id) >= 0) return;
+  const cfg = { kinds: lc.kinds, per: lc.per, skip: lc.skip.concat([id]) };
+  ask((own ? 'Chỉ áp dụng cho ' + clName(c) + ' (bé đang dùng cấu trúc riêng).' : 'Áp dụng cho MỌI lớp học “' + clProgName(p) + '”.') + '\nThư mục không xếp vào buổi nữa và ẩn khỏi danh sách bài; buổi đã duyệt giữ nguyên. Mở lại ở ⋯ › Cấu trúc buổi học.',
+    { title: 'Bỏ “' + nm + '” khỏi chương trình?', icon: 'bi-eye-slash', ok: 'Bỏ khỏi chương trình' }).then(y => {
+    if (!y) return;
+    if (own) { c.lcfg = cfg; clQueue('classLcfg', { id: c.id, cfg: cfg }, { key: 'clc:' + c.id, label: 'Cấu trúc · ' + clName(c), merge: (a, b) => b }); }
+    else { p.lcfg = cfg; clQueue('progLinkCfg', { id: p.id, cfg: cfg }, { key: 'plc:' + p.id, label: 'Cấu trúc · ' + p.name, merge: (a, b) => b }).then(r => { if (r) p.lcfg = r; reloadIndex().catch(() => {}); }); }
+    toast('Đã bỏ “' + nm + '” khỏi chương trình'); done && done();
+  });
 }
 /** cấu trúc buổi học: c = một lớp → cấu trúc RIÊNG của bé (không ảnh hưởng lớp khác) · không có c → cấu trúc CHUNG của chương trình */
 function clStruct(p, done, c) {
@@ -16541,6 +16581,18 @@ async function clTutorName() {
       const ft = m.$('.modal-f'); if (ft) ft.appendChild(btn); else body.appendChild(btn); }
   } catch (e) { fail(e); m.close(); }
 }
+/** (1.80.2) trang bé trong CỬA SỔ NỔI (Điều độ): xem / sửa ngay, đóng là về đúng chỗ đang cuộn — không chuyển tab. after = vẽ lại trang gọi khi đóng */
+function clPeek(id, after) {
+  const c = clClass(id); if (!c) return go('classes/c/' + id);
+  const r0 = S.route;
+  const m = modal({ title: clName(c), icon: 'bi-person-video3', size: 'xl cl-peek', body: '<div class="cl-body cl-pk"></div>',
+    foot: [{ t: 'Mở trang đầy đủ', cls: 'ghost', i: 'bi-box-arrow-up-right', fn: () => go('classes/c/' + id) }, { t: 'Đóng', cls: 'pri' }],
+    onClose: () => { clearInterval(tk); after && after(); } });
+  const B = m.$('.cl-pk'); B.dataset.tab = 'detail:' + id;
+  const tk = setInterval(() => { if (S.route !== r0 || !B.isConnected) m.close(); }, 300);      // bấm link trong cửa sổ sang trang khác → đóng cửa sổ
+  clDetail(B, null, id);
+  return m;
+}
 function clDetail(B, v, id) {
   let c = clClass(id);
   // (1.77.23) gia sư: buổi đã dạy quá 45 ngày không nằm trong dữ liệu mở app → mở trang lớp mới tải riêng, ghép vào danh sách buổi
@@ -16548,7 +16600,7 @@ function clDetail(B, v, id) {
     rpc('classList', { all: 1, only: id }, { quiet: true }).then(r => { CL.old[id] = (r.sessions || []).filter(x => x.classId === id); if (B.isConnected && CL.repaint) CL.repaint(); }).catch(() => { delete CL.old[id]; }); }
   if (!c) { B.innerHTML = '<div class="card"><div class="empty" style="padding:50px"><i class="bi bi-question-circle"></i>Không tìm thấy lớp<button class="btn sm" data-go="classes/list">Về danh sách</button></div></div>'; return; }
   let D = CL.d; const p = clProg(c), T = p ? progTarget(p) : { ok: false }, man = D.manage, lc = clLcfgC(c);
-  setTitle(clName(c), 'bi-person-video3', [{ t: S.boot.app, r: 'home' }].concat(man ? [{ t: 'Lớp gia sư', r: 'classes' }] : []).concat([{ t: man ? 'Danh sách lớp' : 'Lớp học', r: 'classes/list' }]), v);
+  if (!B.closest('.modal')) setTitle(clName(c), 'bi-person-video3', [{ t: S.boot.app, r: 'home' }].concat(man ? [{ t: 'Lớp gia sư', r: 'classes' }] : []).concat([{ t: man ? 'Danh sách lớp' : 'Lớp học', r: 'classes/list' }]), v);
   const open = lsGet('clOpen', {});
   /* đầu trang gọn: ảnh chữ cái · tên · mã/khối/trạng thái · lịch · chương trình. Mọi thao tác khác vào nút ⋯ */
   const paint = () => {
@@ -16594,13 +16646,17 @@ function clDetail(B, v, id) {
         '<div class="cd-lw"><div id="cdHi"></div>' + (T.ok ? '<div class="cl-tree cd-tree" id="cdT"></div>' : '<div class="lk-empty"><i class="bi bi-mortarboard"></i><b>' + (p ? 'Thư mục liên kết của chương trình không còn' : 'Lớp chưa gán chương trình') + '</b></div>') + '</div>') + '</section>'
         : p ? '<section class="card cd-col cd-l"><div class="lk-ch"><span class="lk-cn"><i class="bi bi-signpost-split"></i></span><div><b>Tiến trình học</b><small>Các bài của chương trình theo thứ tự</small></div></div><div class="cd-pg" id="cdPg">' + miniLoader('Đang tải tiến trình…') + '</div></section>' : '') + '</div>';
     if (man && T.ok && !mEd) {
-      const skip = new Set(lc.skip);
+      const skip = new Set(lc.skip), nsk = clSkipName(skip);
       const pre = new Set(c.done || []), FS = clLessonFiles(p);
       const item = (d, depth, sk0) => { const isF = 'fid' in d, kids = isF ? [] : clKids(IX, d.id, FS), isOpen = !!open[d.id], n = (IX.byDir[d.id] || []).length, u = used[d.id] || (pre.has(d.id) ? { k: 'pre', c: 'gray' } : null), sk = sk0 || skip.has(d.id);
         return '<div class="cl-ti' + (u ? ' used' : '') + (sk ? ' skip' : '') + '" style="--d:' + depth + '"><i class="bi bi-chevron-right cr' + (isOpen ? ' open' : '') + '" style="visibility:' + (kids.length ? 'visible' : 'hidden') + '" data-tg="' + d.id + '"></i>' +
-          '<button data-view="' + (isF ? d.fid || '' : d.id) + '">' + (isF ? clFIc(d) : '<i class="bi bi-folder-fill"></i>') + '<span>' + esc(isF ? clFName(d.name) : d.name) + '</span>' + (u ? '<em class="cl-ub ' + u.c + '">' + (u.k === 'taught' ? '✓ đã dạy' : u.k === 'out' ? '✓ đã phát' : u.k === 'draft' ? 'nháp' : u.k === 'prev' ? 'đã duyệt' : u.k === 'pre' ? '✓ học trước' : '') + '</em>' : '') + (sk ? '<em class="cl-ub gray">loại trừ</em>' : '') + '<small>' + (!isF && n || '') + '</small></button></div>' +
+          '<button data-view="' + (isF ? d.fid || '' : d.id) + '">' + (isF ? clFIc(d) : '<i class="bi bi-folder-fill"></i>') + '<span>' + esc(isF ? clFName(d.name) : d.name) + '</span>' + (u ? '<em class="cl-ub ' + u.c + '">' + (u.k === 'taught' ? '✓ đã dạy' : u.k === 'out' ? '✓ đã phát' : u.k === 'draft' ? 'nháp' : u.k === 'prev' ? 'đã duyệt' : u.k === 'pre' ? '✓ học trước' : '') + '</em>' : '') + (sk ? '<em class="cl-ub gray">loại trừ</em>' : '') + '<small>' + (!isF && n || '') + '</small></button>' +
+          (!sk && !u && depth === 0 ? '<button type="button" class="ibtn xs cl-tx" data-pskip="' + d.id + '" title="Bỏ thư mục này khỏi chương trình (không xếp vào buổi, ẩn khỏi danh sách)" aria-label="Bỏ khỏi chương trình"><i class="bi bi-eye-slash"></i></button>' : '') + '</div>' +
           (isOpen ? kids.map(k => item(k, depth + 1, sk)).join('') : ''); };
-      setKeep($('#cdT', B), clKids(IX, T.key, FS).map(d => item(d, 0, false)).join(''));
+      // (1.80.2) thư mục đã loại khỏi chương trình (bỏ tích / theo tên ở Cấu trúc buổi học) → ẩn hẳn, ghi số ở cuối
+      const K0 = clKids(IX, T.key, FS), hid = K0.filter(d => skip.has(d.id) || nsk(d));
+      setKeep($('#cdT', B), K0.filter(d => hid.indexOf(d) < 0).map(d => item(d, 0, false)).join('') +
+        (hid.length ? '<div class="small muted cl-thid"><i class="bi bi-eye-slash"></i> Đã ẩn ' + hid.length + ' thư mục ngoài chương trình: ' + hid.map(d => esc(d.name)).join(', ') + ' · <a data-pstruct>Sửa</a></div>' : ''));
     }
     if (man && !mEd) clLessons(c.id).then(Ls => { const el = B.dataset.tab === 'detail:' + c.id && $('#cdHi', B); if (el) el.innerHTML = clHistHtml(Ls); }).catch(() => {});
     if (mEd) clLessons(c.id).then(Ls => { const el = B.dataset.tab === 'detail:' + c.id && $('#cdPg', B); if (el) clProgMount(el, c, Ls, used, paint); }).catch(e => { delete CL_PGSEL[c.id]; fail(e); paint(); });
@@ -16652,6 +16708,8 @@ function clDetail(B, v, id) {
   B.onclick = e => {
     const pn = e.target.closest('[data-pane]'); if (pn && pn.classList.contains('cd-tab')) { CL.cdPane = pn.dataset.pane; $$('.cd-tab', B).forEach(b => b.setAttribute('aria-pressed', b === pn)); $('.cd-lay', B).dataset.pane = CL.cdPane; return; }
     const tg = e.target.closest('[data-tg]'); if (tg) { open[tg.dataset.tg] = !open[tg.dataset.tg]; lsSet('clOpen', open); return paint(); }
+    const ps = e.target.closest('[data-pskip]'); if (ps && p) return clSkipAdd(p, c, ps.dataset.pskip, paint);      // (1.80.2)
+    if (e.target.closest('[data-pstruct]') && p) return clStruct(p, paint, c.lcfg ? c : null);
     const vw = e.target.closest('[data-view]'); if (vw && p) return go('programs/' + p.id + '/' + vw.dataset.view);
     // điện thoại: chạm vào phần nội dung của buổi là mở hộp chọn bài (giống trang Duyệt & phát)
     const a = e.target.closest('[data-act],[data-open]') || (CL.d.manage && matchMedia('(max-width:820px)').matches && !e.target.closest('a,button,label,input') && e.target.closest('.cl-rf'));
@@ -20727,7 +20785,8 @@ function sdPaint(B, v) {
   $('#sdAll', B).onchange = e => { SD.all = e.target.checked; sdPaint(B, v); };
   $('#sdR', B).onclick = () => clSched(B, v);
   B.onclick = async e => {
-    const q = e.target.closest('[data-sdq]'); if (q) { e.preventDefault(); return go('classes/c/' + q.dataset.sdq); }      /* (1.78.14) mở thẳng trang bé (nút ← quay lại Điều độ) */      // (1.77.25) bấm bé → cửa sổ nhanh của bé (không rời Điều độ)
+    const q = e.target.closest('[data-sdq]'); if (q) { e.preventDefault(); const sc = { v: v.scrollTop, w: window.scrollY }; const back = () => { v.scrollTop = sc.v; window.scrollTo(0, sc.w); };
+      return clPeek(q.dataset.sdq, () => { clSched(B, v).then(back, back); back(); }); }      // (1.80.2) cửa sổ nổi trang bé — đóng là về đúng chỗ      /* (1.78.14) mở thẳng trang bé (nút ← quay lại Điều độ) */      // (1.77.25) bấm bé → cửa sổ nhanh của bé (không rời Điều độ)
     const a = e.target.closest('[data-sdap]');
     if (a) { const ids = a.dataset.sdap.split(','), R = SD.d.rows.filter(r => ids.indexOf(r.sid) >= 0);      // (1.77.27) xem trước đúng bài sẽ phát, bỏ tick buổi chưa ổn
       return modal({ title: 'Duyệt ' + R.length + ' buổi nháp', icon: 'bi-check2-all', body: '<div class="small muted" style="margin-bottom:8px">Kiểm bài từng buổi — bỏ tick buổi chưa hợp lý (mở bé để sửa).</div>' +
