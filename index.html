@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T16:22:48.755Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T16:42:22.420Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4517,6 +4517,7 @@ html.tk-noadd .tk-quick, html.tk-noadd .tk-qadd, html.tk-noadd #tkNew, html.tk-n
 .cd-pge-h{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; margin:0 0 10px; border-radius:12px; background:var(--lightprimary); color:var(--ink-2); font-size:12.5px; line-height:1.5 } .cd-pge-h > i{ color:var(--primary); font-size:16px; margin-top:1px }
 /* 1.31: bài đã học đang CHỜ QUẢN LÝ DUYỆT (gia sư vừa gửi) */
 .cd-pge-h.pq{ background:#FFF7E8; color:#7A4A06 } .cd-pge-h.pq > i{ color:#D97706 }
+.cd-pge-h.kgs{ align-items:center; background:#ECFDF5; color:#065F46 } .cd-pge-h.kgs > i{ color:#059669 } .cd-pge-h.kgs > span{ flex:1; min-width:0 } .cd-pge-h.kgs .btn{ flex:none }      /* (1.80.24) gợi ý tick bài theo nội dung KGS */
 .cd-pgi.k-pq .cd-pgn{ background:#F59E0B; color:#fff } .cd-pgi.k-pq0 .cd-pgt{ text-decoration:line-through; color:var(--muted) }
 .cd-pgl.ed .cd-pgi{ cursor:pointer } .cd-pgl.ed .cd-pgi:hover:not(.dis){ background:var(--surface-2) } .cd-pgl.ed .cd-pgi.dis{ cursor:default; opacity:.75 }
 .cd-pgc{ width:18px; height:18px; flex-shrink:0; accent-color:var(--ok); cursor:pointer } .cd-pgc:disabled{ cursor:not-allowed }
@@ -5586,6 +5587,8 @@ html[data-mode="dark"] .lg-inv.no{ background:#393111 }
 html[data-mode="dark"] .lg-inv.no > i{ color:#f3b56c }
 html[data-mode="dark"] .cd-pge-h.pq{ background:#3b2c11; color:#f5d19f }
 html[data-mode="dark"] .cd-pge-h.pq > i{ color:#f3b56c }
+html[data-mode="dark"] .cd-pge-h.kgs{ background:#0f2e24; color:#a7f3d0 }
+html[data-mode="dark"] .cd-pge-h.kgs > i{ color:#34d399 }
 @media (max-width:820px){
 html[data-mode="dark"] .utbl tr:has(.btn[data-a="approve"]){ background:#392b11 }
 }
@@ -16940,7 +16943,7 @@ function clDetail(B, v, id) {
       setKeep($('#cdT', B), K0.filter(d => hid.indexOf(d) < 0).map(d => item(d, 0, false)).join('') +
         (hid.length ? '<div class="small muted cl-thid"><i class="bi bi-eye-slash"></i> Đã ẩn ' + hid.length + ' thư mục ngoài chương trình: ' + hid.map(d => esc(d.name)).join(', ') + ' · <a data-pstruct>Sửa</a></div>' : ''));
     }
-    if (man && !mEd) clLessons(c.id).then(Ls => { const el = B.dataset.tab === 'detail:' + c.id && $('#cdHi', B); if (el) el.innerHTML = clHistHtml(Ls); }).catch(() => {});
+    if (man && !mEd) clLessons(c.id).then(Ls => { const el = B.dataset.tab === 'detail:' + c.id && $('#cdHi', B); if (el) { el.innerHTML = clHistHtml(Ls); el.onclick = e => { if (e.target.closest('[data-pgk]')) { CL_PGSEL[c.id] = 'kgs'; paint(); } }; } }).catch(() => {});
     if (mEd) clLessons(c.id).then(Ls => { const el = B.dataset.tab === 'detail:' + c.id && $('#cdPg', B); if (el) clProgMount(el, c, Ls, used, paint); }).catch(e => { delete CL_PGSEL[c.id]; fail(e); paint(); });
     const pe = $('#cdPgE', B); if (pe) pe.onclick = () => { CL_PGSEL[c.id] = 'new'; paint(); };
     const ag = $('#cdAsg', B); if (ag) ag.onclick = () => clBoard(c);      // (1.75)
@@ -17602,7 +17605,16 @@ function clTaughtDlg(x, c, done, opt) {
   };
 }
 /** LỊCH SỬ HỌC: các chặng chương trình bé đã / đang học (đổi chương trình lúc nào, ai đổi) + bài đã học ở từng chặng — máy chủ dựng (classHist_) */
-function clHistHtml(Ls) { return clTutHtml(Ls) + clHist0(Ls); }
+function clHistHtml(Ls) { return clTutHtml(Ls) + clHist0(Ls) + clKhHtml(Ls); }
+/** (1.80.24) NỘI DUNG ĐÃ HỌC THEO KIẾN GIA SƯ: nội dung gia sư ghi bên KGS ở các buổi đã qua (cả buổi Kiến CM chưa có) + bài trong chương trình khớp với nội dung đó */
+function clKhHtml(Ls) {
+  const K = Ls && Ls.kh, L = (K && K.items) || []; if (!L.length) return '';
+  const dm = d => d ? d.slice(8) + '/' + d.slice(5, 7) + '/' + d.slice(2, 4) : '', nb = L.filter(it => it.b.length).length;
+  const done = new Set(Ls.pend || Ls.done || []), sg = (K.sug || []).filter(g => !done.has(g.id));      // bài khớp nội dung KGS mà chưa đánh dấu đã học
+  return (sg.length && Ls.canStart && !Ls.pend ? '<div class="cd-pge-h kgs"><i class="bi bi-journal-check"></i><span>Theo nội dung dạy bên <b>Kiến Gia Sư</b>, bé đã học <b>' + sg.length + ' bài</b> chưa đánh dấu: ' + esc(sg.slice(0, 4).map(g => g.n).join(' · ')) + (sg.length > 4 ? '…' : '') + '</span><button type="button" class="btn xs pri" data-pgk title="Mở Xác nhận kiến thức, tick sẵn các bài này — xem lại rồi Lưu"><i class="bi bi-check2-all"></i>Tick theo KGS</button></div>' : '') +
+    '<div class="cd-hi"><details class="cd-hs"><summary><i class="cd-hd"></i><span class="cd-ht"><b><i class="bi bi-journal-text"></i> Nội dung đã học theo Kiến Gia Sư</b><small>' + L.length + ' buổi · ' + nb + ' buổi khớp bài trong chương trình · từ ' + esc(dm(L[L.length - 1].d)) + '</small></span><i class="bi bi-chevron-down cv"></i></summary><div class="cd-hl">' +
+    L.map(it => '<div class="cd-hx"><span>' + esc(it.t) + (it.b.length ? '<small class="cd-hn"><i class="bi bi-arrow-return-right"></i>' + it.b.map(b => esc(b.n) + (b.ok ? ' ✓' : '')).join(' · ') + '</small>' : '') + '</span><small>' + dm(it.d).slice(0, 5) + '</small></div>').join('') + '</div></details></div>';
+}
 /** (1.57) LỊCH SỬ ĐỔI GIA SƯ (chỉ quản lý): từ ai sang ai, lúc nào, ai đổi, lý do */
 function clTutHtml(Ls) {
   const L = (Ls && Ls.tutors) || []; if (!L.length) return '';
@@ -17633,6 +17645,8 @@ function clProgressHtml(c, Ls, used, sel) {
   const lab = { taught: '✓ đã dạy', out: 'đã phát', draft: 'đã xếp', prev: 'đã duyệt', pre: '✓ đã có kiến thức', wait: 'đã xếp', off: '', pq: '✓ chờ duyệt', pq0: 'bỏ · chờ duyệt' };
   const pd = pend ? (() => { let a = 0, r = 0; pend.forEach(id => { if (!done0.has(id)) a++; }); done0.forEach(id => { if (!pend.has(id) && !lock(id)) r++; }); return { a: a, r: r }; })() : null;
   let g0 = null;
+  const KS = {}; ((Ls.kh && Ls.kh.sug) || []).forEach(g => { if (!lock(g.id) && !(pend || done0).has(g.id)) KS[g.id] = g; });      // (1.80.24) bài KGS cho thấy bé đã học, chưa đánh dấu
+  const dd = g => g.d.slice().sort().map(d => d.slice(8) + '/' + d.slice(5, 7)).join(', ');
   return (ed ? '' : clHistHtml(Ls)) + '<div class="cd-pgt0"><i class="bi bi-mortarboard"></i>' + esc(Ls.prog || 'Chương trình đang học') +
       (Ls.canStart && !ed ? '<span class="sp"></span><button type="button" class="btn xs pri" data-pge title="Tick những topic bé đã có kiến thức — có thể bỏ qua để theo kịp chương trình trên lớp"><i class="bi bi-check2-square"></i>Xác nhận kiến thức</button>' : '') + '</div>' +
     (pend && !ed ? '<div class="cd-pge-h pq"><i class="bi bi-hourglass-split"></i><span><b>Chờ quản lý duyệt</b>' + (pd.a ? ' · +' + pd.a + ' bài' : '') + (pd.r ? ' · bỏ ' + pd.r + ' bài' : '') + (Ls.pendAt ? ' · gửi ' + ago(Ls.pendAt) : '') + '</span></div>' : '') +
@@ -17642,7 +17656,7 @@ function clProgressHtml(c, Ls, used, sel) {
       const badge = u && lab[u.k] ? '<em class="cl-ub ' + u.c + '">' + lab[u.k] + '</em>' : '';
       return gh + (ed
         ? '<label class="cd-pgi' + (u ? ' on k-' + u.k : '') + (lk ? ' dis' : '') + '"><input type="checkbox" class="cd-pgc" data-pl="' + esc(l.id) + '"' + (lk || pre.has(l.id) ? ' checked' : '') + (lk ? ' disabled' : '') + '><span class="cd-pgn">' + (i + 1) + '</span><span class="cd-pgt">' + esc(l.n) + '</span>' +
-          (lk ? badge : '<button type="button" class="btn xs ghost cd-upto" data-upto="' + i + '" title="Tick từ đầu tới bài này">Đến bài này</button>') + '</label>'
+          (KS[l.id] ? '<em class="cl-ub info" title="Nội dung dạy bên Kiến Gia Sư khớp bài này">KGS ' + esc(dd(KS[l.id])) + '</em>' : '') + (lk ? badge : '<button type="button" class="btn xs ghost cd-upto" data-upto="' + i + '" title="Tick từ đầu tới bài này">Đến bài này</button>') + '</label>'
         : '<div class="cd-pgi' + (u ? ' on k-' + u.k : '') + '"><span class="cd-pgn">' + (i + 1) + '</span><span class="cd-pgt">' + esc(l.n) + '</span>' + badge + '</div>'); }).join('') + '</div>' +
     (ed ? '<div class="cd-pge-bar"><span id="cdPgD">Chưa có thay đổi</span><span class="sp"></span><button type="button" class="btn sm ghost" data-pgx>Huỷ</button><button type="button" class="btn sm pri" data-pgs disabled><i class="bi ' + (Ls.ap ? 'bi-send' : 'bi-check2') + '"></i>' + (Ls.ap ? 'Gửi duyệt' : 'Lưu') + '</button></div>' : '');
 }
@@ -17665,6 +17679,7 @@ function clProgMount(el, c, Ls, used, exit) {      // exit: quản lý — thoá
   el.onchange = e => { const i = e.target.closest('.cd-pgc'); if (!i || !sel) return; i.checked ? sel.add(i.dataset.pl) : sel.delete(i.dataset.pl); mark(); };
   el.onclick = async e => {
     if (e.target.closest('[data-pge]')) { sel = base(); return draw(); }
+    if (e.target.closest('[data-pgk]')) { sel = base(); ((Ls.kh && Ls.kh.sug) || []).forEach(g => { if (!lock(g.id)) sel.add(g.id); }); return draw(); }      // (1.80.24) mở chế độ tick, tick sẵn bài theo KGS — xem lại rồi Lưu
     if (!sel) return;
     const u = e.target.closest('[data-upto]');
     if (u) { e.preventDefault(); const n = Number(u.dataset.upto); Ls.lessons.forEach((l, i) => { if (lock(l.id)) return; if (i <= n) sel.add(l.id); else sel.delete(l.id); }); return draw(); }
@@ -17680,6 +17695,7 @@ function clProgMount(el, c, Ls, used, exit) {      // exit: quản lý — thoá
     }
   };
   if (CL_PGSEL[c.id] === 'new') sel = base();
+  else if (CL_PGSEL[c.id] === 'kgs') { sel = base(); ((Ls.kh && Ls.kh.sug) || []).forEach(g => { if (!lock(g.id)) sel.add(g.id); }); }      // (1.80.24) quản lý bấm “Tick theo KGS” ở Lịch sử học
   draw();
 }
 
