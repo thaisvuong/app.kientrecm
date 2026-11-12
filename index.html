@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T05:01:09.614Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T08:18:49.343Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -16601,7 +16601,12 @@ function clTutors(B, v, em) {
     const qx = $('#tuQX', B); if (qx) qx.onclick = () => { q = CL.tq = ''; CL.tuHi = ''; paint(); $('#tuQ', B).focus(); };
     const qi = $('#tuQ', B); qi.oninput = debounce(() => { q = CL.tq = qi.value; CL.tuHi = ''; paint(); const n = $('#tuQ', B); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 200);
   };
-  if (!B._mgo) { B._mgo = 1; B.addEventListener('click', e => { if (!e.target.closest('[data-mgo]') || B.dataset.tab !== 'tutors') return; e.preventDefault(); e.stopPropagation(); clMergeDlg(); }, true); }      // (1.74) nhãn “trùng” nằm trong thẻ lớp (link) → mở hộp gộp, không mở trang lớp
+  if (!B._mgo) { B._mgo = 1; B.addEventListener('click', e => { if (B.dataset.tab !== 'tutors') return;
+    if (e.target.closest('[data-mgo]')) { e.preventDefault(); e.stopPropagation(); return clMergeDlg(); }
+    /* (1.80.5) bấm thẻ lớp → cửa sổ nổi trang bé (như Điều độ), đóng là về đúng chỗ đang cuộn; Ctrl/Cmd-bấm vẫn mở trang */
+    const a = e.target.closest('a.tu-s[data-go]'); if (!a || e.metaKey || e.ctrlKey) return;
+    e.preventDefault(); e.stopPropagation(); const vw = B.closest('.view') || document.scrollingElement, sc = { v: vw.scrollTop, w: window.scrollY }, back = () => { vw.scrollTop = sc.v; window.scrollTo(0, sc.w); };
+    clPeek(a.dataset.go.split('/').pop(), () => { if (B.isConnected && B.dataset.tab === 'tutors') { clTutors(B, v); back(); } }); }, true); }      // (1.74) nhãn “trùng” nằm trong thẻ lớp (link) → mở hộp gộp, không mở trang lớp
   B.onclick = e => { if (e.target.closest('[data-tuscan]')) return clTutorScan(); if (e.target.closest('[data-tuname]')) return clTutorName(); const b = e.target.closest('[data-tuoff]'); if (b) { offOpen[b.dataset.tuoff] = !offOpen[b.dataset.tuoff]; paint(); } };
   paint();
 }
