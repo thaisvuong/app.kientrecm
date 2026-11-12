@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T09:35:27.473Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T09:48:33.544Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5109,6 +5109,7 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .arch-mo{ display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px } .arch-mo b{ min-width:74px } .arch-mo .sp{ flex:1 }
 .cl-kgs.cl-kdel{ cursor:pointer; color:#B91C1C; background:#FEF2F2; border-color:#FECACA } .cl-kgs.cl-kdel:hover{ background:#FEE2E2 }      /* (1.80.9) */
 .cl-kdbar{ border-color:#FECACA; background:#FEF2F2 } .cl-kdbar > i{ color:#B91C1C }
+.ct-al.red{ color:#B91C1C; background:#FEF2F2; border-color:#FECACA } .ct-al.on{ color:#fff; background:var(--brand-600, #1E40AF); border-color:transparent }      /* (1.80.10) */
 </style>
 
   <style>
@@ -15191,6 +15192,18 @@ function clFlags(c) {
 const CL_APPR = ['Đã được duyệt', 'Chưa duyệt lần nào', 'Tự duyệt'];
 function clApprOf(c) { return c.autoOk ? 'Tự duyệt' : clFlagInfo(c).appr ? 'Chưa duyệt lần nào' : 'Đã được duyệt'; }
 const CL_FLAG_HINT = '<span class="cl-flgk"><i class="bi bi-flag-fill fs"></i>chưa thiết lập buổi học đầu</span><span class="cl-flgk"><i class="bi bi-shield-exclamation fa"></i>chưa được bạn duyệt lần nào</span>';
+/** (1.80.10) BÉ ĐÃ ĐỦ BÀI CHƯA: mọi buổi sắp tới (tới cuối tháng, ít nhất 14 ngày) đã có bài / đã duyệt → “Đã đủ bài”, còn buổi trống → “Cần gán bài”.
+    Buổi dư chờ KGS, buổi nghỉ không tính. Lọc ở Buổi học (phễu › Gán bài của bé) hoặc bấm nhãn “N bé cần gán bài” */
+function clNeedAsg(c) {
+  if (!c || !classActiveC(c)) return '';
+  if (!c.programId) return 'Chưa có chương trình';
+  const m = CL._need; if (m && m.d === CL.d && Date.now() - m.at < 400 && c.id in m.o) return m.o[c.id];
+  const M = m && m.d === CL.d && Date.now() - m.at < 400 ? m : (CL._need = { d: CL.d, at: Date.now(), o: {} });
+  const t = CL.d.today, me = clAdd(clAdd(t.slice(0, 7) + '-01', 32).slice(0, 7) + '-01', -1), H = me > clAdd(t, 14) ? me : clAdd(t, 14);
+  const L = clSess(c.id).filter(x => x.date >= t && x.date <= H && x.status !== 'off' && x.status !== 'taught' && !x.spare);
+  const empty = L.filter(x => !(x.folders || []).length && !(x.extra || []).length && !clSelf(x) && x.status !== 'draft');
+  return (M.o[c.id] = empty.length ? 'Cần gán bài' : 'Đã đủ bài');
+}
 function clTodo(B, v) {
   setTitle('Buổi học', 'bi-send-check', [{ t: S.boot.app, r: 'home' }, { t: 'Lớp gia sư', r: 'classes' }], v);
   const D = CL.d, t = D.today;
@@ -15209,6 +15222,7 @@ function clTodo(B, v) {
     fields: [
       { key: 'when', label: 'Ngày học', icon: 'bi-calendar-event', type: 'opt', val: x => { const d = clDay(x.date, CL.d.today).diff; return d < 0 ? (x.status === 'taught' || x.status === 'off' ? 'Đã qua' : 'Đã qua — chưa dạy') : d === 0 ? 'Hôm nay' : d === 1 ? 'Ngày mai' : d <= 3 ? '2–3 ngày tới' : d <= 7 ? '4–7 ngày tới' : 'Sau 7 ngày'; },
         sort: (a, b) => ['Đã qua — chưa dạy', 'Hôm nay', 'Ngày mai', '2–3 ngày tới', '4–7 ngày tới', 'Sau 7 ngày', 'Đã qua'].indexOf(a) - ['Đã qua — chưa dạy', 'Hôm nay', 'Ngày mai', '2–3 ngày tới', '4–7 ngày tới', 'Sau 7 ngày', 'Đã qua'].indexOf(b) },
+      { key: 'need', label: 'Gán bài của bé', icon: 'bi-grid-3x3-gap', type: 'opt', name: k => k || 'Lớp đã dừng', val: x => clNeedAsg(cOf(x)), sort: (a, b) => ['Cần gán bài', 'Đã đủ bài', 'Chưa có chương trình', ''].indexOf(a) - ['Cần gán bài', 'Đã đủ bài', 'Chưa có chương trình', ''].indexOf(b) },      // (1.80.10)
       { key: 'flag', label: 'Đánh dấu lớp', icon: 'bi-flag', type: 'opt', val: x => clFlagInfo(cOf(x)).appr ? 'Chưa được duyệt lần nào' : 'Bình thường' },
       { key: 'grade', label: 'Khối lớp', icon: 'bi-mortarboard', type: 'opt', name: k => k || 'Chưa có khối', val: x => cOf(x).grade || '', sort: (a, b) => gradeNum(a || 'z') - gradeNum(b || 'z') },
       { key: 'prog', label: 'Chương trình', icon: 'bi-journal-richtext', type: 'opt', name: k => k || 'Chưa gán', val: x => clProgName(clProg(cOf(x))), sort: natCmp },
@@ -15283,7 +15297,9 @@ function clTodo(B, v) {
   const pchip = (k, ic, lab, val) => '<span class="fchip set"><button class="fc-o" data-pf="' + k + '"><i class="bi ' + ic + '"></i><small>' + lab + '</small><b>' + esc(val) + '</b><i class="bi bi-chevron-down cv"></i></button><button class="fc-x" data-px="' + k + '" aria-label="Bỏ lọc ' + lab + '"><i class="bi bi-x"></i></button></span>';
   // cảnh báo gom thành một hàng viên thuốc nhỏ (bấm để xử lý) thay cho các khung chữ dài
   const nLow = D.classes.filter(c => { const r = clRunway(c); return r && r.warn; }).length;
+  const nNeed = D.classes.filter(c => clNeedAsg(c) === 'Cần gán bài').length, needOn = CFC.conds.some(q => q.f === 'need');      // (1.80.10)
   const alerts = (noProg.length ? '<button class="ct-al" data-go="classes/list"><i class="bi bi-mortarboard"></i>' + noProg.length + ' lớp chưa gán chương trình<i class="bi bi-chevron-right"></i></button>' : '') +
+    (nNeed ? '<button class="ct-al' + (needOn ? ' on' : ' red') + '" id="ctNeed" title="Bé còn buổi sắp tới (tới cuối tháng / 14 ngày) chưa có bài — bấm để chỉ hiện các bé này"><i class="bi bi-grid-3x3-gap"></i>' + nNeed + ' bé cần gán bài' + (needOn ? '<i class="bi bi-x"></i>' : '<i class="bi bi-funnel"></i>') + '</button>' : '') +
     (nLow ? '<button class="ct-al warn" id="ctLow"><i class="bi bi-hourglass-bottom"></i>' + nLow + ' lớp sắp hết bài<i class="bi bi-chevron-' + (CL.rwOpen ? 'up' : 'down') + '"></i></button>' : '');
   setKeep(B, '<div class="ct-head">' +
       '<div class="cl-bar ct-bar"><div class="search"><i class="bi bi-search"></i><input class="inp" id="ctQ" value="' + esc(CL.q) + '" placeholder="Tìm lớp, học sinh, gia sư"></div>' +
@@ -15335,6 +15351,9 @@ function clTodo(B, v) {
     nF ? { t: 'Bỏ mọi bộ lọc', i: 'bi-funnel', fn: () => { CL.day = ''; CL.st = 'all'; lsSet('clDay', ''); lsSet('clSt', 'all'); CFC.conds.splice(0, CFC.conds.length); lsSet('clTodoFConds', []); reset(); again(); } } : null
   ].filter(Boolean));
   const lw = $('#ctLow', B); if (lw) lw.onclick = () => { CL.rwOpen = !CL.rwOpen; again(); };
+  const nd = $('#ctNeed', B); if (nd) nd.onclick = () => { const C2 = CFC.conds, i = C2.findIndex(q => q.f === 'need');      // (1.80.10) bật / tắt lọc “Cần gán bài”
+    if (i >= 0) C2.splice(i, 1); else { C2.push({ f: 'need', op: 'in', v: ['Cần gán bài'] }); if (CL.day) { CL.day = ''; lsSet('clDay', ''); } }
+    lsSet('clTodoFConds', C2); Object.keys(CLP).forEach(k => { if (/^todo/.test(k)) delete CLP[k]; }); clTodo(B, v); };
   const asg = $('#ctAsg', B); if (asg) asg.onclick = () => clAssignMany(target, target.length + ' buổi đang lọc');
   const dn = $('#ctDone', B); if (dn) dn.onclick = () => { CL.showDone = !CL.showDone; again(); };
   const all = $('#ctAll', B); if (all) all.onclick = async () => {
