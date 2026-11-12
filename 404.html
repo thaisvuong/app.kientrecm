@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T08:29:23.584Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T08:47:52.512Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -3875,6 +3875,10 @@ body.cp-dragging, body.cp-dragging *{ cursor:grabbing !important; user-select:no
 .bd-kg b{ flex:none; font-size:10px; font-weight:700; color:#15803D; letter-spacing:.3px }
 .bd-kg span{ overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical }
 .bd-r.bd-tg .bd-e{ color:#15803D }
+/* (1.80.7) AI khớp bài đã dạy */
+.bd-ai{ color:#6D28D9; border-color:#DDD6FE } .bd-ai:hover{ background:#F5F3FF } .bd-ai.busy i{ animation:spin 1.2s linear infinite }
+.bd-aiw{ flex-basis:100%; display:flex; gap:6px; align-items:baseline; font-size:11.5px; line-height:1.45; color:#5B21B6; background:#F5F3FF; border:1px solid #EDE9FE; border-radius:6px; padding:3px 7px; min-width:0 }
+.bd-aiw span{ overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical } .bd-aiw.thap, .bd-aiw.no{ color:#92400E; background:#FFFBEB; border-color:#FEF3C7 }
 .bd-ch{ display:inline-flex; align-items:center; gap:5px; max-width:100%; min-width:0; padding:3px 4px 3px 8px; border-radius:8px; background:#ECFDF3; border:1px solid #BBF7D0; color:#14532D; font-size:12px; font-weight:700; cursor:grab }
 .bd-ch > span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0 } .bd-ch > i{ flex-shrink:0; font-size:12px }
 .bd-ch.ext{ background:#EFF6FF; border-color:#BFDBFE; color:#1E3A8A } .bd-ch.x{ background:#F5F3FF; border-color:#DDD6FE; color:#4C1D95 } .bd-ch.dup{ background:#FEF2F2; border-color:#FECACA; color:#991B1B }
@@ -18073,6 +18077,7 @@ function clBoard(c, focusId) {
       '<button class="btn xs" data-b="pull" title="Bỏ bài các buổi đang chọn, các buổi sau dồn lên"><i class="bi bi-arrow-up-square"></i><span>Dồn lên</span></button>' +
       '<button class="btn xs" data-b="clear" title="Để trống các buổi đang chọn (Delete)"><i class="bi bi-eraser"></i><span>Để trống</span></button>' +
       (L.length ? '<button class="btn xs" data-b="auto" title="Xếp lần lượt các bài chưa dùng của chương trình vào buổi đang chọn"><i class="bi bi-magic"></i><span>Xếp theo CT</span></button>' : '') +
+      (typeof aiCanTask === 'function' && aiCanTask() && rows.some(r => r.tg && r.kr) ? '<button class="btn xs bd-ai" data-b="aimatch" title="Trợ lý AI đọc nội dung gia sư ghi bên KGS ở các buổi đã dạy, đặt bài khớp vào buổi — bạn xem lại rồi bấm Lưu"><i class="bi bi-robot"></i><span>AI khớp bài đã dạy</span></button>' : '') +
       '<span class="sp"></span><span class="bd-fl">Kéo điền</span><div class="seg bd-fm" id="bdFm"><button class="seg-b" data-fm="series" title="Kéo ô vuông xuống: xếp tiếp các bài sau trong chương trình">Xếp tiếp</button><button class="seg-b" data-fm="copy" title="Kéo ô vuông xuống: chép y nội dung">Chép y</button></div></div>' +
       '<div class="bd-hint" id="bdH"></div>' +
       '<div class="bd-lay"><div class="bd-t" id="bdT" tabindex="0"></div>' +
@@ -18098,7 +18103,7 @@ function clBoard(c, focusId) {
     const dd = clDay(r.date, D.today), ch = changed(r), fl = fill && i > fill.s && i <= fill.t && r.ed;
     return '<div class="bd-r' + (dz(r) ? '' : ' lock') + (r.tg ? ' bd-tg' : '') + (sel.has(i) ? ' sel' : '') + (i === foc ? ' foc' : '') + (ch ? ' ch' : '') + (fl ? ' fil' : '') + (dd.diff === 0 ? ' today' : dd.diff < 0 ? ' past' : '') + '" data-i="' + i + '">' +
       '<span class="bd-d"><b>' + dd.ws + ' ' + dd.dm + '</b><small>' + esc(r.time ? scRange(r.time)[0] : dd.rel) + (r.sj ? ' · ' + esc(r.sj) : '') + '</small></span>' +
-      '<div class="bd-c">' + chips(r, i) + (r.ed && i === foc && !fill ? '<i class="bd-fh" title="Kéo xuống để ' + (fillMode === 'copy' ? 'chép nội dung này' : 'xếp tiếp các bài sau') + ' cho các buổi bên dưới"></i>' : '') + krTxt(r) + '</div>' +
+      '<div class="bd-c">' + chips(r, i) + (r.ed && i === foc && !fill ? '<i class="bd-fh" title="Kéo xuống để ' + (fillMode === 'copy' ? 'chép nội dung này' : 'xếp tiếp các bài sau') + ' cho các buổi bên dưới"></i>' : '') + krTxt(r) + aiTxt(r) + '</div>' +
       '<span class="bd-s cl-st ' + (r.add ? 'blue' : r.st.c) + '" title="' + esc(r.st.t) + '"><i class="bi ' + (r.add ? 'bi-plus-circle' : r.st.i) + '"></i><span>' + (r.add ? 'Buổi mới' : shortSt(r.st)) + '</span>' + (ch ? '<em class="bd-dot" title="Đã sửa — chưa lưu"></em>' : '') + '</span></div>';
   };
   const paintRows = () => { setKeep(TB, '<div class="bd-th"><span>Buổi</span><span>Nội dung</span><span>Trạng thái</span></div>' + (rows.length ? rows.map(rowH).join('') : '<div class="lk-empty"><span>Lớp chưa có buổi học — thêm buổi hoặc đặt lịch học trước</span></div>')); };
@@ -18184,6 +18189,33 @@ function clBoard(c, focusId) {
       s.forEach(i => { const pick = []; for (let k = pos; k < L.length && pick.length < (lc.per || 1); k++) if (!used.has(L[k])) { pick.push(L[k]); used.add(L[k]); pos = k + 1; } setCur(rows[i], { folders: pick, extra: [], pick: null, lnote: '', hold: pick.length ? 0 : 1 }); });
     }, 'Đã xếp ' + s.length + ' buổi theo chương trình');
   };
+  /* (1.80.7) AI KHỚP BÀI ĐÃ DẠY: AI đọc dòng KGS từng buổi đã dạy → đặt bài khớp vào buổi (chưa lưu, ⌘Z bỏ) · buổi AI không chắc thì chỉ ghi lý do */
+  const AI_CH = { cao: 'chắc', vua: 'khá chắc', thap: 'chưa chắc' };
+  const aiTxt = r => { const a = r.ai; if (!a) return '';
+    return '<div class="bd-aiw ' + (a.none ? 'no' : a.chac) + '"><i class="bi bi-robot"></i><span><b>' + (a.none ? 'AI: chưa rõ bài' : a.giu ? 'AI: bài đang gán đã khớp' : 'AI đề xuất · ' + (AI_CH[a.chac] || '')) + '</b>' + (a.ly ? ' — ' + esc(a.ly) : '') + '</span></div>'; };
+  let aiBusy = false;
+  async function aiMatch(btn) {
+    if (aiBusy) return; aiBusy = true; btn.classList.add('busy'); btn.disabled = true;
+    H.innerHTML = '<i class="bi bi-robot"></i><span>Trợ lý AI đang đọc nội dung KGS các buổi đã dạy và khớp với bài trong chương trình…</span>'; clearTimeout(hT);
+    const end = () => { aiBusy = false; if (btn.isConnected) { btn.classList.remove('busy'); btn.disabled = false; } };
+    const done = o => { end(); if (!m.el.isConnected) return;
+      if (o.status === 'err') return hint('Trợ lý AI lỗi: ' + (o.err || 'không rõ'));
+      const A = o.actions || {}, items = (A.items || []).filter(it => rows.some(r => r.id === it.sid && r.tg));
+      if (!items.length) return hint('Trợ lý AI chưa khớp được buổi nào — nội dung KGS chưa đủ rõ');
+      const nNone = items.filter(it => !it.bai.length).length, nKeep = items.filter(it => it.bai.length && it.giu).length, nSet = items.length - nNone - nKeep;
+      commit(() => items.forEach(it => { const r = rows.find(z => z.id === it.sid && z.tg); if (!r) return;
+        if (!it.bai.length) { r.ai = { none: 1, ly: it.ly }; return; }
+        if (it.giu) { r.ai = { giu: 1, chac: it.chac, ly: it.ly }; return; }
+        const keep = r.cur.folders.filter(f => !(f in LI));      // bài ngoài chương trình (thư viện) giữ nguyên
+        setCur(r, Object.assign(JSON.parse(JSON.stringify(r.cur)), { folders: it.bai.map(b => b.id).concat(keep.filter(f => !it.bai.some(b => b.id === f))) })); r.ai = { chac: it.chac, ly: it.ly }; }),
+        'Trợ lý AI: đặt bài ' + nSet + ' buổi' + (nKeep ? ' · ' + nKeep + ' buổi đã khớp sẵn' : '') + (nNone ? ' · ' + nNone + ' buổi chưa rõ' : '') + ' — xem lại rồi bấm Lưu (⌘Z để bỏ)');
+      const k = rows.findIndex(r => r.ai && !r.ai.giu); if (k >= 0) { const el = m.$('.bd-r[data-i="' + k + '"]'); if (el) el.scrollIntoView({ block: 'center' }); } };
+    try {
+      const r = await rpc('aiMatchPlan', { cid: c.id }, { quiet: true });
+      if (!r.log) { end(); return hint(r.msg || 'Không có buổi để khớp'); }
+      if (/^(send|wait|proc)$/.test(r.log.status) && typeof aiWatch === 'function') aiWatch(r.log.id, done); else done(r.log);
+    } catch (e) { end(); hint('Trợ lý AI: ' + (e && e.message || e)); }
+  }
   async function save(approve) {
     const list = [], lastAdd = rows.map((r, i) => r.add && clContHas(r.cur) ? i : -1).reduce((a, b) => Math.max(a, b), -1);
     rows.forEach((r, i) => {
@@ -18210,7 +18242,7 @@ function clBoard(c, focusId) {
   };
   const rowOf = el => { const r = el && el.closest('.bd-r'); return r ? Number(r.dataset.i) : -1; };
   m.el.addEventListener('click', e => {
-    const b = e.target.closest('[data-b]'); if (b) { const a = b.dataset.b; return a === 'undo' ? undo() : a === 'redo' ? redo() : a === 'push' ? shift(1) : a === 'pull' ? shift(-1) : a === 'clear' ? clear() : a === 'auto' ? auto() : null; }
+    const b = e.target.closest('[data-b]'); if (b) { const a = b.dataset.b; return a === 'undo' ? undo() : a === 'redo' ? redo() : a === 'push' ? shift(1) : a === 'pull' ? shift(-1) : a === 'clear' ? clear() : a === 'auto' ? auto() : a === 'aimatch' ? aiMatch(b) : null; }
     const fm = e.target.closest('[data-fm]'); if (fm) { fillMode = fm.dataset.fm; lsSet('bdFill', fillMode); return paint(); }
     const sb = e.target.closest('[data-src]'); if (sb) { src = sb.dataset.src; lsSet('bdSrc', src); paintBar(); return paintSrc(); }
     if (e.target.closest('#bdPut')) { const r = rows[foc]; if (dz(r)) place(picked(), foc); return; }
