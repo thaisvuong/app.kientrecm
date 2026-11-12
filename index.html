@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T10:18:12.195Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T11:06:54.840Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -888,6 +888,20 @@ html[data-theme="graphite"]{ --brand-950:#0B0F17; --brand-900:#111827; --brand-8
 .pg canvas{ display:block; width:100%; height:100% }
 .pg .pn{ position:absolute; left:50%; bottom:-11px; transform:translate(-50%,100%); font:700 10px/1 var(--font-mono); color:#6B778C }
 .pg.loading::after{ content:''; position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(220,226,234,.6), transparent); background-size:200% 100%; animation:sweep 1.2s linear infinite }
+/* (1.80.14) TRANG ĐANG TẢI: các dòng chữ giả “được viết” lần lượt, ô hình nhấp nháy, bút chì chạy qua lại + chữ “Đang vẽ trang n” */
+.pg-ld{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between; padding:7% 8%; overflow:hidden; pointer-events:none }
+.pg:not(.loading) .pg-ld{ display:none }
+.pg-sk{ display:flex; flex-direction:column; gap:clamp(8px, 2.2%, 16px) }
+.pg-sk i{ display:block; height:clamp(7px, 1.4vw, 11px); border-radius:6px; background:linear-gradient(90deg, #E3E8F0, #EEF2F7); transform-origin:left; transform:scaleX(0); animation:pgWrite 2.6s cubic-bezier(.4,0,.2,1) infinite }
+.pg-sk i.t{ width:55%; height:clamp(12px, 2.4vw, 18px); background:linear-gradient(90deg, #C9D6EE, #DCE5F5) } .pg-sk i.s{ width:72% } .pg-sk i.bx{ height:clamp(44px, 12vw, 110px); width:60%; background:repeating-linear-gradient(135deg, #EEF2F7 0 8px, #E6EBF3 8px 16px) }
+.pg-sk i:nth-child(2){ animation-delay:.15s } .pg-sk i:nth-child(3){ animation-delay:.3s } .pg-sk i:nth-child(4){ animation-delay:.45s } .pg-sk i:nth-child(5){ animation-delay:.6s }
+.pg-sk i:nth-child(6){ animation-delay:.75s } .pg-sk i:nth-child(7){ animation-delay:.9s } .pg-sk i:nth-child(8){ animation-delay:1.05s } .pg-sk i:nth-child(9){ animation-delay:1.2s }
+@keyframes pgWrite{ 0%{ transform:scaleX(0); opacity:.4 } 35%{ transform:scaleX(1); opacity:1 } 85%{ transform:scaleX(1); opacity:1 } 100%{ transform:scaleX(1); opacity:0 } }
+.pg-lt{ align-self:center; display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; background:rgba(255,255,255,.92); padding:12px 18px; border-radius:14px; box-shadow:0 6px 24px rgba(30,58,138,.12) }
+.pg-lt b{ font-size:13px; color:#1E3A8A } .pg-lt small{ font-size:11px; color:#6B778C }
+.pg-pen{ width:34px; height:34px; border-radius:50%; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg, #2563EB, #7C3AED); box-shadow:0 4px 14px rgba(124,58,237,.35); animation:pgPen 1.4s ease-in-out infinite }
+@keyframes pgPen{ 0%,100%{ transform:translateX(-10px) rotate(-8deg) } 50%{ transform:translateX(10px) rotate(8deg) } }
+@media (prefers-reduced-motion:reduce){ .pg-sk i{ animation:none; transform:none } .pg-pen{ animation:none } }
 .pg.hit{ box-shadow:0 0 0 3px var(--accent-soft), 0 2px 14px rgba(20,30,50,.18) }
 .vw-img{ max-width:100%; display:block; margin:0 auto; box-shadow:0 2px 14px rgba(20,30,50,.18); background:#fff }
 .vw-text{ max-width:900px; margin:0 auto; background:#fff; padding:28px 32px; border-radius:6px; white-space:pre-wrap; font:13px/1.6 var(--font-mono); box-shadow:0 2px 14px rgba(20,30,50,.12) }
@@ -1725,7 +1739,9 @@ details.adv > summary .bi{ font-size:11px; transition:transform var(--t-base) } 
 .tkb-l{ display:grid !important; grid-template-columns:118px minmax(0,1fr) 150px; align-items:center; gap:10px }
 .tkb-l.one{ grid-template-columns:minmax(0,1fr) 150px }
 /* (1.80.4) cỡ chữ từng người (App.html › uiZoomApply): thu / phóng nội dung trang + hộp thoại */
-.views > .view:not(.vw-view), .modal-bg > .modal{ zoom:var(--uz,1) }      /* trang xem PDF giữ nguyên (đã có phóng to bằng hai ngón) */
+.views > .view:not(.vw-view), .modal-bg > .modal{ zoom:var(--uz,1) }
+/* (1.80.14) iPhone tự phóng to khi bấm vào ô nhập chữ < 16px (cỡ chữ 92% làm ô nhập còn ~14,7px) → ô nhập trên màn cảm ứng luôn đủ 16px sau khi thu nhỏ */
+@media (pointer:coarse){ .views input:not([type=checkbox]):not([type=radio]):not([type=range]), .views textarea, .views select, .modal-bg input:not([type=checkbox]):not([type=radio]):not([type=range]), .modal-bg textarea, .modal-bg select{ font-size:max(16px, calc(16px / var(--uz,1))) !important } }      /* trang xem PDF giữ nguyên (đã có phóng to bằng hai ngón) */
 .sheet-fs{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 4px; border-top:1px solid var(--border) }
 .sheet-fs > span{ display:inline-flex; align-items:center; gap:8px; font-weight:600; color:var(--ink) }
 .sheet-fs .seg{ flex:none } .sheet-fs .seg-b{ padding:0 10px; min-height:32px; font-size:12.5px }
@@ -5086,7 +5102,8 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
   .cl-row{ grid-template-areas:"rc ra" "rf rf" !important; align-items:start !important }
   .cl-ra, .cl-ra.m, .cl-ra.t{ align-self:start !important }
   .cl-row > .cl-rf{ grid-column:1 / -1 !important; grid-row:2 }
-  .cl-ra.m{ grid-template-columns:78px 32px 32px !important } .cl-ra.m > .cl-slot:nth-child(2){ display:none !important }      /* quản lý: chạm vào buổi là sửa nội dung → bỏ ô bút chì, các nút vẫn thẳng hàng */
+  .cl-ra.m{ grid-template-columns:78px 32px auto !important } .cl-ra.m > .cl-slot:nth-child(2){ display:none !important }      /* (1.80.14) cột ⋯ tự giãn theo nút (vùng chạm 40–44px) — trước 32px làm nút lòi ra, thẻ bị cắt lề phải */
+  .cl-ra.t{ grid-auto-columns:auto } .cl-ra .cl-mo{ justify-self:end }      /* quản lý: chạm vào buổi là sửa nội dung → bỏ ô bút chì, các nút vẫn thẳng hàng */
   .cl-row .cl-rc small{ white-space:normal; overflow:visible; text-overflow:clip }
   .cl-rf .cl-kgs{ white-space:normal; max-width:100% } .cl-rf .cl-kgs span{ overflow:visible; text-overflow:clip }
   .cl-rf .cl-fold span{ white-space:normal }
@@ -5110,6 +5127,19 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .cl-kgs.cl-kdel{ cursor:pointer; color:#B91C1C; background:#FEF2F2; border-color:#FECACA } .cl-kgs.cl-kdel:hover{ background:#FEE2E2 }      /* (1.80.9) */
 .cl-kdbar{ border-color:#FECACA; background:#FEF2F2 } .cl-kdbar > i{ color:#B91C1C }
 .ct-al.red{ color:#B91C1C; background:#FEF2F2; border-color:#FECACA } .ct-al.on{ color:#fff; background:var(--brand-600, #1E40AF); border-color:transparent }      /* (1.80.10) */
+/* (1.80.14) AI kiểm lệch nội dung KGS */
+.cl-kchk{ grid-column:1 / -1; display:flex; align-items:flex-start; gap:8px; flex-wrap:wrap; margin-top:6px; padding:7px 10px; border-radius:10px; font-size:12.5px; line-height:1.5 }
+.cl-kchk > i{ margin-top:2px } .cl-kchk > span:first-of-type{ flex:1 1 220px; min-width:0 } .cl-kchk small{ display:block; color:var(--muted); font-size:11.5px } .cl-kchk em{ font-style:normal; font-size:11px; color:var(--muted) }
+.cl-kchk.lech{ background:#FFF1F2; border:1px solid #FECDD3; color:#9F1239 } .cl-kchk.lech .kc-b{ color:#1E3A8A } .cl-kchk .kc-a{ display:flex; gap:6px; flex:none; margin-left:auto }
+.cl-kchk.unk{ background:var(--surface-2); border:1px dashed var(--border); color:var(--muted) }
+.ct-al.ai{ color:#6D28D9; background:#F5F3FF; border-color:#DDD6FE } .ct-al.ai[disabled]{ opacity:1; cursor:progress } .ct-al.ai[disabled] i{ animation:spin 1.2s linear infinite }
+/* (1.80.14) hộp nhỏ nổi GIỮA màn hình trên điện thoại (size 'mid') — dễ bấm hơn hộp trượt từ đáy */
+@media (max-width:900px){
+  .modal-bg:has(> .modal.mid){ align-items:center; padding:18px }
+  .modal.mid{ width:100%; max-width:440px; border-radius:20px; animation:midIn 260ms var(--spring) }
+  .modal.mid .modal-f{ border-radius:0 0 20px 20px; padding-bottom:12px }
+}
+@keyframes midIn{ from{ opacity:0; transform:translateY(14px) scale(.94) } to{ opacity:1; transform:none } }
 </style>
 
   <style>
@@ -5189,6 +5219,7 @@ html[data-mode="dark"] .vw-tab:hover{ background:var(--surface) }
 html[data-mode="dark"] .pg-in{ background:var(--surface) }
 html[data-mode="dark"] .vw-pages{ background:#2b3038 }
 html[data-mode="dark"] .pg{ background:var(--surface) }
+html[data-mode="dark"] .pg-sk i{ background:rgba(255,255,255,.08) } html[data-mode="dark"] .pg-sk i.t{ background:rgba(147,180,255,.22) } html[data-mode="dark"] .pg-sk i.bx{ background:repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 8px, rgba(255,255,255,.1) 8px 16px) } html[data-mode="dark"] .pg-lt{ background:rgba(20,26,38,.9) } html[data-mode="dark"] .pg-lt b{ color:#BFD0FF }      /* (1.80.14) */
 html[data-mode="dark"] .pg .pn{ color:var(--muted) }
 html[data-mode="dark"] .pg.loading::after{ background:linear-gradient(90deg, transparent, #2b313999, transparent) }
 html[data-mode="dark"] .vw-text{ background:var(--surface) }
@@ -9618,7 +9649,7 @@ function PdfView(host, opt) {
     const p1 = await P.pdf.getPage(1), vp1 = p1.getViewport({ scale: 1 });
     for (let i = 1; i <= n; i++) {
       const el = document.createElement('div'); el.className = 'pg loading'; el.dataset.p = i;
-      el.innerHTML = '<span class="pn">' + i + ' / ' + n + '</span>';
+      el.innerHTML = '<span class="pn">' + i + ' / ' + n + '</span><div class="pg-ld" aria-hidden="true"><div class="pg-sk"><i class="t"></i><i></i><i></i><i class="s"></i><i></i><i class="s"></i><i class="bx"></i><i></i><i class="s"></i></div><div class="pg-lt"><span class="pg-pen"><i class="bi bi-pencil-fill"></i></span><b>Đang vẽ trang ' + i + '</b><small>' + (i === 1 ? 'chờ chút, tài liệu đang hiện ra…' : 'trang ' + i + ' / ' + n) + '</small></div></div>';      // (1.80.14) màn chờ từng trang: khung trang tự “viết” dần + bút chạy, không phải trang trắng
       wrap.appendChild(el);
       P.pages.push({ i: i, page: i === 1 ? p1 : null, w: vp1.width, h: vp1.height, el: el, drawn: 0, task: null });
     }
@@ -14772,6 +14803,32 @@ async function clKgsDel(c, L, done) {
   const ids = new Set(L.map(x => x.id)); CL.d.sessions = CL.d.sessions.filter(z => !ids.has(z.id));
   clQueue('sessionDelete', { ids: [...ids] }, { label: 'Xoá ' + ids.size + ' buổi không có bên KGS · ' + clName(c) }); toast('Đã xoá ' + ids.size + ' buổi không có bên KGS', 'ok'); done ? done() : CL.repaint && CL.repaint();
 }
+/** (1.80.14) AI KIỂM LỆCH NỘI DUNG KGS (Sessions.kchk): bài đang gán khác nội dung gia sư ghi bên KGS → dấu đỏ + bài đề xuất, bấm Đổi bài là đổi luôn */
+const KCHK_CH = { cao: 'chắc', vua: 'khá chắc', thap: 'chưa chắc' };
+function clKchk(x) {
+  const k = x && x.kchk; if (!k || k.s === 'ok') return '';
+  if (k.s === 'unk') return '<div class="cl-kchk unk" title="' + esc(k.ly || '') + '"><i class="bi bi-robot"></i><span><b>AI chưa rõ bài</b>' + (k.ly ? ' — ' + esc(k.ly) : '') + '</span></div>';
+  const nm = (k.b || []).map(id => clDirName(id) || 'bài trong chương trình').join(' + ');
+  return '<div class="cl-kchk lech"><i class="bi bi-exclamation-triangle-fill"></i><span><b>' + ((x.folders || []).length ? 'Lệch nội dung KGS' : 'Chưa có bài') + '</b> · AI đề xuất: <b class="kc-b">' + esc(nm) + '</b> <em>' + esc(KCHK_CH[k.chac] || '') + '</em>' + (k.ly ? '<small>' + esc(k.ly) + '</small>' : '') + '</span>' +
+    '<span class="kc-a"><button type="button" class="btn xs pri" data-act="kfix"><i class="bi bi-arrow-repeat"></i>Đổi bài</button><button type="button" class="btn xs ghost" data-act="kok" title="Bài đang gán là đúng — không báo lại">Bỏ qua</button></span></div>';
+}
+/** buổi đã qua (45 ngày) có nội dung KGS mà AI chưa kiểm (hoặc nội dung / bài đã đổi) */
+function clKchkTodo() { const t = CL.d.today, f = clAdd(t, -45); return CL.d.sessions.filter(x => x.date <= t && x.date >= f && x.status !== 'off' && x.krep && Object.keys(x.krep).length && !x.kchk && !x.arch && (clClass(x.classId) || {}).programId); }
+let KCHK_RUN = null;
+async function clKchkRun(again) {
+  if (KCHK_RUN) return; const cids = [...new Set(clKchkTodo().map(x => x.classId))]; if (!cids.length) return toast('Không còn buổi nào cần kiểm', 'info');
+  const G = []; for (let i = 0; i < cids.length; i += 6) G.push(cids.slice(i, i + 6));
+  KCHK_RUN = { i: 0, n: G.length }; again(); let nL = 0, err = '';
+  for (const g of G) {
+    try { const r = await rpc('aiMatchPlan', { cids: g }, { quiet: true });
+      if (r.log) { const o = /^(send|wait|proc)$/.test(r.log.status) && typeof aiWatch === 'function' ? await new Promise(res => aiWatch(r.log.id, res)) : r.log;
+        if (o.status === 'err') err = o.err || 'lỗi'; else nL += ((o.actions || {}).items || []).filter(it => it.bai.length && !it.giu).length; } }
+    catch (e) { err = e.message || String(e); if (/AIOFF|AICFG/.test(e.code || '')) break; }
+    KCHK_RUN.i++; again();
+  }
+  KCHK_RUN = null; await clReload(Date.now()).catch(() => {}); CL.repaint && CL.repaint();
+  toast(err ? 'Trợ lý AI: ' + err : 'AI đã kiểm xong ' + cids.length + ' bé · ' + nL + ' buổi lệch nội dung KGS', err ? 'err' : 'ok', 7000);
+}
 function clKgsMark(x) {
   if (clKgsOrphan(x)) return '<button type="button" class="cl-kgs cl-kdel" data-act="kdel" title="Lớp lấy lịch từ Kiến Gia Sư nhưng KGS KHÔNG có buổi học ngày này — bấm để xoá buổi (vào Thùng rác)"><i class="bi bi-trash3"></i><span>Không có bên KGS · Xoá</span></button>';
   if (x && x.spare) return '<span class="cl-kgs gray" title="Lớp lấy lịch từ Kiến Gia Sư: buổi này chưa có bên KGS (bài gán dư). Gia sư chưa thấy; KGS thêm buổi mới thì buổi dư sớm nhất nhận buổi đó, giữ nguyên bài"><i class="bi bi-hourglass"></i><span>Dư · chờ KGS có buổi</span></span>';
@@ -14996,7 +15053,7 @@ function clRow(x, opt) {
         : (x.status === 'approved' || x.status === 'taught') && (man || x.released) && (x.folders || []).length ? '<button class="' + (man ? 'ibtn sm' : 'btn xs cl-lk') + '" data-act="link" title="Tạo link tài liệu" aria-label="Tạo link tài liệu"><i class="bi bi-link-45deg"></i>' + (man ? '' : 'Link') + '</button>' : '') + '</span>' +
       (!man ? '<span class="cl-slot ed">' + (x.canEdit ? '<button class="ibtn sm" data-act="edit" title="Chọn nội dung buổi" aria-label="Chọn nội dung buổi"><i class="bi bi-pencil"></i></button>' : '') + '</span>' : '') +
       (!man ? '<span class="cl-slot tg">' + (x.released && x.status !== 'taught' ? '<button class="btn xs pri" data-act="taught"><i class="bi bi-check2-all"></i>Đã dạy</button>' : '') + '</span>' : '') +
-      '<button class="ibtn sm cl-mo" data-act="more" title="Tuỳ chọn: đổi ngày giờ, ghi chú, bỏ đã dạy…" aria-label="Tuỳ chọn"><i class="bi bi-three-dots"></i></button></div>' + clKrep(x) + '</div>';      // (1.78.6) gia sư ghi gì bên KGS
+      '<button class="ibtn sm cl-mo" data-act="more" title="Tuỳ chọn: đổi ngày giờ, ghi chú, bỏ đã dạy…" aria-label="Tuỳ chọn"><i class="bi bi-three-dots"></i></button></div>' + clKrep(x) + (man ? clKchk(x) : '') + '</div>';      // (1.78.6) gia sư ghi gì bên KGS
 }
 /** (1.78.6) GIA SƯ GHI GÌ CHO BUỔI BÊN KGS (nội dung dạy, nhận xét…) — đọc theo lịch KGS của bé, khỏi phải tra bên KGS */
 const KR_LB = [[/content|noidung|summary|detail|taught|teach|lessonnote/i, 'Nội dung dạy'], [/comment|review|feedback|remark|nhanxet|evaluat|assess|danhgia/i, 'Nhận xét'], [/homework|btvn|assignment/i, 'Bài tập về nhà'], [/score|rate|rating|point|diem|mark/i, 'Điểm / đánh giá'], [/absen|reason|lydo/i, 'Lý do'], [/note|ghichu/i, 'Lưu ý']];
@@ -15087,7 +15144,11 @@ async function clAct(anchor, act, x, done) {
     }
     if (act === 'edit') return clContent(x, done);
     if (act === 'kdate') return clEditSess(x, done);
-    if (act === 'kdel') return clKgsDel(c, [x], done);      // (1.80.9) buổi không có bên KGS → xoá      // (1.80.2) buổi không có bên KGS → đổi ngày
+    if (act === 'kdel') return clKgsDel(c, [x], done);
+    if (act === 'kfix' && x.kchk && x.kchk.b.length) {      // (1.80.14) đổi sang bài AI đề xuất theo nội dung KGS (buổi đã qua → duyệt luôn)
+      clApply(c, [{ id: x.id, to: { folders: x.kchk.b.slice(), extra: (x.extra || []).slice(), pick: null, lnote: x.lnote || '', hold: 0, tags: [] } }], { approve: true, label: 'Đổi bài theo KGS' });
+      const nm = x.kchk.b.map(clDirName).join(', '); x.kchk = null; toast('Đã đổi bài ' + clDay(x.date, CL.d.today).dm + ' → ' + nm, 'ok'); return done(); }
+    if (act === 'kok') { x.kchk = null; clQueue('aiKchkSet', { id: x.id }, { label: 'Bỏ qua lệch KGS · ' + clName(c) }); return done(); }      // (1.80.9) buổi không có bên KGS → xoá      // (1.80.2) buổi không có bên KGS → đổi ngày
     if (act === 'link') { const r = await rpc('sessionLink', { id: x.id }); copyText(r.url, 'Đã tạo & sao chép link tạm'); return refresh(); }
     if (act === 'copy' && !man && x.link.state === 'active') return kpsOpen(clLinkUrl(x), clName(c) + ' · ' + clDay(x.date, CL.d.today).dm);      // (1.77.22) gia sư: mở ngay trong app (có Quay lại, vẫn In)
     if (act === 'copy') return x.link.state === 'active' ? copyText(clLinkUrl(x), 'Đã sao chép link tạm') : toast('Link đã ' + (x.link.state === 'expired' ? 'hết hạn' : 'khoá'), 'warn');
@@ -15224,6 +15285,7 @@ function clTodo(B, v) {
     fields: [
       { key: 'when', label: 'Ngày học', icon: 'bi-calendar-event', type: 'opt', val: x => { const d = clDay(x.date, CL.d.today).diff; return d < 0 ? (x.status === 'taught' || x.status === 'off' ? 'Đã qua' : 'Đã qua — chưa dạy') : d === 0 ? 'Hôm nay' : d === 1 ? 'Ngày mai' : d <= 3 ? '2–3 ngày tới' : d <= 7 ? '4–7 ngày tới' : 'Sau 7 ngày'; },
         sort: (a, b) => ['Đã qua — chưa dạy', 'Hôm nay', 'Ngày mai', '2–3 ngày tới', '4–7 ngày tới', 'Sau 7 ngày', 'Đã qua'].indexOf(a) - ['Đã qua — chưa dạy', 'Hôm nay', 'Ngày mai', '2–3 ngày tới', '4–7 ngày tới', 'Sau 7 ngày', 'Đã qua'].indexOf(b) },
+      { key: 'kchk', label: 'Khớp nội dung KGS', icon: 'bi-robot', type: 'opt', name: k => k || 'Không có nội dung KGS', val: x => !x.krep || !Object.keys(x.krep).length ? '' : !x.kchk ? 'AI chưa kiểm' : x.kchk.s === 'lech' ? 'Lệch nội dung KGS' : x.kchk.s === 'unk' ? 'AI chưa rõ' : 'Khớp KGS' },      // (1.80.14)
       { key: 'need', label: 'Gán bài của bé', icon: 'bi-grid-3x3-gap', type: 'opt', name: k => k || 'Lớp đã dừng', val: x => clNeedAsg(cOf(x)), sort: (a, b) => ['Cần gán bài', 'Đã đủ bài', 'Chưa có chương trình', ''].indexOf(a) - ['Cần gán bài', 'Đã đủ bài', 'Chưa có chương trình', ''].indexOf(b) },      // (1.80.10)
       { key: 'flag', label: 'Đánh dấu lớp', icon: 'bi-flag', type: 'opt', val: x => clFlagInfo(cOf(x)).appr ? 'Chưa được duyệt lần nào' : 'Bình thường' },
       { key: 'grade', label: 'Khối lớp', icon: 'bi-mortarboard', type: 'opt', name: k => k || 'Chưa có khối', val: x => cOf(x).grade || '', sort: (a, b) => gradeNum(a || 'z') - gradeNum(b || 'z') },
@@ -15300,7 +15362,10 @@ function clTodo(B, v) {
   // cảnh báo gom thành một hàng viên thuốc nhỏ (bấm để xử lý) thay cho các khung chữ dài
   const nLow = D.classes.filter(c => { const r = clRunway(c); return r && r.warn; }).length;
   const nNeed = D.classes.filter(c => clNeedAsg(c) === 'Cần gán bài').length, needOn = CFC.conds.some(q => q.f === 'need');      // (1.80.10)
+  const aiOk = typeof aiCanTask === 'function' && aiCanTask(), nTodo = D.manage ? clKchkTodo().length : 0, nLech = D.sessions.filter(x => x.kchk && x.kchk.s === 'lech').length, lechOn = CFC.conds.some(q => q.f === 'kchk');      // (1.80.14)
   const alerts = (noProg.length ? '<button class="ct-al" data-go="classes/list"><i class="bi bi-mortarboard"></i>' + noProg.length + ' lớp chưa gán chương trình<i class="bi bi-chevron-right"></i></button>' : '') +
+    (nLech ? '<button class="ct-al' + (lechOn ? ' on' : ' red') + '" id="ctLech" title="Buổi đã qua có bài khác nội dung gia sư ghi bên KGS (AI kiểm) — bấm để chỉ hiện các buổi này"><i class="bi bi-exclamation-triangle"></i>' + nLech + ' buổi lệch KGS' + (lechOn ? '<i class="bi bi-x"></i>' : '<i class="bi bi-funnel"></i>') + '</button>' : '') +
+    (aiOk && (nTodo || KCHK_RUN) ? '<button class="ct-al ai" id="ctKchk"' + (KCHK_RUN ? ' disabled' : '') + ' title="Trợ lý AI đọc nội dung gia sư ghi bên KGS ở các buổi đã qua, so với bài đang gán, đánh dấu buổi lệch kèm bài đề xuất"><i class="bi bi-robot"></i>' + (KCHK_RUN ? 'AI đang kiểm ' + (KCHK_RUN.i + 1) + '/' + KCHK_RUN.n + ' nhóm bé…' : 'AI kiểm ' + nTodo + ' buổi theo KGS') + '</button>' : '') +
     (nNeed ? '<button class="ct-al' + (needOn ? ' on' : ' red') + '" id="ctNeed" title="Bé còn buổi sắp tới (tới cuối tháng / 14 ngày) chưa có bài — bấm để chỉ hiện các bé này"><i class="bi bi-grid-3x3-gap"></i>' + nNeed + ' bé cần gán bài' + (needOn ? '<i class="bi bi-x"></i>' : '<i class="bi bi-funnel"></i>') + '</button>' : '') +
     (nLow ? '<button class="ct-al warn" id="ctLow"><i class="bi bi-hourglass-bottom"></i>' + nLow + ' lớp sắp hết bài<i class="bi bi-chevron-' + (CL.rwOpen ? 'up' : 'down') + '"></i></button>' : '');
   setKeep(B, '<div class="ct-head">' +
@@ -15353,6 +15418,10 @@ function clTodo(B, v) {
     nF ? { t: 'Bỏ mọi bộ lọc', i: 'bi-funnel', fn: () => { CL.day = ''; CL.st = 'all'; lsSet('clDay', ''); lsSet('clSt', 'all'); CFC.conds.splice(0, CFC.conds.length); lsSet('clTodoFConds', []); reset(); again(); } } : null
   ].filter(Boolean));
   const lw = $('#ctLow', B); if (lw) lw.onclick = () => { CL.rwOpen = !CL.rwOpen; again(); };
+  const kk = $('#ctKchk', B); if (kk) kk.onclick = () => clKchkRun(() => clTodo(B, v));      // (1.80.14)
+  const lc = $('#ctLech', B); if (lc) lc.onclick = () => { const C2 = CFC.conds, i = C2.findIndex(q => q.f === 'kchk');
+    if (i >= 0) C2.splice(i, 1); else { C2.push({ f: 'kchk', op: 'in', v: ['Lệch nội dung KGS'] }); CL.showDone = true; if (CL.day) { CL.day = ''; lsSet('clDay', ''); } if (CL.st !== 'all') { CL.st = 'all'; lsSet('clSt', 'all'); } }
+    lsSet('clTodoFConds', C2); Object.keys(CLP).forEach(k => { if (/^todo/.test(k)) delete CLP[k]; }); clTodo(B, v); };
   const nd = $('#ctNeed', B); if (nd) nd.onclick = () => { const C2 = CFC.conds, i = C2.findIndex(q => q.f === 'need');      // (1.80.10) bật / tắt lọc “Cần gán bài”
     if (i >= 0) C2.splice(i, 1); else { C2.push({ f: 'need', op: 'in', v: ['Cần gán bài'] }); if (CL.day) { CL.day = ''; lsSet('clDay', ''); } }
     lsSet('clTodoFConds', C2); Object.keys(CLP).forEach(k => { if (/^todo/.test(k)) delete CLP[k]; }); clTodo(B, v); };
@@ -19831,7 +19900,7 @@ async function aiOpenConv(body, conv, cid, who) {
 /** bấm nút tài liệu trong câu trả lời: mở · xin bài này cho bé */
 function aiRefMenu(id, o) {
   const cid = AI.chat.cid, c = AI.b.classes.find(x => x.id === cid);
-  modal({ title: o.n || 'Tài liệu', icon: o.f ? 'bi-file-earmark-text' : 'bi-folder2-open',
+  modal({ title: o.n || 'Tài liệu', icon: o.f ? 'bi-file-earmark-text' : 'bi-folder2-open', size: 'mid',      // (1.80.14) điện thoại: hộp nổi giữa màn hình, không trượt từ đáy
     body: '<div class="small ax-muted">' + esc(o.f ? 'Tệp' : 'Thư mục bài') + ' · ' + esc(o.s === 'done' || o.s === 'taught' ? 'bé đã học' : o.s === 'plan' ? 'đã xếp vào một buổi sắp tới' : o.s === 'carry' ? 'gia sư báo chưa dạy' : o.in ? 'nằm trong lộ trình của bé, chưa học' : 'trong thư viện, ngoài lộ trình của bé') + '</div>' +
       (c && !AI.b.can.admin ? '<div class="fg" style="margin-top:12px"><label class="flabel">Ghi chú gửi quản lý (khi xin bài)</label><textarea class="ta" id="aiWhy" rows="2" placeholder="VD: bé yếu phần này, xin cho buổi tới"></textarea></div>' : ''),
     foot: [{ t: 'Đóng', cls: 'ghost' }].concat(c && !AI.b.can.admin ? [{ t: 'Xin bài này cho ' + c.name, i: 'bi-send', cls: '', fn: async m => { const r = await rpc('aiTnAsk', { cid: cid, lid: id, why: (m.$('#aiWhy') || {}).value || '' }, { quiet: true });
