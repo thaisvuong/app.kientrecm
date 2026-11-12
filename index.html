@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T08:18:49.343Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T08:29:23.584Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -3870,6 +3870,11 @@ body.cp-dragging, body.cp-dragging *{ cursor:grabbing !important; user-select:no
 .bd-d{ display:flex; flex-direction:column; line-height:1.25 } .bd-d b{ font-size:12.5px; font-weight:800 } .bd-d small{ font-size:11px; color:var(--muted) }
 .bd-c{ position:relative; min-height:30px; display:flex; flex-wrap:wrap; align-items:center; gap:4px; padding:2px }
 .bd-e{ font-size:12px; color:var(--muted); font-style:italic; display:inline-flex; align-items:center; gap:5px }
+/* (1.80.6) dòng nội dung gia sư ghi bên KGS dưới buổi trong Bảng gán bài */
+.bd-kg{ flex-basis:100%; display:flex; gap:6px; align-items:baseline; font-size:11.5px; line-height:1.45; color:var(--ink-2,#475569); background:#F0FDF4; border:1px solid #DCFCE7; border-radius:6px; padding:3px 7px; margin-top:2px; min-width:0 }
+.bd-kg b{ flex:none; font-size:10px; font-weight:700; color:#15803D; letter-spacing:.3px }
+.bd-kg span{ overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical }
+.bd-r.bd-tg .bd-e{ color:#15803D }
 .bd-ch{ display:inline-flex; align-items:center; gap:5px; max-width:100%; min-width:0; padding:3px 4px 3px 8px; border-radius:8px; background:#ECFDF3; border:1px solid #BBF7D0; color:#14532D; font-size:12px; font-weight:700; cursor:grab }
 .bd-ch > span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0 } .bd-ch > i{ flex-shrink:0; font-size:12px }
 .bd-ch.ext{ background:#EFF6FF; border-color:#BFDBFE; color:#1E3A8A } .bd-ch.x{ background:#F5F3FF; border-color:#DDD6FE; color:#4C1D95 } .bd-ch.dup{ background:#FEF2F2; border-color:#FECACA; color:#991B1B }
@@ -17802,7 +17807,7 @@ function clApply(c, list, opt) {
     const t = o.to, has = clContHas(t), self0 = clSelf(x), nl = !has && (t.self || self0), approve = !!opt.approve && has && (self0 ? x.status !== 'taught' : x.status !== 'approved' && x.status !== 'taught'), hold = !has && !nl && t.hold ? 1 : 0;
     clTagsPrune(t);
     Object.assign(x, { folders: t.folders.slice(), extra: t.extra.slice(), pick: t.pick, lnote: t.lnote, hold: hold, tags: (t.tags || []).slice() });
-    if (nl) { if (x.status !== 'taught') { x.status = 'approved'; x.auto = false; } x.link = null; } else if (!has) x.status = ''; else if (approve) { x.status = 'approved'; x.auto = false; } else if (self0 ? x.status === 'approved' : x.status !== 'approved' && x.status !== 'taught') x.status = 'draft';
+    if (nl) { if (x.status !== 'taught') { x.status = 'approved'; x.auto = false; } x.link = null; } else if (!has) { if (x.status !== 'taught') x.status = ''; } else if (approve) { x.status = 'approved'; x.auto = false; } else if (self0 ? x.status === 'approved' : x.status !== 'approved' && x.status !== 'taught') x.status = 'draft';
     clQueue('sessionContent', Object.assign({ id: x.id, folders: t.folders, pick: t.pick, extra: t.extra, approve: approve, lnote: t.lnote, hold: hold, tags: t.tags || [] }, nl ? { nolink: 1 } : {}),
       { key: 'content:' + x.id, label: (opt.label || 'Nội dung buổi') + ' · ' + clName(c) + ' ' + clDay(x.date, D.today).dm });
   });
@@ -18030,7 +18035,11 @@ function clBoard(c, focusId) {
   const nm = id => clDirName(id) || fn[id] || '(không còn trong thư viện)';
   const shortSt = s => ({ taught: 'Đã dạy', out: 'Đã phát', prev: 'Đã duyệt', draft: 'Chờ duyệt', none: 'Trống', off: 'Nghỉ' })[s.k] || s.t;
   // dòng: mọi buổi của lớp (đã dạy / nghỉ chỉ để xem) — buổi đã dạy quá 30 ngày ẩn bớt
-  let rows = all.filter(x => !(x.status === 'taught' && x.date < clAdd(D.today, -30))).map(x => ({ id: x.id, date: x.date, time: x.time || '', sj: x.ksj || '', ed: clEditable(x), self: clSelf(x), rel: !!x.released, st: clState(x), orig: clCont(x), cur: clCont(x) }));
+  let rows = all.filter(x => !(x.status === 'taught' && x.date < clAdd(D.today, -30))).map(x => ({ id: x.id, date: x.date, time: x.time || '', sj: x.ksj || '', ed: clEditable(x), tg: x.status === 'taught', kr: x.krep || null, self: clSelf(x), rel: !!x.released, st: clState(x), orig: clCont(x), cur: clCont(x) }));
+  /* (1.80.6) buổi ĐÃ DẠY: thả / kéo bài để khớp với nội dung gia sư ghi bên KGS (hiện ngay dưới buổi) — đẩy lùi / dồn lên / kéo điền vẫn bỏ qua buổi đã dạy · lưu xong, dòng 📄 tài liệu bên KGS ghi lại theo bài mới ở lần đồng bộ tới */
+  const dz = r => !!r && (r.ed || r.tg);
+  const krTxt = r => { const o = r.kr; if (!o) return ''; const K = Object.keys(o).filter(k => String(o[k] || '').trim()); if (!K.length) return ''; const mk = K.find(k => /content|noidung|summary|detail|taught|teach|lesson/i.test(k)) || K.find(k => /comment|review|feedback|remark/i.test(k)) || K[0];
+    return '<div class="bd-kg" title="' + esc(K.map(k => clKrLabel(k) + ': ' + o[k]).join('\n')) + '"><b>KGS</b><span>' + esc(clKrLabel(mk)) + ': ' + esc(String(o[mk]).slice(0, 220)) + '</span></div>'; };
   let foc = focusId ? rows.findIndex(r => r.id === focusId) : -1;
   if (foc < 0) foc = rows.findIndex(r => r.ed && r.date >= D.today); if (foc < 0) foc = rows.findIndex(r => r.ed); if (foc < 0) foc = 0;
   let sel = new Set([foc]), anchor = foc, fill = null, drag = null, src = lsGet('bdSrc', 'prog'), fillMode = lsGet('bdFill', 'series'), one = false;
@@ -18044,7 +18053,7 @@ function clBoard(c, focusId) {
   const undo = () => { if (!hist.length) return hint('Không còn gì để hoàn tác'); fut.push(snap()); restore(hist.pop()); after(); hint('Đã hoàn tác', 1); };
   const redo = () => { if (!fut.length) return; hist.push(snap()); restore(fut.pop()); after(); hint('Đã làm lại', 1); };
   const edIdx = () => rows.map((r, i) => r.ed ? i : -1).filter(i => i >= 0);
-  const changed = r => !!r.add || (r.ed && !clContEq(r.cur, r.orig));
+  const changed = r => !!r.add || (dz(r) && !clContEq(r.cur, r.orig));
   const nChanged = () => rows.filter(changed).length;
   const addRow = () => {
     const lastD = rows.concat(all).reduce((a, r) => r.date > a ? r.date : a, ''), sl = clNextSlot(c, lastD);
@@ -18071,7 +18080,7 @@ function clBoard(c, focusId) {
           '<div class="bd-sb" id="bdSB"></div><div class="bd-sf" id="bdSF"></div></aside></div></div>',
     foot: [{ t: 'Đóng', cls: 'ghost', fn: () => tryClose() }, { t: 'Lưu', i: 'bi-save', fn: () => save(false) }, { t: 'Lưu & duyệt', i: 'bi-check2-all', cls: 'pri', fn: () => save(true) }] });
   const H = m.$('#bdH'), TB = m.$('#bdT'), SB = m.$('#bdSB'), SF = m.$('#bdSF');
-  const DEF_HINT = '<i class="bi bi-lightbulb"></i><span>Kéo bài ở cột phải thả vào buổi · kéo <b class="bd-fhk"></b> ở buổi đang chọn xuống để xếp tiếp · Shift chọn nhiều buổi · ⌘Z hoàn tác. Chưa lưu cho tới khi bấm Lưu.</span>';
+  const DEF_HINT = '<i class="bi bi-lightbulb"></i><span>Kéo bài ở cột phải thả vào buổi · kéo <b class="bd-fhk"></b> ở buổi đang chọn xuống để xếp tiếp · Shift chọn nhiều buổi · ⌘Z hoàn tác.' + (rows.some(r => r.tg) ? ' Buổi <b>đã dạy</b>: kéo bài khớp dòng <b>KGS</b> (gia sư ghi) vào — lưu xong, KGS cập nhật ở lần đồng bộ tới.' : '') + ' Chưa lưu cho tới khi bấm Lưu.</span>';
   let hT = 0; const hint = (t, ok) => { H.innerHTML = '<i class="bi ' + (ok ? 'bi-check2-circle' : 'bi-info-circle') + '"></i><span>' + esc(t) + '</span>'; H.classList.toggle('ok', !!ok); clearTimeout(hT); hT = setTimeout(() => { H.innerHTML = DEF_HINT; H.classList.remove('ok'); }, 3200); };
   H.innerHTML = DEF_HINT;
   m.$('[data-x]').onclick = () => tryClose();
@@ -18080,16 +18089,16 @@ function clBoard(c, focusId) {
   /* ── vẽ bảng ── */
   const chips = (r, i) => {
     const o = r.cur, dup = id => rows.some((z, j) => j !== i && z.cur.folders.indexOf(id) >= 0);
-    if (!clContHas(o)) return '<span class="bd-e">' + (r.ed ? (o.hold ? '<i class="bi bi-hourglass"></i>Để trống — thả bài vào đây' : 'Trống — thả bài vào đây' + (L.length ? ' (hoặc để hệ thống tự xếp)' : '')) : r.self ? '<i class="bi bi-link-45deg"></i>Không có link tài liệu' : '—') + '</span>';
-    return o.folders.map((id, k) => '<span class="bd-ch' + (dup(id) ? ' dup' : '') + (id in LI ? '' : ' ext') + '"' + (r.ed ? ' draggable="true"' : '') + ' data-ck="f:' + k + '" title="' + esc(nm(id)) + (dup(id) ? ' — bài này đã có ở buổi khác' : '') + '">' + (IX.dirs[id] ? '<i class="bi bi-folder2"></i>' : '<i class="bi bi-file-earmark-text"></i>') + '<span>' + esc(nm(id)) + '</span>' + (r.ed ? '<button type="button" data-rm="f:' + k + '" aria-label="Bỏ bài này">×</button>' : '') + '</span>').join('') +
-      o.extra.map((f, k) => '<span class="bd-ch x"' + (r.ed ? ' draggable="true"' : '') + ' data-ck="x:' + k + '" title="' + esc(f.n) + ' (tệp ngoài)"><i class="bi bi-paperclip"></i><span>' + esc(clFName(f.n)) + '</span>' + (r.ed ? '<button type="button" data-rm="x:' + k + '" aria-label="Bỏ tệp này">×</button>' : '') + '</span>').join('') +
+    if (!clContHas(o)) return '<span class="bd-e">' + (r.tg ? '<i class="bi bi-check2-all"></i>Đã dạy — kéo bài khớp nội dung KGS vào đây' : r.ed ? (o.hold ? '<i class="bi bi-hourglass"></i>Để trống — thả bài vào đây' : 'Trống — thả bài vào đây' + (L.length ? ' (hoặc để hệ thống tự xếp)' : '')) : r.self ? '<i class="bi bi-link-45deg"></i>Không có link tài liệu' : '—') + '</span>';
+    return o.folders.map((id, k) => '<span class="bd-ch' + (dup(id) ? ' dup' : '') + (id in LI ? '' : ' ext') + '"' + (dz(r) ? ' draggable="true"' : '') + ' data-ck="f:' + k + '" title="' + esc(nm(id)) + (dup(id) ? ' — bài này đã có ở buổi khác' : '') + '">' + (IX.dirs[id] ? '<i class="bi bi-folder2"></i>' : '<i class="bi bi-file-earmark-text"></i>') + '<span>' + esc(nm(id)) + '</span>' + (dz(r) ? '<button type="button" data-rm="f:' + k + '" aria-label="Bỏ bài này">×</button>' : '') + '</span>').join('') +
+      o.extra.map((f, k) => '<span class="bd-ch x"' + (dz(r) ? ' draggable="true"' : '') + ' data-ck="x:' + k + '" title="' + esc(f.n) + ' (tệp ngoài)"><i class="bi bi-paperclip"></i><span>' + esc(clFName(f.n)) + '</span>' + (dz(r) ? '<button type="button" data-rm="x:' + k + '" aria-label="Bỏ tệp này">×</button>' : '') + '</span>').join('') +
       (o.lnote ? '<span class="bd-nt" title="' + esc(o.lnote) + '"><i class="bi bi-sticky"></i></span>' : '') + clTagHtml(o);
   };
   const rowH = (r, i) => {
     const dd = clDay(r.date, D.today), ch = changed(r), fl = fill && i > fill.s && i <= fill.t && r.ed;
-    return '<div class="bd-r' + (r.ed ? '' : ' lock') + (sel.has(i) ? ' sel' : '') + (i === foc ? ' foc' : '') + (ch ? ' ch' : '') + (fl ? ' fil' : '') + (dd.diff === 0 ? ' today' : dd.diff < 0 ? ' past' : '') + '" data-i="' + i + '">' +
+    return '<div class="bd-r' + (dz(r) ? '' : ' lock') + (r.tg ? ' bd-tg' : '') + (sel.has(i) ? ' sel' : '') + (i === foc ? ' foc' : '') + (ch ? ' ch' : '') + (fl ? ' fil' : '') + (dd.diff === 0 ? ' today' : dd.diff < 0 ? ' past' : '') + '" data-i="' + i + '">' +
       '<span class="bd-d"><b>' + dd.ws + ' ' + dd.dm + '</b><small>' + esc(r.time ? scRange(r.time)[0] : dd.rel) + (r.sj ? ' · ' + esc(r.sj) : '') + '</small></span>' +
-      '<div class="bd-c">' + chips(r, i) + (r.ed && i === foc && !fill ? '<i class="bd-fh" title="Kéo xuống để ' + (fillMode === 'copy' ? 'chép nội dung này' : 'xếp tiếp các bài sau') + ' cho các buổi bên dưới"></i>' : '') + '</div>' +
+      '<div class="bd-c">' + chips(r, i) + (r.ed && i === foc && !fill ? '<i class="bd-fh" title="Kéo xuống để ' + (fillMode === 'copy' ? 'chép nội dung này' : 'xếp tiếp các bài sau') + ' cho các buổi bên dưới"></i>' : '') + krTxt(r) + '</div>' +
       '<span class="bd-s cl-st ' + (r.add ? 'blue' : r.st.c) + '" title="' + esc(r.st.t) + '"><i class="bi ' + (r.add ? 'bi-plus-circle' : r.st.i) + '"></i><span>' + (r.add ? 'Buổi mới' : shortSt(r.st)) + '</span>' + (ch ? '<em class="bd-dot" title="Đã sửa — chưa lưu"></em>' : '') + '</span></div>';
   };
   const paintRows = () => { setKeep(TB, '<div class="bd-th"><span>Buổi</span><span>Nội dung</span><span>Trạng thái</span></div>' + (rows.length ? rows.map(rowH).join('') : '<div class="lk-empty"><span>Lớp chưa có buổi học — thêm buổi hoặc đặt lịch học trước</span></div>')); };
@@ -18132,18 +18141,18 @@ function clBoard(c, focusId) {
     const n = pk.size, r = rows[foc];
     SF.innerHTML = '<label class="chk small" title="Bỏ tích: mỗi buổi một mục, lần lượt từ buổi thả vào"><input type="checkbox" id="bdOne"' + (one ? ' checked' : '') + '> Tất cả vào 1 buổi</label><span class="sp"></span>' +
       (n ? '<button class="btn xs ghost" id="bdPX">Bỏ chọn</button>' : '') +
-      '<button class="btn xs pri" id="bdPut"' + (n && r && r.ed ? '' : ' disabled') + ' title="Đặt các mục đang chọn vào buổi đang chọn' + (one ? '' : ' và các buổi sau') + '"><i class="bi bi-box-arrow-in-left"></i>Đặt ' + (n || '') + (r ? ' từ ' + clDay(r.date, D.today).dm : '') + '</button>';
+      '<button class="btn xs pri" id="bdPut"' + (n && dz(r) ? '' : ' disabled') + ' title="Đặt các mục đang chọn vào buổi đang chọn' + (one ? '' : ' và các buổi sau') + '"><i class="bi bi-box-arrow-in-left"></i>Đặt ' + (n || '') + (r ? ' từ ' + clDay(r.date, D.today).dm : '') + '</button>';
   };
   const itemsOf = keys => keys.map(k => { const i = k.indexOf(':'), t = k.slice(0, i), id = k.slice(i + 1); return t === 'x' ? { t: 'x', f: drv.find(f => f.id === id) || (pk.get(k) || {}).f } : { t: 'f', id: id }; }).filter(it => it.t === 'f' || it.f);
   const picked = () => { const order = m.$$('#bdSB [data-it]').map(el => el.dataset.it), ks = [...pk.keys()]; return itemsOf(ks.sort((a, b) => (order.indexOf(a) + 1 || 1e6) - (order.indexOf(b) + 1 || 1e6))); };
   /** đặt mục vào buổi i: mỗi buổi một mục (lần lượt các buổi sửa được từ i, hết buổi thì thêm buổi mới) hoặc tất cả vào buổi i */
   const place = (items, i, moveFrom, copy) => {
-    if (!items.length || !rows[i] || !rows[i].ed) return;
+    if (!items.length || !dz(rows[i])) return;
     commit(() => {
       if (moveFrom && !copy) { const r0 = rows[moveFrom.i], o = JSON.parse(JSON.stringify(r0.cur)), k = moveFrom.k.split(':'); if (k[0] === 'f') o.folders.splice(Number(k[1]), 1); else o.extra.splice(Number(k[1]), 1); setCur(r0, o); if (!clContHas(o)) r0.cur.hold = 1; }
-      if (one || items.length === 1) return addTo(rows[i], items);
+      if (one || items.length === 1 || !rows[i].ed) return addTo(rows[i], items);      // buổi đã dạy: mọi mục vào đúng buổi đó
       let j = i; items.forEach(it => { while (j < rows.length && !rows[j].ed) j++; const r = j < rows.length ? rows[j] : addRow(); addTo(r, [it]); j = rows.indexOf(r) + 1; });
-    }, (moveFrom ? (copy ? 'Đã chép' : 'Đã chuyển') : 'Đã đặt ' + items.length + ' mục') + ' vào ' + clDay(rows[i].date, D.today).dm + (one || items.length === 1 ? '' : ' và các buổi sau'));
+    }, (moveFrom ? (copy ? 'Đã chép' : 'Đã chuyển') : 'Đã đặt ' + items.length + ' mục') + ' vào ' + clDay(rows[i].date, D.today).dm + (one || items.length === 1 || !rows[i].ed ? '' : ' và các buổi sau'));
     if (!moveFrom) { pk.clear(); paintSrc(); }
   };
   /** kéo điền: buổi s → các buổi tới t · Xếp tiếp = các bài kế tiếp trong chương trình (bỏ bài đã dùng ở buổi khác) · Chép y = chép nguyên nội dung */
@@ -18179,10 +18188,10 @@ function clBoard(c, focusId) {
     const list = [], lastAdd = rows.map((r, i) => r.add && clContHas(r.cur) ? i : -1).reduce((a, b) => Math.max(a, b), -1);
     rows.forEach((r, i) => {
       if (r.add) { if (i <= lastAdd) list.push({ id: r.id, to: r.cur, add: r.add }); return; }   // buổi mới trống ở giữa vẫn tạo để giữ đúng lịch
-      if (r.ed && !clContEq(r.cur, r.orig)) list.push({ id: r.id, to: r.cur });
+      if (dz(r) && !clContEq(r.cur, r.orig)) list.push({ id: r.id, to: r.cur });
     });
     if (!list.length) { m.close(); return; }
-    const nOut = list.filter(o => { const r = rows.find(z => z.id === o.id); return r && r.rel; }).length;
+    const nOut = list.filter(o => { const r = rows.find(z => z.id === o.id); return r && r.rel && !r.tg; }).length;
     if (nOut && !await ask(nOut + ' buổi đã phát cho gia sư sẽ đổi nội dung (gia sư được báo). Lưu?', { ok: 'Lưu' })) return false;
     const und = clApply(c, list, { approve: approve, label: approve ? 'Bảng gán bài · duyệt' : 'Bảng gán bài' });
     toast('Đã lưu ' + list.length + ' buổi · ' + clName(c) + (approve ? ' · đã duyệt' : '') + ' — đang gửi gộp lên máy chủ', 'ok', 9000, '', { t: 'Hoàn tác', fn: und });
@@ -18204,7 +18213,7 @@ function clBoard(c, focusId) {
     const b = e.target.closest('[data-b]'); if (b) { const a = b.dataset.b; return a === 'undo' ? undo() : a === 'redo' ? redo() : a === 'push' ? shift(1) : a === 'pull' ? shift(-1) : a === 'clear' ? clear() : a === 'auto' ? auto() : null; }
     const fm = e.target.closest('[data-fm]'); if (fm) { fillMode = fm.dataset.fm; lsSet('bdFill', fillMode); return paint(); }
     const sb = e.target.closest('[data-src]'); if (sb) { src = sb.dataset.src; lsSet('bdSrc', src); paintBar(); return paintSrc(); }
-    if (e.target.closest('#bdPut')) { const r = rows[foc]; if (r && r.ed) place(picked(), foc); return; }
+    if (e.target.closest('#bdPut')) { const r = rows[foc]; if (dz(r)) place(picked(), foc); return; }
     if (e.target.closest('#bdPX')) { pk.clear(); return paintSrc(); }
     const rm = e.target.closest('[data-rm]'); if (rm) { const i = rowOf(rm), k = rm.dataset.rm.split(':'); e.stopPropagation();
       return commit(() => { const r = rows[i], o = JSON.parse(JSON.stringify(r.cur)); if (k[0] === 'f') o.folders.splice(Number(k[1]), 1); else o.extra.splice(Number(k[1]), 1); setCur(r, o); if (!clContHas(o)) r.cur.hold = 1; }, 'Đã bỏ khỏi buổi ' + clDay(rows[i].date, D.today).dm); }
@@ -18231,14 +18240,14 @@ function clBoard(c, focusId) {
   });
   const clearOver = () => m.$$('.bd-r.dov, .bd-r.dov2').forEach(r => r.classList.remove('dov', 'dov2'));
   m.el.addEventListener('dragover', e => {
-    if (!drag) return; const i = rowOf(e.target); if (i < 0 || !rows[i].ed) return;
+    if (!drag) return; const i = rowOf(e.target); if (i < 0 || !dz(rows[i])) return;
     e.preventDefault(); e.dataTransfer.dropEffect = drag.from && !e.altKey ? 'move' : 'copy';
     if (m.el._ov === i) return; m.el._ov = i; clearOver();
     const el = m.$('.bd-r[data-i="' + i + '"]'); if (el) el.classList.add('dov');
-    if (!one && drag.items.length > 1) { let j = i, n = drag.items.length - 1; while (n > 0 && ++j < rows.length) { if (rows[j].ed) { const e2 = m.$('.bd-r[data-i="' + j + '"]'); if (e2) e2.classList.add('dov2'); n--; } } }
+    if (!one && drag.items.length > 1 && rows[i].ed) { let j = i, n = drag.items.length - 1; while (n > 0 && ++j < rows.length) { if (rows[j].ed) { const e2 = m.$('.bd-r[data-i="' + j + '"]'); if (e2) e2.classList.add('dov2'); n--; } } }
   });
   m.el.addEventListener('drop', e => { if (!drag) return; const i = rowOf(e.target); e.preventDefault(); clearOver(); m.el._ov = -1; const d = drag; drag = null; m.el.classList.remove('bd-drag');
-    if (i < 0 || !rows[i].ed) return; if (d.from && d.from.i === i) return; place(d.items, i, d.from, e.altKey); });
+    if (i < 0 || !dz(rows[i])) return; if (d.from && d.from.i === i) return; place(d.items, i, d.from, e.altKey); });
   m.el.addEventListener('dragend', () => { drag = null; clearOver(); m.el._ov = -1; m.el.classList.remove('bd-drag'); });
   // kéo điền: ô vuông ở góc buổi đang chọn (chuột + cảm ứng)
   TB.addEventListener('pointerdown', e => { if (!e.target.closest('.bd-fh')) return; e.preventDefault(); try { TB.setPointerCapture(e.pointerId); } catch (x) {} fill = { s: foc, t: foc }; TB.classList.add('filling'); paintRows(); });
