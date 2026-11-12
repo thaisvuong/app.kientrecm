@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T11:50:15.675Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T14:31:24.040Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -1741,7 +1741,7 @@ details.adv > summary .bi{ font-size:11px; transition:transform var(--t-base) } 
 /* (1.80.4) cỡ chữ từng người (App.html › uiZoomApply): thu / phóng nội dung trang + hộp thoại */
 .views > .view:not(.vw-view), .modal-bg > .modal{ zoom:var(--uz,1) }
 /* (1.80.14) iPhone tự phóng to khi bấm vào ô nhập chữ < 16px (cỡ chữ 92% làm ô nhập còn ~14,7px) → ô nhập trên màn cảm ứng luôn đủ 16px sau khi thu nhỏ */
-@media (pointer:coarse){ .views input:not([type=checkbox]):not([type=radio]):not([type=range]), .views textarea, .views select, .modal-bg input:not([type=checkbox]):not([type=radio]):not([type=range]), .modal-bg textarea, .modal-bg select{ font-size:max(16px, calc(16px / var(--uz,1))) !important } }      /* trang xem PDF giữ nguyên (đã có phóng to bằng hai ngón) */
+@media (pointer:coarse){ .views input:not([type=checkbox]):not([type=radio]):not([type=range]), .views textarea, .views select, .modal-bg input:not([type=checkbox]):not([type=radio]):not([type=range]), .modal-bg textarea, .modal-bg select{ font-size:max(16.5px, calc(16.5px / var(--uz,1))) !important } }      /* trang xem PDF giữ nguyên (đã có phóng to bằng hai ngón) */
 .sheet-fs{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 4px; border-top:1px solid var(--border) }
 .sheet-fs > span{ display:inline-flex; align-items:center; gap:8px; font-weight:600; color:var(--ink) }
 .sheet-fs .seg{ flex:none } .sheet-fs .seg-b{ padding:0 10px; min-height:32px; font-size:12.5px }
@@ -5152,6 +5152,16 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .rq-bgo{ flex:none; align-self:center; display:flex; align-items:center; gap:3px; font-size:12px; font-weight:700; color:var(--brand-700, #1E3A8A); padding:6px 8px; border-radius:10px; background:color-mix(in srgb, var(--brand-600, #1E40AF) 9%, transparent) }
 .rq-bx{ flex:none; width:34px; border:0; background:none; color:var(--muted); cursor:pointer; border-left:1px solid var(--border); border-radius:0 18px 18px 0 } .rq-bx:hover{ color:var(--text); background:var(--surface-2) }
 @media (max-width:900px){ .rq-bub{ right:12px; left:12px; max-width:none; bottom:calc(84px + var(--sab, 0px)) } }
+/* (1.80.17) thẻ “Đang chuẩn bị bản in” */
+.vw-prep{ position:fixed; inset:0; z-index:3000; display:grid; place-items:center; background:rgba(15,20,30,.28); backdrop-filter:blur(2px); animation:fadeIn 160ms ease both }
+.vw-prep-c{ display:flex; flex-direction:column; align-items:center; gap:6px; min-width:230px; padding:22px 26px 18px; border-radius:20px; background:var(--surface); box-shadow:0 18px 50px rgba(15,30,70,.3); animation:midIn 260ms var(--spring) both }
+.vw-prep-c b{ font-size:14px } .vw-prep-c small{ font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums }
+.vw-prep-i{ position:relative; width:56px; height:56px; border-radius:18px; display:grid; place-items:center; font-size:26px; color:#fff; background:linear-gradient(135deg, #2563EB, #7C3AED); margin-bottom:6px; overflow:hidden }
+.vw-prep-p{ position:absolute; left:14px; right:14px; bottom:-14px; height:18px; border-radius:3px; background:#fff; animation:prepPaper 1.3s ease-in-out infinite }
+@keyframes prepPaper{ 0%{ transform:translateY(0) } 60%{ transform:translateY(-12px) } 100%{ transform:translateY(-12px); opacity:0 } }
+.vw-prep-bar{ width:100%; height:5px; border-radius:99px; background:var(--surface-3, #EEF2F7); overflow:hidden; margin-top:6px } .vw-prep-bar i{ display:block; height:100%; width:4%; border-radius:99px; background:linear-gradient(90deg, #2563EB, #7C3AED); transition:width 200ms ease }
+/* (1.80.17) bàn phím mở trên điện thoại → ẩn thanh tab dưới */
+@media (max-width:900px){ body.kb-on #bnav{ display:none !important } body.kb-on .views{ padding-bottom:0 !important } }
 </style>
 
   <style>
@@ -7961,6 +7971,12 @@ const BN_LABEL = { today: 'Tổng quan', classes: 'Buổi học', 'classes/list'
 function bnShort(t) { return ({ 'Tổng quan': 'Tổng quan', 'Lớp gia sư': 'Lớp', 'Thư viện': 'Thư viện', 'Chương trình': 'Chương trình', 'Link tạm': 'Link', 'Mới cập nhật': 'Mới' })[t] || t; }
 function buildBottom(items) {
   let bn = $('#bnav');
+  /* (1.80.17) điện thoại: đang gõ (bàn phím mở) → ẩn thanh tab dưới cho rộng chỗ chat · iPhone: chặn tự phóng to khi bấm ô nhập (vẫn chụm 2 ngón được) */
+  if (!window._kbOn) { window._kbOn = 1;
+    const txt = el => el && el.matches && el.matches('textarea, [contenteditable="true"], input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=button]):not([type=submit]):not([type=file]):not([type=color])');
+    document.addEventListener('focusin', e => { if (txt(e.target) && matchMedia('(pointer:coarse)').matches) document.body.classList.add('kb-on'); });
+    document.addEventListener('focusout', () => setTimeout(() => { if (!txt(document.activeElement)) document.body.classList.remove('kb-on'); }, 120));
+    if (/iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)) { const vm = document.querySelector('meta[name=viewport]'); if (vm && !/maximum-scale/.test(vm.content)) vm.content += ', maximum-scale=1'; } }
   if (!bn) { bn = document.createElement('nav'); bn.id = 'bnav'; bn.className = 'tabbar'; bn.setAttribute('aria-label', 'Tab'); $('#app').appendChild(bn);
     bn.addEventListener('click', e => { const a = e.target.closest('[data-r]'); if (a) { e.preventDefault(); haptic(); return tabGo(a.dataset.r); }
       if (e.target.closest('#bnMore')) { haptic(); bnMore(); } }); }
@@ -9465,15 +9481,20 @@ async function vwPrint(data, name, btn) {
   if (vwPrint.busy) return; vwPrint.busy = true;
   if (btn) { btn.disabled = true; btn.classList.add('busy'); }
   const area = document.createElement('div'); area.id = 'vwPrintArea';
+  // (1.80.17) bấm In là thấy ngay: thẻ “Đang chuẩn bị bản in” giữa màn hình + tiến độ từng trang (trước chỉ nút mờ đi — tưởng bấm chưa ăn)
+  const prep = document.createElement('div'); prep.className = 'vw-prep'; prep.innerHTML = '<div class="vw-prep-c"><span class="vw-prep-i"><i class="bi bi-printer"></i><i class="vw-prep-p"></i></span><b>Đang chuẩn bị bản in…</b><small id="vwPrepN">đọc tài liệu</small><span class="vw-prep-bar"><i id="vwPrepB"></i></span></div>';
+  document.body.appendChild(prep);
+  const prog = (i, n) => { const a = prep.querySelector('#vwPrepN'), b = prep.querySelector('#vwPrepB'); if (a) a.textContent = 'trang ' + i + ' / ' + n; if (b) b.style.width = Math.round(i / n * 100) + '%'; };
+  const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
   try {
     const old = document.getElementById('vwPrintArea'); if (old) old.remove();
     const sizes = {}, css = [], put = (blobOrUrl, W, H) => { const key = W + 'x' + H; if (!sizes[key]) { sizes[key] = 'vp' + Object.keys(sizes).length; css.push('@page ' + sizes[key] + '{ size:' + W + 'pt ' + H + 'pt; margin:0 }'); }
-      const box = document.createElement('div'); box.className = 'pp'; box.style.cssText = 'page:' + sizes[key] + ';width:' + W + 'pt;height:' + (H - 0.6) + 'pt';
+      // (1.80.17) iPhone / iPad: Safari bỏ qua khổ @page, tự thêm lề + đầu / chân trang → trang đủ khổ tràn sang tờ sau = TRANG TRẮNG. Thu còn 88% và căn giữa (như link tài liệu)
+      const sc = IOS ? 0.88 : 1, box = document.createElement('div'); box.className = 'pp'; box.style.cssText = 'page:' + sizes[key] + ';width:' + (W * sc).toFixed(2) + 'pt;height:' + (H * sc - 0.6).toFixed(2) + 'pt' + (sc < 1 ? ';margin:0 auto' : '');
       const img = new Image(); img.src = typeof blobOrUrl === 'string' ? blobOrUrl : URL.createObjectURL(blobOrUrl); box.appendChild(img); area.appendChild(box); return img.decode().catch(() => {}); };
     if (data.type === 'pdf') {
       const lib = await pdfReady(), doc = await lib.getDocument({ data: b64bytes(data.b64) }).promise, N = doc.numPages;
-      if (N > 12) toast('Đang chuẩn bị bản in ' + N + ' trang…', 'info', 2500);
-      for (let i = 1; i <= N; i++) {
+      for (let i = 1; i <= N; i++) { prog(i, N);
         const p = await doc.getPage(i), v1 = p.getViewport({ scale: 1 }), vp = p.getViewport({ scale: 200 / 72 });
         const cv = document.createElement('canvas'); cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
         await p.render({ canvasContext: cv.getContext('2d', { alpha: false }), viewport: vp }).promise;
@@ -9492,8 +9513,9 @@ async function vwPrint(data, name, btn) {
     const t0 = document.title; document.title = String(name || t0).replace(/\.[a-z0-9]{2,5}$/i, '');      // tên gợi ý khi chọn “Lưu thành PDF”
     const clean = () => { removeEventListener('afterprint', clean); document.title = t0; area.querySelectorAll('img').forEach(i => { if (/^blob:/.test(i.src)) URL.revokeObjectURL(i.src); }); area.remove(); };
     addEventListener('afterprint', clean);
-    setTimeout(() => { window.print(); if (!('onafterprint' in window)) setTimeout(clean, 1500); }, 60);
-  } catch (e) { area.remove(); throw e; }
+    prog(1, 1); const pc = prep.querySelector('#vwPrepN'); if (pc) pc.textContent = 'mở hộp in…';
+    setTimeout(() => { prep.remove(); window.print(); if (!('onafterprint' in window)) setTimeout(clean, 1500); }, 120);
+  } catch (e) { area.remove(); prep.remove(); throw e; }
   finally { vwPrint.busy = false; if (btn) { btn.disabled = false; btn.classList.remove('busy'); } }
 }
 
@@ -19129,11 +19151,11 @@ async function apPreview(x) {
 /* (1.77.13) bảng sắp xếp được · biểu đồ · link */
 .ax-bb a{ color:var(--primary); font-weight:600; text-decoration:underline; text-underline-offset:2px; word-break:break-all }
 .ax-tb th{ cursor:pointer; user-select:none; position:relative; padding-right:22px !important } .ax-tb th i{ position:absolute; right:6px; top:50%; transform:translateY(-50%); font-size:10px; opacity:.35 } .ax-tb th:hover i, .ax-tb th[data-dir] i{ opacity:1; color:var(--primary) }
-.ax-cards{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px; margin:8px 0 12px; max-width:760px }      /* (1.80.16) thẻ số liệu */
-.ax-card{ display:flex; flex-direction:column; gap:2px; padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:linear-gradient(160deg, var(--surface), color-mix(in srgb, var(--brand-600, #1E40AF) 5%, var(--surface))); animation:axCard 360ms cubic-bezier(.2,1.2,.4,1) both }
-.ax-card small{ font-size:11.5px; color:var(--muted); font-weight:600 } .ax-card b{ font-size:22px; line-height:1.15; font-weight:800; color:var(--brand-700, #1E3A8A); font-variant-numeric:tabular-nums } .ax-card em{ font-style:normal; font-size:11px; color:var(--muted) }
-.ax-card.bad{ background:linear-gradient(160deg, var(--surface), #FFF1F2); border-color:#FECDD3 } .ax-card.bad b{ color:#BE123C } .ax-card.ok{ background:linear-gradient(160deg, var(--surface), #ECFDF5); border-color:#BBF7D0 } .ax-card.ok b{ color:#047857 }
-@keyframes axCard{ from{ opacity:0; transform:translateY(8px) scale(.97) } to{ opacity:1; transform:none } }
+.ax-mks{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px; margin:8px 0 12px; max-width:760px }      /* (1.80.16) thẻ số liệu */
+.ax-mk{ display:flex; flex-direction:column; gap:2px; padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:linear-gradient(160deg, var(--surface), color-mix(in srgb, var(--brand-600, #1E40AF) 5%, var(--surface))); animation:axKpi 360ms cubic-bezier(.2,1.2,.4,1) both }
+.ax-mk small{ font-size:11.5px; color:var(--muted); font-weight:600 } .ax-mk b{ font-size:22px; line-height:1.15; font-weight:800; color:var(--brand-700, #1E3A8A); font-variant-numeric:tabular-nums } .ax-mk em{ font-style:normal; font-size:11px; color:var(--muted) }
+.ax-mk.bad{ background:linear-gradient(160deg, var(--surface), #FFF1F2); border-color:#FECDD3 } .ax-mk.bad b{ color:#BE123C } .ax-mk.ok{ background:linear-gradient(160deg, var(--surface), #ECFDF5); border-color:#BBF7D0 } .ax-mk.ok b{ color:#047857 }
+@keyframes axKpi{ from{ opacity:0; transform:translateY(8px) scale(.97) } to{ opacity:1; transform:none } }
 .ax-chart{ margin:8px 0 12px; padding:12px 14px; border:1px solid var(--border); border-radius:14px; background:var(--surface); max-width:720px }
 .ax-chart figcaption{ font-size:13px; font-weight:700; color:var(--ink); margin-bottom:10px }
 .ax-hb{ display:flex; flex-direction:column; gap:6px } .ax-hb .r{ display:grid; grid-template-columns:minmax(80px, 34%) 1fr auto; gap:10px; align-items:center; font-size:12.5px; padding:2px 4px; border-radius:6px }
@@ -19720,7 +19742,7 @@ function aiMd(text, refs) {
   const chip = id => { const o = refs[id]; if (!o) return '';
     const out = !!o.ngoai, tag = o.s === 'done' || o.s === 'taught' ? 'đã học' : o.s === 'plan' ? 'đã xếp' : o.s === 'carry' ? 'chưa dạy' : o.in ? 'trong lộ trình' : out ? 'ngoài lộ trình' : 'thư viện';      // (1.77.11) bé có lộ trình → bài không thuộc lộ trình ghi rõ “ngoài lộ trình” (máy chủ gắn cờ ngoai)
     return '<button class="ai-ref' + (o.s === 'done' || o.s === 'taught' ? ' learned' : '') + (out ? ' out' : '') + '" data-ref="' + esc(id) + '" data-o="' + esc(JSON.stringify(o)) + '" title="Mở tài liệu / xin bài này"><i class="bi ' + (o.f ? 'bi-file-earmark-text' : 'bi-folder2-open') + '"></i>' + esc(o.n) + ' <small>' + tag + '</small></button>'; };
-  let nDo = 0; const AI_DOI = { gan: 'bi-magic', duyet: 'bi-check2-circle', tuchoi: 'bi-x-circle', traloi: 'bi-reply', xong: 'bi-check2-all', hoigs: 'bi-question-circle', link: 'bi-link-45deg' };
+  let nDo = 0; const AI_DOI = { gan: 'bi-magic', ganlo: 'bi-diagram-3', duyet: 'bi-check2-circle', tuchoi: 'bi-x-circle', traloi: 'bi-reply', xong: 'bi-check2-all', hoigs: 'bi-question-circle', link: 'bi-link-45deg' };
   const dochip = () => { const k = nDo++, o = refs['DO:' + k]; if (!o) return '';      // (1.77.4) nút hành động — máy chủ kiểm lại khi bấm
     return '<span class="ax-do' + (o.done ? ' done' : !o.ok ? ' dis' : '') + '"><button type="button" data-do="' + k + '"' + (o.ok ? '' : ' disabled') + '><i class="bi ' + (o.done ? 'bi-check2-circle' : AI_DOI[o.kind] || 'bi-lightning') + '"></i>' + esc(o.label || o.t) + '</button>' +
       (o.sub ? '<small>' + esc(o.sub) + '</small>' : '') + (o.done ? '<small class="ok">✓ ' + esc(o.done.msg || 'Đã làm') + ' · ' + esc(o.done.by || '') + '</small>' : !o.ok && o.why ? '<small class="why">' + esc(o.why) + '</small>' : '') + '</span>'; };
@@ -19774,7 +19796,7 @@ function aiCards(spec) {
   const L = String(spec).split(/\s*;\s*/).map(x => { const m = /^(.+?)\s*=\s*([^|]+?)\s*(?:\|\s*(.+))?$/.exec(x.trim()); return m ? { n: m[1].trim(), v: m[2].trim(), d: (m[3] || '').trim() } : null; }).filter(Boolean).slice(0, 6);
   if (!L.length) return '';
   const tone = n => { const f = fold(n); return /cham|tre|loi|thieu|qua han|lech|chua|can gan|gap/.test(f) ? ' bad' : /xong|du|dat|khop|da day|on dinh/.test(f) ? ' ok' : ''; };
-  return '<div class="ax-cards">' + L.map((o, i) => '<div class="ax-card' + tone(o.n) + '" style="animation-delay:' + (i * 60) + 'ms"><small>' + esc(o.n) + '</small><b>' + esc(o.v) + '</b>' + (o.d ? '<em>' + esc(o.d) + '</em>' : '') + '</div>').join('') + '</div>';
+  return '<div class="ax-mks">' + L.map((o, i) => '<div class="ax-mk' + tone(o.n) + '" style="animation-delay:' + (i * 60) + 'ms"><small>' + esc(o.n) + '</small><b>' + esc(o.v) + '</b>' + (o.d ? '<em>' + esc(o.d) + '</em>' : '') + '</div>').join('') + '</div>';
 }
 function aiChart(spec) {
   const a = String(spec).split('|').map(x => x.trim()), type = (a[0] || 'bar').toLowerCase(), title = a[1] || '', unit = a[3] || '';
