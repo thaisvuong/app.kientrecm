@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T15:04:13.986Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-12T15:23:54.137Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5162,6 +5162,15 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .vw-prep-bar{ width:100%; height:5px; border-radius:99px; background:var(--surface-3, #EEF2F7); overflow:hidden; margin-top:6px } .vw-prep-bar i{ display:block; height:100%; width:4%; border-radius:99px; background:linear-gradient(90deg, #2563EB, #7C3AED); transition:width 200ms ease }
 /* (1.80.17) bàn phím mở trên điện thoại → ẩn thanh tab dưới */
 @media (max-width:900px){ body.kb-on #bnav{ display:none !important } body.kb-on .views{ padding-bottom:0 !important } }
+/* (1.80.20) dấu “!” việc cần sửa của lớp + bong bóng suy nghĩ (kiểu ghi chú Instagram) trên ảnh đại diện bé */
+.cl-isd{ display:inline-grid; place-items:center; width:16px; height:16px; margin-left:5px; border-radius:50%; background:#EF4444; color:#fff; font:800 10.5px/1 var(--font-sans, system-ui); font-style:normal; vertical-align:2px; box-shadow:0 0 0 2px var(--surface); animation:rpPulse 2.4s ease-in-out infinite }
+.cd-av{ position:relative }
+.cl-bub{ position:absolute; left:50%; bottom:calc(100% + 12px); transform:translateX(-30%); z-index:3; max-width:200px; padding:7px 12px; border-radius:18px; background:var(--surface); color:var(--ink); box-shadow:0 4px 16px rgba(15,23,42,.16); white-space:nowrap; font-size:11.5px; font-weight:600; animation:bubIn 420ms cubic-bezier(.2,1.4,.4,1) both; pointer-events:auto }
+.cl-bub b{ display:block; overflow:hidden; text-overflow:ellipsis; color:#B91C1C; font-weight:700 }
+.cl-bub i{ position:absolute; border-radius:50%; background:var(--surface); box-shadow:0 2px 6px rgba(15,23,42,.14) } .cl-bub i:nth-of-type(1){ width:10px; height:10px; left:14px; bottom:-7px } .cl-bub i:nth-of-type(2){ width:5px; height:5px; left:8px; bottom:-13px }
+@keyframes bubIn{ from{ opacity:0; transform:translateX(-30%) translateY(6px) scale(.85) } to{ opacity:1; transform:translateX(-30%) } }
+.card.cd-head{ overflow:visible } .card.cd-head:has(.cl-bub){ padding-top:50px !important }
+.cl-knm{ border-color:#FECACA; background:#FEF2F2 } .cl-knm > i{ color:#B91C1C }
 </style>
 
   <style>
@@ -14868,6 +14877,18 @@ async function clKchkRun(again) {
   KCHK_RUN = null; await clReload(Date.now()).catch(() => {}); CL.repaint && CL.repaint();
   toast(err ? 'Trợ lý AI: ' + err : 'AI đã kiểm xong ' + cids.length + ' bé · ' + nL + ' buổi lệch nội dung KGS', err ? 'err' : 'ok', 7000);
 }
+/** (1.80.20) VIỆC CẦN SỬA CỦA LỚP: tên khác KGS · buổi lệch nội dung KGS · buổi không có bên KGS → dấu “!” trên thẻ lớp + bong bóng ghi chú trên ảnh đại diện bé */
+function clIssues(c) {
+  if (!c || !CL.d || !CL.d.manage) return []; const L = [];
+  if (c.kname) L.push({ k: 'name', t: 'Tên KGS: ' + c.kname, d: 'Tên bé bên Kiến Gia Sư là “' + c.kname + '”, ở đây đang là “' + (c.student || c.code) + '”' });
+  const S0 = clSess(c.id), lech = S0.filter(x => x.kchk && x.kchk.s === 'lech').length, orp = typeof clKgsOrphans === 'function' ? clKgsOrphans(c).length : 0;
+  if (lech) L.push({ k: 'lech', t: lech + ' buổi lệch KGS', d: lech + ' buổi có bài khác nội dung gia sư ghi bên KGS (AI kiểm)' });
+  if (orp) L.push({ k: 'orp', t: orp + ' buổi không có bên KGS', d: orp + ' buổi KGS không có buổi cùng ngày — nên xoá' });
+  return L;
+}
+function clIssueDot(c) { const L = clIssues(c); return L.length ? '<em class="cl-isd" title="' + esc(L.map(x => x.d).join('\n')) + '">!</em>' : ''; }
+/** bong bóng suy nghĩ (kiểu ghi chú Instagram) trên ảnh đại diện — việc cần sửa đầu tiên */
+function clNoteBub(c) { const L = clIssues(c); return L.length ? '<span class="cl-bub" title="' + esc(L.map(x => x.d).join('\n')) + '"><b>' + esc(L[0].t) + (L.length > 1 ? ' · +' + (L.length - 1) : '') + '</b><i></i><i></i></span>' : ''; }
 function clKgsMark(x) {
   if (clKgsOrphan(x)) return '<button type="button" class="cl-kgs cl-kdel" data-act="kdel" title="Lớp lấy lịch từ Kiến Gia Sư nhưng KGS KHÔNG có buổi học ngày này — bấm để xoá buổi (vào Thùng rác)"><i class="bi bi-trash3"></i><span>Không có bên KGS · Xoá</span></button>';
   if (x && x.spare) return '<span class="cl-kgs gray" title="Lớp lấy lịch từ Kiến Gia Sư: buổi này chưa có bên KGS (bài gán dư). Gia sư chưa thấy; KGS thêm buổi mới thì buổi dư sớm nhất nhận buổi đó, giữ nguyên bài"><i class="bi bi-hourglass"></i><span>Dư · chờ KGS có buổi</span></span>';
@@ -15288,7 +15309,7 @@ function clFlagInfo(c) {
 function clNoName(c) { return !!c && !String(c.student || '').trim() && classActiveC(c); }
 function clFlags(c) {
   const f = clFlagInfo(c), nn = clNoName(c);
-  return (f.appr || nn) ? '<span class="cl-flgs">' + (nn ? '<span class="cl-nn" title="Bắt buộc: nhập tên học sinh — bấm vào lớp để điền"><i class="bi bi-person-exclamation"></i>Thiếu tên HS</span>' : '') + (f.appr ? '<i class="bi bi-shield-exclamation fa" title="Chưa được bạn duyệt buổi nào"></i>' : '') + '</span>' : '';
+  return clIssueDot(c) + ((f.appr || nn) ? '<span class="cl-flgs">' + (nn ? '<span class="cl-nn" title="Bắt buộc: nhập tên học sinh — bấm vào lớp để điền"><i class="bi bi-person-exclamation"></i>Thiếu tên HS</span>' : '') + (f.appr ? '<i class="bi bi-shield-exclamation fa" title="Chưa được bạn duyệt buổi nào"></i>' : '') + '</span>' : '');
 }
 /** tình trạng duyệt nội dung của một lớp (thống kê Danh sách lớp) */
 const CL_APPR = ['Đã được duyệt', 'Chưa duyệt lần nào', 'Tự duyệt'];
@@ -16797,7 +16818,7 @@ function clTutors(B, v, em) {
     const DK = {}, DM = {}; (D.dups || []).forEach(d => { DK[d[0]] = d[1]; DM[d[1]] = d[0]; });
     const dupT = c => DM[c.id] ? '<em class="cl-ub red tu-dup" data-mgo title="Bé này còn lớp khác (cùng bé / cùng mã học sinh KGS) — bấm để gộp, không mất tiến trình"><i class="bi bi-intersect"></i> trùng · gộp vào ' + esc((clClass(DM[c.id]) || {}).code || 'lớp KGS') + '</em>'
       : DK[c.id] ? '<em class="cl-ub blue" title="Lớp đồng bộ từ KGS — giữ lại khi gộp lớp trùng">lớp KGS</em>' : '';
-    const cls = (c, off, tt) => { const p = clProg(c), n = off ? 0 : pend(c), co = tt && tt.co && tt.co[c.id]; return '<a class="tu-s' + (off ? ' off' : '') + (DM[c.id] ? ' dup' : '') + '" data-go="classes/c/' + c.id + '"><b>' + esc(clName(c)) + '</b>' + (c.student ? '<span class="cl-cd">' + esc(c.code) + '</span>' : '') + (c.grade ? '<span class="cl-gr">' + esc(c.grade) + '</span>' : '') + (off ? '<em class="cl-ub gray">' + esc(c.status || 'Đã dừng') + '</em>' : '') + '<small>' + esc(c.days || '') + (c.times ? ' · ' + esc(c.times.split(';')[0]) : '') + '</small>' +
+    const cls = (c, off, tt) => { const p = clProg(c), n = off ? 0 : pend(c), co = tt && tt.co && tt.co[c.id]; return '<a class="tu-s' + (off ? ' off' : '') + (DM[c.id] ? ' dup' : '') + '" data-go="classes/c/' + c.id + '"><b>' + esc(clName(c)) + clIssueDot(c) + '</b>' + (c.student ? '<span class="cl-cd">' + esc(c.code) + '</span>' : '') + (c.grade ? '<span class="cl-gr">' + esc(c.grade) + '</span>' : '') + (off ? '<em class="cl-ub gray">' + esc(c.status || 'Đã dừng') + '</em>' : '') + '<small>' + esc(c.days || '') + (c.times ? ' · ' + esc(c.times.split(';')[0]) : '') + '</small>' +
       (p ? '<small class="tu-p">' + esc(p.name) + '</small>' : '<small class="cl-warn">chưa có chương trình</small>') + lockT(c) + (n ? '<em class="cl-ub warn">' + n + ' chưa xác nhận</em>' : '') + dupT(c) + (co ? '<em class="cl-ub blue" title="Lớp hai gia sư — gia sư này dạy kèm các thứ ' + esc(co.join(', ')) + '; gia sư chính: ' + esc(c.tutorName || c.tutorEmail || '') + '">dạy kèm' + (co.length ? ' · ' + esc(co.join(', ')) : '') + '</em>' : (c.cotutor || []).length ? '<em class="cl-ub gray" title="Lớp có gia sư dạy kèm: ' + esc(c.cotutor.map(t => (t.n || t.e) + ' (' + (t.days || []).join(', ') + ')').join(', ')) + '">+ ' + c.cotutor.length + ' GS kèm</em>' : '') + ((c.snote || []).length ? '<em class="cl-ub warn" title="' + esc(c.snote.map(x => x.t).join('\n').slice(0, 300)) + '"><i class="bi bi-pin-angle-fill"></i> ' + c.snote.length + ' lưu ý</em>' : '') + '</a>'; };
     const nAct = list.reduce((a, t) => a + t.list.filter(classActiveC).length, 0);
     B.innerHTML = '<div class="cl-bar tu-bar"><div class="search"><i class="bi bi-search"></i><input class="inp" id="tuQ" value="' + esc(q) + '" placeholder="Tìm gia sư, học sinh, mã lớp">' + (q ? '<button class="ibtn sm tu-qx" id="tuQX" title="Xoá tìm kiếm" aria-label="Xoá tìm kiếm"><i class="bi bi-x-lg"></i></button>' : '') + '</div><span class="small muted">' + list.filter(t => t.email).length + ' gia sư · ' + nAct + ' lớp đang học</span><span class="sp"></span><button type="button" class="btn sm" data-tuscan title="Khớp tên gia sư bên KGS với tên tài khoản / tên Google để gán lớp chưa có gia sư"><i class="bi bi-person-check"></i>Quét lại gia sư</button><button type="button" class="btn sm" data-tuname title="Tên tài khoản khác tên gia sư bên Kiến Gia Sư → đề xuất đổi cho khớp"><i class="bi bi-pencil-square"></i>Tên theo KGS</button></div>' +      // (1.70) TutorMapView.html
@@ -16871,7 +16892,7 @@ function clDetail(B, v, id) {
     const rq = (D.reqs || []).filter(q => q.classId === c.id && q.status === 'pending');
     // tên lớp đã ở thanh trên → thẻ đầu chỉ còn một dòng nhỏ (tên học sinh · mã · khối · trạng thái) + lịch, rồi một hàng chương trình + nút in
     const mEd = man && p && CL_PGSEL[c.id];      // quản lý đang ở chế độ “Xác nhận kiến thức” → cột phải là danh sách tick thay cho cây thư mục
-    B.innerHTML = '<div class="card cd-head"><div class="cd-h1"><span class="cd-av" style="--pc:' + clColor(c) + '" title="' + esc(c.status || '') + '">' + esc(initials(clName(c))) + '<i class="cd-st' + (act ? ' on' : '') + '"></i>' + clPkBadge(c) + '</span>' +
+    B.innerHTML = '<div class="card cd-head"><div class="cd-h1"><span class="cd-av" style="--pc:' + clColor(c) + '" title="' + esc(c.status || '') + '">' + esc(initials(clName(c))) + '<i class="cd-st' + (act ? ' on' : '') + '"></i>' + clPkBadge(c) + (man ? clNoteBub(c) : '') + '</span>' +
         // trạng thái = chấm trên ảnh chữ cái (xanh = đang học); lớp không còn học mới ghi chữ → dòng không bị xuống hàng
         '<div class="cd-t"><small>' + [c.student ? '<b>' + esc(c.student) + '</b>' : '', esc(c.code), esc(c.grade || ''), act ? '' : esc(c.status || '—')].filter(Boolean).join(' · ') + '</small>' +
           '<span class="cd-sch" id="cdTkb" role="button" tabindex="0" title="Thời khoá biểu của bé — mọi lớp, người dạy, nội dung dạy / nhận xét bên KGS">' + (clCampus(c) ? clCampus(c) + '<span class="cd-dot">·</span>' : '') + '<i class="bi bi-calendar-week"></i>' + esc(c.days || 'Chưa có lịch') + (c.times ? ' · ' + esc(c.times) : '') + (man ? ' · ' + (c.tutorEmail ? zlName(c.tutorName || String(c.tutorEmail).split('@')[0], c.tutorEmail) : 'Chưa có gia sư') : '') + clCoHtml(c) + '</span></div>' +
@@ -16890,7 +16911,7 @@ function clDetail(B, v, id) {
         // (1.75.1) cụm việc chính bên phải, cùng cỡ: Gán bài (dùng nhiều) · In gộp
         (man || canPrint ? '<span class="cd-act">' + (man ? '<button type="button" class="btn xs cd-asg" id="cdAsg" title="Bảng gán bài: kéo thả bài cho nhiều buổi, đẩy lùi, hoàn tác"><i class="bi bi-grid-3x3-gap"></i><span class="cd-bl">Gán bài</span></button>' : '') +
           (canPrint ? '<button class="btn xs pri" id="cdPrint" title="In gộp ' + nPrint + ' buổi đã duyệt chưa dạy"><i class="bi bi-printer"></i><span class="cd-bl">In gộp </span>' + nPrint + '<span class="cd-bl"> buổi</span></button>' : '') + '</span>' : '') + '</div></div>' +
-      clKaHtml(c) + clSnHtml(c) + (man && clKgsOrphans(c).length > 1 ? '<div class="cl-np cl-kdbar"><i class="bi bi-calendar-x"></i><span><b>' + clKgsOrphans(c).length + ' buổi không có bên KGS</b> (KGS không có buổi cùng ngày) — nên xoá để lịch khớp KGS.</span><button class="btn xs" id="cdKdel"><i class="bi bi-trash3"></i>Xoá hết</button></div>' : '') +      // (1.74) lưu ý đặc biệt của bé · (1.75) nhờ gia sư xác nhận kiến thức
+      clKaHtml(c) + clSnHtml(c) + (man && c.kname ? '<div class="cl-np cl-knm"><i class="bi bi-person-exclamation"></i><span>Tên bé bên Kiến Gia Sư là <b>' + esc(c.kname) + '</b>, ở đây đang là <b>' + esc(c.student || c.code) + '</b>.</span><button class="btn xs pri" id="cdKnm"><i class="bi bi-arrow-repeat"></i>Đổi theo KGS</button></div>' : '') + (man && clKgsOrphans(c).length > 1 ? '<div class="cl-np cl-kdbar"><i class="bi bi-calendar-x"></i><span><b>' + clKgsOrphans(c).length + ' buổi không có bên KGS</b> (KGS không có buổi cùng ngày) — nên xoá để lịch khớp KGS.</span><button class="btn xs" id="cdKdel"><i class="bi bi-trash3"></i>Xoá hết</button></div>' : '') +      // (1.74) lưu ý đặc biệt của bé · (1.75) nhờ gia sư xác nhận kiến thức
       (rq.length ? '<button class="cl-rqb" data-go="classes/reqs"><i class="bi bi-hourglass-split"></i><span><b>' + rq.length + ' yêu cầu chờ duyệt</b><small>' + rq.map(q => esc(q.label)).join(' · ') + '</small></span><i class="bi bi-chevron-right"></i></button>' : '') +
       '<div class="seg cd-tabs" id="cdTabs"><button class="seg-b cd-tab" data-pane="s" aria-pressed="' + (pane === 's') + '">Buổi học <small>' + (notOut.length + out.length) + '</small></button><button class="seg-b cd-tab" data-pane="l" aria-pressed="' + (pane === 'l') + '">' + (man ? 'Bài trong chương trình' : 'Tiến trình học') + '</button></div>' +
       '<div class="cd-lay' + (man ? '' : p ? ' tut' : ' one') + '" data-pane="' + pane + '">' +
@@ -16951,7 +16972,8 @@ function clDetail(B, v, id) {
   const bind = () => {
     $('#cdMore', B).onclick = e => more(e.currentTarget);
     { const ab = $('#cdArch', B); if (ab) ab.onclick = () => clArchLoad(c.id, ab); }
-    { const kd = $('#cdKdel', B); if (kd) kd.onclick = () => clKgsDel(c, clKgsOrphans(c)); }      // (1.80.9)      // (1.80.8)
+    { const kd = $('#cdKdel', B); if (kd) kd.onclick = () => clKgsDel(c, clKgsOrphans(c)); }      // (1.80.9)
+    { const kn = $('#cdKnm', B); if (kn) kn.onclick = () => { const nm = c.kname; c.student = nm; c.kname = ''; clQueue('classStudent', { id: c.id, student: nm }, { label: 'Đổi tên bé theo KGS · ' + nm }); toast('Đã đổi tên bé thành ' + nm, 'ok'); CL.repaint && CL.repaint(); }; }      // (1.80.20)      // (1.80.8)
     const cai = $('#cdAi', B); if (cai) cai.onclick = () => aiTaskModal([c.id], clName(c));      // (1.77) Trợ lý AI cho bé này
     const pr = $('#cdPrint', B); if (pr) pr.onclick = () => clPrintAll(c, pr);
     const sn = $('#cdSn', B); if (sn) sn.onclick = e => clSnClick(e, c, () => paint());
@@ -19185,6 +19207,25 @@ async function apPreview(x) {
 .rp2-bar{ display:inline-block; width:70px; height:8px; border-radius:4px; background:var(--surface-2, #F1F5F9); overflow:hidden; vertical-align:middle; margin-right:6px } .rp2-bar i{ display:block; height:100%; background:#22C55E } .rp2-bar i.w{ background:#F59E0B } .rp2-bar i.r{ background:#EF4444 }
 .rp2-ls{ display:flex; flex-direction:column; padding:6px 16px 12px } .rp2-ls > div{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px dashed var(--border); font-size:13px } .rp2-ls > div:last-child{ border:0 } .rp2-ls .rt{ color:#DC2626 } .rp2-ls .wt{ color:#D97706 }
 .rp2-note{ line-height:1.5 }
+.rp2-sec:not(.open) .rp2-more{ display:none } .rp2-mb{ margin:6px 10px 10px }
+.rp2-cols{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start } .rp2-col{ display:flex; flex-direction:column; gap:14px; min-width:0 }
+.rp2-ai .rp2-h{ background:linear-gradient(90deg, #6D28D9, #2563EB) }
+.rp2-ai-k{ display:flex; gap:8px; padding:12px 14px 6px; flex-wrap:wrap; align-items:center } .rp2-ai-k > div{ padding:6px 10px; border-radius:12px; background:#F8FAFF; min-width:74px }
+.rp2-ai-k b{ display:block; font-size:20px; font-weight:800; color:#1E3A8A; font-variant-numeric:tabular-nums } .rp2-ai-k small{ font-size:11px; color:var(--muted) } .rp2-ai-k .bad b{ color:#DC2626 }
+.rp2-ai-eng{ margin-left:auto; display:flex !important; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#6D28D9; background:#F5F3FF !important } .rp2-ai-eng.mail{ color:#B45309; background:#FFF7ED !important }
+.rp2-al{ display:flex; flex-direction:column; padding:4px 10px 10px } .rp2-ar{ display:flex; gap:10px; padding:10px 6px; border-bottom:1px solid var(--border); cursor:pointer; border-radius:10px } .rp2-ar:hover{ background:#F8FAFF } .rp2-ar:last-child{ border-bottom:0 }
+.rp2-ai-i{ flex:none; width:34px; height:34px; border-radius:11px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg, #2563EB, #7C3AED) } .rp2-ai-i.k-match{ background:linear-gradient(135deg, #DB2777, #7C3AED) } .rp2-ai-i.k-reqs{ background:linear-gradient(135deg, #0EA5E9, #2563EB) } .rp2-ai-i.k-chat{ background:linear-gradient(135deg, #14B8A6, #0EA5E9) }
+.rp2-ai-b{ flex:1; min-width:0 } .rp2-ai-t{ display:flex; gap:6px; align-items:baseline; flex-wrap:wrap; font-size:12.5px } .rp2-ai-t b{ color:#1E3A8A } .rp2-ai-t span{ flex:1; min-width:120px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis } .rp2-ai-t small{ color:var(--muted); font-size:11px }
+.rp2-fl{ display:flex; align-items:center; gap:4px; margin-top:6px; flex-wrap:wrap } .rp2-fl span{ display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); padding:2px 8px 2px 4px; border-radius:999px; background:var(--surface-2, #F1F5F9) }
+.rp2-fl span i{ width:9px; height:9px; border-radius:50%; background:#CBD5E1 } .rp2-fl span.ok{ color:#15803D; background:#ECFDF5 } .rp2-fl span.ok i{ background:#22C55E }
+.rp2-fl span.on{ color:#6D28D9; background:#F5F3FF; font-weight:700 } .rp2-fl span.on i{ background:#7C3AED; animation:rpPulse 1.2s ease-in-out infinite } .rp2-fl em{ width:12px; height:2px; background:#CBD5E1; border-radius:2px }
+.rp2-fl.err span:not(.ok){ color:#B91C1C; background:#FEF2F2 } @keyframes rpPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(124,58,237,.5) } 50%{ box-shadow:0 0 0 5px rgba(124,58,237,0) } }
+.rp2-ai-n{ font-size:11.5px; color:var(--muted); margin-top:4px } .rp2-ai-e{ font-size:11.5px; color:#B91C1C; margin-top:4px } .rp2-ai-e i{ margin-right:4px }
+.rp2-bq{ margin:6px 14px; padding:10px 12px; border-radius:12px; background:#F5F3FF; border:1px solid #DDD6FE; font-size:12.5px; display:flex; flex-direction:column; gap:6px } .rp2-bq > div{ display:flex; gap:6px; align-items:baseline; flex-wrap:wrap } .rp2-bq small{ color:var(--muted); font-size:11px } .rp2-bq.q{ flex-direction:row; align-items:center; gap:6px; background:#FFF7ED; border-color:#FED7AA }
+.rp2-bqb{ height:8px; border-radius:6px; background:#EDE9FE; overflow:hidden } .rp2-bqb i{ display:block; height:100%; border-radius:6px; background:linear-gradient(90deg, #7C3AED, #2563EB); transition:width 400ms }
+.rp2-idle{ display:flex; align-items:center; gap:8px; margin:6px 14px 10px; padding:12px; border-radius:12px; background:#F8FAFF; font-size:12.5px; color:var(--muted) } .rp2-dot{ width:9px; height:9px; border-radius:50%; background:#22C55E; animation:rpPulse 2s ease-in-out infinite }
+.rp2-dh{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); padding:6px 16px 0 } .rp2-al.dn .rp2-ar{ opacity:.9 }
+@media (max-width:1100px){ .rp2-cols{ grid-template-columns:minmax(0,1fr) } }
 @media (max-width:1100px){ .rp2-ks, .rp2-ps{ grid-template-columns:repeat(2, minmax(0,1fr)) } .rp2-g3, .rp2-g2{ grid-template-columns:minmax(0,1fr) } }
 @media (max-width:640px){ .rp2-ks, .rp2-ps{ grid-template-columns:minmax(0,1fr) } .rp2-sec{ overflow-x:auto } .rp2-br{ grid-template-columns:110px minmax(0,1fr) 30px } .rp2-top h2{ font-size:18px } }
 .ax-mks{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px; margin:8px 0 12px; max-width:760px }      /* (1.80.16) thẻ số liệu */
@@ -19458,6 +19499,24 @@ function aiShow(v, arg) {
 }
 
 /* ═════════════ (1.80.19) BÁO CÁO ĐIỀU HÀNH CHUYÊN MÔN — số tính thẳng từ dữ liệu (aiReport), nút “AI nhận định” hỏi Trợ lý ═════════════ */
+/** (1.80.20) khung AI ĐANG LÀM: mỗi việc một dòng luồng Nhận việc → AI đang đọc → Có kết quả → Đã áp dụng (bước hiện tại nhấp nháy) + việc lớn chia đợt + việc xong gần nhất */
+function aiRunHtml(A) {
+  if (!A) return '<div class="small muted" style="padding:12px 16px">Chưa có dữ liệu</div>';
+  const KI = { assign: 'bi-magic', match: 'bi-robot', reqs: 'bi-inboxes', chat: 'bi-chat-dots', grade: 'bi-clipboard-check' };
+  const ago = t => { const s = Math.max(0, Math.round((Date.now() - new Date(t).getTime()) / 1000)); return s < 60 ? s + ' giây' : s < 3600 ? Math.round(s / 60) + ' phút' : s < 86400 ? Math.round(s / 3600) + ' giờ' : Math.round(s / 86400) + ' ngày'; };
+  const STEP = ['Nhận việc', A.eng === 'gemini' ? 'Gemini đang làm' : 'Chờ AI trả lời (mail)', 'Có kết quả', 'Đã áp dụng'];
+  const cur = r => r.st === 'send' ? 0 : r.st === 'wait' || r.st === 'proc' ? 1 : r.st === 'err' ? -1 : r.done ? 3 : 2;
+  const flow = r => { const c = cur(r); return '<div class="rp2-fl' + (c < 0 ? ' err' : '') + '">' + STEP.map((t, i) => '<span class="' + (c < 0 ? (i === 0 ? 'ok' : '') : i < c ? 'ok' : i === c ? (c >= 2 ? 'ok' : 'on') : '') + '"><i></i>' + t + '</span>').join('<em></em>') + '</div>'; };
+  const row = r => '<div class="rp2-ar" data-ailog="' + esc(r.id) + '"><span class="rp2-ai-i k-' + esc(r.k) + '"><i class="bi ' + (KI[r.k] || 'bi-cpu') + '"></i></span><div class="rp2-ai-b"><div class="rp2-ai-t"><b>' + esc(r.kt) + '</b><span>' + esc(r.t) + '</span><small>' + esc(r.who) + ' · ' + ago(r.at) + ' trước' + (r.via === 'job' ? ' · tự chạy' : '') + '</small></div>' + flow(r) +
+    (r.st === 'err' ? '<div class="rp2-ai-e"><i class="bi bi-exclamation-circle"></i>' + esc(r.err || 'lỗi') + '</div>' : r.n ? '<div class="rp2-ai-n">' + r.n + ' mục' + (r.done ? ' · ' + r.done + ' đã áp dụng' : ' chờ bạn xem') + (r.ms ? ' · ' + Math.round(r.ms / 1000) + ' giây' : '') + '</div>' : '') + '</div></div>';
+  const T = A.today || {};
+  return '<div class="rp2-ai-k"><div><b>' + (A.run.length) + '</b><small>đang chạy</small></div><div><b>' + (T.n || 0) + '</b><small>việc hôm nay</small></div><div><b>' + (T.act || 0) + '</b><small>đã tự áp dụng</small></div><div class="' + (T.err ? 'bad' : '') + '"><b>' + (T.err || 0) + '</b><small>lỗi</small></div>' +
+      '<div class="rp2-ai-eng ' + A.eng + '"><i class="bi ' + (A.eng === 'gemini' ? 'bi-lightning-charge-fill' : 'bi-envelope') + '"></i>' + (A.eng === 'gemini' ? 'Gemini API' : 'Flow qua mail') + '</div></div>' +
+    (A.bq.length ? A.bq.map(j => '<div class="rp2-bq"><div><i class="bi bi-diagram-3"></i><b>Việc lớn: ' + esc(j.t) + '</b><small>' + j.be + ' bé · ' + j.days + ' ngày tới</small></div><span class="rp2-bqb"><i style="width:' + Math.round(j.i / j.n * 100) + '%"></i></span><small>đợt ' + j.i + ' / ' + j.n + ' đã gửi · đợt sau tự chạy mỗi phút</small></div>').join('') : '') +
+    (A.q ? '<div class="rp2-bq q"><i class="bi bi-hourglass-split"></i>' + A.q + ' bé chờ AI gán lại sau khi gia sư xác nhận kiến thức</div>' : '') +
+    (A.run.length ? '<div class="rp2-al">' + A.run.map(row).join('') + '</div>' : '<div class="rp2-idle"><span class="rp2-dot"></span>AI đang rảnh — không có việc nào đang chạy</div>') +
+    (A.done.length ? '<div class="rp2-dh">Xong gần đây</div><div class="rp2-al dn">' + A.done.slice(0, 5).map(row).join('') + '</div>' : '');
+}
 async function aiReportView(body) {
   body.innerHTML = '<div class="rp2">' + aiThink('ping') + '</div>';
   let R; try { R = await rpc('aiReport', {}, { quiet: true }); } catch (e) { body.innerHTML = '<div class="ax-card"><div class="empty" style="padding:40px"><i class="bi bi-exclamation-triangle"></i>' + esc(e.message) + '</div></div>'; return; }
@@ -19478,13 +19537,13 @@ async function aiReportView(body) {
   const TU = R.tutors.filter(t => t.today || t.empty7 || t.over);
   const tutT = '<table class="rp2-t"><thead><tr><th>Gia sư</th><th>Hôm nay</th><th>Đã phát</th><th>Chưa có bài 7 ngày</th><th>Quá hạn chưa bấm Đã dạy</th></tr></thead><tbody>' +
     (TU.length ? TU.slice(0, 14).map(t => '<tr><td>' + esc(t.n) + '</td><td>' + (t.today || '–') + '</td><td>' + (t.todayOut || '–') + '</td><td class="' + (t.empty7 ? 'w' : '') + '">' + (t.empty7 || '–') + '</td><td class="' + (t.over ? 'r' : '') + '">' + (t.over || '–') + '</td></tr>').join('') : '<tr><td colspan="5" class="muted">Không có việc</td></tr>') + '</tbody></table>';
-  const pgT = '<table class="rp2-t"><thead><tr><th>Chương trình</th><th>Bé</th><th>Học tới (TB)</th><th>Chậm so với trường</th><th>Bỏ qua bài</th><th>Buổi 7 ngày chưa có bài</th></tr></thead><tbody>' +
-    R.progs.map(g => '<tr><td>' + esc(g.n) + '</td><td>' + g.be + '</td><td>' + (g.avg == null ? '–' : g.avg + (g.tot ? ' / ' + g.tot : '')) + '</td><td class="' + (g.slow ? 'r' : '') + '">' + (g.slow || '–') + '</td><td>' + (g.skip || '–') + '</td><td class="' + (g.empty ? 'w' : '') + '">' + (g.empty || '–') + '</td></tr>').join('') + '</tbody></table>';
+  const pgT = '<table class="rp2-t"><thead><tr><th>Chương trình</th><th>Bé</th><th>Học tới (TB)</th><th>Chậm so với trường</th><th title="Chưa có bài nào đã dạy / đã có kiến thức — cần gia sư xác nhận kiến thức">Chưa rõ tiến độ</th><th>Bỏ qua bài</th><th>Buổi 7 ngày chưa có bài</th></tr></thead><tbody>' +
+    R.progs.map(g => '<tr><td>' + esc(g.n) + '</td><td>' + g.be + '</td><td>' + (g.avg == null ? '–' : g.avg + (g.tot ? ' / ' + g.tot : '')) + '</td><td class="' + (g.slow ? 'r' : '') + '">' + (g.slow || '–') + '</td><td class="' + (g.unk ? 'w' : '') + '">' + (g.unk || '–') + '</td><td>' + (g.skip || '–') + '</td><td class="' + (g.empty ? 'w' : '') + '">' + (g.empty || '–') + '</td></tr>').join('') + '</tbody></table>';
   const T30 = R.tutors.filter(t => t.s30).sort((a, b) => pct(a.t30, a.s30) - pct(b.t30, b.s30));
   const gsT = '<table class="rp2-t"><thead><tr><th>Gia sư</th><th>Lớp</th><th>Buổi 30 ngày</th><th>Bấm Đã dạy</th><th>Tỉ lệ</th><th>Bé thấy khó</th><th>Vào app</th></tr></thead><tbody>' +
-    T30.slice(0, 20).map(t => { const r = pct(t.t30, t.s30); return '<tr><td>' + esc(t.n) + '</td><td>' + t.lop + '</td><td>' + t.s30 + '</td><td>' + t.t30 + '</td><td><span class="rp2-bar"><i style="width:' + r + '%" class="' + (r < 60 ? 'r' : r < 85 ? 'w' : '') + '"></i></span><b class="' + (r < 60 ? 'rt' : '') + '">' + r + '%</b></td><td>' + (t.hard || '–') + '</td><td class="' + (t.seen == null || t.seen > 7 ? 'r' : '') + '">' + (t.seen == null ? 'chưa từng' : t.seen === 0 ? 'hôm nay' : t.seen + ' ngày trước') + '</td></tr>'; }).join('') + '</tbody></table>';
+    T30.slice(0, 40).map((t, i) => { const r = pct(t.t30, t.s30); return '<tr' + (i >= 12 ? ' class="rp2-more"' : '') + '><td>' + esc(t.n) + '</td><td>' + t.lop + '</td><td>' + t.s30 + '</td><td>' + t.t30 + '</td><td><span class="rp2-bar"><i style="width:' + r + '%" class="' + (r < 60 ? 'r' : r < 85 ? 'w' : '') + '"></i></span><b class="' + (r < 60 ? 'rt' : '') + '">' + r + '%</b></td><td>' + (t.hard || '–') + '</td><td class="' + (t.seen == null || t.seen > 7 ? 'r' : '') + '">' + (t.seen == null ? 'chưa từng' : t.seen === 0 ? 'hôm nay' : t.seen + ' ngày trước') + '</td></tr>'; }).join('') + '</tbody></table>' + (T30.length > 12 ? '<button type="button" class="btn xs ghost rp2-mb" data-more>Xem thêm ' + (Math.min(40, T30.length) - 12) + ' gia sư</button>' : '');
   const slT = R.slow.length ? '<table class="rp2-t"><thead><tr><th>Bé</th><th>Gia sư</th><th>Chương trình</th><th>Đang ở bài</th><th>Theo trường ~bài</th><th>Chênh</th></tr></thead><tbody>' +
-    R.slow.slice(0, 20).map(x => '<tr data-go="classes/c/' + esc(x.cid) + '" class="lk"><td>' + esc(x.be) + '</td><td>' + esc(x.gs || '–') + '</td><td>' + esc(x.pg) + '</td><td>' + x.at + ' / ' + x.tot + '</td><td>' + x.ex + '</td><td class="r">−' + x.gap + '</td></tr>').join('') + '</tbody></table>' + (R.slow.length > 20 ? '<div class="small muted" style="padding:6px 4px">… còn ' + (R.slow.length - 20) + ' bé</div>' : '') : '<div class="small muted" style="padding:10px">Không có bé chậm từ 2 bài trở lên</div>';
+    R.slow.slice(0, 40).map((x, i) => '<tr data-go="classes/c/' + esc(x.cid) + '" class="lk' + (i >= 15 ? ' rp2-more' : '') + '"><td>' + esc(x.be) + '</td><td>' + esc(x.gs || '–') + '</td><td>' + esc(x.pg) + '</td><td>' + x.at + ' / ' + x.tot + '</td><td>' + x.ex + '</td><td class="r">−' + x.gap + '</td></tr>').join('') + '</tbody></table>' + (R.slow.length > 15 ? '<button type="button" class="btn xs ghost rp2-mb" data-more>Xem thêm ' + (R.slow.length - 15) + ' bé</button>' : '') : '<div class="small muted" style="padding:10px">Không có bé chậm từ 2 bài trở lên</div>';
   const kg = R.kgs, lk = K.td;
   body.innerHTML = '<div class="rp2">' +
     '<div class="rp2-top"><h2><i class="bi bi-bar-chart-line"></i>Báo cáo điều hành chuyên môn</h2><span class="rp2-day">' + thu(R.today) + ' ' + dm(R.today) + '</span><small>tuần học ' + R.wk + ' · HK' + R.hk + ' · chốt số ' + hh + '</small><span class="sp"></span>' +
@@ -19501,17 +19560,25 @@ async function aiReportView(body) {
       '<div class="rp2-sec">' + head('bi-pie-chart', 'Buổi hôm qua') + donut + '</div>' +
       '<div class="rp2-sec">' + head('bi-funnel', 'Buổi 7 ngày tới theo trạng thái', Object.keys(S7).reduce((a, k) => a + S7[k], 0) + ' buổi') + '<div class="rp2-bars">' + bars + '</div></div>' +
       '<div class="rp2-sec">' + head('bi-calendar-check', 'Việc hôm nay theo gia sư') + tutT + '</div></div>' +
-    '<div class="rp2-g2">' +
+    '<div class="rp2-cols"><div class="rp2-col">' +
       '<div class="rp2-sec">' + head('bi-journal-richtext', 'Tiến độ theo chương trình', 'so với phân phối chương trình trường (tuần ' + R.wk + ')') + pgT + '</div>' +
-      '<div class="rp2-sec">' + head('bi-person-badge', 'Gia sư · 30 ngày', 'tỉ lệ bấm Đã dạy thấp lên đầu') + gsT + '</div></div>' +
-    '<div class="rp2-g2">' +
-      '<div class="rp2-sec">' + head('bi-graph-down-arrow', 'Bé chậm tiến độ', R.slow.length + ' bé chậm từ 2 bài · bấm để mở trang bé') + slT + '</div>' +
+      '<div class="rp2-sec">' + head('bi-graph-down-arrow', 'Bé chậm tiến độ', R.slow.length + ' bé chậm từ 2 bài' + (R.unk ? ' · ' + R.unk + ' bé chưa rõ tiến độ (chưa tính)' : '') + ' · bấm để mở trang bé') + slT + '</div></div>' +
+      '<div class="rp2-col">' +
+      '<div class="rp2-sec rp2-ai">' + head('bi-cpu', 'AI đang làm', '<span id="rpAiAt">tự cập nhật</span>') + '<div id="rpAiB">' + aiRunHtml(R.ai) + '</div></div>' +
+      '<div class="rp2-sec">' + head('bi-person-badge', 'Gia sư · 30 ngày', 'tỉ lệ bấm Đã dạy thấp lên đầu') + gsT + '</div>' +
       '<div class="rp2-sec">' + head('bi-arrow-left-right', 'Kiến Gia Sư & link tài liệu') + '<div class="rp2-ls">' +
         '<div><span>Lần đồng bộ KGS gần nhất</span><b class="' + (kg.run && !kg.run.ok ? 'rt' : '') + '">' + (kg.run ? new Date(kg.run.at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) + (kg.run.ok ? '' : ' · lỗi') : 'chưa có') + '</b></div>' +
         '<div><span>Buổi lệch nội dung KGS</span><b class="' + (kg.lech ? 'rt' : '') + '">' + n(kg.lech) + '</b></div><div><span>Buổi sắp tới không có bên KGS</span><b class="' + (kg.out ? 'wt' : '') + '">' + n(kg.out) + '</b></div>' +
-        '<div><span>Link hôm nay gia sư đã mở</span><b>' + lk.opened + ' / ' + lk.links + '</b></div></div></div></div>' +
+        '<div><span>Link hôm nay gia sư đã mở</span><b>' + lk.opened + ' / ' + lk.links + '</b></div></div></div></div></div>' +
     '<div class="small muted rp2-note">Số tính thẳng từ dữ liệu Kiến CM lúc ' + hh + '. “Chưa xác nhận đã dạy” = buổi đã phát nhưng gia sư chưa bấm Đã dạy và KGS chưa báo hoàn thành. “Chậm tiến độ” = bài xa nhất bé đã học thấp hơn bài ước lượng theo tuần học của trường từ 2 bài trở lên.</div></div>';
-  body.onclick = e => { if (e.target.closest('#rpRe')) return aiReportView(body); if (e.target.closest('#rpAi')) { AI.pendQ = 'Nhận định báo cáo điều hành hôm nay: điểm đáng lo, bé / gia sư cần xử lý trước, và 3 việc nên làm ngay. Dùng thẻ số liệu, bảng, biểu đồ.'; return go('ai/chat'); } };
+  const bal = () => { const C = [...body.querySelectorAll('.rp2-col')]; if (C.length !== 2 || !C[0].offsetWidth || getComputedStyle(C[0].parentNode).gridTemplateColumns.split(' ').length < 2) return;      // (1.80.20) chia khung vào cột đang ngắn hơn → hai cột cân
+    const S2 = [...body.querySelectorAll('.rp2-col > .rp2-sec')]; S2.forEach(x => x.remove()); const h = [0, 0]; S2.forEach(x => { const k = h[0] <= h[1] ? 0 : 1; C[k].appendChild(x); h[k] += x.offsetHeight + 14; }); };
+  bal();
+  clearInterval(aiReportView.t); aiReportView.t = setInterval(async () => {      // (1.80.20) khung AI đang làm: hỏi lại mỗi 10 giây khi trang đang mở
+    const b = $('#rpAiB', body); if (!b || !body.isConnected) return clearInterval(aiReportView.t); if (document.hidden) return;
+    try { const A = await rpc('aiRunning', {}, { quiet: true }); if (b.isConnected) { b.innerHTML = aiRunHtml(A); const t = $('#rpAiAt', body); if (t) t.textContent = 'cập nhật ' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); } } catch (e) {} }, 10000);
+  body.onclick = e => { if (e.target.closest('#rpRe')) return aiReportView(body); const ai = e.target.closest('[data-ailog]'); if (ai) return go('ai/log');
+    const mb = e.target.closest('[data-more]'); if (mb) { mb.closest('.rp2-sec').classList.add('open'); mb.remove(); return; } if (e.target.closest('#rpAi')) { AI.pendQ = 'Nhận định báo cáo điều hành hôm nay: điểm đáng lo, bé / gia sư cần xử lý trước, và 3 việc nên làm ngay. Dùng thẻ số liệu, bảng, biểu đồ.'; return go('ai/chat'); } };
 }
 
 /* ═════════════ TỔNG QUAN ═════════════ */
@@ -20009,7 +20076,9 @@ async function aiSend(body) {
   aiPaintFiles(body); aiPaintMsgs(body); C.busy = true; const btn = $('#aiSend', body); if (btn) btn.disabled = true;
   try {
     const r = await rpc('aiChat', { cid: C.cid, text: text, files: files, drive: drive.map(d => d.id), conv: C.conv, mode: C.mode }, { quiet: true });
-    C.conv = r.conv; AI.chat.convs = null; const w = C.msgs[C.msgs.length - 1]; Object.assign(w, { id: r.id }); C.msgs[C.msgs.length - 2].rid = r.id;
+    C.conv = r.conv; AI.chat.convs = null;
+    try { const pn = location.pathname; if (r.conv && /ai\/chat\/?$/.test(pn)) history.replaceState(history.state, '', pn.replace(/\/?$/, '/v:' + r.conv)); } catch (e) {}      // (1.80.20) tải lại trang vẫn mở đúng cuộc hỏi này
+    const w = C.msgs[C.msgs.length - 1]; Object.assign(w, { id: r.id }); C.msgs[C.msgs.length - 2].rid = r.id;
     if (r.unread && r.unread.length) toast('Không đọc được tệp: ' + r.unread.join(', ') + ' — AI chỉ thấy tên tệp', 'warn', 7000);
     if (body.isConnected) aiConvs(body);
     aiWatch(r.id, aiChatGot);
@@ -20041,18 +20110,26 @@ function aiNtSeen(conv) { try { if (conv && typeof ntSeen === 'function') { ntSe
 async function aiOpenConv(body, conv, cid, who) {
   aiNtSeen(conv);
   const C = AI.chat; C.conv = conv; C.ro = who && S.me && who !== S.me.email ? who : ''; aiRoPaint(body); if (cid && cid !== C.cid && AI.b.classes.some(c => c.id === cid)) { C.cid = cid; const pb = $('.ax-pick-b', body); if (pb) pb.innerHTML = aiPickLabel(AI.b.classes.find(c => c.id === cid)); }
-  const h = $('#aiMsgs', body); if (h) h.innerHTML = '<div style="margin:auto">' + miniLoader('Đang mở cuộc hỏi…') + '</div>';
-  try {
-    const L = (await rpc('aiLogList', C.ro ? { conv: conv } : { conv: conv, mine: 1 }, { quiet: true })).list.sort((a, b) => String(a.at).localeCompare(String(b.at)));
-    if (C.conv !== conv) return;
+  const h = $('#aiMsgs', body);
+  // (1.80.20) mở lại cuộc hỏi: hiện NGAY bản đã cất trên máy (lần mở trước), máy chủ trả về thì vẽ lại — không phải chờ
+  const CK = lsGet('aiCv', {}) || {}, ck = CK[conv];
+  const draw = (L, cached) => {
     if (L.length) { const z = L[L.length - 1]; C.mode = z.kind === 'grade' ? 'grade' : z.cm || 'chat'; } aiModePaint(body); aiChatHint(body);
     if (L.length && L[0].classId && L[0].classId !== C.cid && AI.b.classes.some(c => c.id === L[0].classId)) { C.cid = L[0].classId; const pb = $('.ax-pick-b', body); if (pb) pb.innerHTML = aiPickLabel(AI.b.classes.find(c => c.id === C.cid)); }
     C.msgs = []; C.busy = false; L.forEach(r => { C.msgs.push({ me: 1, rid: r.id, text: r.prompt === '(chỉ gửi tệp)' ? '' : r.prompt, files: r.files });
       if (r.status === 'ok') C.msgs.push(Object.assign(r.kind === 'grade' && r.grade ? { grade: r.grade, refs: r.refs, ms: r.ms } : { text: r.reply, refs: r.refs, ms: r.ms }, { rid: r.id }));
-      else if (AI_WAIT.test(r.status)) { C.msgs.push({ wait: 1, id: r.id, t0: r.at }); C.busy = true; aiWatch(r.id, aiChatGot); }
+      else if (AI_WAIT.test(r.status)) { C.msgs.push({ wait: 1, id: r.id, t0: r.at }); C.busy = true; if (!cached) aiWatch(r.id, aiChatGot); }
       else C.msgs.push({ err: r.err || 'Trợ lý AI chưa trả lời được', rid: r.id }); });
-  } catch (e) { C.msgs = [{ err: e.message }]; }
-  if (body.isConnected) { aiPaintMsgs(body); $$('.ax-conv').forEach(b => b.classList.toggle('on', b.dataset.conv === conv)); }
+    if (body.isConnected) { aiPaintMsgs(body); $$('.ax-conv').forEach(b => b.classList.toggle('on', b.dataset.conv === conv)); }
+  };
+  if (ck && Array.isArray(ck.L) && ck.L.length) draw(ck.L, 1);
+  else if (h) h.innerHTML = '<div style="margin:auto">' + miniLoader('Đang mở cuộc hỏi…') + '</div>';
+  try {
+    const L = (await rpc('aiLogList', C.ro ? { conv: conv } : { conv: conv, mine: 1 }, { quiet: true })).list.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+    if (C.conv !== conv) return;
+    draw(L, 0);
+    try { const K2 = lsGet('aiCv', {}) || {}; K2[conv] = { at: Date.now(), L: L.slice(-12) }; Object.keys(K2).sort((a, b) => (K2[b].at || 0) - (K2[a].at || 0)).slice(8).forEach(k => { delete K2[k]; }); lsSet('aiCv', K2); } catch (e) {}
+  } catch (e) { if (!ck) { C.msgs = [{ err: e.message }]; if (body.isConnected) aiPaintMsgs(body); } }
 }
 /** bấm nút tài liệu trong câu trả lời: mở · xin bài này cho bé */
 function aiRefMenu(id, o) {
