@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-13T03:28:24.676Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-13T18:08:00.378Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -19015,15 +19015,25 @@ async function apPreview(x) {
 .ax-ch .sp{ flex:1 } .ax-ch small{ color:var(--muted); font-size:12px }
 .ax-cb{ padding:4px 18px 16px }
 .ax-note{ font-size:12.5px; color:var(--muted); line-height:1.55 } .ax-note b{ color:var(--ink-2) }
-/* — đang suy nghĩ (như Claude) — */
-.ax-think{ display:inline-flex; align-items:center; gap:10px; font-size:14px; min-height:24px }
-.ax-orb{ width:20px; height:20px; flex:none; color:var(--primary); animation:axSpin 2.6s cubic-bezier(.45,.05,.55,.95) infinite }
-.ax-orb svg{ width:100%; height:100%; display:block }
-@keyframes axSpin{ 0%{ transform:rotate(0) scale(.86) } 50%{ transform:rotate(180deg) scale(1.08) } 100%{ transform:rotate(360deg) scale(.86) } }
+/* — đang suy nghĩ (như Claude / Gemini) — (1.80.34) ngôi sao chuyển màu + quầng sáng thở, bước đang làm lấp lánh, các bước đã xong hiện dần có dấu ✓ — */
+.ax-think{ display:inline-flex; flex-direction:column; gap:6px; font-size:14px; min-height:24px; max-width:100% }
+.ax-th1{ display:inline-flex; align-items:center; gap:10px }
+.ax-orb{ position:relative; width:22px; height:22px; flex:none; animation:axSpin 3.2s cubic-bezier(.45,.05,.55,.95) infinite }
+.ax-orb::before{ content:''; position:absolute; inset:-5px; border-radius:50%; background:radial-gradient(circle, color-mix(in oklab, #7C5CFF 34%, transparent) 0%, transparent 68%); animation:axGlow 1.8s ease-in-out infinite }
+.ax-orb svg{ position:relative; width:100%; height:100%; display:block }
+@keyframes axSpin{ 0%{ transform:rotate(0) scale(.84) } 50%{ transform:rotate(180deg) scale(1.1) } 100%{ transform:rotate(360deg) scale(.84) } }
+@keyframes axGlow{ 0%,100%{ opacity:.35; transform:scale(.8) } 50%{ opacity:1; transform:scale(1.25) } }
 .ax-shim{ font-weight:600; background:linear-gradient(90deg, var(--muted) 0%, var(--muted) 35%, var(--ink) 50%, var(--muted) 65%, var(--muted) 100%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:axShim 2.2s linear infinite }
 @keyframes axShim{ from{ background-position:100% 0 } to{ background-position:-150% 0 } }
-.ax-think small{ color:var(--muted); font-size:11.5px; font-weight:500 }
-@media (prefers-reduced-motion: reduce){ .ax-orb, .ax-shim{ animation:none } .ax-shim{ color:var(--ink-2); background:none } }
+.ax-th1 small{ color:var(--muted); font-size:11.5px; font-weight:500; font-variant-numeric:tabular-nums }
+.ax-steps{ display:flex; flex-direction:column; gap:3px; margin-left:10px; padding-left:20px; border-left:2px solid color-mix(in oklab, #7C5CFF 22%, var(--border)) }
+.ax-steps:empty{ display:none }
+.ax-st{ display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-2); animation:axStep .45s ease-out both }
+.ax-st i{ font-size:12px; color:var(--ok) } .ax-st.now{ color:var(--ink); font-weight:600 } .ax-st.now i{ color:#7C5CFF; animation:axBlink 1s ease-in-out infinite }
+@keyframes axStep{ from{ opacity:0; transform:translateX(-6px) } to{ opacity:1; transform:none } }
+@keyframes axBlink{ 0%,100%{ opacity:.35 } 50%{ opacity:1 } }
+.ax-tip{ font-size:11.5px; color:var(--muted); margin-left:32px }
+@media (prefers-reduced-motion: reduce){ .ax-orb, .ax-orb::before, .ax-shim, .ax-st, .ax-st.now i{ animation:none } .ax-shim{ color:var(--ink-2); background:none } }
 /* — tổng quan — */
 .ax-kpis{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:12px }
 .ax-kpi{ padding:14px 16px; border-radius:var(--r-l); background:var(--surface); border:1px solid var(--border); display:flex; flex-direction:column; gap:4px; min-width:0 }
@@ -19070,7 +19080,7 @@ async function apPreview(x) {
 .ax-skel{ display:flex; flex-direction:column; gap:7px; margin-top:10px; width:min(460px, 70vw) } .ax-skel i{ display:block; height:9px; border-radius:6px; background:linear-gradient(90deg, var(--surface-3) 0%, color-mix(in oklab, var(--primary) 14%, var(--surface-3)) 50%, var(--surface-3) 100%); background-size:200% 100%; animation:axSk 1.4s ease-in-out infinite }
 .ax-skel i:nth-child(2){ width:86% } .ax-skel i:nth-child(3){ width:62% }
 @keyframes axSk{ from{ background-position:120% 0 } to{ background-position:-80% 0 } }
-.ax-m.fresh .ax-bb > *{ animation:axIn .45s ease both } .ax-m.fresh .ax-bb > *:nth-child(2){ animation-delay:.06s } .ax-m.fresh .ax-bb > *:nth-child(3){ animation-delay:.12s } .ax-m.fresh .ax-bb > *:nth-child(n+4){ animation-delay:.18s }
+.ax-m.fresh .ax-bb > *, .ax-m.fresh .ax-bb li{ animation:axIn .45s ease both } .ax-m.fresh .ax-bb > *:nth-child(2){ animation-delay:.06s } .ax-m.fresh .ax-bb > *:nth-child(3){ animation-delay:.12s } .ax-m.fresh .ax-bb > *:nth-child(n+4){ animation-delay:.18s }
 @keyframes axIn{ from{ opacity:0; transform:translateY(6px) } to{ opacity:1; transform:none } }
 .ax-bb table{ border-collapse:collapse; margin:6px 0 10px; font-size:13px; width:100%; display:block; overflow-x:auto }
 .ax-bb th, .ax-bb td{ border-bottom:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top; white-space:nowrap } .ax-bb td{ white-space:normal; min-width:70px }
@@ -19160,6 +19170,13 @@ async function apPreview(x) {
 .ax-ed .sel{ width:auto; max-width:320px; font-size:12.5px; height:30px }
 .ax-conv{ position:relative } .ax-conv .del{ position:absolute; right:6px; top:50%; transform:translateY(-50%); border:0; background:var(--surface); color:var(--muted); width:26px; height:26px; border-radius:8px; cursor:pointer; display:none } .ax-conv:hover .del{ display:grid; place-items:center } .ax-conv .del:hover{ color:var(--danger) }
 .ax-meta .tdel{ border:0; background:none; color:var(--muted); cursor:pointer; padding:0 4px; font-size:11.5px; opacity:0; transition:opacity .15s } .ax-m:hover .ax-meta .tdel{ opacity:1 } .ax-meta .tdel:hover{ color:var(--danger) }
+.ax-tl{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:6px 0 4px; padding:10px 12px; border:1px solid color-mix(in oklab, var(--ok) 35%, var(--border)); border-radius:14px; background:color-mix(in oklab, var(--ok) 6%, var(--surface)); max-width:600px; animation:axPop .35s ease-out both }
+.ax-tl > i{ font-size:20px; color:var(--ok) } .ax-tl > span{ display:flex; flex-direction:column; gap:2px; flex:1; min-width:180px } .ax-tl small{ font-size:12px; color:var(--ink-2) }
+.ax-tl.bad{ border-color:color-mix(in oklab, var(--danger) 35%, var(--border)); background:color-mix(in oklab, var(--danger) 5%, var(--surface)) } .ax-tl.bad > i{ color:var(--danger) }
+.ax-tlq{ display:flex; align-items:center; gap:6px; justify-content:center; font-size:12.5px; color:var(--ink-2); margin:-4px auto 10px; padding:6px 12px; border-radius:999px; background:color-mix(in oklab, var(--ok) 8%, var(--surface)); width:fit-content; max-width:100% } .ax-tlq i{ color:var(--ok) }
+.ax-tl a.btn{ text-decoration:none }
+.ax-tl.wait{ border-style:dashed } .ax-tl.wait > i{ color:var(--muted) }
+@keyframes axPop{ from{ opacity:0; transform:translateY(4px) scale(.98) } to{ opacity:1; transform:none } }
 .ax-do{ display:flex; flex-direction:column; gap:3px; margin:6px 0 4px; padding:8px 10px; border:1px solid color-mix(in oklab, var(--primary) 30%, var(--border)); border-radius:12px; background:color-mix(in oklab, var(--primary) 4%, var(--surface)); max-width:560px }
 .ax-do button{ align-self:flex-start; display:inline-flex; gap:6px; align-items:center; border:0; border-radius:999px; padding:6px 12px; font-size:12.5px; font-weight:700; cursor:pointer; background:var(--primary); color:var(--on-primary, #fff) }
 .ax-in.done{ flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 8px } .ax-in .ok{ color:var(--ok) }      /* (1.77.19) nút In */
@@ -19455,13 +19472,32 @@ const AI_THINK = {
   ping: ['Đang kiểm tra kết nối'],
   rep: ['Đang tính số liệu', 'Đang đọc buổi học và gia sư', 'Sắp xong']
 };
-const AI_ORB = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1.5c.5 4.6 1.4 6.9 3 8.5 1.6 1.6 3.9 2.5 8.5 3-4.6.5-6.9 1.4-8.5 3-1.6 1.6-2.5 3.9-3 8.5-.5-4.6-1.4-6.9-3-8.5-1.6-1.6-3.9-2.5-8.5-3 4.6-.5 6.9-1.4 8.5-3 1.6-1.6 2.5-3.9 3-8.5z"/></svg>';
-function aiThink(kind, t0) { return '<span class="ax-think" role="status" data-think="' + esc(kind || 'chat') + '" data-t0="' + esc(t0 || new Date().toISOString()) + '"><span class="ax-orb">' + AI_ORB + '</span><span class="ax-shim">' + esc((AI_THINK[kind] || AI_THINK.chat)[0]) + '…</span><small></small></span>'; }
-/** một đồng hồ chung cho mọi khối “đang suy nghĩ” trên trang */
+const AI_ORB = '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="axOrbG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4F8CFF"/><stop offset=".55" stop-color="#8B5CF6"/><stop offset="1" stop-color="#EC6AA8"/></linearGradient></defs><path fill="url(#axOrbG)" d="M12 1.5c.5 4.6 1.4 6.9 3 8.5 1.6 1.6 3.9 2.5 8.5 3-4.6.5-6.9 1.4-8.5 3-1.6 1.6-2.5 3.9-3 8.5-.5-4.6-1.4-6.9-3-8.5-1.6-1.6-3.9-2.5-8.5-3 4.6-.5 6.9-1.4 8.5-3 1.6-1.6 2.5-3.9 3-8.5z"/></svg>';
+/** (1.80.34) các bước suy nghĩ theo ĐÚNG câu hỏi (hỏi một bé, xin link, tìm tài liệu, tìm web…) — thay danh sách chung */
+function aiThinkPlan(q) {
+  const f = fold(q || ''), L = ['Đang đọc câu hỏi'];
+  if (/\bbe\b|lop |gia su|tien do|cham/.test(f)) L.push('Đang xem hồ sơ, lộ trình và các buổi đã học');
+  if (/link|lien ket|xin tai lieu|tai lieu tam|xin phieu|xin bai/.test(f)) L.push('Đang chọn topic phù hợp trong lộ trình', 'Đang chuẩn bị link tạm');
+  else if (/tai lieu|phieu|bai tap|de thi|topic|on tap|giao an/.test(f)) L.push('Đang tìm tài liệu trong thư viện');
+  if (/so sanh|thong ke|bao nhieu|be nao|danh sach|xep hang/.test(f)) L.push('Đang đếm và so sánh số liệu');
+  if (AI.b && AI.b.web && /sgk|sach giao khoa|chuong trinh|tuan|de thi|ket noi|canh dieu|chan troi|cach giai|kien thuc|tim tren web|tren mang/.test(f)) L.push('Đang tìm thêm trên web');
+  L.push('Đang phân tích', 'Đang soạn câu trả lời', 'Đang kiểm lại');
+  if (AI.b && AI.b.engine === 'flow') L.push('Đang chờ thư trả lời của Trợ lý');
+  return L;
+}
+function aiThink(kind, t0, steps) { const L = steps && steps.length ? steps : AI_THINK[kind] || AI_THINK.chat;
+  return '<span class="ax-think" role="status" data-think="' + esc(kind || 'chat') + '" data-t0="' + esc(t0 || new Date().toISOString()) + '"' + (steps && steps.length ? ' data-steps="' + esc(JSON.stringify(steps)) + '"' : '') + '>' +
+    '<span class="ax-th1"><span class="ax-orb">' + AI_ORB + '</span><span class="ax-shim">' + esc(L[0]) + '…</span><small></small></span>' + (L.length > 2 ? '<span class="ax-steps"></span>' : '') + '<span class="ax-tip"></span></span>'; }
+/** một đồng hồ chung cho mọi khối “đang suy nghĩ” trên trang — Gemini trả lời vài giây nên bước chạy nhanh; flow qua mail 1–2 phút nên bước chạy chậm */
 setInterval(() => { document.querySelectorAll('[data-think]').forEach(el => {
-  const L = AI_THINK[el.dataset.think] || AI_THINK.chat, s = Math.max(0, (Date.now() - new Date(el.dataset.t0).getTime()) / 1000), i = Math.min(L.length - 1, Math.floor(s / 4.5));
-  const sh = el.querySelector('.ax-shim'), sm = el.querySelector('small'); const t = L[i] + '…'; if (sh && sh.textContent !== t) sh.textContent = t;
-  if (sm) sm.textContent = s >= 10 ? Math.round(s) + ' giây' : ''; }); }, 1000);
+  let L = AI_THINK[el.dataset.think] || AI_THINK.chat; if (el.dataset.steps) try { L = JSON.parse(el.dataset.steps); } catch (e) {}
+  const per = AI.b && AI.b.engine === 'flow' ? 9 : 2.8, s = Math.max(0, (Date.now() - new Date(el.dataset.t0).getTime()) / 1000), i = Math.min(L.length - 1, Math.floor(s / per));
+  const sh = el.querySelector('.ax-shim'), sm = el.querySelector('.ax-th1 small'), st = el.querySelector('.ax-steps'), tp = el.querySelector('.ax-tip'); const t = L[i] + '…';
+  if (sh && sh.textContent !== t) { sh.textContent = t; sh.style.animation = 'none'; void sh.offsetWidth; sh.style.animation = ''; }
+  if (sm) sm.textContent = s >= 3 ? 'Đã nghĩ ' + Math.round(s) + ' giây' : '';
+  if (st && st.dataset.i !== String(i)) { st.dataset.i = i; st.innerHTML = L.slice(Math.max(0, i - 3), i).map(x => '<span class="ax-st"><i class="bi bi-check2-circle"></i>' + esc(x.replace(/^Đang /, 'Đã ').replace(/^Sắp xong$/, 'Gần xong')) + '</span>').join(''); }
+  if (tp) { const m = s > 75 ? 'Trợ lý qua mail thường mất 1–2 phút' : s > 25 && AI.b && AI.b.engine === 'flow' ? 'Đang đợi Trợ lý đọc thư và trả lời…' : ''; if (tp.textContent !== m) tp.textContent = m; }
+}); }, 1000);
 
 function aiSec(ms) { return ms ? Math.round(ms / 1000) + ' giây' : ''; }
 function aiErr(e) { return e && (e.code === 'AIOFF' || e.code === 'AICFG') ? e.message : (e && e.message || String(e)); }
@@ -19927,10 +19963,11 @@ function aiChatView(body, arg) {
     const fu = e.target.closest('[data-fu]'); if (fu) { if (C.busy || C.ro) return; ta.value = fu.dataset.fu; return aiSend(body); }      // (1.77.12) bấm gợi ý / Tiếp tục → gửi luôn
     const cp = e.target.closest('[data-copy]'); if (cp) { const bb = cp.closest('.ax-bb').cloneNode(true); bb.querySelectorAll('.ax-meta, .ax-fu, .ax-do, .ax-nho').forEach(x => x.remove()); try { await navigator.clipboard.writeText(bb.innerText.trim()); toast('Đã chép', 'ok', 1500); } catch (er) { toast('Không chép được', 'err'); } return; }
     if (e.target.closest('[data-skcfg]')) return go('ai/cfg');
-    const sg = e.target.closest('[data-sug]'); if (sg) { ta.value = sg.dataset.sug; ta.focus(); ta.oninput(); return; }
+    const sg = e.target.closest('[data-sug]'); if (sg) { ta.value = sg.dataset.sug; ta.focus(); ta.oninput(); const k = ta.value.indexOf('…'); if (k >= 0) ta.setSelectionRange(k, k + 1); return; }      // (1.80.34) mẫu có chỗ trống “…” → chọn sẵn để gõ đè
     const rf = e.target.closest('[data-rmf]'); if (rf) { C.files.splice(Number(rf.dataset.rmf), 1); return aiPaintFiles(body); }
     const rd = e.target.closest('[data-rmd]'); if (rd) { C.drive.splice(Number(rd.dataset.rmd), 1); return aiPaintFiles(body); }
     const bc = e.target.closest('[data-bcls]'); if (bc) return go('classes/c/' + bc.dataset.bcls);
+    const tc = e.target.closest('[data-tlcopy]'); if (tc) return copyText(tc.dataset.tlcopy, 'Đã sao chép link tạm');      // (1.80.34)
     const db = e.target.closest('[data-do]'); if (db) { const mm = db.closest('[data-rid]'); if (mm) return aiDoRun(db, mm.dataset.rid, () => aiPaintMsgs(body)); }
     const ib = e.target.closest('[data-inp]'); if (ib) return aiInRun(ib);      // (1.77.19) nút In
     const nd = e.target.closest('[data-nhodel]'); if (nd) { const mm = nd.closest('[data-rid]'); return aiNhoDel(body, nd, mm && mm.dataset.rid); }
@@ -20045,10 +20082,15 @@ function aiMd(text, refs) {
     return '<span class="ax-do' + (o.done ? ' done' : !o.ok ? ' dis' : '') + '"><button type="button" data-do="' + k + '"' + (o.ok ? '' : ' disabled') + '><i class="bi ' + (o.done ? 'bi-check2-circle' : AI_DOI[o.kind] || 'bi-lightning') + '"></i>' + esc(o.label || o.t) + '</button>' +
       (o.sub ? '<small>' + esc(o.sub) + '</small>' : '') + (o.done ? '<small class="ok">✓ ' + esc(o.done.msg || 'Đã làm') + ' · ' + esc(o.done.by || '') + '</small>' : !o.ok && o.why ? '<small class="why">' + esc(o.why) + '</small>' : '') + '</span>'; };
   const bchip = id => { const o = refs['B:' + id]; return o ? '<button class="ai-ref cls" data-bcls="' + esc(id) + '" title="Mở trang bé ' + esc(o.n) + ' · ' + esc(o.code || '') + '" aria-label="Mở trang bé ' + esc(o.n) + '"><i class="bi bi-box-arrow-up-right"></i></button>' : ''; };      // tên bé AI đã ghi ngay trước → chỉ cần nút nhỏ      // (1.77.1)
+  let nTl = 0; const tlchip = () => { const o = refs['TL:' + nTl++]; if (!o) return '<span class="ax-tl wait"><i class="bi bi-link-45deg"></i><span><b>Link tạm chưa được tạo</b><small>Máy chủ bận lúc nhận câu trả lời — gửi lại câu hỏi</small></span></span>';      // (1.80.34) link tạm gia sư xin
+    if (!o.ok) return '<span class="ax-tl bad"><i class="bi bi-exclamation-octagon"></i><span><b>Chưa tạo được link' + (o.be ? ' · ' + esc(o.be) : '') + (o.t ? ' · ' + esc(o.t) : '') + '</b><small>' + esc(o.err || '') + '</small></span></span>';
+    const exp = new Date(o.exp), hh = isNaN(exp) ? '' : exp.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+    return '<span class="ax-tl"><i class="bi bi-link-45deg"></i><span><b>' + esc(o.be || '') + ' · ' + esc(o.t || 'Link tạm') + '</b><small>' + (o.n || 0) + ' tệp · ' + (o.print ? 'xem & in' : 'chỉ xem') + (hh ? ' · hết hạn ' + esc(hh) : '') + (o.cut ? ' · bỏ ' + o.cut + ' topic vượt hạn mức' : '') + ' · đã gửi mail</small></span>' +
+      '<a class="btn sm pri" href="' + esc(o.url) + '" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>Mở</a><button type="button" class="btn sm ghost" data-tlcopy="' + esc(o.url) + '" title="Sao chép link"><i class="bi bi-copy"></i></button></span>'; };
   let nNho = 0; const nho = () => { const o = refs['NHO:' + nNho++]; if (!o || (!o.saved && !o.gone)) return '';      // (1.77.11) AI tự ghi nhớ điều lâu dài → dòng nhỏ + nút Bỏ
     return '<span class="ax-nho' + (o.gone ? ' gone' : '') + '"><i class="bi ' + (o.gone ? 'bi-bookmark-x' : 'bi-bookmark-check') + '"></i><span>' + (o.gone ? 'Đã bỏ khỏi bộ nhớ: ' : 'Đã ghi nhớ' + (o.be ? ' cho bé ' + esc(o.be) : '') + ': ') + '<b>' + esc(o.t) + '</b></span>' +
       (o.saved && AI.b.memOk ? '<button type="button" data-nhodel="' + esc(o.id) + '" title="Không nhớ điều này">Bỏ</button>' : '') + '</span>'; };
-  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip()).replace(/\[\[IN:([^\]]{3,3000})\]\]/g, (m, x) => aiInChip(x)).replace(/\[\[NHO:[^\]]{3,800}\]\]/g, () => nho()).replace(/\[([^\[\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>').replace(/(^|[\s(:;,])(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, (m, a, u) => a + '<a href="' + u + '" target="_blank" rel="noopener">' + (u.length > 60 ? u.slice(0, 57) + '…' : u) + '</a>')      // (1.77.13) link [chữ](url) và link trần → bấm mở tab mới
+  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip()).replace(/\[\[IN:([^\]]{3,3000})\]\]/g, (m, x) => aiInChip(x)).replace(/\[\[NHO:[^\]]{3,800}\]\]/g, () => nho()).replace(/\[\[TL:[^\]]{3,800}\]\]/g, () => tlchip()).replace(/\[([^\[\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>').replace(/(^|[\s(:;,])(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, (m, a, u) => a + '<a href="' + u + '" target="_blank" rel="noopener">' + (u.length > 60 ? u.slice(0, 57) + '…' : u) + '</a>')      // (1.77.13) link [chữ](url) và link trần → bấm mở tab mới
     .replace(/\[\[GOIY:([^\]]{2,800})\]\]/g, (m, x) => '<span class="ax-fu">' + x.split('|').map(t => t.trim()).filter(Boolean).slice(0, 4).map(t => '<button type="button" data-fu="' + t + '"><i class="bi bi-arrow-up-right"></i>' + t + '</button>').join('') + '</span>');      // (1.77.12) gợi ý hỏi tiếp / lựa chọn khi AI hỏi lại (chữ đã esc)
   const lines = String(text || '').replace(/\r/g, '').split('\n'); let h = '', list = '';
   const close = () => { if (list) { h += '</' + list + '>'; list = ''; } };
@@ -20144,9 +20186,12 @@ function aiPaintMsgs(body) {
       : c ? (C.mode === 'chat' ? [Nm + ' yếu phần nào, nên ôn topic nào?', 'Buổi tới nên dạy bài gì cho ' + nm + '?', 'Gợi ý tài liệu luyện thêm cho ' + nm] : ['Bé đang theo kịp chương trình trên lớp chưa?', 'Tóm tắt 4 buổi gần nhất của ' + nm, adm ? 'Buổi tới của ' + nm + ' đã có bài và đã duyệt chưa?' : 'Buổi tới nên dạy gì cho ' + nm + '?'])
       : C.mode === 'chat' ? ['Tài liệu nào luyện phân số lớp 4?', 'Có đề kiểm tra giữa kỳ lớp 5 không?', 'Cách dạy bé hiểu tỉ số phần trăm']
       : adm ? ['Hôm nay có yêu cầu nào cần xử lý?', 'Bé nào đang chậm tiến độ so với trên lớp?', 'Gia sư nào lâu chưa vào app?', 'Soạn thông báo nghỉ lễ gửi gia sư'] : ['Tuần này mình có những buổi nào?', 'Bé nào của mình đang chậm tiến độ?', 'Cách dạy bé hiểu tỉ số phần trăm'];
+    const tl = AI.b.tl && AI.b.tl.on && C.mode !== 'grade' ? AI.b.tl : null;      // (1.80.34) gia sư xin link tạm
+    if (tl && (tl.man || tl.leftReq > 0)) sugs.unshift(c ? 'Cho mình link tạm tài liệu buổi tới của ' + nm : 'Cho mình link tạm tài liệu chủ đề … cho bé …');
     const md = AI_CMODES.find(x => x.k === C.mode) || AI_CMODES[0], sk = C.mode === 'grade' ? [] : (AI.b.skills || []).slice(0, 6);
     h.innerHTML = '<div class="ax-hello"><span class="ax-logo"><i class="bi bi-robot"></i></span><b>' + (C.mode === 'grade' ? 'Nhận xét bài tập' : c ? (C.mode === 'chat' ? 'Tìm tài liệu cho ' : 'Hỏi về ') + esc(nm) : 'Mình có thể giúp gì?') + '</b>' +
       (C.mode === 'grade' ? 'Đính kèm tệp hoặc dán link Drive rồi bấm Gửi.' : c ? 'AI đã biết lộ trình, các buổi đã học và trao đổi gần đây của ' + esc(nm) + ' — gợi ý bài chỉ trong lộ trình của bé.' : md.d + ' · Chọn bé ở trên để hỏi riêng về một bé.') + '</div>' +
+      (tl && !tl.man ? '<div class="ax-tlq"><i class="bi bi-link-45deg"></i>Xin link tạm tuần này: còn <b>' + tl.leftReq + '/' + tl.reqMax + '</b> lượt · <b>' + tl.leftLink + '/' + tl.linkMax + '</b> link · tối đa ' + tl.topics + ' topic mỗi link · hạn ' + tl.days + ' ngày</div>' : '') +
       '<div class="ax-sugs">' + sugs.map(s => '<button class="ax-sug" data-sug="' + esc(s) + '">' + esc(s) + '</button>').join('') + '</div>' +
       (sk.length ? '<div class="ax-sugs ax-sks">' + sk.map(k => '<button type="button" class="ax-chip" data-skill="' + esc(k.slug) + '" title="' + esc(k.desc || k.name) + '"><i class="bi bi-lightning-charge"></i>/' + esc(k.slug) + '</button>').join('') + '</div>' : '');
     return;
@@ -20154,7 +20199,7 @@ function aiPaintMsgs(body) {
   const last = C.msgs.length - 1;
   h.innerHTML = C.msgs.map((m, i) => {
     if (m.me) return '<div class="ax-m me">' + (m.text ? '<div class="ax-bb">' + esc(m.text).replace(/\n/g, '<br>') + '</div>' : '') + (m.files && m.files.length ? '<div class="ax-fchips">' + m.files.map(f => '<span class="ax-fc"><i class="bi ' + (f.drive || f.t === 'drive' ? 'bi-google' : 'bi-file-earmark') + '"></i><span>' + esc(f.n || f.name) + '</span></span>').join('') + '</div>' : '') + '</div>';
-    if (m.wait) return '<div class="ax-m ai"><span class="ax-av"><i class="bi bi-robot"></i></span><div class="ax-bb">' + aiThink(C.mode === 'grade' ? 'grade' : 'chat', m.t0) + '<div class="ax-skel" aria-hidden="true"><i></i><i></i><i></i></div><div class="ax-meta">Bạn có thể rời trang — xong sẽ báo chuông</div></div></div>';
+    if (m.wait) return '<div class="ax-m ai"><span class="ax-av"><i class="bi bi-robot"></i></span><div class="ax-bb">' + aiThink(C.mode === 'grade' ? 'grade' : 'chat', m.t0, C.mode === 'grade' ? null : aiThinkPlan(((C.msgs[i - 1] || {}).me ? C.msgs[i - 1].text : '') || '')) + '<div class="ax-skel" aria-hidden="true"><i></i><i></i><i></i></div><div class="ax-meta">Bạn có thể rời trang — xong sẽ báo chuông</div></div></div>';
     if (m.err) return '<div class="ax-m ai err"><span class="ax-av"><i class="bi bi-exclamation"></i></span><div class="ax-bb">' + esc(m.err) + '</div></div>';
     const fr = m.fresh, isL = i === last && !C.ro; m.fresh = 0;      // (1.77.12) câu trả lời cuối: gợi ý hỏi tiếp + Tiếp tục / Chi tiết hơn / Sao chép
     return '<div class="ax-m ai' + (fr ? ' fresh' : '') + (isL ? ' last' : '') + '"' + (m.rid ? ' data-rid="' + esc(m.rid) + '"' : '') + '><span class="ax-av"><i class="bi bi-robot"></i></span><div class="ax-bb">' + (m.grade ? aiGradeHtml(m.grade, m.refs) : aiMd(m.text, m.refs)) +
@@ -20163,6 +20208,7 @@ function aiPaintMsgs(body) {
       (!m.grade ? '<button class="tdel" data-copy title="Sao chép câu trả lời"><i class="bi bi-copy"></i> Chép</button>' : '') +
       (m.rid ? '<button class="tdel" data-tdel="' + esc(m.rid) + '" title="Xoá câu hỏi và câu trả lời này"><i class="bi bi-trash3"></i> Xoá</button>' : '') + '</div></div></div>';
   }).join('');
+  h.querySelectorAll('.ax-m.fresh .ax-bb > *, .ax-m.fresh .ax-bb li').forEach((el, k) => { el.style.animationDelay = Math.min(k * 0.08, 2.4).toFixed(2) + 's'; });      // (1.80.34) câu trả lời hiện dần từng đoạn như đang gõ
   h.scrollTop = h.scrollHeight;
 }
 function aiChatOut(o) { return Object.assign(o.status === 'ok' ? { text: o.text, grade: o.grade, refs: o.refs, ms: o.ms } : { err: o.err || 'Trợ lý AI chưa trả lời được — thử lại sau ít phút' }, { rid: o.id }); }
@@ -20640,7 +20686,7 @@ function aiSnapCard(c, sw, card) {
   const s = c.snap, gem = AI.b.engine === 'gemini', when = s && s.at ? new Date(s.at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
   const st = !s ? '<span class="ax-muted">Chưa có file</span>'
     : '<a href="' + esc(s.url) + '" target="_blank" rel="noopener"><i class="bi bi-file-earmark-spreadsheet"></i> ' + esc('Trợ lý AI — Dữ liệu tổng hợp') + '</a> · ' + (s.n || 0) + ' bé · cập nhật ' + esc(when || '—') +
-      (s.share ? ' · đã chia sẻ cho ' + esc(s.share) : ' · <span style="color:var(--warn)">chưa chia sẻ được cho hộp thư flow — chia sẻ tay (quyền Xem)</span>') + (s.err ? '<div style="color:var(--err)">Lần làm mới gần nhất lỗi: ' + esc(s.err) + '</div>' : '');
+      (s.share ? ' · đã chia sẻ cho ' + esc(s.share) : ' · <span style="color:var(--warn)">chưa chia sẻ được cho hộp thư flow — chia sẻ tay (quyền Xem)</span>') + (s.err ? '<div style="color:var(--danger)">Lần làm mới gần nhất lỗi: ' + esc(s.err) + '</div>' : '');
   return card('bi-database-check', 'Nguồn cho Trợ lý (dữ liệu đầy đủ + web)',
     '<div class="small ax-muted" style="margin-bottom:10px">' + (gem ? '<b>Đang dùng Gemini API</b> — không đọc được file Drive, phần này chỉ có tác dụng khi dùng flow qua mail. ' : '') +
       'Thư gửi AI chỉ mang dữ liệu <b>đúng câu hỏi</b> (hỏi một bé → chỉ bé đó), nên với câu hỏi nhiều bé đôi khi phải rút gọn. File dưới đây có <b>đủ mọi bé</b> (mỗi bé một dòng: đã học tới, chậm so với trường, bài kế tiếp, buổi trống, yêu cầu…), gia sư và buổi 14 ngày tới — máy chủ tính sẵn, tự làm mới mỗi giờ.' +
@@ -20652,6 +20698,19 @@ function aiSnapCard(c, sw, card) {
     '<div class="ai-opt"><div><b>Flow đã gắn các Google Docs hướng dẫn làm nguồn</b><small>Bật: thư KHÔNG gửi nội dung tài liệu hướng dẫn nữa, chỉ gửi mục lục + link — AI tự tra trong nguồn. Mục viết tay (không có link Docs) vẫn gửi. Docs phải chia sẻ cho hộp thư flow.</small></div>' + sw('kbSrc', c.kbSrc, 'Flow đã gắn Docs hướng dẫn') + '</div>' +
     '<div class="ai-opt"><div><b>Cho Trợ lý tìm trên web (Hỏi AI)</b><small>' + (gem ? 'Gemini API: app tự bật Google Search cho Hỏi AI, câu trả lời kèm link nguồn web (Google có thể tính phí lượt tìm vượt hạn mức miễn phí — xem ở AI Studio).' : 'Flow qua mail: bật Web search ở bước Ask Gemini của flow Hỏi AI (giữ cả Workspace). Nếu Specific sources không còn ô Web search thì chọn All sources — file dữ liệu và Docs đã chia sẻ cho hộp thư flow nên Gemini vẫn đọc được (thư có sẵn link file).') +
       ' Thư dặn AI: chỉ tìm thông tin công khai (chương trình SGK theo tuần, bộ sách, đề thi, kiến thức), KHÔNG đưa tên bé / gia sư vào câu tìm, dữ liệu app luôn ưu tiên, ghi rõ nguồn web. Gán bài, yêu cầu, nhận xét bài không tìm web.</small></div>' + sw('web', c.web, 'Cho Trợ lý tìm trên web') + '</div>');
+}
+/** (1.80.34) GIA SƯ XIN LINK TẠM QUA TRỢ LÝ — hạn mức mỗi gia sư mỗi tuần (thứ Hai → Chủ nhật); quản lý không giới hạn */
+function aiTlCard(c, sw, card) {
+  const sel = (id, cur, L, unit) => '<select class="sel" id="' + id + '">' + L.concat(L.indexOf(cur) >= 0 ? [] : [cur]).sort((a, b) => a - b).map(n => '<option value="' + n + '"' + (n === cur ? ' selected' : '') + '>' + n + ' ' + unit + '</option>').join('') + '</select>';
+  return card('bi-link-45deg', 'Gia sư xin link tạm qua Trợ lý',
+    '<div class="small ax-muted" style="margin-bottom:10px">Khi bạn bận / ốm, gia sư nhắn Trợ lý AI kiểu <i>“cho mình link tài liệu phân số cho bé Hân”</i> → AI chọn topic (ưu tiên trong <b>lộ trình của bé</b>), hệ thống <b>tự tạo link tạm</b> và gửi gia sư ngay trong cuộc hỏi + qua <b>mail</b>. ' +
+      'Chỉ cho bé gia sư phụ trách; tài liệu ngoài lộ trình phải nằm trong thư viện gia sư xem được. Link hiện ở <b>Link tạm</b> (người tạo = gia sư), thu hồi được như link thường. Quản lý hỏi thì không giới hạn.</div>' +
+    '<div class="ai-opt"><div><b>Cho gia sư xin link tạm qua Trợ lý</b><small>Tắt: AI chỉ gợi ý tài liệu, không tạo link.</small></div>' + sw('tl', c.tl, 'Cho gia sư xin link tạm') + '</div>' +
+    (c.tl ? '<div class="ai-opt"><div><b>Số lượt xin mỗi tuần</b><small>Mỗi gia sư — lượt hỏi có tạo được ít nhất một link mới tính.</small></div>' + sel('aiTlReq', c.tlReq, [1, 2, 3, 5, 7, 10, 20], 'lượt / tuần') + '</div>' +
+      '<div class="ai-opt"><div><b>Số link tối đa mỗi tuần</b><small>Một lượt có thể xin nhiều link (VD cho hai bé).</small></div>' + sel('aiTlLinks', c.tlLinks, [1, 2, 3, 5, 7, 10, 20], 'link / tuần') + '</div>' +
+      '<div class="ai-opt"><div><b>Số topic mỗi link</b><small>AI chọn quá số này thì chỉ lấy các topic đầu.</small></div>' + sel('aiTlTopics', c.tlTopics, [1, 2, 3, 4, 5, 8, 10], 'topic') + '</div>' +
+      '<div class="ai-opt"><div><b>Hạn dùng của link</b><small>Hết hạn link tự đóng.</small></div>' + sel('aiTlDays', c.tlDays, [1, 2, 3, 5, 7, 14, 30], 'ngày') + '</div>' +
+      '<div class="ai-opt"><div><b>Cho in</b><small>Tắt: link chỉ xem. Không vượt quyền in gia sư đang có (Link tạm › Cấu hình).</small></div>' + sw('tlPrint', c.tlPrint, 'Link cho in') + '</div>' : ''));
 }
 function aiCfgView(body) {
   const c = AI.b.cfg;
@@ -20699,6 +20758,7 @@ function aiCfgView(body) {
     (AI.b.memOk ? card('bi-book', 'Tài liệu hướng dẫn cho AI (onboarding)', '<div class="small ax-muted" style="margin-bottom:10px">Quy trình, cách làm việc ở trung tâm để <b>gia sư mới tự hỏi AI</b> (VD lấy tài liệu buổi đầu, tạo lớp mới). Viết thẳng ở đây, hoặc viết trong <b>Google Docs</b> rồi dán link — AI luôn đọc bản mới nhất (chậm tối đa 15 phút; bấm Lưu để đọc lại ngay; tệp phải mở được bằng tài khoản của app). Dán link tài liệu cần gửi gia sư vào nội dung, AI sẽ trả đúng link. Muốn AI <b>hỏi lại</b> trước khi trả lời thì ghi rõ, VD “HỎI LẠI: bé mới vào học hay chuyển gia sư?”.</div>' +
       '<div id="aiKbL" style="display:flex;flex-direction:column;gap:8px"></div><div class="ax-inl" style="margin-top:8px"><button class="btn sm ghost" id="aiKbAdd"><i class="bi bi-plus-lg"></i>Thêm tài liệu</button><span class="sp" style="flex:1"></span><button class="btn sm pri" id="aiKbSave"><i class="bi bi-check2"></i>Lưu tài liệu</button></div>') : '') +
     aiSnapCard(c, sw, card) +
+    aiTlCard(c, sw, card) +
     card('bi-shield-lock', 'Quản lý & nhật ký', '<div class="ai-opt"><div><b>Chỉ dẫn thêm cho AI (gán bài, yêu cầu)</b><textarea class="ta" id="aiSysA" rows="3" style="margin-top:8px" placeholder="VD: Bé lớp 5 thi giữa kỳ tuần 9 — ưu tiên ôn tập trước tuần đó">' + esc(c.sysAdmin) + '</textarea><button class="btn sm" id="aiSysASave" style="margin-top:8px">Lưu</button></div></div>' +
       '<div class="ai-opt"><div><b>Lưu bản tệp gia sư đính kèm</b><small>Lưu ở Drive (thư mục chính › Trợ lý AI — tệp đính kèm) để xem lại ở Nhật ký.</small></div>' + sw('keepFiles', c.keepFiles, 'Lưu tệp đính kèm') + '</div>' +
       '<div class="ai-opt"><div><b>Giữ nhật ký</b><small>Ai xem được nhật ký của mọi người: quyền <b>Xem nhật ký Trợ lý AI</b> (Vai trò & quyền).</small></div><select class="sel" id="aiKeep">' + [[30, '30 ngày'], [90, '90 ngày'], [180, '180 ngày'], [365, '1 năm'], [0, 'Giữ mãi']].map(o => '<option value="' + o[0] + '"' + (o[0] === c.keepDays ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>') +
@@ -20750,7 +20810,7 @@ function aiCfgView(body) {
       .catch(x => { gsw.checked = !on; fail(x); }).finally(() => { gsw.disabled = false; }); return; }
     const s = e.target.closest('[data-sw]'); if (s) return save({ [s.dataset.sw]: s.checked ? 1 : 0 });
     if (e.target.name === 'aiMode') return save({ assign: e.target.value });
-    const num = { aiDaysC: 'days', aiHour: 'hour', aiKeep: 'keepDays', aiWait: 'wait', aiEvery: 'every', aiFrom: 'from', aiTo: 'to', aiGap: 'gap', aiTutCap: 'tutCap' }[e.target.id]; if (num) return save({ [num]: Number(e.target.value) });
+    const num = { aiDaysC: 'days', aiHour: 'hour', aiKeep: 'keepDays', aiWait: 'wait', aiEvery: 'every', aiFrom: 'from', aiTo: 'to', aiGap: 'gap', aiTutCap: 'tutCap', aiTlReq: 'tlReq', aiTlLinks: 'tlLinks', aiTlTopics: 'tlTopics', aiTlDays: 'tlDays' }[e.target.id]; if (num) return save({ [num]: Number(e.target.value) });
     if (e.target.id === 'aiRun') return save({ run: e.target.value }, e.target.value === 'off' ? 'Đã tắt tự chạy' : 'Đã đặt lịch tự chạy');
     if (e.target.closest('#aiFlows')) { F = flowsRead(); return; }
     if (e.target.closest('[data-fn]')) return save({ reqFns: $$('[data-fn]', body).filter(x => x.checked).map(x => x.dataset.fn) });
