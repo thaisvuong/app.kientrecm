@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-13T01:56:20.092Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-13T02:46:02.207Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -20634,6 +20634,23 @@ function aiFlowHelp(c) {
     (L.length ? '<table class="tbl" style="margin-top:12px"><thead><tr><th>Flow</th><th>Has the words (Token)</th><th>Link</th></tr></thead><tbody>' + L.map(f => '<tr><td>' + esc(f.name) + '</td><td><code>' + esc(f.token) + '</code></td><td>' + (f.url ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">Mở flow</a>' : '<span class="ax-muted">chưa dán link</span>') + '</td></tr>').join('') + '</tbody></table>' : ''),
     foot: [{ t: 'Đóng', cls: 'ghost' }] });
 }
+/** (1.80.32) NGUỒN CHO FLOW: file Dữ liệu tổng hợp (máy chủ tính sẵn, mọi bé, tự làm mới mỗi giờ) + Google Docs hướng dẫn — gắn vào bước Ask Gemini › Sources
+    của flow để AI không bỏ sót bé nào và thư khỏi gửi lại nội dung hướng dẫn. Gemini API (không đọc được Drive) thì không dùng tới. */
+function aiSnapCard(c, sw, card) {
+  const s = c.snap, gem = AI.b.engine === 'gemini', when = s && s.at ? new Date(s.at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
+  const st = !s ? '<span class="ax-muted">Chưa có file</span>'
+    : '<a href="' + esc(s.url) + '" target="_blank" rel="noopener"><i class="bi bi-file-earmark-spreadsheet"></i> ' + esc('Trợ lý AI — Dữ liệu tổng hợp') + '</a> · ' + (s.n || 0) + ' bé · cập nhật ' + esc(when || '—') +
+      (s.share ? ' · đã chia sẻ cho ' + esc(s.share) : ' · <span style="color:var(--warn)">chưa chia sẻ được cho hộp thư flow — chia sẻ tay (quyền Xem)</span>') + (s.err ? '<div style="color:var(--err)">Lần làm mới gần nhất lỗi: ' + esc(s.err) + '</div>' : '');
+  return card('bi-database-check', 'Nguồn cho flow (không bỏ sót dữ liệu)',
+    '<div class="small ax-muted" style="margin-bottom:10px">' + (gem ? '<b>Đang dùng Gemini API</b> — không đọc được file Drive, phần này chỉ có tác dụng khi dùng flow qua mail. ' : '') +
+      'Thư gửi AI chỉ mang dữ liệu <b>đúng câu hỏi</b> (hỏi một bé → chỉ bé đó), nên với câu hỏi nhiều bé đôi khi phải rút gọn. File dưới đây có <b>đủ mọi bé</b> (mỗi bé một dòng: đã học tới, chậm so với trường, bài kế tiếp, buổi trống, yêu cầu…), gia sư và buổi 14 ngày tới — máy chủ tính sẵn, tự làm mới mỗi giờ.' +
+      '<br><b>Cách gắn:</b> Workspace Studio › mở flow của <b>quản lý</b> › bước <b>Ask Gemini</b> › Sources › <b>Specific sources</b> › chọn file này (và các Google Docs hướng dẫn) · bỏ Web search · Lưu. ' +
+      '<b style="color:var(--warn)">Không gắn file này cho flow gia sư dùng</b> (file có bé của mọi gia sư) — gia sư dùng chung flow thì tách một flow riêng cho gia sư.</div>' +
+    '<div class="ai-opt"><div><b>File dữ liệu</b><small>' + st + '</small></div><div class="ax-inl" style="gap:6px">' +
+      '<button class="btn sm' + (s ? '' : ' pri') + '" id="aiSnapGo"><i class="bi bi-arrow-repeat"></i>' + (s ? 'Làm mới ngay' : 'Tạo file') + '</button>' + (s ? '<button class="btn sm ghost" id="aiSnapOff" title="Ngừng tự làm mới (file trên Drive vẫn giữ)"><i class="bi bi-pause-circle"></i></button>' : '') + '</div></div>' +
+    '<div class="ai-opt"><div><b>Flow đã gắn file dữ liệu này làm nguồn</b><small>Bật: thư dặn AI tra file khi cần đếm / lọc nhiều bé hoặc dữ liệu trong thư bị rút gọn. Bật sau khi đã gắn file ở bước Ask Gemini.</small></div>' + (s ? sw('snapSrc', c.snapSrc, 'Flow đã gắn file dữ liệu') : '<small class="ax-muted">Tạo file trước</small>') + '</div>' +
+    '<div class="ai-opt"><div><b>Flow đã gắn các Google Docs hướng dẫn làm nguồn</b><small>Bật: thư KHÔNG gửi nội dung tài liệu hướng dẫn nữa, chỉ gửi mục lục + link — AI tự tra trong nguồn. Mục viết tay (không có link Docs) vẫn gửi. Docs phải chia sẻ cho hộp thư flow.</small></div>' + sw('kbSrc', c.kbSrc, 'Flow đã gắn Docs hướng dẫn') + '</div>');
+}
 function aiCfgView(body) {
   const c = AI.b.cfg;
   /** flow dựng sẵn (AI_FLOW_DEF) chưa có trong danh sách — so theo Token */
@@ -20679,6 +20696,7 @@ function aiCfgView(body) {
       '<div class="ai-opt"><div><b>Kỹ năng (' + (c.skillsAll || []).length + ')</b><div id="aiSkL" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div><div class="ax-inl" style="margin-top:8px"><button class="btn sm ghost" id="aiSkAdd"><i class="bi bi-plus-lg"></i>Thêm kỹ năng</button><span class="sp" style="flex:1"></span><button class="btn sm pri" id="aiSkSave"><i class="bi bi-check2"></i>Lưu kỹ năng</button></div></div></div>') +
     (AI.b.memOk ? card('bi-book', 'Tài liệu hướng dẫn cho AI (onboarding)', '<div class="small ax-muted" style="margin-bottom:10px">Quy trình, cách làm việc ở trung tâm để <b>gia sư mới tự hỏi AI</b> (VD lấy tài liệu buổi đầu, tạo lớp mới). Viết thẳng ở đây, hoặc viết trong <b>Google Docs</b> rồi dán link — AI luôn đọc bản mới nhất (chậm tối đa 15 phút; bấm Lưu để đọc lại ngay; tệp phải mở được bằng tài khoản của app). Dán link tài liệu cần gửi gia sư vào nội dung, AI sẽ trả đúng link. Muốn AI <b>hỏi lại</b> trước khi trả lời thì ghi rõ, VD “HỎI LẠI: bé mới vào học hay chuyển gia sư?”.</div>' +
       '<div id="aiKbL" style="display:flex;flex-direction:column;gap:8px"></div><div class="ax-inl" style="margin-top:8px"><button class="btn sm ghost" id="aiKbAdd"><i class="bi bi-plus-lg"></i>Thêm tài liệu</button><span class="sp" style="flex:1"></span><button class="btn sm pri" id="aiKbSave"><i class="bi bi-check2"></i>Lưu tài liệu</button></div>') : '') +
+    aiSnapCard(c, sw, card) +
     card('bi-shield-lock', 'Quản lý & nhật ký', '<div class="ai-opt"><div><b>Chỉ dẫn thêm cho AI (gán bài, yêu cầu)</b><textarea class="ta" id="aiSysA" rows="3" style="margin-top:8px" placeholder="VD: Bé lớp 5 thi giữa kỳ tuần 9 — ưu tiên ôn tập trước tuần đó">' + esc(c.sysAdmin) + '</textarea><button class="btn sm" id="aiSysASave" style="margin-top:8px">Lưu</button></div></div>' +
       '<div class="ai-opt"><div><b>Lưu bản tệp gia sư đính kèm</b><small>Lưu ở Drive (thư mục chính › Trợ lý AI — tệp đính kèm) để xem lại ở Nhật ký.</small></div>' + sw('keepFiles', c.keepFiles, 'Lưu tệp đính kèm') + '</div>' +
       '<div class="ai-opt"><div><b>Giữ nhật ký</b><small>Ai xem được nhật ký của mọi người: quyền <b>Xem nhật ký Trợ lý AI</b> (Vai trò & quyền).</small></div><select class="sel" id="aiKeep">' + [[30, '30 ngày'], [90, '90 ngày'], [180, '180 ngày'], [365, '1 năm'], [0, 'Giữ mãi']].map(o => '<option value="' + o[0] + '"' + (o[0] === c.keepDays ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>') +
@@ -20743,6 +20761,11 @@ function aiCfgView(body) {
       td.disabled = false; td.innerHTML = h0; return; }
     if (e.target.closest('#aiMemAdd')) { const t = $('#aiMemT', body).value.trim(); if (!t) return $('#aiMemT', body).focus(); try { const r = await rpc('aiMemAdd', { t: t, cid: $('#aiMemC', body).value }, { quiet: true }); AI.b.mem = r.mem; toast('Đã ghi nhớ', 'ok', 2000); aiShow(body.closest('.view') || body.parentElement.parentElement, 'cfg'); } catch (er) { toast(er.message, 'err'); } return; }
     const md = e.target.closest('[data-memdel]'); if (md) { if (!await ask('Xoá điều này khỏi bộ nhớ AI?', { ok: 'Xoá', danger: true })) return; try { const r = await rpc('aiMemDel', { id: md.dataset.memdel }, { quiet: true }); AI.b.mem = r.mem; aiShow(body.closest('.view') || body.parentElement.parentElement, 'cfg'); } catch (er) { toast(er.message, 'err'); } return; }
+    const sg = e.target.closest('#aiSnapGo'); if (sg) { sg.disabled = true; const h0 = sg.innerHTML; sg.innerHTML = '<i class="bi bi-arrow-repeat spin-i"></i>Đang ghi…';      // (1.80.32) file Dữ liệu tổng hợp cho flow
+      try { const r = await rpc('aiSnapNow', {}, { quiet: true }); c.snap = r.snap; lsSet('aiBoot:' + (S.me && S.me.email || ''), AI.b); toast('Đã ghi ' + ((r.snap || {}).n || 0) + ' bé vào file dữ liệu — tự làm mới mỗi giờ', 'ok', 4000); aiCfgView(body); }
+      catch (x) { toast(x.message, 'err'); sg.disabled = false; sg.innerHTML = h0; } return; }
+    if (e.target.closest('#aiSnapOff')) { if (!await ask('Ngừng tự làm mới file dữ liệu?\n\nFile trên Drive vẫn giữ (xoá tay nếu muốn). Nhớ bỏ file khỏi nguồn của flow.')) return;
+      try { await rpc('aiSnapNow', { off: 1 }, { quiet: true }); c.snap = null; c.snapSrc = 0; lsSet('aiBoot:' + (S.me && S.me.email || ''), AI.b); toast('Đã ngừng', 'ok'); aiCfgView(body); } catch (x) { toast(x.message, 'err'); } return; }
     if (e.target.closest('#aiKbAdd')) { kbRead(); KB.push({ t: '', aud: 'all', url: '', body: '' }); return kbPaint(); }
     const kbd = e.target.closest('[data-kbdel]'); if (kbd) { kbRead(); KB.splice(Number(kbd.dataset.kbdel), 1); return kbPaint(); }
     const kbs = e.target.closest('#aiKbSave'); if (kbs) { kbRead(); kbs.disabled = true;
