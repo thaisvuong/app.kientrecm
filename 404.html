@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T02:25:34.172Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T03:02:56.586Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -1921,6 +1921,10 @@ details.adv > summary .bi{ font-size:11px; transition:transform var(--t-base) } 
   .cd-sess .cl-ra .bl{ display:none }
 }
 /* nhãn nhỏ trong dòng buổi không bao giờ xuống dòng từng chữ: dài quá thì “…” (rê chuột xem đủ) */
+/* (1.80.40) ô chọn gia sư (hộp Đổi gia sư): gợi ý thả xuống tìm theo tên / email */
+.ct-pk{ position:relative } .ct-sug{ position:absolute; left:0; right:0; top:100%; margin-top:4px; z-index:30; background:var(--surface,#fff); border:1px solid var(--border); border-radius:12px; box-shadow:0 10px 30px rgba(15,23,42,.14); padding:4px; max-height:280px; overflow:auto }
+.ct-si{ display:flex; flex-direction:column; align-items:flex-start; width:100%; text-align:left; padding:7px 10px; border:0; border-radius:8px; background:none; cursor:pointer; gap:1px } .ct-si b{ font-size:13.5px } .ct-si small{ font-size:12px; color:var(--muted) }
+.ct-si.on, .ct-si:hover{ background:var(--brand-50,#EEF2FF) } .ct-se{ padding:9px 10px; font-size:12.5px; color:var(--muted) }
 .cl-sub{ max-width:100%; white-space:nowrap; overflow:hidden; vertical-align:middle } .cl-sub > span{ overflow:hidden; text-overflow:ellipsis; min-width:0 }
 .cd-lay.one{ grid-template-columns:minmax(0,1fr) }
 .cl-ti > button[data-view]{ flex:1; min-width:0; display:flex; align-items:center; gap:7px; padding:7px 8px; border:0; border-radius:10px; background:none; text-align:left; cursor:pointer; color:var(--ink); font-size:12.5px }
@@ -14676,7 +14680,8 @@ function clOverlay(d) {
   const P = fn => obPending(fn, true);       // lệnh đang chờ gửi + lệnh vừa lưu xong mà bản tải về chưa chắc đã có
   const C = {}; d.classes.forEach(c => { C[c.id] = c; });
   const X = {}; d.sessions.forEach(x => { X[x.id] = x; });
-  d.sessions.forEach(x => { const o = x.sub, c = o && o.e && C[x.classId]; if (!c) return;      // (1.80.27) “dạy thay” trỏ đúng gia sư chính / gia sư kèm của lớp (dấu cũ trước khi đổi gia sư) → không phải dạy thay
+  d.sessions.forEach(x => { const o = x.sub, c = o && !o.hist && C[x.classId]; if (!c) return;      // (1.80.27) “dạy thay” trỏ đúng gia sư chính / gia sư kèm của lớp (dấu cũ trước khi đổi gia sư) → không phải dạy thay
+    if (!o.e) { if (o.n && (clTutSame(o.n, c.tutorName) || (c.cotutor || []).some(t => clTutSame(o.n, t.n)))) x.sub = null; return; }      // (1.80.40) KGS chỉ ghi tên ngắn (“Phạm Thành”) của chính gia sư lớp (“Thành Phạm Quang”) → không phải dạy thay
     const em = String(o.e).toLowerCase(); if (String(c.tutorEmail || '').toLowerCase() === em || (c.cotutor || []).some(t => String(t.e || '').toLowerCase() === em)) x.sub = null; });
   const autoOn = new Set();
   P('classSave').forEach(p => (p.items || []).forEach(it => { const c = C[it.id]; if (c) { if ('programId' in it.patch) c.plock = clPkAfter(c, it.patch.programId); Object.assign(c, it.patch); if ('autoOk' in it.patch) { c.autoOk = it.patch.autoOk ? 1 : 0; if (c.autoOk) autoOn.add(c.id); } } }));
@@ -17657,6 +17662,13 @@ async function tnSetup(after) {
    Đồng bộ KGS tự đổi khi biết email người đó; KGS chỉ ghi tên mà chưa khớp tài khoản (hoặc lớp có lịch riêng) → đề xuất ở đây, bấm một lần là đổi:
    người mới thấy lớp ngay (không phải “Tìm lớp” / xin nhận lớp), buổi đã qua vẫn ghi người cũ đã dạy. → { e, n, cnt } | null (e rỗng = chưa biết email) */
 function clTutKey(s) { return fold(s).replace(/\s+/g, ' ').trim(); }
+/** (1.80.40) cùng một người theo tên: tên ngắn nằm trọn trong tên dài, không kể thứ tự, có ít nhất 2 chữ chung (“Phạm Thành” ↔ “Thành Phạm Quang”) — giống tmNear_ ở máy chủ */
+function clTutSame(a, b) {
+  const A = clQToks(a), B = clQToks(b); if (A.length < 2 || B.length < 2) return false;
+  const [S, L] = A.length <= B.length ? [A, B] : [B, A], rest = L.slice(); let hit = 0;
+  S.forEach(t => { const i = rest.indexOf(t); if (i >= 0) { hit++; rest.splice(i, 1); } });
+  return hit >= 2 && hit === S.length;
+}
 function clTutSug(c) {
   if (!c || !CL.d || !CL.d.manage || (c.cotutor || []).length) return null;
   const up = clSess(c.id).filter(x => x.date >= CL.d.today && x.status !== 'off' && x.status !== 'taught');
@@ -17664,7 +17676,8 @@ function clTutSug(c) {
   const key = o => o.e ? String(o.e).toLowerCase() : 'n:' + clTutKey(o.n), k0 = key(up[0].sub);
   if (!up.every(x => key(x.sub) === k0)) return null;
   const o = up[0].sub, n = o.n || String(o.e).split('@')[0]; let e = String(o.e || '').toLowerCase();
-  if (!e) { const T = (CL.d.tutors || []).filter(t => t.email && clTutKey(t.name) === clTutKey(n)); if (T.length === 1) e = String(T[0].email).toLowerCase(); }      // KGS chỉ ghi tên → khớp tên gia sư đã có tài khoản (đúng một người)
+  if (!e && (clTutSame(n, c.tutorName) || (c.cotutor || []).some(t => clTutSame(n, t.n)))) return null;      // (1.80.40) tên KGS là tên ngắn của chính gia sư lớp → không đề xuất
+  if (!e) { const A = (CL.d.tutors || []).filter(t => t.email), X = A.filter(t => clTutKey(t.name) === clTutKey(n)), T = X.length ? X : A.filter(t => clTutSame(t.name, n)); if (T.length === 1) e = String(T[0].email).toLowerCase(); }      // trùng tên chính xác trước, không có mới xét tên ngắn / đảo thứ tự      // KGS chỉ ghi tên → khớp tên gia sư đã có tài khoản (đúng một người; tên ngắn / đảo thứ tự cũng được)
   if (e && e === String(c.tutorEmail || '').toLowerCase()) return null;
   return { e: e, n: n, cnt: up.length };
 }
@@ -17682,7 +17695,7 @@ function clTutSugGo(c, done) {
 function clTutorSet(c, em, nm, why, hist) {
   const patch = { tutorEmail: em, tutorName: nm }, k = clTutKey(nm);
   Object.assign(c, patch); delete CL_LES[c.id];
-  clSess(c.id).forEach(x => { if (x.sub && !x.sub.hist && x.date >= CL.d.today && x.status !== 'taught' && (String(x.sub.e || '').toLowerCase() === em || (!x.sub.e && k && clTutKey(x.sub.n) === k))) x.sub = null; });      // người mới không còn là “dạy thay” ở buổi sắp tới
+  clSess(c.id).forEach(x => { if (x.sub && !x.sub.hist && x.date >= CL.d.today && x.status !== 'taught' && (String(x.sub.e || '').toLowerCase() === em || (!x.sub.e && k && (clTutKey(x.sub.n) === k || clTutSame(x.sub.n, nm))))) x.sub = null; });      // người mới không còn là “dạy thay” ở buổi sắp tới
   clQueue('classSave', { items: [{ id: c.id, patch: patch, twhy: why || '', hist: hist ? 1 : 0 }] }, { label: 'Đổi gia sư · ' + c.code });
 }
 /** (1.57) ĐỔI GIA SƯ: chọn người dạy mới + lý do (không bắt buộc) → lưu vào Lịch sử đổi gia sư của lớp, các buổi và tiến trình học giữ nguyên
@@ -17690,18 +17703,36 @@ function clTutorSet(c, em, nm, why, hist) {
 function clTutorDlg(c, done, pre) {
   pre = pre || {};
   const T = CL.d.tutors || [];
-  modal({ title: (c.tutorEmail ? 'Đổi' : 'Gán') + ' gia sư', icon: 'bi-person-badge', body: '<div class="stack"><div class="cl-rmh n"><b>' + esc(clName(c)) + '</b><span class="cl-cd">' + esc(c.code) + '</span></div>' +
+  const m = modal({ title: (c.tutorEmail ? 'Đổi' : 'Gán') + ' gia sư', icon: 'bi-person-badge', body: '<div class="stack"><div class="cl-rmh n"><b>' + esc(clName(c)) + '</b><span class="cl-cd">' + esc(c.code) + '</span></div>' +
       '<div class="small muted">Đang dạy: <b>' + esc(c.tutorName || c.tutorEmail || 'chưa có') + '</b>. Các buổi học và tiến trình học của bé giữ nguyên.</div>' +
-      '<div class="fg"><label class="flabel">Email gia sư mới *</label><input class="inp" id="ctE" type="email" list="ctL" autofocus placeholder="Gõ tên hoặc email"><datalist id="ctL">' + T.map(t => '<option value="' + esc(t.email) + '">' + esc(t.name) + '</option>').join('') + '</datalist></div>' +
+      '<div class="fg ct-pk"><label class="flabel">Gia sư mới *</label><input class="inp" id="ctE" autocomplete="off" autofocus placeholder="Gõ tên (thứ tự nào cũng được) hoặc email" value="' + esc(pre.n || '') + '"><div class="ct-sug" id="ctS" role="listbox" hidden></div></div>' +
       '<div class="fg"><label class="flabel">Tên gia sư</label><input class="inp" id="ctN" value="' + esc(pre.n || '') + '"></div>' +
       '<div class="fg"><label class="flabel">Lý do <span class="opt">không bắt buộc — lưu vào lịch sử</span></label><textarea class="ta" id="ctW" rows="2" maxlength="300" placeholder="VD: Gia sư cũ bận lịch · Phụ huynh đề nghị đổi">' + esc(pre.why || '') + '</textarea></div></div>',
     foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: c.tutorEmail ? 'Đổi gia sư' : 'Gán gia sư', i: 'bi-check2', cls: 'pri', fn: m => {
       const em = m.$('#ctE').value.trim().toLowerCase();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { toast('Nhập email gia sư mới', 'warn'); m.$('#ctE').focus(); return false; }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { toast('Chọn gia sư trong danh sách gợi ý, hoặc nhập email', 'warn'); m.$('#ctE').focus(); return false; }
       if (em === String(c.tutorEmail || '').toLowerCase()) { toast('Đây đang là gia sư của lớp', 'warn'); return false; }
       clTutorSet(c, em, m.$('#ctN').value.trim() || (T.find(t => t.email === em) || {}).name || '', m.$('#ctW').value.trim(), pre.hist);
       toast('Đã đổi gia sư lớp ' + c.code); done && done();
-    } }] }).$('#ctE').onchange = e => { const t = T.find(x => x.email === e.target.value.trim().toLowerCase()), n = document.getElementById('ctN'); if (t && n) n.value = t.name; };
+    } }] });
+  /* (1.80.40) Ô CHỌN GIA SƯ: gõ tên theo thứ tự nào cũng được (“Phạm Thành” ra “Thành Phạm Quang”), một phần email cũng được — trước dùng gợi ý sẵn của trình duyệt (datalist) chỉ khớp chuỗi liền nên gõ tên không ra */
+  const E = m.$('#ctE'), SG = m.$('#ctS'), N = m.$('#ctN'); let hi = 0, L = [];
+  const score = t => { const W = clQWords(E.value); if (!W.length) return 0; const sc = clQScore([t.name], [t.email], W); return sc || (clTutSame(E.value, t.name) ? 2 : 0); };
+  const pick = t => { E.value = t.email; N.value = t.name || N.value; SG.hidden = true; };
+  const draw = () => { const v = E.value.trim(); if (!v || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) && T.some(t => t.email === v.toLowerCase())) { SG.hidden = true; return; }
+    L = T.map(t => ({ t: t, s: score(t) })).filter(o => o.s > 0 && o.t.email !== String(c.tutorEmail || '').toLowerCase()).sort((a, b) => b.s - a.s || String(a.t.name).localeCompare(String(b.t.name), 'vi')).slice(0, 8).map(o => o.t); hi = Math.min(hi, Math.max(0, L.length - 1));
+    SG.innerHTML = L.length ? L.map((t, i) => '<button type="button" class="ct-si' + (i === hi ? ' on' : '') + '" data-i="' + i + '"><b>' + esc(t.name || t.email.split('@')[0]) + '</b><small>' + esc(t.email) + '</small></button>').join('')
+      : '<div class="ct-se">' + (/@/.test(v) ? 'Gia sư mới — sẽ được cấp vai trò Gia sư khi lưu' : 'Không thấy gia sư tên này — nhập email để gán người mới') + '</div>';
+    SG.hidden = false; };
+  E.addEventListener('input', () => { hi = 0; draw(); });
+  E.addEventListener('focus', draw);
+  E.addEventListener('keydown', e => { if (SG.hidden || !L.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); hi = (hi + (e.key === 'ArrowDown' ? 1 : L.length - 1)) % L.length; draw(); }
+    else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); pick(L[hi]); }
+    else if (e.key === 'Escape') { e.stopPropagation(); SG.hidden = true; } });
+  SG.addEventListener('mousedown', e => { const b = e.target.closest('[data-i]'); if (!b) return; e.preventDefault(); pick(L[Number(b.dataset.i)]); });
+  E.addEventListener('blur', () => setTimeout(() => { SG.hidden = true; }, 120));
+  if (E.value) { E.setSelectionRange(E.value.length, E.value.length); setTimeout(draw, 50); }
 }
 
 /* ══════════ XOÁ LỚP: quản lý xác nhận rồi xoá · gia sư nhập lý do → yêu cầu chờ duyệt ══════════ */
