@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T09:19:11.848Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T10:09:34.404Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -2892,6 +2892,13 @@ html{ touch-action:manipulation; -webkit-tap-highlight-color:transparent }
 .cd-more{ width:40px; height:40px; border-radius:50% !important; flex-shrink:0; font-size:18px }
 .cd-meta{ font-size:13px } .cd-acts{ display:flex; gap:8px; flex-wrap:wrap }
 .cl-rqb{ width:100%; cursor:pointer; text-align:left; font:inherit; align-items:center }
+/* (1.80.43) thanh yêu cầu ở trang bé: duyệt / từ chối ngay tại chỗ */
+.cl-rqp{ cursor:default; align-items:flex-start } .cl-rqp > i{ margin-top:2px }
+.cl-rqh{ display:flex; align-items:center; justify-content:space-between; gap:8px } .cl-rqh a{ display:inline-flex; align-items:center; gap:2px; font-size:12px; color:inherit; opacity:.8; cursor:pointer; white-space:nowrap } .cl-rqh a:hover{ opacity:1; text-decoration:underline }
+.cl-rqi{ display:flex; align-items:center; gap:10px; padding:8px 0 2px; border-top:1px dashed #F0D99B; margin-top:6px }
+.cl-rqm{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px } .cl-rqm > b{ font-size:12.5px } .cl-rqm > span{ font-size:12.5px; color:var(--ink); overflow-wrap:anywhere } .cl-rqm small{ opacity:.75 }
+.cl-rqa{ display:flex; gap:6px; flex:none }
+@media (max-width:560px){ .cl-rqi{ flex-wrap:wrap } .cl-rqa{ width:100%; justify-content:flex-end } }
 .cl-rqb > span{ flex:1; min-width:0; display:flex; flex-direction:column } .cl-rqb small{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .seg.cd-tabs{ display:none }
 @media (max-width:900px){
@@ -17064,7 +17071,7 @@ function clDetail(B, v, id) {
         (man || canPrint ? '<span class="cd-act">' + (man ? '<button type="button" class="btn xs cd-asg" id="cdAsg" title="Bảng gán bài: kéo thả bài cho nhiều buổi, đẩy lùi, hoàn tác"><i class="bi bi-grid-3x3-gap"></i><span class="cd-bl">Gán bài</span></button>' : '') +
           (canPrint ? '<button class="btn xs pri" id="cdPrint" title="In gộp ' + nPrint + ' buổi đã duyệt chưa dạy"><i class="bi bi-printer"></i><span class="cd-bl">In gộp </span>' + nPrint + '<span class="cd-bl"> buổi</span></button>' : '') + '</span>' : '') + '</div></div>' +
       clKaHtml(c) + clSnHtml(c) + (man && c.kname ? '<div class="cl-np cl-knm"><i class="bi bi-person-exclamation"></i><span>Tên bé bên Kiến Gia Sư là <b>' + esc(c.kname) + '</b>, ở đây đang là <b>' + esc(c.student || c.code) + '</b>.</span><button class="btn xs pri" id="cdKnm"><i class="bi bi-arrow-repeat"></i>Đổi theo KGS</button></div>' : '') + clTutSugHtml(c) + (man && clKgsOrphans(c).length > 1 ? '<div class="cl-np cl-kdbar"><i class="bi bi-calendar-x"></i><span><b>' + clKgsOrphans(c).length + ' buổi không có bên KGS</b> (KGS không có buổi cùng ngày) — nên xoá để lịch khớp KGS.</span><button class="btn xs" id="cdKdel"><i class="bi bi-trash3"></i>Xoá hết</button></div>' : '') +      // (1.74) lưu ý đặc biệt của bé · (1.75) nhờ gia sư xác nhận kiến thức
-      (rq.length ? '<button class="cl-rqb" data-go="classes/reqs"><i class="bi bi-hourglass-split"></i><span><b>' + rq.length + ' yêu cầu chờ duyệt</b><small>' + rq.map(q => esc(q.label)).join(' · ') + '</small></span><i class="bi bi-chevron-right"></i></button>' : '') +
+      (rq.length ? (man ? clReqPanel(rq) : '<button class="cl-rqb" data-go="classes/reqs"><i class="bi bi-hourglass-split"></i><span><b>' + rq.length + ' yêu cầu chờ duyệt</b><small>' + rq.map(q => esc(q.label)).join(' · ') + '</small></span><i class="bi bi-chevron-right"></i></button>') : '') +
       '<div class="seg cd-tabs" id="cdTabs"><button class="seg-b cd-tab" data-pane="s" aria-pressed="' + (pane === 's') + '">Buổi học <small>' + (notOut.length + out.length) + '</small></button><button class="seg-b cd-tab" data-pane="l" aria-pressed="' + (pane === 'l') + '">' + (man ? 'Bài trong chương trình' : 'Tiến trình học') + '</button></div>' +
       '<div class="cd-lay' + (man ? '' : p ? ' tut' : ' one') + '" data-pane="' + pane + '">' +
       '<section class="card cd-col cd-s"><div class="lk-ch"><span class="lk-cn"><i class="bi bi-calendar3"></i></span><div><b>Buổi học</b><small>' + notOut.length + ' chưa phát · ' + out.length + ' đã phát</small></div></div><div class="cd-sess">' +
@@ -17125,7 +17132,9 @@ function clDetail(B, v, id) {
     $('#cdMore', B).onclick = e => more(e.currentTarget);
     { const ab = $('#cdArch', B); if (ab) ab.onclick = () => clArchLoad(c.id, ab); }
     { const kd = $('#cdKdel', B); if (kd) kd.onclick = () => clKgsDel(c, clKgsOrphans(c)); }      // (1.80.9)
-    { const ts = $('#cdTsug', B); if (ts) ts.onclick = () => clTutSugGo(c, () => { CL.repaint && CL.repaint(); }); }      // (1.80.38) đề xuất đổi gia sư chính
+    { const ts = $('#cdTsug', B); if (ts) ts.onclick = () => clTutSugGo(c, () => { CL.repaint && CL.repaint(); }); }
+    { const rp = $('.cl-rqp', B); if (rp) rp.onclick = e => { const b = e.target.closest('[data-rqok],[data-rqno]'); if (!b) return; e.preventDefault(); e.stopPropagation();      // (1.80.43) duyệt ngay trong trang bé
+      clReqDecide([b.dataset.rqok || b.dataset.rqno], b.dataset.rqok ? 'approve' : 'reject', b); }; }      // (1.80.38) đề xuất đổi gia sư chính
     { const kn = $('#cdKnm', B); if (kn) kn.onclick = () => { const nm = c.kname; c.student = nm; c.kname = ''; clQueue('classStudent', { id: c.id, student: nm }, { label: 'Đổi tên bé theo KGS · ' + nm }); toast('Đã đổi tên bé thành ' + nm, 'ok'); CL.repaint && CL.repaint(); }; }      // (1.80.20)      // (1.80.8)
     const cai = $('#cdAi', B); if (cai) cai.onclick = () => aiTaskModal([c.id], clName(c));      // (1.77) Trợ lý AI cho bé này
     const pr = $('#cdPrint', B); if (pr) pr.onclick = () => clPrintAll(c, pr);
@@ -17308,6 +17317,26 @@ function tnUnread() {
 }
 
 /* ══════════ YÊU CẦU CHỜ DUYỆT: thay đổi của gia sư chỉ áp dụng khi quản lý duyệt ══════════ */
+/** (1.80.43) THANH YÊU CẦU Ở TRANG BÉ (quản lý): mỗi yêu cầu một dòng — nội dung gia sư xin đổi + nút Từ chối / Duyệt ngay tại chỗ, khỏi sang trang Yêu cầu */
+function clReqPanel(rq) {
+  return '<div class="cl-rqb cl-rqp"><i class="bi bi-hourglass-split"></i><div><div class="cl-rqh"><b>' + rq.length + ' yêu cầu chờ duyệt</b><a data-go="classes/reqs" title="Mở trang Yêu cầu">Tất cả yêu cầu<i class="bi bi-chevron-right"></i></a></div>' +
+    rq.map(q => '<div class="cl-rqi" data-rqid="' + esc(q.id) + '"><span class="cl-rqm"><b>' + esc(q.label) + '</b>' + (q.summary ? '<span>' + esc(q.summary) + '</span>' : '') +
+      '<small>' + esc(q.byName || q.by || '') + (q.createdAt ? ' · gửi ' + esc(ago(q.createdAt)) : '') + '</small></span>' +
+      '<span class="cl-rqa"><button type="button" class="btn xs" data-rqno="' + esc(q.id) + '"><i class="bi bi-x-lg"></i>Từ chối</button><button type="button" class="btn xs pri" data-rqok="' + esc(q.id) + '"><i class="bi bi-check2"></i>Duyệt</button></span></div>').join('') + '</div></div>';
+}
+/** duyệt / từ chối yêu cầu ngay (trang bé): đổi liền trên máy, máy chủ áp dụng ngầm qua hàng đợi ghi — xong tự tải lại lớp để thấy thay đổi đã áp dụng */
+async function clReqDecide(ids, act, btn) {
+  let note = '';
+  if (act === 'reject') { note = prompt('Lý do từ chối (gia sư sẽ thấy) — có thể để trống', ''); if (note === null) return; }
+  if (btn) await clFlash(btn, act === 'reject' ? 'Đã từ chối' : 'Đã duyệt', act === 'reject' ? 'bad' : 'ok');
+  const now = new Date().toISOString(), set = r => { if (r && ids.indexOf(r.id) >= 0 && r.status === 'pending') { r.status = act === 'reject' ? 'rejected' : 'approved'; r.decidedAt = now; r.note = note || ''; } };
+  (CL.d.reqs || []).forEach(set); CL.d.reqs = (CL.d.reqs || []).filter(r => r.status === 'pending' || !CL.d.manage);
+  const ck = 'reqCache:' + (S.me && S.me.email) + (S.as || ''), L = lsGet(ck, null); if (Array.isArray(L)) { L.forEach(set); lsSet(ck, L); }      // trang Yêu cầu mở sau cũng thấy đã xử lý
+  clKeep(); clBadge(); CL.repaint && CL.repaint();
+  toast(act === 'reject' ? 'Đã từ chối — gia sư sẽ nhận thông báo' : 'Đã duyệt — đang áp dụng, gia sư sẽ nhận thông báo', 'ok', 3000);
+  clQueue('reqDecide', { ids: ids, act: act, note: note }, { label: (act === 'reject' ? 'Từ chối ' : 'Duyệt ') + ids.length + ' yêu cầu' })
+    .then(r => { if (r && r.failed) toast('Chưa áp dụng được: ' + (r.errors || [])[0], 'warn', 7000); }).catch(e => toast('Chưa lưu được — ' + e.message, 'err', 7000));
+}
 const RQ_ST = { pending: ['Chờ duyệt', 'warn', 'bi-hourglass-split'], approved: ['Đã duyệt', 'ok', 'bi-check2-circle'], rejected: ['Từ chối', 'bad', 'bi-x-circle'] };
 const RQ_IC = { classRemove: 'bi-trash', classAdd: 'bi-person-plus', classMine: 'bi-pencil-square', classStudent: 'bi-person', classStart: 'bi-flag', sessionSave: 'bi-calendar-event' };
 async function clReqs(B, v) {
