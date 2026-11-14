@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-13T18:53:09.588Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T00:22:22.379Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -19248,6 +19248,7 @@ async function apPreview(x) {
 .td-w{ min-width:118px; display:flex; flex-direction:column } .td-w small{ font-size:11.5px; color:var(--muted) } .td-w small.late{ color:var(--danger); font-weight:600 } .td-w small.soon{ color:var(--warn); font-weight:600 }
 .td-m{ flex:1; min-width:0; display:flex; flex-direction:column; gap:4px } .td-who a{ font-weight:600; color:var(--ink); text-decoration:none } .td-who a.td-gs{ font-weight:500; color:var(--ink-2) } .td-who a:hover{ text-decoration:underline }
 .td-b{ display:flex; flex-wrap:wrap; gap:6px } .td-b span{ display:inline-flex; gap:5px; align-items:center; font-size:12.5px; padding:3px 9px; border-radius:8px; background:var(--surface-2, var(--surface)); border:1px solid var(--border) }
+.td-warn{ display:flex; gap:6px; align-items:flex-start; font-size:12px; color:var(--warn); background:color-mix(in oklab, var(--warn) 10%, var(--surface)); border:1px solid color-mix(in oklab, var(--warn) 35%, var(--border)); border-radius:8px; padding:4px 9px; width:fit-content } .td-warn.cu{ color:var(--danger); background:color-mix(in oklab, var(--danger) 9%, var(--surface)); border-color:color-mix(in oklab, var(--danger) 35%, var(--border)) }
 .td-g{ border-bottom:6px solid var(--surface-2, var(--border)) } .td-gh{ display:flex; align-items:center; gap:10px; padding:12px 16px 6px } .td-gh > div{ flex:1; display:flex; flex-direction:column } .td-gh small{ color:var(--muted); font-size:12px } .td-gh a{ color:inherit; text-decoration:none }
 @media (max-width:640px){ .td-r{ flex-wrap:wrap } .td-w{ min-width:0; flex-direction:row; gap:8px; align-items:baseline } }
 .ax-tl.wait{ border-style:dashed } .ax-tl.wait > i{ color:var(--muted) }
@@ -19720,13 +19721,14 @@ function aiShow(v, arg) {
 /* ═════════════ (1.80.35) CẦN DUYỆT — các buổi có bài NHÁP (AI / tự xếp) chờ quản lý duyệt, 30 ngày tới.
    Thứ tự = HẠN IN của Điều độ (theo lịch tới cơ sở của gia sư: in tại cơ sở / ghé cơ sở / gửi QLTT) rồi giờ học → buổi gấp duyệt trước.
    Mỗi buổi hiện bài nháp + nút Duyệt; “Theo bé” gom từng bé (duyệt cả bé một lần). Bấm tên bé / gia sư → cửa sổ xem nhanh. ═════════════ */
-const AITD = { by: '', d: null, at: 0 };
+const AITD = { by: '', d: null, at: 0, w: {}, busy: {} };
 function aiTdKey() { return 'aiTodo:' + (S.me && S.me.email || ''); }
 async function aiTodoView(body) {
   if (!AITD.by) { try { AITD.by = localStorage.getItem('ktcm.aiTodoBy') || 'time'; } catch (e) { AITD.by = 'time'; } }
   if (!AITD.d) AITD.d = lsGet(aiTdKey(), null);
   if (AITD.d) aiTodoPaint(body); else body.innerHTML = '<div class="ax-card"><div class="ax-cb" style="padding:36px">' + aiThink('rep', '', ['Đang đọc các buổi chờ duyệt', 'Đang xếp theo hạn in và giờ học']) + '</div></div>';
   if (AITD.at && Date.now() - AITD.at < 60000) return;
+  rpc('aiTodoCheck', {}, { quiet: true }).then(r => { AITD.w = r.warn || {}; if (AITD.d && body.isConnected) aiTodoPaint(body); }, () => {});      // kiểm bài nháp bất hợp lý (bài cũ / trễ trường) — song song
   try { const d = await rpc('schedPlan', { days: 30 }, { quiet: true }); AITD.d = d; AITD.at = Date.now(); lsSet(aiTdKey(), d); if (body.isConnected) aiTodoPaint(body); }
   catch (e) { if (!AITD.d && body.isConnected) body.innerHTML = '<div class="ax-card"><div class="empty" style="padding:40px">' + esc(e.message) + '</div></div>'; }
 }
@@ -19736,27 +19738,47 @@ function aiTodoPaint(body) {
   const lv = r => !r.dl ? '' : r.dl < now ? 'late' : r.dl - now < 24 * 3600000 ? 'soon' : '';
   const item = r => '<div class="td-r ' + lv(r) + '" data-tdr="' + r.sid + '"><div class="td-w"><b>' + esc(day(r.d, r.t)) + '</b>' + (r.dl ? '<small class="' + lv(r) + '">hạn in ' + esc(left(r.dl)) + '</small>' : '') + '</div>' +
     '<div class="td-m">' + (AITD.by === 'kid' ? '' : '<div class="td-who"><a href="#" data-kid="' + esc(r.cid) + '">' + esc(r.be) + '</a> · <a href="#" class="td-gs" data-tut="' + esc(r.ge) + '">' + esc(r.gs) + '</a>' + (r.campus ? ' · <span class="muted">' + esc(r.campus) + '</span>' : '') + '</div>') +
-      '<div class="td-b">' + ((r.bai || []).length ? r.bai.map(n => '<span><i class="bi bi-journal-text"></i>' + esc(n) + '</span>').join('') : '<span class="muted"><i class="bi bi-paperclip"></i>chỉ có tệp thêm</span>') + (r.extra ? '<span class="muted">+' + r.extra + ' tệp thêm</span>' : '') + '</div></div>' +
+      '<div class="td-b">' + ((r.bai || []).length ? r.bai.map(n => '<span><i class="bi bi-journal-text"></i>' + esc(n) + '</span>').join('') : '<span class="muted"><i class="bi bi-paperclip"></i>chỉ có tệp thêm</span>') + (r.extra ? '<span class="muted">+' + r.extra + ' tệp thêm</span>' : '') + '</div>' +
+    (AITD.w[r.sid] ? '<div class="td-warn ' + AITD.w[r.sid].k + '"><i class="bi bi-exclamation-triangle"></i>' + esc(AITD.w[r.sid].t) + '</div>' : '') + '</div>' +
+    (AITD.by === 'kid' ? '' : '<button class="btn sm ghost" data-tdai="' + esc(r.cid) + '"' + (AITD.busy[r.cid] ? ' disabled' : '') + ' title="AI đọc lại bài nháp của bé và gán lại cho hợp lý"><i class="bi bi-arrow-repeat"></i>' + (AITD.busy[r.cid] ? 'Đang gán lại…' : 'Gán lại') + '</button>') +
     '<button class="btn sm pri" data-tdap="' + r.sid + '"><i class="bi bi-check2"></i>Duyệt</button></div>';
   let list;
   if (AITD.by === 'kid') { const G = {}, O = []; R.forEach(r => { if (!G[r.cid]) { G[r.cid] = []; O.push(r.cid); } G[r.cid].push(r); });
     list = O.map(cid => { const L = G[cid], r0 = L[0]; return '<div class="td-g"><div class="td-gh"><div><a href="#" data-kid="' + esc(cid) + '"><b>' + esc(r0.be) + '</b></a><small>' + esc(r0.code || '') + ' · <a href="#" data-tut="' + esc(r0.ge) + '">' + esc(r0.gs) + '</a> · ' + L.length + ' buổi chờ duyệt</small></div>' +
+      '<button class="btn sm ghost" data-tdai="' + esc(cid) + '"' + (AITD.busy[cid] ? ' disabled' : '') + ' title="AI đọc lại bài nháp của bé và gán lại cho hợp lý"><i class="bi bi-arrow-repeat"></i>' + (AITD.busy[cid] ? 'Đang gán lại…' : 'AI gán lại') + '</button>' +
       '<button class="btn sm" data-tdap="' + L.map(r => r.sid).join(',') + '"><i class="bi bi-check2-all"></i>Duyệt cả ' + L.length + ' buổi</button></div>' + L.map(item).join('') + '</div>'; }).join(''); }
   else list = R.map(item).join('');
-  const urgent = R.filter(r => r.dl && r.dl - now < 24 * 3600000);
+  const urgent = R.filter(r => r.dl && r.dl - now < 24 * 3600000), wk = [...new Set(R.filter(r => AITD.w[r.sid]).map(r => r.cid))];
   body.innerHTML = '<div class="ax-card td"><div class="td-h"><div><b>Cần duyệt</b><small>' + (R.length ? R.length + ' buổi có bài nháp chờ duyệt · 30 ngày tới · xếp theo hạn in (lịch gia sư tới cơ sở) rồi giờ học' : 'Không có buổi nào chờ duyệt') + '</small></div>' +
     '<div class="seg td-seg"><button class="seg-b' + (AITD.by !== 'kid' ? ' on' : '') + '" data-tdby="time"><i class="bi bi-clock"></i>Theo hạn</button><button class="seg-b' + (AITD.by === 'kid' ? ' on' : '') + '" data-tdby="kid"><i class="bi bi-person"></i>Theo bé</button></div>' +
+    (wk.length ? '<button class="btn sm" data-tdai="' + wk.join(',') + '" title="Bé có bài nháp bị gắn cảnh báo (bài cũ / trễ xa so với trường / bài đã bỏ qua) — AI đọc lại và gán lại"><i class="bi bi-arrow-repeat"></i>AI gán lại ' + wk.length + ' bé có cảnh báo</button>' : '') +
     (urgent.length ? '<button class="btn sm pri" data-tdap="' + urgent.map(r => r.sid).join(',') + '"><i class="bi bi-lightning-charge"></i>Duyệt ' + urgent.length + ' buổi gấp (≤ 24 giờ)</button>' : '') + '<button class="ibtn" data-tdre title="Tải lại"><i class="bi bi-arrow-clockwise"></i></button></div>' +
     (R.length ? '<div class="td-l">' + list + '</div>' : '<div class="empty" style="padding:40px"><i class="bi bi-check2-circle"></i>Đã duyệt hết — không còn bài nháp nào chờ.</div>') + '</div>';
   body.onclick = e => {
     const by = e.target.closest('[data-tdby]'); if (by) { AITD.by = by.dataset.tdby; try { localStorage.setItem('ktcm.aiTodoBy', AITD.by); } catch (er) {} return aiTodoPaint(body); }
     if (e.target.closest('[data-tdre]')) { AITD.at = 0; return aiTodoView(body); }
+    const ra = e.target.closest('[data-tdai]'); if (ra) return aiTodoRedo(body, ra.dataset.tdai.split(',').filter(Boolean));
     const ap = e.target.closest('[data-tdap]'); if (!ap) return;
     const ids = ap.dataset.tdap.split(',').filter(Boolean); if (!ids.length) return;
     clQueue('sessionApprove', { ids: ids }, { label: 'Duyệt ' + ids.length + ' buổi (Trợ lý AI › Cần duyệt)' });
     (AITD.d.rows || []).forEach(r => { if (ids.indexOf(r.sid) >= 0) r.need = 'ok'; }); lsSet(aiTdKey(), AITD.d);
     toast('Đã duyệt ' + ids.length + ' buổi — phát cho gia sư', 'ok'); aiTodoPaint(body);
   };
+}
+/** (1.80.35) AI GÁN LẠI bài nháp của các bé (không duyệt): lời dặn tuỳ chọn · giữ mọi chốt (strict: không bài cũ / bài bỏ qua / trễ xa trường) · kết quả vẫn là NHÁP chờ duyệt */
+function aiTodoRedo(body, cids) {
+  const base = 'Đọc lại các buổi NHÁP sắp tới của bé và đánh giá đã hợp lý chưa (so với bài bé đã học / đã duyệt, nội dung gia sư ghi bên KGS, tiến độ trên trường). Bài nào cũ, trễ xa so với chương trình trên lớp, bị bỏ qua hoặc lệch mạch thì gán lại cho đúng tiến độ; buổi đã hợp lý thì giữ nguyên.';
+  const m = modal({ title: 'AI gán lại · ' + cids.length + ' bé', icon: 'bi-arrow-repeat', body: '<div class="small muted" style="margin-bottom:8px">AI đọc lại bài nháp đã gán, tự suy luận cái nào chưa hợp lý rồi xếp lại. Kết quả vẫn là <b>nháp</b> — bạn xem lại ở đây rồi mới duyệt.</div>' +
+      '<textarea class="ta" id="tdTx" rows="3" placeholder="Dặn thêm (tuỳ chọn) — VD: bé đã học xong phân số, ưu tiên ôn tập trước kiểm tra giữa kỳ"></textarea>',
+    foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Giao AI gán lại', i: 'bi-arrow-repeat', cls: 'pri', fn: mm => {
+      const ex = (mm.$('#tdTx').value || '').trim(), text = base + (ex ? '\nQUẢN LÝ DẶN THÊM: ' + ex : '');
+      cids.forEach(c => { AITD.busy[c] = 1; }); aiTodoPaint(body);
+      const parts = []; for (let i = 0; i < cids.length; i += 6) parts.push(cids.slice(i, i + 6));
+      let left = parts.length; const done = () => { if (--left > 0) return; AITD.at = 0; AITD.busy = {}; toast('AI đã gán lại xong — xem các buổi nháp mới', 'ok', 5000); const b = document.querySelector('#aiBody'); if (b && AI.tab === 'todo') aiTodoView(b); };
+      parts.forEach(g => rpc('aiAssignPlan', { cids: g, days: 30, apply: 'draft', strict: 1, text: text }, { quiet: true })
+        .then(r => { if (r.log && AI_WAIT.test(r.log.status)) aiWatch(r.log.id, done); else { if (!r.log) toast(r.msg || 'Không có buổi nào để gán lại', 'info'); done(); } })
+        .catch(e => { toast(e.message, 'err'); done(); }));
+      toast('Đã giao AI gán lại ' + cids.length + ' bé — xong sẽ tự cập nhật', 'info', 4000); } }] });
 }
 /* ═════════════ (1.80.19) BÁO CÁO ĐIỀU HÀNH CHUYÊN MÔN — số tính thẳng từ dữ liệu (aiReport), nút “AI nhận định” hỏi Trợ lý ═════════════ */
 /** (1.80.20) khung AI ĐANG LÀM: mỗi việc một dòng luồng Nhận việc → AI đang đọc → Có kết quả → Đã áp dụng (bước hiện tại nhấp nháy) + việc lớn chia đợt + việc xong gần nhất */
