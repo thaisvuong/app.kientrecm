@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T16:45:56.367Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T17:05:21.061Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5219,7 +5219,7 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 /* (1.80.45) BÁO CÁO IN */
 .prp-bar, .prp-note, .prp-who, .prp-kpis, .prp-sec{ flex:none }      /* (1.80.47) khung nội dung là cột co giãn → các khối không được co (trước thanh lọc bị ép còn 20px, mất nút chọn khoảng ngày) */
 .prp-bar{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:10px 12px; margin-bottom:12px } .prp-dt{ display:inline-flex; align-items:center; gap:6px } .prp-dt .inp{ width:auto } .prp-tu{ flex:0 1 280px; width:auto; min-width:200px; max-width:100% }
-.prp-note{ display:flex; gap:8px; align-items:flex-start; padding:9px 12px; margin-bottom:12px; border-radius:12px; background:#FFF8E8; border:1px solid #F3DFAE; color:#7A5200; font-size:12.5px }
+.prp-note{ display:flex; gap:8px; align-items:flex-start; margin-bottom:12px; color:var(--muted); font-size:12.5px }
 .prp-who{ display:flex; align-items:center; gap:10px; margin-bottom:10px } .prp-who b{ font-size:15px }
 .prp-kpis{ margin-bottom:12px } .prp-kpis .kpi{ cursor:default } .prp-kpis .kpi:hover{ transform:none; box-shadow:none }
 .prp-sec{ margin-bottom:12px; padding-bottom:6px } .prp-sec .rp-h{ padding:12px 14px 8px } .prp-empty{ padding:18px 14px; color:var(--muted); font-size:13px }
@@ -6402,6 +6402,9 @@ async function presPing() {
     if (r && r.here && typeof TK !== 'undefined') { const bd = presData().bd, L = r.here.filter(e => e !== S.me.email).sort(), was = TK.here;
       TK.here = { bd: bd, L: L };
       if (!was || was.bd !== bd || was.L.join() !== L.join()) { const el = bd && $('.tk-ppl[data-ppl="' + bd + '"]'); if (el && typeof tkPeople === 'function') el.outerHTML = tkPeople(tkProj(bd)); } }      // chỉ vẽ lại cụm avatar
+    if (r && r.tv && typeof CL !== 'undefined' && CL.d && !CL.d.manage && !S.as) {      // (1.80.48) quản lý vừa gán / duyệt / đổi buổi của lớp mình → tải lại ngay (≤ 15 giây), không chờ chuyển trang
+      if (!PRES.tv) PRES.tv = r.tv;
+      else if (r.tv > PRES.tv) { PRES.tv = r.tv; clReload(Date.now()).then(x => { if (x !== 'same' && CL.repaint) { CL.repaint(); toast('Vừa có cập nhật buổi học / bài mới', 'info', 3000); } }).catch(() => {}); } }
     if (r && r.cmd === 'sync') { toast('Quản trị yêu cầu đồng bộ — đang lưu các thay đổi', 'info'); OB.q.forEach(x => { x.tries = 0; }); OB.hold = false; obFlush(); }
   } catch (e) {}
 }
@@ -18263,7 +18266,7 @@ async function clPbOpen(L, btn) {
     const V = vis(), byD = []; V.forEach(s => { const g = byD[byD.length - 1]; if (g && g.d === s.date) g.L.push(s); else byD.push({ d: s.date, L: [s] }); });
     body.innerHTML = '<div class="pb-top"><div class="pb-q" role="group" aria-label="Chọn nhanh">' + Object.keys(R).map(k => { const n = SS.filter(R[k][1]).length;
         return '<button type="button" class="chip-f' + (k === rg ? ' on' : '') + '" data-rg="' + k + '"' + (n ? '' : ' disabled') + '>' + R[k][0] + ' <span class="n">' + n + '</span></button>'; }).join('') + '</div>' +
-      '<div class="pb-hint"><i class="bi bi-shield-exclamation"></i><span>Tệp <b>lời giải / đáp án</b> không tích sẵn — không in cho học sinh. Cần thì tích lại. Mỗi bé ra <b>một link riêng</b>. Việc in (tệp nào, bao nhiêu trang) được <b>ghi lại cho báo cáo in</b> — xem ở <b>Báo cáo in</b>.</span></div></div>' +
+      '<div class="pb-hint"><i class="bi bi-shield-exclamation"></i><span>Tệp <b>lời giải / đáp án</b> không tích sẵn — không in cho học sinh. Cần thì tích lại. Mỗi bé ra <b>một link riêng</b>. Tệp in được ghi nhận và báo cáo cho Chuyên môn / Giáo vụ.</span></div></div>' +
       '<div class="pb-l">' + (byD.length ? byD.map(g => { const d = clDay(g.d, t);
         return '<div class="pb-d"><b>' + d.ws + ' ' + d.dm + '</b><small>' + esc(d.rel) + '</small></div>' + g.L.map(s => {
           const P = pick[s.id], n = s.files.filter(f => P[f.id]).length, dis = !s.print || !s.files.length;
@@ -18394,7 +18397,7 @@ async function clPrints(B, v) {
     const tName = one ? ((R.tutors.find(x => x.e === (st.tutor || R.tutor)) || {}).n || (R.opts.find(o => o.e === st.tutor) || {}).n || (man ? st.tutor : 'Bạn')) : '';
     const kpi = (l, v2, s2, ic, c) => '<div class="card kpi" style="--kc:' + c + '"><div class="kpi-l">' + l + '</div><div class="kpi-v">' + v2 + '</div><div class="kpi-s">' + s2 + '</div><span class="kpi-i"><i class="bi ' + ic + '"></i></span></div>';
     const legend = '<div class="prp-lg">' + Object.keys(kinds()).filter(k => A.k[k]).map(k => '<span><i style="background:' + PR_KC[k] + '"></i>' + esc(kinds()[k]) + ' <b>' + A.k[k] + '</b></span>').join('') + '</div>';
-    let h = head() + (!man ? '<div class="prp-note"><i class="bi bi-info-circle"></i>Mỗi lần bạn mở hộp in hoặc tải PDF ghép ở link tài liệu của lớp, hệ thống ghi lại <b>tệp nào, bao nhiêu trang</b> — quản lý xem được báo cáo này.</div>' : '') +
+    let h = head() + (!man ? '<div class="prp-note"><i class="bi bi-info-circle"></i>Tệp bạn in (tệp nào, bao nhiêu trang) được ghi nhận và báo cáo cho Chuyên môn / Giáo vụ.</div>' : '') +
       (one && man ? '<div class="prp-who"><button class="btn xs ghost" id="prBack"><i class="bi bi-arrow-left"></i>Tổng quan</button><b>' + esc(tName) + '</b></div>' : '') +
       '<div class="kpis prp-kpis">' + kpi('Lượt in', A.luot, A.pdf ? '+ ' + A.pdf + ' lần tải PDF ghép' : 'mở hộp in', 'bi-printer', '#2563EB') + kpi('Trang in', A.trang, legend ? 'theo loại phiếu bên dưới' : '', 'bi-files', '#0E9F6E') +
         kpi('Trang lời giải', A.dap, A.trang ? pct(A.dap, A.trang) + ' số trang in' : 'không in lời giải', 'bi-key', A.dap ? '#DC2626' : '#64748B') + kpi('Buổi đã phát có in', A.phat ? pct(A.coIn, A.phat) : '—', A.coIn + ' / ' + A.phat + ' buổi', 'bi-check2-square', '#7C3AED') + '</div>' +

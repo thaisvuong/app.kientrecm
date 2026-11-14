@@ -5115,7 +5115,7 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 /* (1.80.45) BÁO CÁO IN */
 .prp-bar, .prp-note, .prp-who, .prp-kpis, .prp-sec{ flex:none }      /* (1.80.47) khung nội dung là cột co giãn → các khối không được co (trước thanh lọc bị ép còn 20px, mất nút chọn khoảng ngày) */
 .prp-bar{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:10px 12px; margin-bottom:12px } .prp-dt{ display:inline-flex; align-items:center; gap:6px } .prp-dt .inp{ width:auto } .prp-tu{ flex:0 1 280px; width:auto; min-width:200px; max-width:100% }
-.prp-note{ display:flex; gap:8px; align-items:flex-start; padding:9px 12px; margin-bottom:12px; border-radius:12px; background:#FFF8E8; border:1px solid #F3DFAE; color:#7A5200; font-size:12.5px }
+.prp-note{ display:flex; gap:8px; align-items:flex-start; margin-bottom:12px; color:var(--muted); font-size:12.5px }
 .prp-who{ display:flex; align-items:center; gap:10px; margin-bottom:10px } .prp-who b{ font-size:15px }
 .prp-kpis{ margin-bottom:12px } .prp-kpis .kpi{ cursor:default } .prp-kpis .kpi:hover{ transform:none; box-shadow:none }
 .prp-sec{ margin-bottom:12px; padding-bottom:6px } .prp-sec .rp-h{ padding:12px 14px 8px } .prp-empty{ padding:18px 14px; color:var(--muted); font-size:13px }
@@ -5202,7 +5202,7 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
     }
     /* in: chỉ in ảnh các trang đã chuẩn bị; link không cho in → in ra trang trắng có thông báo */
     #printArea, .no-print-msg{ display:none }
-    .pk-hint{ font-size:12.5px; color:var(--ink-2); margin-bottom:10px } .pk-trk{ display:flex; gap:6px; align-items:flex-start; padding:7px 10px; border-radius:8px; background:#FFF8E8; color:#7A5200 } .pk-l{ display:flex; flex-direction:column; gap:6px }
+    .pk-hint{ font-size:12.5px; color:var(--ink-2); margin-bottom:10px } .pk-trk{ display:flex; gap:6px; align-items:flex-start; color:var(--muted); font-size:12px } .pk-trk i{ margin-top:1px } .pk-l{ display:flex; flex-direction:column; gap:6px }
     .pk-r{ display:flex; align-items:center; gap:6px; padding:6px 6px 6px 4px; border:1px solid var(--border); border-radius:12px; background:var(--surface) }
     .pk-r:not(.on){ opacity:.6 } .pk-r.drag{ opacity:.3 } .pk-r label{ flex:1; min-width:0; display:flex; align-items:center; gap:8px; cursor:pointer }
     .pk-h{ cursor:grab; color:var(--muted) } .pk-no{ width:24px; height:24px; flex-shrink:0; border-radius:8px; display:grid; place-items:center; font:800 11.5px var(--font-mono); background:var(--brand-700); color:#fff }
@@ -5707,7 +5707,8 @@ async function printAll(list) {
 function logPrint(kind, pairs) {
   if (!V.L || !V.L.track) return;
   const files = pairs.filter(x => x[1] > 0).map(x => ({ id: x[0].f.id, n: x[0].f.n, p: x[1] })); if (!files.length) return;
-  rpc('sharePrintLog', { t: TOKEN, kind: kind, files: files, ua: navigator.userAgent }).catch(() => {});
+  const pg = files.reduce((a, f) => a + f.p, 0);
+  rpc('sharePrintLog', { t: TOKEN, kind: kind, files: files, ua: navigator.userAgent }).then(r => { if (r && r.ok) toast('Đã ghi nhận ' + files.length + ' tệp in (' + pg + ' trang) — báo cáo cho Chuyên môn / Giáo vụ', 'info', 4500); }).catch(() => {});      // (1.80.48) báo gia sư lượt in đã được ghi
 }
 /* ── IN CÓ KIỂM SOÁT (link có giới hạn số lần in): hỏi lại, xin lượt in ở máy chủ (đếm cả khi chọn “Lưu thành PDF” trong hộp in —
    trang web không phân biệt được máy in thật với máy in PDF), đóng dấu tên link + lần in lên từng trang ── */
@@ -5736,7 +5737,7 @@ function printPick() {
   const bg = document.createElement('div'); bg.className = 'modal-bg';
   bg.innerHTML = '<div class="modal pk-m" role="dialog" aria-modal="true"><div class="modal-h"><h3><i class="bi bi-printer"></i>Chọn tệp để in</h3><button class="ibtn x" data-x aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
     '<div class="modal-b"><div class="pk-hint">Tích các tệp <b>cần in</b> · bỏ tích = chỉ xem, không in · kéo <i class="bi bi-grip-vertical"></i> hoặc dùng mũi tên để đổi thứ tự in.</div>' +
-      (V.L.track ? '<div class="pk-hint pk-trk"><i class="bi bi-info-circle"></i> Lượt in (tệp nào, bao nhiêu trang) được <b>ghi lại cho báo cáo in</b> của trung tâm — tính cả khi tải PDF ghép.</div>' : '') + '<div class="pk-l" id="pkL"></div></div>' +
+      (V.L.track ? '<div class="pk-hint pk-trk"><i class="bi bi-info-circle"></i><span>Tệp bạn in được ghi nhận và báo cáo cho Chuyên môn / Giáo vụ.</span></div>' : '') + '<div class="pk-l" id="pkL"></div></div>' +
     '<div class="modal-f pk-f"><button class="btn ghost sm" id="pkAll" title="Chọn tất cả" aria-label="Chọn tất cả"><i class="bi bi-check2-all"></i><span>Chọn tất cả</span></button><span style="flex:1"></span><button class="btn ghost pk-x" data-x>Huỷ</button><button class="btn" id="pkLk" aria-label="Link in" title="Sao chép link mở sẵn đúng các tệp & thứ tự này — gửi cho máy khác in"><i class="bi bi-link-45deg"></i><span>Link in</span></button>' + (V.L.pickDl ? '<button class="btn" id="pkDl" title="Tải PDF đã ghép" aria-label="Tải PDF"><i class="bi bi-download"></i><span>Tải PDF</span></button>' : '') + '<button class="btn pri" id="pkGo"><i class="bi bi-printer"></i><span>In</span></button></div></div>';
   document.body.appendChild(bg);
   const L = bg.querySelector('#pkL'), go = bg.querySelector('#pkGo');
