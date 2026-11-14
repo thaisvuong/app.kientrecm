@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T04:17:51.468Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T09:19:11.848Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -21009,7 +21009,10 @@ function aiSnapCard(c, sw, card) {
     '<div class="ai-opt"><div><b>Flow đã gắn file dữ liệu này làm nguồn</b><small>Bật: thư dặn AI tra file khi cần đếm / lọc nhiều bé hoặc dữ liệu trong thư bị rút gọn. Bật sau khi đã gắn file ở bước Ask Gemini.</small></div>' + (s ? sw('snapSrc', c.snapSrc, 'Flow đã gắn file dữ liệu') : '<small class="ax-muted">Tạo file trước</small>') + '</div>' +
     '<div class="ai-opt"><div><b>Flow đã gắn các Google Docs hướng dẫn làm nguồn</b><small>Bật: thư KHÔNG gửi nội dung tài liệu hướng dẫn nữa, chỉ gửi mục lục + link — AI tự tra trong nguồn. Mục viết tay (không có link Docs) vẫn gửi. Docs phải chia sẻ cho hộp thư flow.</small></div>' + sw('kbSrc', c.kbSrc, 'Flow đã gắn Docs hướng dẫn') + '</div>' +
     '<div class="ai-opt"><div><b>Cho Trợ lý tìm trên web (Hỏi AI)</b><small>' + (gem ? 'Gemini API: app tự bật Google Search cho Hỏi AI, câu trả lời kèm link nguồn web (Google có thể tính phí lượt tìm vượt hạn mức miễn phí — xem ở AI Studio).' : 'Flow qua mail: bật Web search ở bước Ask Gemini của flow Hỏi AI (giữ cả Workspace). Nếu Specific sources không còn ô Web search thì chọn All sources — file dữ liệu và Docs đã chia sẻ cho hộp thư flow nên Gemini vẫn đọc được (thư có sẵn link file).') +
-      ' Thư dặn AI: chỉ tìm thông tin công khai (chương trình SGK theo tuần, bộ sách, đề thi, kiến thức), KHÔNG đưa tên bé / gia sư vào câu tìm, dữ liệu app luôn ưu tiên, ghi rõ nguồn web. Gán bài, yêu cầu, nhận xét bài không tìm web.</small></div>' + sw('web', c.web, 'Cho Trợ lý tìm trên web') + '</div>');
+      ' Thư dặn AI: chỉ tìm thông tin công khai (chương trình SGK theo tuần, bộ sách, đề thi, kiến thức), KHÔNG đưa tên bé / gia sư vào câu tìm, dữ liệu app luôn ưu tiên, ghi rõ nguồn web. Gán bài, yêu cầu, nhận xét bài không tìm web.</small></div>' + sw('web', c.web, 'Cho Trợ lý tìm trên web') + '</div>' +
+    // (1.80.42) bộ SGK năm học này — AI nói “trên lớp đang học…” và tìm phân phối chương trình theo đúng bộ này
+    '<div class="ai-opt"><div><b>Bộ sách giáo khoa năm học này</b><small>Trợ lý nói “trên lớp bé đang học…” và tìm phân phối chương trình trên web theo đúng bộ này. Bé học bộ khác → dặn “Nhớ: bé … học sách Cánh diều” khi đã chọn bé.</small></div>' +
+      '<select class="sel" id="aiSach" style="width:auto">' + [['kntt', 'Kết nối tri thức'], ['ctst', 'Chân trời sáng tạo'], ['cd', 'Cánh diều']].map(o => '<option value="' + o[0] + '"' + ((c.sach || 'kntt') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>');
 }
 /** (1.80.34) GIA SƯ XIN LINK TẠM QUA TRỢ LÝ — hạn mức mỗi gia sư mỗi tuần (thứ Hai → Chủ nhật); quản lý không giới hạn */
 function aiTlCard(c, sw, card) {
@@ -21124,6 +21127,7 @@ function aiCfgView(body) {
     const s = e.target.closest('[data-sw]'); if (s) return save({ [s.dataset.sw]: s.checked ? 1 : 0 });
     if (e.target.name === 'aiMode') return save({ assign: e.target.value });
     const num = { aiDaysC: 'days', aiHour: 'hour', aiKeep: 'keepDays', aiWait: 'wait', aiEvery: 'every', aiFrom: 'from', aiTo: 'to', aiGap: 'gap', aiTutCap: 'tutCap', aiTlReq: 'tlReq', aiTlLinks: 'tlLinks', aiTlTopics: 'tlTopics', aiTlDays: 'tlDays' }[e.target.id]; if (num) return save({ [num]: Number(e.target.value) });
+    if (e.target.id === 'aiSach') return save({ sach: e.target.value }, 'Đã đổi bộ sách — Trợ lý dùng từ câu hỏi tiếp theo');
     if (e.target.id === 'aiRun') return save({ run: e.target.value }, e.target.value === 'off' ? 'Đã tắt tự chạy' : 'Đã đặt lịch tự chạy');
     if (e.target.closest('#aiFlows')) { F = flowsRead(); return; }
     if (e.target.closest('[data-fn]')) return save({ reqFns: $$('[data-fn]', body).filter(x => x.checked).map(x => x.dataset.fn) });
