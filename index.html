@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T00:28:52.461Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T02:02:52.192Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -1911,6 +1911,17 @@ details.adv > summary .bi{ font-size:11px; transition:transform var(--t-base) } 
 .cl-sh.clk{ cursor:pointer; user-select:none } .cl-sh .cv{ margin-left:auto; color:var(--muted) }
 .cd-sess .cl-sh{ padding:8px 4px 2px }
 .cd-sess .cl-row{ grid-template-columns:90px minmax(0,1fr) auto !important; padding:8px 10px; box-shadow:none }
+/* (1.80.38) khung Buổi học hẹp (trang bé, cột trái ~380px): 3 cột ép phần nội dung còn ~30px → chữ vỡ từng từ (“Dạy / thay: / Phạm…”).
+   Hẹp hơn 520px → dòng 2 tầng: ngày + nút ở trên, nội dung (bài, dạy thay, trạng thái) trải hết bề ngang ở dưới */
+.cd-sess{ container-type:inline-size; container-name:cdsess; width:100%; box-sizing:border-box }      /* khung cha căn giữa (align-items:center) → phải đặt rộng 100%, không thì vùng đo co về 0 */
+@container cdsess (max-width:520px){
+  .cd-sess .cl-row{ display:grid !important; grid-template-columns:minmax(0,1fr) auto !important; grid-template-areas:"rc ra" "rf rf"; gap:6px 8px !important; align-items:center }
+  .cd-sess .cl-row > .cl-rc{ grid-area:rc; min-width:0 } .cd-sess .cl-row > .cl-ra{ grid-area:ra; grid-column:auto !important }
+  .cd-sess .cl-row > .cl-rf{ grid-area:rf; grid-column:1 / -1 !important; order:0 !important; min-width:0 }
+  .cd-sess .cl-ra .bl{ display:none }
+}
+/* nhãn nhỏ trong dòng buổi không bao giờ xuống dòng từng chữ: dài quá thì “…” (rê chuột xem đủ) */
+.cl-sub{ max-width:100%; white-space:nowrap; overflow:hidden; vertical-align:middle } .cl-sub > span{ overflow:hidden; text-overflow:ellipsis; min-width:0 }
 .cd-lay.one{ grid-template-columns:minmax(0,1fr) }
 .cl-ti > button[data-view]{ flex:1; min-width:0; display:flex; align-items:center; gap:7px; padding:7px 8px; border:0; border-radius:10px; background:none; text-align:left; cursor:pointer; color:var(--ink); font-size:12.5px }
 .cl-ti > button[data-view]:hover{ background:var(--brand-50) } .cl-ti > button[data-view] i{ color:#D99A16 } .cl-ti > button[data-view] span{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .cl-ti > button[data-view] small{ font-size:10.5px; color:var(--muted) }
@@ -7571,6 +7582,8 @@ const GROUPS = { lib: 'Thư viện', team: 'Hỗ trợ', admin: 'Quản trị' }
    Mở một trang của ứng dụng khác (link, thông báo…) → tự chuyển sang ứng dụng đó. Thêm ứng dụng: thêm vào MODULES + MOD_ROUTES. */
 const MOD_ROUTES = { tutor: ['today', 'classes', 'approve', 'ai', 'guide'], lib: ['home', 'library', 'programs', 'recent', 'links', 'upload', 'sources', 'who'], redesign: ['compose', 'syllabus'], task: ['tasks'], book: ['book'], sys: ['activity', 'users', 'xapps', 'admin'] };      // Nguồn dữ liệu thuộc Thư viện: nạp nguồn ngay tại nơi dùng tài liệu
 const MOD_LAST = lsGet('modLast', {});
+/** (1.80.38) bỏ đuôi “/t/<mã việc>” của Kiến Task: link mở một việc chỉ dùng MỘT lần (bấm thông báo / link) — không nhớ làm trang dở, đóng hộp việc thì đường dẫn trở về bảng */
+function taskNoItem(route) { route = String(route || ''); return /^tasks(\/|$)/.test(route) ? route.replace(/\/t\/[\w-]+$/, '') || 'tasks' : route; }
 /* trang dùng chung giữa các ứng dụng: Chương trình có ở cả Kiến Chuyên môn (lớp gia sư học theo chương trình) lẫn Thư viện (nơi dựng chương trình từ tài liệu) —
    mở từ ứng dụng nào thì ở lại ứng dụng đó, cùng một dữ liệu */
 const MOD_SHARED = { programs: ['tutor', 'lib'] };
@@ -7603,7 +7616,7 @@ function modScope() {
 /** chuyển ứng dụng: về đúng trang đang xem dở của ứng dụng đó. ev = cú bấm → tấm chuyển cảnh nở ra từ đúng chỗ bấm */
 function modGo(id, ev) {
   if (!myMods().some(m => m.id === id)) return toast('Bạn chưa được cấp ứng dụng này', 'warn');
-  const last = MOD_LAST[id] ? routeAlias(MOD_LAST[id]) : '', r = last && modOf(last, id) === id ? last : modHome(id), same = S.mod === id;      // (1.63.1) trang đã chuyển sang ứng dụng khác (vd. Đồng bộ KGS) → về trang đầu của ứng dụng
+  const last = MOD_LAST[id] ? taskNoItem(routeAlias(MOD_LAST[id])) : '', r =last && modOf(last, id) === id ? last : modHome(id), same = S.mod === id;      // (1.63.1) trang đã chuyển sang ứng dụng khác (vd. Đồng bộ KGS) → về trang đầu của ứng dụng
   const run = () => { if (modSet(id)) buildNav(); go(r, { tab: navOf(r, NAV_ITEMS) || undefined }); setTimeout(warmUp, 1800); };      // tải ngầm thường đã xong từ lúc vào app — gọi lại để làm mới phần đã cũ quá 10 phút
   if (same) return run();
   modCurtain(modInfo(id), ev, run);
@@ -8322,7 +8335,7 @@ async function go(route, opt) {
     if (!opt.replace) { haptic(); toast('Bạn cần đọc hết ' + n + ' thông tin bắt buộc trước khi dùng mục khác', 'warn', 3500); }
     route = 'info'; key = 'info'; } }
   const R = ROUTES[key];
-  { const md = modOf(route); if (md) { if (md !== S.mod && myMods().some(m => m.id === md) && modSet(md)) buildNav(); MOD_LAST[md] = route; lsSet('modLast', MOD_LAST); } }
+  { const md = modOf(route); if (md) { if (md !== S.mod && myMods().some(m => m.id === md) && modSet(md)) buildNav(); MOD_LAST[md] = taskNoItem(route); lsSet('modLast', MOD_LAST); } }      // (1.80.38) không nhớ “…/t/<việc>” → mở lại Kiến Task không tự bật hộp việc cũ
   const guard = Object.values(VIEWS).find(r => r.el._guard && r.el._guard() && !r.el.hidden);
   if (guard && S.route !== route) { if (!await ask(guard.el._guardMsg || 'Chương trình đang sửa chưa lưu. Rời trang và bỏ thay đổi?', { ok: 'Rời trang', danger: true })) { try { google.script.history.replace({ r: S.route }, { page: S.route }); } catch (e) {} return; } guard.el._guard = null; }
   if (seq !== NAV) return;
@@ -14556,8 +14569,13 @@ function clProg(c) { return c && c.programId ? progById(c.programId) : null; }
 function clProgName(p) { return p ? progChain(p).map(x => x.name).join(' › ') : ''; }
 /** tên hiển thị của lớp trên thông tin buổi: tên học sinh nếu đã có, chưa có thì mã lớp */
 function clName(c) { return c ? (String(c.student || '').trim() || c.code) : ''; }
-function clClass(id) { return CL.d.classes.find(c => c.id === id); }
-function clSess(classId) { const L = CL.d.sessions.filter(x => x.classId === classId), O = (CL.old || {})[classId]; if (O) { const has = new Set(L.map(x => x.id)); O.forEach(x => { if (!has.has(x.id)) L.push(x); }); }      // (1.77.23) + buổi cũ tải riêng khi mở trang lớp
+function clClass(id) { const C = CL.d.classes; if (CL_IX.c !== C || CL_IX.cn !== C.length) { const m = {}; C.forEach(c => { if (!Object.prototype.hasOwnProperty.call(m, c.id)) m[c.id] = c; }); CL_IX.c = C; CL_IX.cn = C.length; CL_IX.cb = m; } return Object.prototype.hasOwnProperty.call(CL_IX.cb, id) ? CL_IX.cb[id] : undefined; }
+/* (1.80.38) BẢNG TRA NHANH: buổi theo lớp · lớp theo mã. Trước đây mỗi lần gọi clSess / clClass quét lại toàn bộ danh sách (vài nghìn buổi) —
+   trang Gia sư, Danh sách lớp gọi hàng nghìn lần mỗi lần gõ lọc nên chậm. Bảng tự dựng lại khi danh sách đổi (mảng mới hoặc thêm / bớt phần tử);
+   app không thay phần tử tại chỗ / đổi classId của buổi nên kết quả giống hệt cách cũ. */
+const CL_IX = { s: null, sn: -1, by: null, c: null, cn: -1, cb: null };
+function clSessIx() { const S = CL.d.sessions; if (CL_IX.s !== S || CL_IX.sn !== S.length) { const by = {}; S.forEach(x => { (by[x.classId] = by[x.classId] || []).push(x); }); CL_IX.s = S; CL_IX.sn = S.length; CL_IX.by = by; } return CL_IX.by; }
+function clSess(classId) { const L = (clSessIx()[classId] || []).slice(), O = (CL.old || {})[classId]; if (O) { const has = new Set(L.map(x => x.id)); O.forEach(x => { if (!has.has(x.id)) L.push(x); }); }      // (1.77.23) + buổi cũ tải riêng khi mở trang lớp
   return L.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.no - b.no); }
 function clDirName(id) { const d = IX.dirs[id]; return d ? d.name : IX.byId[id] ? clFName(IX.byId[id].name) : ''; }
 /** tên bài là tệp: bỏ đuôi .pdf / .docx… */
@@ -14968,6 +14986,7 @@ function clIssues(c) {
   const S0 = clSess(c.id), lech = S0.filter(x => x.kchk && x.kchk.s === 'lech').length, orp = typeof clKgsOrphans === 'function' ? clKgsOrphans(c).length : 0;
   if (lech) L.push({ k: 'lech', t: lech + ' buổi lệch KGS', d: lech + ' buổi có bài khác nội dung gia sư ghi bên KGS (AI kiểm)' });
   if (orp) L.push({ k: 'orp', t: orp + ' buổi không có bên KGS', d: orp + ' buổi KGS không có buổi cùng ngày — nên xoá' });
+  { const g = clTutSug(c); if (g) L.unshift({ k: 'tut', t: 'Đổi GS → ' + g.n, d: 'Mọi ' + g.cnt + ' buổi sắp tới do ' + g.n + ' dạy thay — nên đổi gia sư chính (mở trang bé để đổi)' }); }      // (1.80.38)
   return L;
 }
 function clIssueDot(c) { const L = clIssues(c); return L.length ? '<em class="cl-isd" title="' + esc(L.map(x => x.d).join('\n')) + '">!</em>' : ''; }
@@ -15184,7 +15203,7 @@ function clRow(x, opt) {
       // tên lớp có mũi tên › → biết là bấm vào để mở chi tiết lớp
       : '<div class="cl-rc"><a class="cl-code" data-go="classes/c/' + c.id + '" title="Sửa nhanh lớp"><span class="cl-cn">' + esc(clName(c)) + '</span><i class="bi bi-chevron-right cl-cv"></i></a>' + clFlags(c) + clChatDot(c) + (c.student ? '<span class="cl-stu cl-cd">' + esc(c.code) + '</span>' : '') + (c.grade ? '<span class="cl-gr">' + esc(c.grade) + '</span>' : '') +
         '<small>' + (man ? (c.tutorEmail ? zlName(c.tutorName || c.tutorEmail.split('@')[0], c.tutorEmail) : 'Chưa có gia sư') + (x.time ? ' · ' + esc(x.time) : '') : dd.ws + ' ' + dd.dm + ' · ' + esc(dd.rel) + (x.time ? ' · ' + esc(x.time) : '')) + '</small></div>') +
-    '<div class="cl-rf">' + (man && x.sub ? '<span class="cl-sub" title="Gia sư dạy thay buổi này' + (x.sub.src === 'kgs' ? ' (theo lịch KGS)' : '') + '"><i class="bi bi-person-fill-gear"></i>Dạy thay: ' + esc(x.sub.e && S.me && x.sub.e === S.me.email ? 'bạn' : x.sub.n || x.sub.e) + '</span>' : '') + (man ? clKgsMark(x) : '') +      // (1.75) dạy thay · (1.77) sửa: phần tên bài bên dưới từng bị dính vào dòng chú thích này nên không hiện
+    '<div class="cl-rf">' + (man && x.sub ? '<span class="cl-sub" title="' + (x.sub.hist ? 'Gia sư đã dạy buổi này (trước khi lớp đổi gia sư): ' : 'Gia sư dạy thay buổi này' + (x.sub.src === 'kgs' ? ' (theo lịch KGS)' : '') + ': ') + esc(x.sub.n || x.sub.e) + '"><i class="bi bi-person-fill-gear"></i><span>' + (x.sub.hist ? 'GS đã dạy: ' : 'Dạy thay: ') + esc(x.sub.e && S.me && x.sub.e === S.me.email ? 'bạn' : x.sub.n || x.sub.e) + '</span></span>' : '') + (man ? clKgsMark(x) : '') +      // (1.75) dạy thay · (1.77) sửa: phần tên bài bên dưới từng bị dính vào dòng chú thích này nên không hiện
       (man || x.released ? clContentHtml(x, c) : c.manual && !x.status && x.gate !== 'prev' ? '' : '<span class="small muted"><i class="bi bi-lock"></i> ' + (x.gate === 'prev' ? 'Mở sau khi bấm “Đã dạy” buổi trước' : 'Chờ duyệt') + '</span>') +
       // (1.77.17) gia sư: buổi chưa phát đã có dòng khoá ở trên → không lặp nhãn “Chờ duyệt”; không hiện chi tiết nội bộ (AI chọn, tự duyệt lúc…, dạy thay) — chỉ quản lý thấy
       (!man && !x.released && x.status !== 'taught' ? '' : '<span class="cl-st ' + st.c + '"><i class="bi ' + st.i + '"></i>' + st.t + (!man ? '' : clStAi(x) + (x.auto && x.status !== 'draft' ? '<small class="cl-sx"> · tự duyệt</small>' : '') + (auto ? '<small class="cl-sx"> · tự duyệt lúc ' + auto + '</small>' : '')) + (x.status === 'taught' && x.taughtAt ? '<small class="cl-sx"> · ' + fmtDT(x.taughtAt) + '</small>' : '') + '</span>') + (x.rate && CL_RATE[x.rate] ? '<span class="cl-rate r-' + x.rate + '" title="Gia sư đánh giá bài với bé' + (x.rnote ? ': ' + esc(x.rnote) : '') + '"><i class="bi ' + CL_RATE[x.rate][1] + '"></i>' + CL_RATE[x.rate][0] + '</span>' : '') + '</div>' +
@@ -16905,9 +16924,10 @@ function clTutors(B, v, em) {
   const lockT = clPkTag;      // (1.74) GS xác nhận · cấp chương trình · chờ xác nhận khi đang có đợt khảo sát
   const paint = () => {
     const w = fold(q).split(/\s+/).filter(Boolean);
-    const list = Object.values(by).filter(t => w.every(z => fold([t.name, t.email].concat(t.list.map(c => c.code + ' ' + (c.student || '') + ' ' + c.grade + ' ' + clProgName(clProg(c)))).join(' ')).indexOf(z) >= 0))
+    const ft = t => t._ft || (t._ft = fold([t.name, t.email].concat(t.list.map(c => c.code + ' ' + (c.student || '') + ' ' + c.grade + ' ' + clProgName(clProg(c)))).join(' ')));      // (1.80.38) chữ để lọc dựng một lần cho mỗi gia sư
+    const list = Object.values(by).filter(t => w.every(z => ft(t).indexOf(z) >= 0))
       .sort((a, b) => (a.email ? 0 : 1) - (b.email ? 0 : 1) || (b.list.some(classActiveC) ? 1 : 0) - (a.list.some(classActiveC) ? 1 : 0) || natCmp(a.name || a.email, b.name || b.email));
-    const pend = c => D.sessions.filter(x => x.classId === c.id && x.released && x.status !== 'taught').length;
+    const pend = c => clSess(c.id).filter(x => x.released && x.status !== 'taught').length;      // (1.80.38) tra theo lớp, không quét mọi buổi
     // (1.74) lớp trùng (cùng bé, cùng gia sư: lớp tự nhập + lớp KGS) → nhãn ngay trên thẻ, bấm là mở hộp gộp (giữ lớp KGS, chuyển tiến trình, xoá lớp tự nhập)
     const DK = {}, DM = {}; (D.dups || []).forEach(d => { DK[d[0]] = d[1]; DM[d[1]] = d[0]; });
     const dupT = c => DM[c.id] ? '<em class="cl-ub red tu-dup" data-mgo title="Bé này còn lớp khác (cùng bé / cùng mã học sinh KGS) — bấm để gộp, không mất tiến trình"><i class="bi bi-intersect"></i> trùng · gộp vào ' + esc((clClass(DM[c.id]) || {}).code || 'lớp KGS') + '</em>'
@@ -17013,7 +17033,7 @@ function clDetail(B, v, id) {
         // (1.75.1) cụm việc chính bên phải, cùng cỡ: Gán bài (dùng nhiều) · In gộp
         (man || canPrint ? '<span class="cd-act">' + (man ? '<button type="button" class="btn xs cd-asg" id="cdAsg" title="Bảng gán bài: kéo thả bài cho nhiều buổi, đẩy lùi, hoàn tác"><i class="bi bi-grid-3x3-gap"></i><span class="cd-bl">Gán bài</span></button>' : '') +
           (canPrint ? '<button class="btn xs pri" id="cdPrint" title="In gộp ' + nPrint + ' buổi đã duyệt chưa dạy"><i class="bi bi-printer"></i><span class="cd-bl">In gộp </span>' + nPrint + '<span class="cd-bl"> buổi</span></button>' : '') + '</span>' : '') + '</div></div>' +
-      clKaHtml(c) + clSnHtml(c) + (man && c.kname ? '<div class="cl-np cl-knm"><i class="bi bi-person-exclamation"></i><span>Tên bé bên Kiến Gia Sư là <b>' + esc(c.kname) + '</b>, ở đây đang là <b>' + esc(c.student || c.code) + '</b>.</span><button class="btn xs pri" id="cdKnm"><i class="bi bi-arrow-repeat"></i>Đổi theo KGS</button></div>' : '') + (man && clKgsOrphans(c).length > 1 ? '<div class="cl-np cl-kdbar"><i class="bi bi-calendar-x"></i><span><b>' + clKgsOrphans(c).length + ' buổi không có bên KGS</b> (KGS không có buổi cùng ngày) — nên xoá để lịch khớp KGS.</span><button class="btn xs" id="cdKdel"><i class="bi bi-trash3"></i>Xoá hết</button></div>' : '') +      // (1.74) lưu ý đặc biệt của bé · (1.75) nhờ gia sư xác nhận kiến thức
+      clKaHtml(c) + clSnHtml(c) + (man && c.kname ? '<div class="cl-np cl-knm"><i class="bi bi-person-exclamation"></i><span>Tên bé bên Kiến Gia Sư là <b>' + esc(c.kname) + '</b>, ở đây đang là <b>' + esc(c.student || c.code) + '</b>.</span><button class="btn xs pri" id="cdKnm"><i class="bi bi-arrow-repeat"></i>Đổi theo KGS</button></div>' : '') + clTutSugHtml(c) + (man && clKgsOrphans(c).length > 1 ? '<div class="cl-np cl-kdbar"><i class="bi bi-calendar-x"></i><span><b>' + clKgsOrphans(c).length + ' buổi không có bên KGS</b> (KGS không có buổi cùng ngày) — nên xoá để lịch khớp KGS.</span><button class="btn xs" id="cdKdel"><i class="bi bi-trash3"></i>Xoá hết</button></div>' : '') +      // (1.74) lưu ý đặc biệt của bé · (1.75) nhờ gia sư xác nhận kiến thức
       (rq.length ? '<button class="cl-rqb" data-go="classes/reqs"><i class="bi bi-hourglass-split"></i><span><b>' + rq.length + ' yêu cầu chờ duyệt</b><small>' + rq.map(q => esc(q.label)).join(' · ') + '</small></span><i class="bi bi-chevron-right"></i></button>' : '') +
       '<div class="seg cd-tabs" id="cdTabs"><button class="seg-b cd-tab" data-pane="s" aria-pressed="' + (pane === 's') + '">Buổi học <small>' + (notOut.length + out.length) + '</small></button><button class="seg-b cd-tab" data-pane="l" aria-pressed="' + (pane === 'l') + '">' + (man ? 'Bài trong chương trình' : 'Tiến trình học') + '</button></div>' +
       '<div class="cd-lay' + (man ? '' : p ? ' tut' : ' one') + '" data-pane="' + pane + '">' +
@@ -17075,6 +17095,7 @@ function clDetail(B, v, id) {
     $('#cdMore', B).onclick = e => more(e.currentTarget);
     { const ab = $('#cdArch', B); if (ab) ab.onclick = () => clArchLoad(c.id, ab); }
     { const kd = $('#cdKdel', B); if (kd) kd.onclick = () => clKgsDel(c, clKgsOrphans(c)); }      // (1.80.9)
+    { const ts = $('#cdTsug', B); if (ts) ts.onclick = () => clTutSugGo(c, () => { CL.repaint && CL.repaint(); }); }      // (1.80.38) đề xuất đổi gia sư chính
     { const kn = $('#cdKnm', B); if (kn) kn.onclick = () => { const nm = c.kname; c.student = nm; c.kname = ''; clQueue('classStudent', { id: c.id, student: nm }, { label: 'Đổi tên bé theo KGS · ' + nm }); toast('Đã đổi tên bé thành ' + nm, 'ok'); CL.repaint && CL.repaint(); }; }      // (1.80.20)      // (1.80.8)
     const cai = $('#cdAi', B); if (cai) cai.onclick = () => aiTaskModal([c.id], clName(c));      // (1.77) Trợ lý AI cho bé này
     const pr = $('#cdPrint', B); if (pr) pr.onclick = () => clPrintAll(c, pr);
@@ -17617,21 +17638,53 @@ async function tnSetup(after) {
   selSearch(m.$('#tsB'), 7); selSearch(m.$('#tsA'), 7);
 }
 
-/** (1.57) ĐỔI GIA SƯ: chọn người dạy mới + lý do (không bắt buộc) → lưu vào Lịch sử đổi gia sư của lớp, các buổi và tiến trình học giữ nguyên */
-function clTutorDlg(c, done) {
+/** (1.80.38) ĐỀ XUẤT ĐỔI GIA SƯ CHÍNH: mọi buổi sắp tới (≥ 2, chưa dạy, không nghỉ) do CÙNG một người dạy thay (thường theo lịch KGS) → thực chất lớp đã đổi gia sư.
+   Đồng bộ KGS tự đổi khi biết email người đó; KGS chỉ ghi tên mà chưa khớp tài khoản (hoặc lớp có lịch riêng) → đề xuất ở đây, bấm một lần là đổi:
+   người mới thấy lớp ngay (không phải “Tìm lớp” / xin nhận lớp), buổi đã qua vẫn ghi người cũ đã dạy. → { e, n, cnt } | null (e rỗng = chưa biết email) */
+function clTutKey(s) { return fold(s).replace(/\s+/g, ' ').trim(); }
+function clTutSug(c) {
+  if (!c || !CL.d || !CL.d.manage || (c.cotutor || []).length) return null;
+  const up = clSess(c.id).filter(x => x.date >= CL.d.today && x.status !== 'off' && x.status !== 'taught');
+  if (up.length < 2 || !up.every(x => x.sub && !x.sub.hist && (x.sub.e || x.sub.n))) return null;
+  const key = o => o.e ? String(o.e).toLowerCase() : 'n:' + clTutKey(o.n), k0 = key(up[0].sub);
+  if (!up.every(x => key(x.sub) === k0)) return null;
+  const o = up[0].sub, n = o.n || String(o.e).split('@')[0]; let e = String(o.e || '').toLowerCase();
+  if (!e) { const T = (CL.d.tutors || []).filter(t => t.email && clTutKey(t.name) === clTutKey(n)); if (T.length === 1) e = String(T[0].email).toLowerCase(); }      // KGS chỉ ghi tên → khớp tên gia sư đã có tài khoản (đúng một người)
+  if (e && e === String(c.tutorEmail || '').toLowerCase()) return null;
+  return { e: e, n: n, cnt: up.length };
+}
+function clTutSugHtml(c) { const g = clTutSug(c); if (!g) return '';
+  return '<div class="cl-np cl-tsug"><i class="bi bi-person-gear"></i><span><b>Đề xuất đổi gia sư chính:</b> cả ' + g.cnt + ' buổi sắp tới đều do <b>' + esc(g.n) + '</b> dạy thay' + (g.e ? '' : ' (KGS chưa ghi email — bấm để nhập email)') + '. Đổi để ' + esc(g.n) + ' thấy lớp ngay, không phải tìm / xin nhận lớp; buổi đã dạy vẫn ghi ' + esc(c.tutorName || 'gia sư cũ') + '.</span>' +
+    '<button class="btn xs pri" id="cdTsug"><i class="bi bi-arrow-left-right"></i>Đổi sang ' + esc(g.n) + '</button></div>'; }
+function clTutSugGo(c, done) {
+  const g = clTutSug(c); if (!g) return;
+  const why = 'Mọi ' + g.cnt + ' buổi sắp tới do ' + g.n + ' dạy (theo lịch KGS)';
+  if (!g.e) return clTutorDlg(c, done, { n: g.n, why: why, hist: 1 });
+  ask('Đổi gia sư chính của ' + clName(c) + ' từ ' + (c.tutorName || c.tutorEmail || 'chưa có') + ' sang ' + g.n + ' (' + g.e + ')?\n' + g.n + ' thấy lớp ngay, các buổi sắp tới thôi ghi “dạy thay”; buổi đã dạy vẫn ghi người cũ.', { ok: 'Đổi gia sư' })
+    .then(ok => { if (!ok) return; clTutorSet(c, g.e, g.n, why, 1); toast('Đã đổi gia sư ' + clName(c) + ' sang ' + g.n, 'ok'); done && done(); });
+}
+/** lưu đổi gia sư (hiện ngay, ghi ngầm) · hist = buổi đã qua chưa ghi người dạy → ghi người cũ (máy chủ) */
+function clTutorSet(c, em, nm, why, hist) {
+  const patch = { tutorEmail: em, tutorName: nm }, k = clTutKey(nm);
+  Object.assign(c, patch); delete CL_LES[c.id];
+  clSess(c.id).forEach(x => { if (x.sub && !x.sub.hist && x.date >= CL.d.today && x.status !== 'taught' && (String(x.sub.e || '').toLowerCase() === em || (!x.sub.e && k && clTutKey(x.sub.n) === k))) x.sub = null; });      // người mới không còn là “dạy thay” ở buổi sắp tới
+  clQueue('classSave', { items: [{ id: c.id, patch: patch, twhy: why || '', hist: hist ? 1 : 0 }] }, { label: 'Đổi gia sư · ' + c.code });
+}
+/** (1.57) ĐỔI GIA SƯ: chọn người dạy mới + lý do (không bắt buộc) → lưu vào Lịch sử đổi gia sư của lớp, các buổi và tiến trình học giữ nguyên
+   (1.80.38) pre = { n, why, hist } điền sẵn tên / lý do (từ đề xuất đổi gia sư) */
+function clTutorDlg(c, done, pre) {
+  pre = pre || {};
   const T = CL.d.tutors || [];
   modal({ title: (c.tutorEmail ? 'Đổi' : 'Gán') + ' gia sư', icon: 'bi-person-badge', body: '<div class="stack"><div class="cl-rmh n"><b>' + esc(clName(c)) + '</b><span class="cl-cd">' + esc(c.code) + '</span></div>' +
       '<div class="small muted">Đang dạy: <b>' + esc(c.tutorName || c.tutorEmail || 'chưa có') + '</b>. Các buổi học và tiến trình học của bé giữ nguyên.</div>' +
       '<div class="fg"><label class="flabel">Email gia sư mới *</label><input class="inp" id="ctE" type="email" list="ctL" autofocus placeholder="Gõ tên hoặc email"><datalist id="ctL">' + T.map(t => '<option value="' + esc(t.email) + '">' + esc(t.name) + '</option>').join('') + '</datalist></div>' +
-      '<div class="fg"><label class="flabel">Tên gia sư</label><input class="inp" id="ctN"></div>' +
-      '<div class="fg"><label class="flabel">Lý do <span class="opt">không bắt buộc — lưu vào lịch sử</span></label><textarea class="ta" id="ctW" rows="2" maxlength="300" placeholder="VD: Gia sư cũ bận lịch · Phụ huynh đề nghị đổi"></textarea></div></div>',
+      '<div class="fg"><label class="flabel">Tên gia sư</label><input class="inp" id="ctN" value="' + esc(pre.n || '') + '"></div>' +
+      '<div class="fg"><label class="flabel">Lý do <span class="opt">không bắt buộc — lưu vào lịch sử</span></label><textarea class="ta" id="ctW" rows="2" maxlength="300" placeholder="VD: Gia sư cũ bận lịch · Phụ huynh đề nghị đổi">' + esc(pre.why || '') + '</textarea></div></div>',
     foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: c.tutorEmail ? 'Đổi gia sư' : 'Gán gia sư', i: 'bi-check2', cls: 'pri', fn: m => {
       const em = m.$('#ctE').value.trim().toLowerCase();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { toast('Nhập email gia sư mới', 'warn'); m.$('#ctE').focus(); return false; }
       if (em === String(c.tutorEmail || '').toLowerCase()) { toast('Đây đang là gia sư của lớp', 'warn'); return false; }
-      const patch = { tutorEmail: em, tutorName: m.$('#ctN').value.trim() || (T.find(t => t.email === em) || {}).name || '' };
-      Object.assign(c, patch); delete CL_LES[c.id];
-      clQueue('classSave', { items: [{ id: c.id, patch: patch, twhy: m.$('#ctW').value.trim() }] }, { label: 'Đổi gia sư · ' + c.code });
+      clTutorSet(c, em, m.$('#ctN').value.trim() || (T.find(t => t.email === em) || {}).name || '', m.$('#ctW').value.trim(), pre.hist);
       toast('Đã đổi gia sư lớp ' + c.code); done && done();
     } }] }).$('#ctE').onchange = e => { const t = T.find(x => x.email === e.target.value.trim().toLowerCase()), n = document.getElementById('ctN'); if (t && n) n.value = t.name; };
 }
@@ -18409,7 +18462,7 @@ function clLibRow(r, ctl) {
 }
 
 /* ══════════ BẢNG GÁN BÀI ══════════ */
-function clBoard(c, focusId) {
+function clBoard(c, focusId, opt) {      // (1.80.38) opt.onClose = đóng bảng (đã lưu hoặc huỷ) → nơi mở bảng tính lại số
   if (!CL.d || !CL.d.manage) return;
   const D = CL.d, p = clProg(c), lc = clLcfgC(c), T = p ? progTarget(p) : { ok: false };
   const all = clSess(c.id);
@@ -18449,7 +18502,7 @@ function clBoard(c, focusId) {
     items.forEach(it => { if (it.t === 'f') { if (o.folders.indexOf(it.id) < 0) o.folders.push(it.id); } else if (!o.extra.some(f => f.id === it.f.id)) o.extra.push(Object.assign({}, it.f)); });
     setCur(r, o); };
 
-  const m = modal({ title: 'Bảng gán bài · ' + clName(c), icon: 'bi-grid-3x3-gap', size: 'xl bd-m', sticky: true, body:
+  const m = modal({ title: 'Bảng gán bài · ' + clName(c), icon: 'bi-grid-3x3-gap', size: 'xl bd-m', sticky: true, onClose: opt && opt.onClose, body:
     '<div class="bd"><div class="bd-bar">' +
       '<button class="ibtn sm" data-b="undo" title="Hoàn tác (⌘Z)" aria-label="Hoàn tác"><i class="bi bi-arrow-counterclockwise"></i></button><button class="ibtn sm" data-b="redo" title="Làm lại (⇧⌘Z)" aria-label="Làm lại"><i class="bi bi-arrow-clockwise"></i></button><span class="bd-sep"></span>' +
       '<button class="btn xs" data-b="push" title="Buổi đang chọn để trống, bài các buổi sau lùi một buổi"><i class="bi bi-arrow-down-square"></i><span>Đẩy lùi</span></button>' +
@@ -21549,7 +21602,7 @@ function clTutorPlan(em) {
   const dm = d => d ? clDay(d, t).ws + ' ' + clDay(d, t).dm : '—';
   const out = x => x.status === 'approved' || x.status === 'taught' || clSelf(x);      // đã duyệt & phát (đã dạy tính luôn)
   const has = x => (x.folders || []).length || (x.extra || []).length || x.status === 'draft' || out(x);
-  const rows = L.map(c => {
+  const calc = () => L.map(c => {
     const co = (c.cotutor || []).find(t => t.e === em), S = clSess(c.id).filter(x => x.status !== 'off' && !x.spare && (!(c.cotutor || []).length || tutOf(c, x) === em)), M = S.filter(x => x.date >= t && x.date <= mEnd && x.status !== 'taught');
     const lastOut = S.filter(out).map(x => x.date).sort().pop() || '', lastHas = S.filter(has).map(x => x.date).sort().pop() || '';
     const mOut = M.filter(out).length, mLeft = M.filter(x => !out(x)), mNo = M.filter(x => !has(x)).length;
@@ -21558,18 +21611,19 @@ function clTutorPlan(em) {
     if (sc.length && !c.kgs) for (let d = clAdd(lastD > t ? lastD : t, 1); d <= mEnd; d = clAdd(d, 1)) if (sc.some(r => r.d === clDate(d).getDay()) && (!(c.cotutor || []).length || tutOf(c, { date: d }) === em)) plan++;
     return { co: co, c: c, lastOut: lastOut, lastHas: lastHas, mOut: mOut, mLeft: mLeft.length, mNo: mNo, plan: plan, n: M.length };
   }).sort((a, b) => (b.mLeft + b.plan) - (a.mLeft + a.plan) || natCmp(clName(a.c), clName(b.c)));
-  const tot = rows.reduce((a, r) => a + r.mLeft + r.plan, 0);
   const row = r => { const c = r.c, p = clProg(c), done = !r.mLeft && !r.plan;
     return '<div class="tp-r' + (done ? ' ok' : '') + '"><div class="tp-n"><b><a class="tp-go" data-tpo="' + c.id + '" title="Mở trang bé">' + esc(clName(c)) + '</a>' + (r.co ? ' <em class="cl-ub blue">dạy kèm · ' + esc((r.co.days || []).join(', ')) + '</em>' : '') + '</b><small>' + esc([c.code, c.grade, c.days].filter(Boolean).join(' · ')) + '</small>' + (p ? '<small class="tp-p">' + esc(clProgName(p).split(/\s*[›>]\s*/).slice(-2).join(' › ')) + '</small>' : '<small class="cl-warn">chưa có chương trình</small>') + '</div>' +
       '<div class="tp-k"><span><em>Đã phát tới</em><b>' + dm(r.lastOut) + '</b></span><span><em>Đã gán tới</em><b>' + dm(r.lastHas) + '</b></span>' +
         '<span class="' + (done ? 'ok' : 'warn') + '"><em>Tháng ' + Number(ym.slice(5)) + '</em><b>' + (done ? '✓ đủ' : (r.mLeft + r.plan) + ' buổi chưa phát') + '</b>' + (r.mNo || r.plan ? '<small>' + [r.mNo ? r.mNo + ' chưa có bài' : '', r.plan ? r.plan + ' buổi theo lịch chưa tạo' : ''].filter(Boolean).join(' · ') + '</small>' : '') + '</span></div>' +
       '<div class="tp-a"><button class="btn xs pri" data-tpb="' + c.id + '"><i class="bi bi-grid-3x3-gap"></i>Gán bài</button></div></div>'; };      // (1.75) bấm tên bé = mở trang bé
-  const m = modal({ title: name, icon: 'bi-person-badge', size: 'lg', body:
-    '<div class="tp-h small muted">' + esc(em) + ' · ' + L.length + ' lớp đang dạy' + (tot ? ' · <b class="tp-left">tháng này còn ' + tot + ' buổi chưa phát</b>' : ' · tháng này đã phát đủ') + '</div>' +
-    '<div class="tp-l">' + (rows.length ? rows.map(row).join('') : '<div class="lk-empty sm"><i class="bi bi-people"></i><span>Gia sư chưa có lớp đang học</span></div>') + '</div>',
+  /* (1.80.38) nội dung tính lại mỗi lần vẽ: duyệt / gán bài ở Bảng gán bài xong (đóng bảng) → số “chưa phát / chưa có bài” cập nhật ngay, không phải đóng mở lại */
+  const html = () => { const rows = calc(), tot = rows.reduce((a, r) => a + r.mLeft + r.plan, 0);
+    return '<div class="tp-h small muted">' + esc(em) + ' · ' + L.length + ' lớp đang dạy' + (tot ? ' · <b class="tp-left">tháng này còn ' + tot + ' buổi chưa phát</b>' : ' · tháng này đã phát đủ') + '</div>' +
+      '<div class="tp-l">' + (rows.length ? rows.map(row).join('') : '<div class="lk-empty sm"><i class="bi bi-people"></i><span>Gia sư chưa có lớp đang học</span></div>') + '</div>'; };
+  const m = modal({ title: name, icon: 'bi-person-badge', size: 'lg', body: '<div class="tp-b">' + html() + '</div>',
     foot: [{ t: 'Nhắn riêng', i: 'bi-chat-dots', cls: 'ghost', fn: () => { go('classes/inbox/T:' + em); } }, { t: 'Đóng', cls: 'pri' }] });
   m.el.addEventListener('click', e => {
-    const b = e.target.closest('[data-tpb]'); if (b) { const c = clClass(b.dataset.tpb); if (c) clBoard(c); return; }
+    const b = e.target.closest('[data-tpb]'); if (b) { const c = clClass(b.dataset.tpb); if (c) clBoard(c, null, { onClose: () => setTimeout(() => { const B = m.$('.tp-b'); if (!m.closed && B) B.innerHTML = html(); }, 0) }); return; }
     const o = e.target.closest('[data-tpo]'); if (o) { m.close(); go('classes/c/' + o.dataset.tpo); }
   });
 }
@@ -27753,9 +27807,9 @@ async function viewTasks(arg, v) {
   /** nhãn nhỏ “Đang cập nhật…” cạnh tiêu đề Bình luận — chỉ hiện khi đang có nội dung (bản đã lưu) và đang lấy bản mới */
   function tkUpd(m, on) { const u = m.el && m.el.querySelector('[data-upd]'), c = m.el && m.el.querySelector('#tCm'); if (u) u.hidden = !on || !c || !!c.querySelector('.skv-mini'); }
   /* ── BẢN ĐỒNG BỘ (task bảng riêng hiện lên bảng chung): hộp CHỈ XEM — nội dung, trạng thái gốc, việc bên trong, bình luận (bình luận được) ── */
-  function tkMirView(t) {
+  function tkMirView(t, init) {
     const M = t.mir, kids = tkKids(t).sort((a, b) => a.order - b.order), tb = tkProj(t.projectId);
-    const m = modal({ title: t.key + ' · ' + TK_LV[tkLv(t)], icon: 'bi-link-45deg', size: 'lg', body: '<div class="tk-dlg tk-mirv"><div>' +
+    const m = modal({ title: t.key + ' · ' + TK_LV[tkLv(t)], icon: 'bi-link-45deg', size: 'lg', onClose: init && init.onClose, body: '<div class="tk-dlg tk-mirv"><div>' +
         '<div class="tk-mir-bar"><i class="bi bi-link-45deg"></i><span>Đồng bộ từ <b>bảng riêng “' + esc(M.board) + '”</b> của <b>' + esc(tkUser(M.owner)) + '</b> — chủ bảng cập nhật ở bảng riêng, bảng chung' + (tb ? ' “' + esc(tb.name) + '”' : '') + ' tự đổi theo. Bạn xem và bình luận được, không sửa được.</span></div>' +
         '<h3 class="tk-mir-t">' + esc(t.title) + '</h3>' + (t.desc ? '<div class="tk-h">Mô tả</div><div class="tk-mir-d">' + tkDescHtml(t.desc) + '</div>' : '') +
         (kids.length ? '<div class="tk-h">' + (t.type === 'epic' ? 'Task thuộc epic' : 'Sub-task') + ' · ' + kids.filter(tkDone).length + '/' + kids.length + '</div><div class="tk-rows tk-kids" style="box-shadow:none;background:var(--k-tray)">' +
@@ -27879,7 +27933,7 @@ async function viewTasks(arg, v) {
   }
   /* ── hộp tạo / sửa công việc ── */
   function taskDialog(t, init) {
-    if (t && t.mir) { const o = tkById(t.mir.id); return o ? taskDialog(o, init) : tkMirView(t); }      // bản đồng bộ: chủ bảng / Admin mở task gốc để sửa · người khác xem
+    if (t && t.mir) { const o = tkById(t.mir.id); return o ? taskDialog(o, init) : tkMirView(t, init); }      // bản đồng bộ: chủ bảng / Admin mở task gốc để sửa · người khác xem
     const isNew = !t; init = init || {};
     const cur = t ? Object.assign(JSON.parse(JSON.stringify(t)), init.draft) : Object.assign({ projectId: init.projectId, status: init.status || '', title: '', desc: '', priority: 'med', type: TK_TYPE[init.type] ? init.type : 'task', assignee: '', assignees: [], due: '', labels: [], sprintId: '', epicId: 'epicId' in init ? init.epicId || '' : TK.epic || '', parentId: init.parentId || '', points: '' }, init.draft);      // draft = nội dung vừa nhập mà máy chủ từ chối lưu → mở lại hộp, không mất chữ đã gõ
     cur.assignees = tkWho(cur).slice();
@@ -28558,8 +28612,11 @@ async function viewTasks(arg, v) {
       try { const t = await archOpen(tr.dataset.ar); m.close(); if (t) { TK.proj = t.projectId; paint(); taskDialog(t); } } catch (er) { delete tr.dataset.busy; tr.style.opacity = ''; fail(er); } };
   }
   // thông báo bình luận của task đồng bộ trỏ tới mã gốc → tìm cả bản đồng bộ ('m' + mã)
-  const openTask = () => { if (!openId) return; const t = D().tasks.find(x => x.id === openId) || D().tasks.find(x => x.id === 'm' + openId); if (t) { TK.proj = t.projectId; paint(); taskDialog(t); }
-    else archOpen(openId).then(x => { if (!x) throw new Error(''); TK.proj = x.projectId; paint(); taskDialog(x); }).catch(() => toast('Không tìm thấy công việc hoặc bạn không phải thành viên dự án', 'warn')); };      // việc đã lưu trữ (link trong mail / thông báo) → mở lại
+  /* (1.80.38) việc mở bằng link / thông báo (…/t/<mã>): đóng hộp việc → đường dẫn trở về bảng (thay, không thêm lịch sử).
+     Trước đây đường dẫn giữ /t/<mã> → tải lại trang / quay lại Kiến Task là hộp việc đó tự bật lên mãi (bị nhắc tên mà chưa xử lý trông như “popup”). Việc đó vẫn nằm trong chuông thông báo. */
+  const dropT = id => () => setTimeout(() => { const r = S.route || '', m = /\/t\/([\w-]+)$/.exec(r); if (!/^tasks(\/|$)/.test(r) || !m || (m[1] !== id && 'm' + m[1] !== id)) return; go(taskNoItem(r), { replace: 1 }); }, 0);
+  const openTask = () => { if (!openId) return; const t = D().tasks.find(x => x.id === openId) || D().tasks.find(x => x.id === 'm' + openId); if (t) { TK.proj = t.projectId; paint(); taskDialog(t, { onClose: dropT(t.id) }); }
+    else archOpen(openId).then(x => { if (!x) throw new Error(''); TK.proj = x.projectId; paint(); taskDialog(x, { onClose: dropT(x.id) }); }).catch(() => { toast('Không tìm thấy công việc hoặc bạn không phải thành viên dự án', 'warn'); dropT(openId)(); }); };      // việc đã lưu trữ (link trong mail / thông báo) → mở lại
   v._onArg = a => { parse(a); paint(); openTask(); };
   v._onShow = () => { if (Date.now() - TK.at > 60000) reload(true); };
   if (Date.now() - TK.at > 60000) reload(true);      // dữ liệu đã được tải ngầm từ trước (warmUp) → hiện ngay bản đó rồi làm mới ngầm
