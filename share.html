@@ -5110,6 +5110,21 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 @keyframes bubIn{ from{ opacity:0; transform:translateX(-30%) translateY(6px) scale(.85) } to{ opacity:1; transform:translateX(-30%) } }
 .card.cd-head{ overflow:visible } .card.cd-head:has(.cl-bub){ padding-top:50px !important }
 .cl-knm{ border-color:#FECACA; background:#FEF2F2 } .cl-knm > i{ color:#B91C1C }
+
+/* (1.80.45) BÁO CÁO IN */
+.pr-bar{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:10px 12px; margin-bottom:12px } .pr-dt{ display:inline-flex; align-items:center; gap:6px } .pr-dt .inp{ width:auto } .pr-tu{ width:auto; min-width:220px; max-width:100% }
+.pr-note{ display:flex; gap:8px; align-items:flex-start; padding:9px 12px; margin-bottom:12px; border-radius:12px; background:#FFF8E8; border:1px solid #F3DFAE; color:#7A5200; font-size:12.5px }
+.pr-who{ display:flex; align-items:center; gap:10px; margin-bottom:10px } .pr-who b{ font-size:15px }
+.pr-kpis{ margin-bottom:12px } .pr-kpis .kpi{ cursor:default } .pr-kpis .kpi:hover{ transform:none; box-shadow:none }
+.pr-sec{ margin-bottom:12px; padding-bottom:6px } .pr-sec .rp-h{ padding:12px 14px 8px } .pr-empty{ padding:18px 14px; color:var(--muted); font-size:13px }
+.pr-big{ padding:4px 14px 8px } .pr-big .pr-kb{ height:16px; width:100% }
+.pr-kb{ display:flex; width:140px; height:10px; border-radius:6px; overflow:hidden; background:var(--surface-3) } .pr-kb i{ display:block; min-width:2px }
+.pr-lg{ display:flex; flex-wrap:wrap; gap:6px 14px; padding:2px 14px 10px; font-size:12px; color:var(--ink-2) } .pr-lg span{ display:inline-flex; align-items:center; gap:5px } .pr-lg i{ width:10px; height:10px; border-radius:3px; display:inline-block }
+.pr-tbl tbody tr[data-tu], .pr-tbl tbody tr[data-prk]{ cursor:pointer } .pr-tbl tbody tr[data-tu]:hover td, .pr-tbl tbody tr[data-prk]:hover td, .pr-tbl tr.on td{ background:var(--surface-2) }
+.pr-dap{ color:#B42318; font-weight:700 } .pr-sub td{ background:var(--surface-2); font-size:12px; line-height:1.9 } .pr-ci{ display:inline-block; margin:0 6px 0 0; padding:0 8px; border-radius:999px; background:var(--surface); border:1px solid var(--border) }
+.pr-logs{ display:flex; flex-direction:column } .pr-log{ padding:10px 14px; border-top:1px solid var(--border) } .pr-lh{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px } .pr-lh small{ color:var(--muted) }
+.pr-fs{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px } .pr-f{ display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:8px; border:1px solid var(--border); font-size:12px; background:var(--surface) } .pr-f i{ width:8px; height:8px; border-radius:50%; background:var(--kc) } .pr-f em{ font-style:normal; color:var(--muted) }
+@media (max-width:720px){ .pr-kpis{ grid-template-columns:repeat(2,minmax(0,1fr)) } .pr-kb{ width:90px } }
 </style>
 
   <style>
@@ -5185,7 +5200,7 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
     }
     /* in: chỉ in ảnh các trang đã chuẩn bị; link không cho in → in ra trang trắng có thông báo */
     #printArea, .no-print-msg{ display:none }
-    .pk-hint{ font-size:12.5px; color:var(--ink-2); margin-bottom:10px } .pk-l{ display:flex; flex-direction:column; gap:6px }
+    .pk-hint{ font-size:12.5px; color:var(--ink-2); margin-bottom:10px } .pk-trk{ display:flex; gap:6px; align-items:flex-start; padding:7px 10px; border-radius:8px; background:#FFF8E8; color:#7A5200 } .pk-l{ display:flex; flex-direction:column; gap:6px }
     .pk-r{ display:flex; align-items:center; gap:6px; padding:6px 6px 6px 4px; border:1px solid var(--border); border-radius:12px; background:var(--surface) }
     .pk-r:not(.on){ opacity:.6 } .pk-r.drag{ opacity:.3 } .pk-r label{ flex:1; min-width:0; display:flex; align-items:center; gap:8px; cursor:pointer }
     .pk-h{ cursor:grab; color:var(--muted) } .pk-no{ width:24px; height:24px; flex-shrink:0; border-radius:8px; display:grid; place-items:center; font:800 11.5px var(--font-mono); background:var(--brand-700); color:#fff }
@@ -5654,7 +5669,9 @@ async function printAll(list) {
     area = document.createElement('div'); area.id = 'printArea'; document.body.appendChild(area);
     const sizes = {}, css = [];
     let n = 0;
+    const cnt = new Map();      // (1.80.45) số trang in của từng tệp → nhật ký in
     for (const d of docs) for (const p of d.pages) {
+      cnt.set(d, (cnt.get(d) || 0) + 1);
       // khổ trang gốc (pt) → một @page có tên cho mỗi khổ khác nhau: A4 dọc, A4 ngang, Letter… đều in đúng khổ
       const v1 = p.page.getViewport({ scale: 1 }), W = Math.round(v1.width * 100) / 100, H = Math.round(v1.height * 100) / 100, key = W + 'x' + H;
       if (!sizes[key]) { sizes[key] = 'ps' + Object.keys(sizes).length; css.push('@page ' + sizes[key] + '{ size:' + W + 'pt ' + H + 'pt; margin:0 }'); }
@@ -5678,11 +5695,18 @@ async function printAll(list) {
     st.textContent = '@media print{' + css.join('') + '}';
     const clean = () => { const a = $('#printArea'); if (a) { a.querySelectorAll('img').forEach(i => URL.revokeObjectURL(i.src)); a.remove(); } removeEventListener('afterprint', clean); };
     addEventListener('afterprint', clean);
+    logPrint('in', docs.map(d => [d, cnt.get(d) || 0]));
     window.print();
   } catch (e) { toast(e.message || String(e), 'err', 6000); }
   finally { download.run = false; btn.disabled = false; btn.classList.remove('busy'); }
 }
 
+/* ── (1.80.45) NHẬT KÝ IN: link tài liệu của lớp → báo máy chủ tệp nào, mỗi tệp bao nhiêu trang (mở hộp in / tải PDF ghép) — cho Báo cáo in của trung tâm ── */
+function logPrint(kind, pairs) {
+  if (!V.L || !V.L.track) return;
+  const files = pairs.filter(x => x[1] > 0).map(x => ({ id: x[0].f.id, n: x[0].f.n, p: x[1] })); if (!files.length) return;
+  rpc('sharePrintLog', { t: TOKEN, kind: kind, files: files, ua: navigator.userAgent }).catch(() => {});
+}
 /* ── IN CÓ KIỂM SOÁT (link có giới hạn số lần in): hỏi lại, xin lượt in ở máy chủ (đếm cả khi chọn “Lưu thành PDF” trong hộp in —
    trang web không phân biệt được máy in thật với máy in PDF), đóng dấu tên link + lần in lên từng trang ── */
 async function printPass() {
@@ -5709,7 +5733,8 @@ function printPick() {
   if (saved && Array.isArray(saved.o)) { const by = {}; order.forEach(o => { by[o.d.f.id + '#' + o.d.i] = o; }); const re = []; saved.o.forEach(k => { if (by[k[0]]) { by[k[0]].on = !!k[1]; re.push(by[k[0]]); delete by[k[0]]; } }); order = re.concat(Object.values(by)); }
   const bg = document.createElement('div'); bg.className = 'modal-bg';
   bg.innerHTML = '<div class="modal pk-m" role="dialog" aria-modal="true"><div class="modal-h"><h3><i class="bi bi-printer"></i>Chọn tệp để in</h3><button class="ibtn x" data-x aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
-    '<div class="modal-b"><div class="pk-hint">Tích các tệp <b>cần in</b> · bỏ tích = chỉ xem, không in · kéo <i class="bi bi-grip-vertical"></i> hoặc dùng mũi tên để đổi thứ tự in.</div><div class="pk-l" id="pkL"></div></div>' +
+    '<div class="modal-b"><div class="pk-hint">Tích các tệp <b>cần in</b> · bỏ tích = chỉ xem, không in · kéo <i class="bi bi-grip-vertical"></i> hoặc dùng mũi tên để đổi thứ tự in.</div>' +
+      (V.L.track ? '<div class="pk-hint pk-trk"><i class="bi bi-info-circle"></i> Lượt in (tệp nào, bao nhiêu trang) được <b>ghi lại cho báo cáo in</b> của trung tâm — tính cả khi tải PDF ghép.</div>' : '') + '<div class="pk-l" id="pkL"></div></div>' +
     '<div class="modal-f pk-f"><button class="btn ghost sm" id="pkAll" title="Chọn tất cả" aria-label="Chọn tất cả"><i class="bi bi-check2-all"></i><span>Chọn tất cả</span></button><span style="flex:1"></span><button class="btn ghost pk-x" data-x>Huỷ</button><button class="btn" id="pkLk" aria-label="Link in" title="Sao chép link mở sẵn đúng các tệp & thứ tự này — gửi cho máy khác in"><i class="bi bi-link-45deg"></i><span>Link in</span></button>' + (V.L.pickDl ? '<button class="btn" id="pkDl" title="Tải PDF đã ghép" aria-label="Tải PDF"><i class="bi bi-download"></i><span>Tải PDF</span></button>' : '') + '<button class="btn pri" id="pkGo"><i class="bi bi-printer"></i><span>In</span></button></div></div>';
   document.body.appendChild(bg);
   const L = bg.querySelector('#pkL'), go = bg.querySelector('#pkGo');
@@ -5768,11 +5793,12 @@ async function download(list) {
     if (!window.PDFLib) await script('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js');
     const out = await PDFLib.PDFDocument.create();
     const fonts = V.box ? { r: await out.embedFont(PDFLib.StandardFonts.Helvetica), b: await out.embedFont(PDFLib.StandardFonts.HelveticaBold) } : null;
-    let skipped = 0;
+    let skipped = 0; const pc = [];
     for (const d of docs) {
       if (!d.bytes) { skipped++; continue; }
       const src = await PDFLib.PDFDocument.load(d.bytes, { ignoreEncryption: true });
-      (await out.copyPages(src, (d.want || src.getPageIndices().map(x => x + 1)).filter(k => k <= src.getPageCount()).map(k => k - 1))).forEach((p, i) => {
+      const pg = await out.copyPages(src, (d.want || src.getPageIndices().map(x => x + 1)).filter(k => k <= src.getPageCount()).map(k => k - 1)); pc.push([d, pg.length]);
+      pg.forEach((p, i) => {
         out.addPage(p);
         if (fonts) PNK.pdf(p, V.box, pnText(d, i + 1), fonts, PDFLib);
       });
@@ -5782,6 +5808,7 @@ async function download(list) {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = V.L.name.replace(/[\\/:*?"<>|]+/g, '-').slice(0, 120) + '.pdf';
     document.body.appendChild(a); a.click(); a.remove();
+    logPrint('pdf', pc);
     setTimeout(() => URL.revokeObjectURL(a.href), 60000);
     toast(skipped ? 'Đã tải — bỏ qua ' + skipped + ' tài liệu không mở được' : 'Đã tải bản PDF ghép (' + fmtSize(blob.size) + ')', skipped ? 'info' : 'ok');
   } catch (e) { toast(e.message || String(e), 'err', 6000); }

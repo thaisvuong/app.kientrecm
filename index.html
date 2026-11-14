@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T10:56:09.718Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T16:07:21.307Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5214,6 +5214,21 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 @keyframes bubIn{ from{ opacity:0; transform:translateX(-30%) translateY(6px) scale(.85) } to{ opacity:1; transform:translateX(-30%) } }
 .card.cd-head{ overflow:visible } .card.cd-head:has(.cl-bub){ padding-top:50px !important }
 .cl-knm{ border-color:#FECACA; background:#FEF2F2 } .cl-knm > i{ color:#B91C1C }
+
+/* (1.80.45) BÁO CÁO IN */
+.pr-bar{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:10px 12px; margin-bottom:12px } .pr-dt{ display:inline-flex; align-items:center; gap:6px } .pr-dt .inp{ width:auto } .pr-tu{ width:auto; min-width:220px; max-width:100% }
+.pr-note{ display:flex; gap:8px; align-items:flex-start; padding:9px 12px; margin-bottom:12px; border-radius:12px; background:#FFF8E8; border:1px solid #F3DFAE; color:#7A5200; font-size:12.5px }
+.pr-who{ display:flex; align-items:center; gap:10px; margin-bottom:10px } .pr-who b{ font-size:15px }
+.pr-kpis{ margin-bottom:12px } .pr-kpis .kpi{ cursor:default } .pr-kpis .kpi:hover{ transform:none; box-shadow:none }
+.pr-sec{ margin-bottom:12px; padding-bottom:6px } .pr-sec .rp-h{ padding:12px 14px 8px } .pr-empty{ padding:18px 14px; color:var(--muted); font-size:13px }
+.pr-big{ padding:4px 14px 8px } .pr-big .pr-kb{ height:16px; width:100% }
+.pr-kb{ display:flex; width:140px; height:10px; border-radius:6px; overflow:hidden; background:var(--surface-3) } .pr-kb i{ display:block; min-width:2px }
+.pr-lg{ display:flex; flex-wrap:wrap; gap:6px 14px; padding:2px 14px 10px; font-size:12px; color:var(--ink-2) } .pr-lg span{ display:inline-flex; align-items:center; gap:5px } .pr-lg i{ width:10px; height:10px; border-radius:3px; display:inline-block }
+.pr-tbl tbody tr[data-tu], .pr-tbl tbody tr[data-prk]{ cursor:pointer } .pr-tbl tbody tr[data-tu]:hover td, .pr-tbl tbody tr[data-prk]:hover td, .pr-tbl tr.on td{ background:var(--surface-2) }
+.pr-dap{ color:#B42318; font-weight:700 } .pr-sub td{ background:var(--surface-2); font-size:12px; line-height:1.9 } .pr-ci{ display:inline-block; margin:0 6px 0 0; padding:0 8px; border-radius:999px; background:var(--surface); border:1px solid var(--border) }
+.pr-logs{ display:flex; flex-direction:column } .pr-log{ padding:10px 14px; border-top:1px solid var(--border) } .pr-lh{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px } .pr-lh small{ color:var(--muted) }
+.pr-fs{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px } .pr-f{ display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:8px; border:1px solid var(--border); font-size:12px; background:var(--surface) } .pr-f i{ width:8px; height:8px; border-radius:50%; background:var(--kc) } .pr-f em{ font-style:normal; color:var(--muted) }
+@media (max-width:720px){ .pr-kpis{ grid-template-columns:repeat(2,minmax(0,1fr)) } .pr-kb{ width:90px } }
 </style>
 
   <style>
@@ -7548,6 +7563,7 @@ const NAV_DEF = [
   { r: 'classes/notes', t: 'Yêu cầu', i: 'bi-inboxes', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/(notes|reqs)/, on: 'tn' },      // 1.43.15: tab “Yêu cầu” = Gửi quản lý (ghi chú & đề xuất) + Thay đổi chờ duyệt (Classes.html › clAsk) — gia sư hay nhầm hai tab      // 1.31: gia sư gửi ghi chú / đề xuất cho quản lý (bảng chung Kiến Task) — on = chỉ hiện khi máy chủ bật (S.boot.tn)      // nt = không thành tab của gia sư (tin nhắn đã có trên Trang chủ và nút Trao đổi của từng lớp)
   { r: 'ai', t: 'Trợ lý AI', i: 'bi-robot', g: 'lib', cap: ['ai.tutor', 'ai.admin', 'ai.log', 'settings.manage'], m: /^ai(\/|$)/, on: 'ai' },      // (1.76) AiView.html · on = máy chủ bật cho người này (S.boot.ai: AI đang bật + có quyền, hoặc người cài đặt)
   { r: 'classes/stats', t: 'Thống kê', i: 'bi-clipboard-data', g: 'lib', cap: 'classes.stats', m: /^classes\/stats/, more: 1 },      // (1.77.11) more = tab ít dùng → gom vào nhóm “⋯ Thêm” cuối thanh bên
+  { r: 'classes/prints', t: 'Báo cáo in', i: 'bi-printer', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/prints/, more: 1 },      // (1.80.45) gia sư in phiếu nào, bao nhiêu trang (ClassPrint.html › clPrints)
   { r: 'classes/centers', t: 'Trung tâm & QLTT', i: 'bi-buildings', g: 'lib', cap: 'classes.manage', m: /^classes\/centers/ },      // (1.69) CentersView.html
   { r: 'classes/perms', t: 'Quyền gia sư', i: 'bi-person-lock', g: 'lib', cap: 'classes.manage', m: /^classes\/perms/, more: 1 },      // (1.77.25) ít dùng → “⋯ Thêm”
   { r: 'classes/settings', t: 'Cài đặt lớp', i: 'bi-sliders', g: 'lib', cap: 'classes.manage', m: /^classes\/settings/, more: 1 },
@@ -7763,7 +7779,7 @@ document.addEventListener('keydown', e => {      // Alt + 1…9 mở ứng dụn
 /** gia sư thuần (xem lớp mình dạy, không quản lý lớp) */
 function isTutor() { return can('classes.view') && !can('classes.manage'); }
 /** thứ tự tab của gia sư: 4 tab đầu nằm ngoài thanh dưới (Trang chủ · Buổi học · Lớp · Thư viện), phần còn lại (Apps, Yêu cầu…) vào “Thêm” */
-const TUT_ORDER = ['today', 'classes/todo', 'approve', 'classes/list', 'library', 'classes/notes', 'ai', 'apps', 'classes/reqs', 'guide', 'info', 'programs', 'links', 'tasks', 'tasks/backlog', 'tasks/mine', 'tasks/time', 'tasks/cal', 'tasks/sum', 'compose', 'home', 'recent', 'settings'];      // (1.72.1) approve = gia sư được cấp thêm quyền Duyệt bài (VD vừa gia sư vừa Asst) → tab Duyệt bài đứng ngay sau Buổi học (điện thoại: nằm trên thanh dưới), không bị dồn xuống cuối
+const TUT_ORDER = ['today', 'classes/todo', 'approve', 'classes/list', 'library', 'classes/notes', 'ai', 'apps', 'classes/reqs', 'classes/prints', 'guide', 'info', 'programs', 'links', 'tasks', 'tasks/backlog', 'tasks/mine', 'tasks/time', 'tasks/cal', 'tasks/sum', 'compose', 'home', 'recent', 'settings'];      // (1.72.1) approve = gia sư được cấp thêm quyền Duyệt bài (VD vừa gia sư vừa Asst) → tab Duyệt bài đứng ngay sau Buổi học (điện thoại: nằm trên thanh dưới), không bị dồn xuống cuối
 /** gia sư thấy tab Apps cả khi chỉ có một ứng dụng nhưng có liên kết ngoài */
 function tutApps() { return isTutor() && extApps().length > 0; }
 /** tab đang mở ứng với route (trang con như classes/c/… thuộc tab Lớp học) */
@@ -7924,9 +7940,9 @@ function navLayout(L) {
   return { groups: groups, items: items };
 }
 /** thứ tự cố định các tab của Kiến Chuyên môn (quản lý): Hướng dẫn kế cuối, Cài đặt lớp cuối — không phụ thuộc bố cục menu đã lưu từ trước khi tách tab */
-const CM_ORDER = ['today', 'ai', 'approve', 'classes', 'classes/list', 'classes/tutors', 'classes/sched', 'classes/stats', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'classes/centers', 'classes/perms', 'guide', 'classes/settings', 'classes/kgs'];
+const CM_ORDER = ['today', 'ai', 'approve', 'classes', 'classes/list', 'classes/tutors', 'classes/sched', 'classes/stats', 'classes/prints', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'classes/centers', 'classes/perms', 'guide', 'classes/settings', 'classes/kgs'];
 /* (1.75.2) Kiến CM (quản lý): thanh bên chia NHÓM có nhãn — Vận hành · Hộp thư · Thiết lập (buildNav vẽ nhãn trước mục đầu mỗi nhóm; thu gọn thanh bên → vạch mảnh) */
-const CM_SEC = { today: 'Vận hành', ai: 'Vận hành', approve: 'Vận hành', classes: 'Vận hành', 'classes/list': 'Vận hành', 'classes/tutors': 'Vận hành', 'classes/sched': 'Vận hành', 'classes/stats': 'Vận hành', programs: 'Vận hành',
+const CM_SEC = { today: 'Vận hành', ai: 'Vận hành', approve: 'Vận hành', classes: 'Vận hành', 'classes/list': 'Vận hành', 'classes/tutors': 'Vận hành', 'classes/sched': 'Vận hành', 'classes/stats': 'Vận hành', 'classes/prints': 'Vận hành', programs: 'Vận hành',
   'classes/reqs': 'Hộp thư', 'classes/notes': 'Hộp thư', 'classes/inbox': 'Hộp thư', 'classes/centers': 'Thiết lập', 'classes/kgs': 'Thiết lập' };
 /** các tab người này thấy, đúng thứ tự (gia sư: thứ tự công việc) */
 function navItems(lay) {
@@ -14854,7 +14870,7 @@ async function viewClasses(arg, v) {
   if (v._clTok !== tok) return;
   clBadge();
   const parts = String(arg || '').split('/');
-  const route = () => parts[0] === 'c' ? 'detail' : ['list', 'tutors', 'stats', 'settings', 'perms', 'reqs', 'inbox', 'notes', 'kgs', 'centers', 'sched'].indexOf(parts[0]) >= 0 ? parts[0] : 'todo';
+  const route = () => parts[0] === 'c' ? 'detail' : ['list', 'tutors', 'stats', 'settings', 'perms', 'reqs', 'inbox', 'notes', 'kgs', 'centers', 'sched', 'prints'].indexOf(parts[0]) >= 0 ? parts[0] : 'todo';
   const man = CL.d.manage;
   v.innerHTML = '<div class="cl-top"' + (man ? '' : ' hidden') + '><div class="seg" id="clTab"><button class="seg-b" data-t="todo"><i class="bi bi-send-check"></i>' + '<span class="sg-l">' + (man ? '<span class="sg-lg">Buổi học</span><span class="sg-sh">Buổi học</span>' : 'Buổi học của tôi') + '</span><span class="lk-n" id="clTN"></span></button>' +
     '<button class="seg-b" data-t="list"><i class="bi bi-table"></i>' + (man ? '<span class="sg-lg">Danh sách lớp</span><span class="sg-sh">Lớp</span>' : 'Lớp của tôi') + '</button>' +
@@ -14889,6 +14905,7 @@ async function viewClasses(arg, v) {
     else if (r === 'list') clGrid(body, v);
     else if (r === 'tutors') { clTutors(body, v, parts[1] ? decodeURIComponent(parts[1]) : ''); parts.length = 1; }      // classes/tutors/<email> (bấm tên gia sư ở Thống kê) → lọc sẵn gia sư đó
     else if (r === 'stats') { if (man && can('classes.stats')) clReport(body, v); else body.innerHTML = '<div class="card"><div class="empty" style="padding:40px"><i class="bi bi-lock"></i>Bạn chưa được cấp quyền xem Thống kê lớp — Quản trị › Vai trò & quyền › “Xem Thống kê lớp & chương trình” (kèm quyền quản lý mọi lớp)</div></div>'; }
+    else if (r === 'prints') clPrints(body, v);      // (1.80.45) Báo cáo in — quản lý: mọi gia sư · gia sư: của mình
     else if (r === 'settings') clSettings(body, v);
     else if (r === 'centers') { if (man) clCenters(body, v); else body.innerHTML = '<div class="card"><div class="empty" style="padding:40px"><i class="bi bi-lock"></i>Chỉ quản lý lớp thiết lập được trung tâm</div></div>'; }      // (1.69) CentersView.html
     else if (r === 'perms') clPerms(body, v);
@@ -18244,7 +18261,7 @@ async function clPbOpen(L, btn) {
     const V = vis(), byD = []; V.forEach(s => { const g = byD[byD.length - 1]; if (g && g.d === s.date) g.L.push(s); else byD.push({ d: s.date, L: [s] }); });
     body.innerHTML = '<div class="pb-top"><div class="pb-q" role="group" aria-label="Chọn nhanh">' + Object.keys(R).map(k => { const n = SS.filter(R[k][1]).length;
         return '<button type="button" class="chip-f' + (k === rg ? ' on' : '') + '" data-rg="' + k + '"' + (n ? '' : ' disabled') + '>' + R[k][0] + ' <span class="n">' + n + '</span></button>'; }).join('') + '</div>' +
-      '<div class="pb-hint"><i class="bi bi-shield-exclamation"></i><span>Tệp <b>lời giải / đáp án</b> không tích sẵn — không in cho học sinh. Cần thì tích lại. Mỗi bé ra <b>một link riêng</b>.</span></div></div>' +
+      '<div class="pb-hint"><i class="bi bi-shield-exclamation"></i><span>Tệp <b>lời giải / đáp án</b> không tích sẵn — không in cho học sinh. Cần thì tích lại. Mỗi bé ra <b>một link riêng</b>. Việc in (tệp nào, bao nhiêu trang) được <b>ghi lại cho báo cáo in</b> — xem ở <b>Báo cáo in</b>.</span></div></div>' +
       '<div class="pb-l">' + (byD.length ? byD.map(g => { const d = clDay(g.d, t);
         return '<div class="pb-d"><b>' + d.ws + ' ' + d.dm + '</b><small>' + esc(d.rel) + '</small></div>' + g.L.map(s => {
           const P = pick[s.id], n = s.files.filter(f => P[f.id]).length, dis = !s.print || !s.files.length;
@@ -18345,6 +18362,78 @@ async function clPbOpen(L, btn) {
     const sh = e.target.closest('[data-share]'); if (sh && step3.job) { const g = step3.job.K[Number(sh.dataset.share)]; navigator.share({ title: 'Tài liệu in · ' + g.who, url: g.url }).catch(() => {}); }
   });
   step1();
+}
+/* ══ (1.80.45) BÁO CÁO IN: gia sư in những phiếu nào (lý thuyết / phiếu học tập / tăng cường / BTVN / lời giải), bao nhiêu trang, cho bé nào ──
+   Nguồn: nhật ký in ở trang link tạm (Code.gs › sharePrintLog → PrintLog). Quản lý: tổng quan mọi gia sư hoặc chọn một gia sư · gia sư: chỉ của mình.
+   “Buổi có in” = buổi đã phát (đã duyệt / đã dạy, có bài) trong khoảng mà có tệp của buổi được in hoặc tải PDF ghép. ══ */
+const PR_KC = { lt: '#2563EB', phieu: '#0E9F6E', tc: '#7C3AED', btvn: '#D97706', de: '#0891B2', dap: '#DC2626', khac: '#64748B' };
+async function clPrints(B, v) {
+  const man = CL.d.manage, st = CL.pr = CL.pr || { per: '30', tutor: '', open: {} };
+  setTitle('Báo cáo in', 'bi-printer', [{ t: S.boot.app, r: man ? 'home' : 'today' }, { t: 'Lớp gia sư', r: 'classes' }], v);
+  const t = CL.d.today, range = () => { if (st.per === 'c') return [st.from || clAdd(t, -29), st.to || t];
+    if (st.per === 'm') return [t.slice(0, 8) + '01', t]; if (st.per === 'pm') { const d = clDate(t.slice(0, 8) + '01'); d.setDate(0); const e = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); return [e.slice(0, 8) + '01', e]; }
+    return [clAdd(t, -(Number(st.per) - 1)), t]; };
+  let R = null, busy = false;
+  const dm = d => String(d).slice(8, 10) + '/' + String(d).slice(5, 7);
+  const pct = (a, n) => n ? Math.round(a / n * 100) + '%' : '—';
+  const kinds = () => (R && R.kinds) || {};
+  const kbar = k => { const K = Object.keys(kinds()), tot = K.reduce((a, x) => a + (k[x] || 0), 0); if (!tot) return '<span class="muted">—</span>';
+    return '<span class="pr-kb" title="' + esc(K.filter(x => k[x]).map(x => kinds()[x] + ': ' + k[x] + ' trang').join(' · ')) + '">' + K.filter(x => k[x]).map(x => '<i style="flex:' + k[x] + ';background:' + PR_KC[x] + '"></i>').join('') + '</span>'; };
+  const cov = o => o.phat ? '<b>' + o.coIn + '</b>/' + o.phat + ' <small class="muted">' + pct(o.coIn, o.phat) + '</small>' : '<span class="muted">—</span>';
+  const head = () => { const r = range();
+    return '<div class="card pr-bar"><div class="seg" id="prPer">' + [['7', '7 ngày'], ['30', '30 ngày'], ['m', 'Tháng này'], ['pm', 'Tháng trước'], ['c', 'Tuỳ chọn']].map(o => '<button class="seg-b" data-per="' + o[0] + '" aria-pressed="' + (st.per === o[0]) + '">' + o[1] + '</button>').join('') + '</div>' +
+      (st.per === 'c' ? '<span class="pr-dt"><input class="inp" type="date" id="prF" value="' + esc(r[0]) + '"><span>→</span><input class="inp" type="date" id="prT" value="' + esc(r[1]) + '"></span>' : '<small class="muted">' + dm(r[0]) + ' → ' + dm(r[1]) + '</small>') +
+      (man ? '<select class="sel pr-tu" id="prTu"><option value="">Tất cả gia sư — tổng quan</option>' + ((R && R.opts) || []).map(o => '<option value="' + esc(o.e) + '"' + (o.e === st.tutor ? ' selected' : '') + '>' + esc(o.n) + '</option>').join('') + '</select>' : '') +
+      '<span style="flex:1"></span><button class="btn sm ghost" id="prCsv"' + (R ? '' : ' disabled') + '><i class="bi bi-download"></i>Tải CSV</button></div>'; };
+  const sum = L => L.reduce((a, o) => { ['luot', 'pdf', 'trang', 'dap', 'qltt', 'phat', 'coIn'].forEach(k => { a[k] += Number((k === 'phat' || k === 'coIn') ? (o.buoi ? o.buoi[k] : o[k]) || 0 : o[k] || 0); }); Object.keys(o.k || {}).forEach(k => { a.k[k] = (a.k[k] || 0) + o.k[k]; }); return a; }, { luot: 0, pdf: 0, trang: 0, dap: 0, qltt: 0, phat: 0, coIn: 0, k: {} });
+  const paint = () => {
+    if (!R) { B.innerHTML = head() + '<div class="card">' + miniLoader('Đang tải báo cáo in…') + '</div>'; return; }
+    const one = !man || !!st.tutor, K = R.kids.filter(k => !one || k.e === (st.tutor || R.tutor)), A = one ? sum(K) : sum(R.tutors.map(x => Object.assign({}, x, { buoi: { phat: x.phat || 0, coIn: x.coIn || 0 } })));
+    const tName = one ? ((R.tutors.find(x => x.e === (st.tutor || R.tutor)) || {}).n || (R.opts.find(o => o.e === st.tutor) || {}).n || (man ? st.tutor : 'Bạn')) : '';
+    const kpi = (l, v2, s2, ic, c) => '<div class="card kpi" style="--kc:' + c + '"><div class="kpi-l">' + l + '</div><div class="kpi-v">' + v2 + '</div><div class="kpi-s">' + s2 + '</div><span class="kpi-i"><i class="bi ' + ic + '"></i></span></div>';
+    const legend = '<div class="pr-lg">' + Object.keys(kinds()).filter(k => A.k[k]).map(k => '<span><i style="background:' + PR_KC[k] + '"></i>' + esc(kinds()[k]) + ' <b>' + A.k[k] + '</b></span>').join('') + '</div>';
+    let h = head() + (!man ? '<div class="pr-note"><i class="bi bi-info-circle"></i>Mỗi lần bạn mở hộp in hoặc tải PDF ghép ở link tài liệu của lớp, hệ thống ghi lại <b>tệp nào, bao nhiêu trang</b> — quản lý xem được báo cáo này.</div>' : '') +
+      (one && man ? '<div class="pr-who"><button class="btn xs ghost" id="prBack"><i class="bi bi-arrow-left"></i>Tổng quan</button><b>' + esc(tName) + '</b></div>' : '') +
+      '<div class="kpis pr-kpis">' + kpi('Lượt in', A.luot, A.pdf ? '+ ' + A.pdf + ' lần tải PDF ghép' : 'mở hộp in', 'bi-printer', '#2563EB') + kpi('Trang in', A.trang, legend ? 'theo loại phiếu bên dưới' : '', 'bi-files', '#0E9F6E') +
+        kpi('Trang lời giải', A.dap, A.trang ? pct(A.dap, A.trang) + ' số trang in' : 'không in lời giải', 'bi-key', A.dap ? '#DC2626' : '#64748B') + kpi('Buổi đã phát có in', A.phat ? pct(A.coIn, A.phat) : '—', A.coIn + ' / ' + A.phat + ' buổi', 'bi-check2-square', '#7C3AED') + '</div>' +
+      '<div class="card pr-sec"><div class="rp-h"><i class="bi bi-pie-chart"></i><b>Trang in theo loại phiếu</b><span></span></div>' + (A.trang ? '<div class="pr-big">' + kbar(A.k) + '</div>' + legend : '<div class="pr-empty">Chưa có lượt in nào trong khoảng này</div>') + '</div>';
+    if (!one) {      // TỔNG QUAN: mỗi gia sư một dòng
+      const T = R.tutors;
+      h += '<div class="card pr-sec"><div class="rp-h"><i class="bi bi-people"></i><b>Theo gia sư</b><span>' + T.length + ' gia sư · bấm một dòng để xem chi tiết</span></div>' + (T.length ? '<div class="tbl-wrap"><table class="tbl pr-tbl"><thead><tr><th>Gia sư</th><th>Bé</th><th>Lượt in</th><th>Trang</th><th>Lời giải</th><th>Loại phiếu</th><th>Buổi có in</th></tr></thead><tbody>' +
+        T.map(x => '<tr data-tu="' + esc(x.e) + '"><td><b>' + esc(x.n) + '</b></td><td>' + (x.nbe || 0) + '</td><td>' + x.luot + (x.pdf ? ' <small class="muted">+' + x.pdf + ' PDF</small>' : '') + (x.qltt ? ' <small class="muted">· QLTT ' + x.qltt + '</small>' : '') + '</td><td><b>' + x.trang + '</b></td>' +
+          '<td>' + (x.dap ? '<span class="pr-dap">' + x.dap + ' trang</span>' : '<span class="muted">0</span>') + '</td><td>' + kbar(x.k) + '</td><td>' + cov({ phat: x.phat || 0, coIn: x.coIn || 0 }) + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="pr-empty">Chưa có dữ liệu</div>') + '</div>';
+    } else {      // MỘT GIA SƯ: từng bé + từng lượt in
+      h += '<div class="card pr-sec"><div class="rp-h"><i class="bi bi-person-video3"></i><b>Theo bé</b><span>' + K.length + ' bé · bấm để xem buổi chưa in</span></div>' + (K.length ? '<div class="tbl-wrap"><table class="tbl pr-tbl"><thead><tr><th>Bé</th><th>Lượt in</th><th>Trang</th><th>Lời giải</th><th>Loại phiếu</th><th>Buổi có in</th></tr></thead><tbody>' +
+        K.map(k => { const b = k.buoi || { phat: 0, coIn: 0, chuaIn: [] }, op = st.open[k.cid];
+          return '<tr data-prk="' + esc(k.cid) + '" class="' + (op ? 'on' : '') + '"><td><b>' + esc(k.be) + '</b>' + (k.code && k.code !== k.be ? ' <small class="muted">' + esc(k.code) + '</small>' : '') + '</td><td>' + k.luot + (k.pdf ? ' <small class="muted">+' + k.pdf + ' PDF</small>' : '') + '</td><td><b>' + k.trang + '</b></td>' +
+            '<td>' + (k.dap ? '<span class="pr-dap">' + k.dap + ' trang</span>' : '<span class="muted">0</span>') + '</td><td>' + kbar(k.k) + '</td><td>' + cov(b) + (b.chuaIn.length ? ' <i class="bi bi-chevron-' + (op ? 'up' : 'down') + ' muted"></i>' : '') + '</td></tr>' +
+            (op && b.chuaIn.length ? '<tr class="pr-sub"><td colspan="6"><b>' + b.chuaIn.length + ' buổi đã phát chưa thấy in:</b> ' + b.chuaIn.map(x => '<span class="pr-ci">' + dm(x.d) + (x.bai ? ' · ' + esc(x.bai) : '') + '</span>').join('') + '</td></tr>' : ''); }).join('') + '</tbody></table></div>' : '<div class="pr-empty">Chưa có dữ liệu</div>') + '</div>';
+      const LG = R.logs.filter(l => l.e === (st.tutor || R.tutor)), kn = cid => (R.kids.find(k => k.cid === cid) || {}).be || '—';
+      h += '<div class="card pr-sec"><div class="rp-h"><i class="bi bi-clock-history"></i><b>Từng lần in</b><span>' + LG.length + ' lần' + (R.more ? ' (hiện 600 lần gần nhất)' : '') + '</span></div>' + (LG.length ? '<div class="pr-logs">' +
+        LG.map(l => '<div class="pr-log"><div class="pr-lh"><b>' + esc(kn(l.cid)) + '</b><small>' + esc(fmtDT(l.at)) + ' · ' + (l.kind === 'pdf' ? 'tải PDF ghép' : 'mở hộp in') + (l.src === 'qltt' ? ' · QLTT in hộ' : '') + ' · <b>' + l.pages + ' trang</b>' + (l.dap ? ' · <span class="pr-dap">' + l.dap + ' trang lời giải</span>' : '') + '</small></div>' +
+          '<div class="pr-fs">' + l.files.map(f => '<span class="pr-f" style="--kc:' + (PR_KC[f.k] || '#64748B') + '" title="' + esc(kinds()[f.k] || '') + '"><i></i>' + esc(f.n) + ' <em>' + f.p + ' tr</em></span>').join('') + '</div></div>').join('') + '</div>' : '<div class="pr-empty">Chưa có lượt in nào trong khoảng này</div>') + '</div>';
+    }
+    B.innerHTML = h;
+  };
+  const load = async () => { if (busy) return; busy = true; const r = range(); R = null; paint();
+    try { R = await rpc('printReport', { from: r[0], to: r[1], tutor: man ? st.tutor : '' }, { quiet: true }); } catch (e) { B.innerHTML = head() + '<div class="card"><div class="empty" style="padding:30px"><i class="bi bi-exclamation-octagon"></i>' + esc(e.message) + '</div></div>'; busy = false; return; }
+    busy = false; if (B.isConnected) paint(); };
+  const csv = () => { if (!R) return; const q = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"', K = Object.keys(kinds()), r = range();
+    const rows = [['Gia sư', 'Bé', 'Mã lớp', 'Lượt in', 'Tải PDF', 'Trang', 'Trang lời giải'].concat(K.map(k => kinds()[k] + ' (trang)'), ['Buổi đã phát', 'Buổi có in'])].concat(R.kids.map(k => { const tn = (R.tutors.find(x => x.e === k.e) || {}).n || k.e, b = k.buoi || {};
+      return [tn, k.be, k.code, k.luot, k.pdf, k.trang, k.dap].concat(K.map(x => (k.k || {})[x] || 0), [b.phat || 0, b.coIn || 0]); }));
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + rows.map(x => x.map(q).join(',')).join('\n')], { type: 'text/csv' })); a.download = 'Bao-cao-in_' + r[0] + '_' + r[1] + (st.tutor ? '_' + st.tutor.split('@')[0] : '') + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000); };
+  B.onclick = e => {
+    const p = e.target.closest('[data-per]'); if (p) { st.per = p.dataset.per; return load(); }
+    if (e.target.closest('#prCsv')) return csv();
+    if (e.target.closest('#prBack')) { st.tutor = ''; return paint(); }
+    const tu = e.target.closest('tr[data-tu]'); if (tu) { st.tutor = tu.dataset.tu; return load(); }
+    const kd = e.target.closest('tr[data-prk]'); if (kd) { st.open[kd.dataset.prk] = !st.open[kd.dataset.prk]; return paint(); }
+  };
+  B.onchange = e => {
+    if (e.target.id === 'prTu') { st.tutor = e.target.value; return load(); }
+    if (e.target.id === 'prF' || e.target.id === 'prT') { const f = $('#prF', B), t2 = $('#prT', B); if (f && t2 && f.value && t2.value) { st.from = f.value; st.to = t2.value; load(); } }
+  };
+  load();
 }
 </script>
 
