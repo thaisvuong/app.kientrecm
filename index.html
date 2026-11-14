@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T02:02:52.192Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T02:25:34.172Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -14569,6 +14569,24 @@ function clProg(c) { return c && c.programId ? progById(c.programId) : null; }
 function clProgName(p) { return p ? progChain(p).map(x => x.name).join(' › ') : ''; }
 /** tên hiển thị của lớp trên thông tin buổi: tên học sinh nếu đã có, chưa có thì mã lớp */
 function clName(c) { return c ? (String(c.student || '').trim() || c.code) : ''; }
+/** (1.80.39) TÌM THEO ĐẦU TỪ (Danh sách lớp, Buổi học, Gia sư): mỗi chữ gõ phải là ĐẦU một từ — “an” khớp An / Anh, KHÔNG khớp “Toán”, “Thanh”, “Nhân”
+   (trước so chuỗi con trên mọi cột gộp lại nên “Gia an” khớp 196 / 210 lớp). Chữ dài ≥ 4 ký tự vẫn khớp giữa từ (một phần email, mã lớp).
+   Ưu tiên: tên bé / mã lớp / tên gia sư khớp cả cụm hoặc đủ mọi chữ → chỉ hiện các dòng đó; không có mới tìm rải trên mọi cột.
+   fn(item) → [[trường ưu tiên…], [trường phụ…]] · trả lại danh sách đã lọc (giữ thứ tự) */
+function clQWords(q) { return fold(q).split(/[^a-z0-9@]+/).filter(Boolean); }
+function clQToks(s) { return fold(s).split(/[^a-z0-9@]+/).filter(Boolean); }
+function clQHit(T, w) { return T.some(t => t.indexOf(w) === 0 || (w.length >= 4 && t.indexOf(w) > 0)); }
+function clQScore(strong, rest, W) {
+  const S = strong.map(clQToks);
+  for (const T of S) for (let i = 0; i + W.length <= T.length; i++) if (W.every((w, j) => T[i + j].indexOf(w) === 0)) return 3;      // cả cụm liền nhau (“gia an” trong “Bùi Gia An”)
+  if (S.some(T => W.every(w => clQHit(T, w)))) return 2;
+  const A = [].concat(...S, ...rest.map(clQToks)); return W.every(w => clQHit(A, w)) ? 1 : 0;
+}
+function clQFilter(list, q, fn) {
+  const W = clQWords(q); if (!W.length) return list;
+  const sc = list.map(x => { const f = fn(x); return clQScore(f[0] || [], f[1] || [], W); }), best = Math.max(0, ...sc), min = best >= 2 ? 2 : 1;
+  return list.filter((x, i) => sc[i] >= min);
+}
 function clClass(id) { const C = CL.d.classes; if (CL_IX.c !== C || CL_IX.cn !== C.length) { const m = {}; C.forEach(c => { if (!Object.prototype.hasOwnProperty.call(m, c.id)) m[c.id] = c; }); CL_IX.c = C; CL_IX.cn = C.length; CL_IX.cb = m; } return Object.prototype.hasOwnProperty.call(CL_IX.cb, id) ? CL_IX.cb[id] : undefined; }
 /* (1.80.38) BẢNG TRA NHANH: buổi theo lớp · lớp theo mã. Trước đây mỗi lần gọi clSess / clClass quét lại toàn bộ danh sách (vài nghìn buổi) —
    trang Gia sư, Danh sách lớp gọi hàng nghìn lần mỗi lần gõ lọc nên chậm. Bảng tự dựng lại khi danh sách đổi (mảng mới hoặc thêm / bớt phần tử);
@@ -15463,8 +15481,7 @@ function clTodo(B, v) {
     store: 'clTodoF', chips: () => $('#ctFC', B), addBtn: () => $('#ctFA', B), base: () => CL.d.sessions.filter(inWin), onChange: () => { Object.keys(CLP).forEach(k => { if (/^todo/.test(k)) delete CLP[k]; }); clTodo(B, v); }
   }));
   // bộ lọc chung (không tính tab trạng thái, không tính ngày) → đếm số trên từng tab / chip ngày
-  const base0 = D.sessions.filter(x => { const c = clClass(x.classId); return inWin(x) && CFC.match(x) &&
-    words.every(w => fold([c.code, c.student, c.grade, c.tutorName, c.tutorEmail, (x.folders || []).map(clDirName).join(' '), (x.tags || []).map(t => t.n).join(' ')].join(' ')).indexOf(w) >= 0); });
+  const base0 = clQFilter(D.sessions.filter(x => inWin(x) && CFC.match(x)), CL.q, x => { const c = clClass(x.classId); return [[c.student, c.code, c.tutorName], [c.grade, c.tutorEmail, (x.folders || []).map(clDirName).join(' '), (x.tags || []).map(t => t.n).join(' ')]]; });      // (1.80.39) tìm theo đầu từ
   const dayN = {}; CL_DAYS.forEach(k => { dayN[k[0]] = base0.filter(x => x.status !== 'off' && clDayOk(x, k[0], t)).length; });
   const base = base0.filter(x => clDayOk(x, CL.day, t));
   const cnt = {}; CL_ST_TABS.forEach(k => { cnt[k[0]] = 0; }); base.forEach(x => { cnt[clState(x).k]++; }); cnt.all = base.filter(x => x.status !== 'off').length;
@@ -16168,7 +16185,7 @@ function clGrid(B, v) {
     ].concat(man ? [{ key: 'appr', label: 'Duyệt nội dung', icon: 'bi-shield-check', type: 'opt', val: clApprOf, sort: (a, b) => CL_APPR.indexOf(a) - CL_APPR.indexOf(b) }] : []),
     store: 'clGrid', chips: () => $('#cgFC', B), addBtn: () => $('#cgFA', B), base: () => D.classes, onChange: () => paint()
   });
-  const rowsOf = () => { const w = fold(CL.q).split(/\s+/).filter(Boolean); return D.classes.filter(c => CFC.match(c) && w.every(z => fold([c.code, c.student, c.grade, c.tutorName, c.tutorEmail, c.course, clProgName(clProg(c)), c.days].join(' ')).indexOf(z) >= 0)); };
+  const rowsOf = () => clQFilter(D.classes.filter(c => CFC.match(c)), CL.q, c => [[c.student, c.code, c.tutorName], [c.grade, c.tutorEmail, String(c.course || '').replace(/^\s*gia sư\s*/i, ''), clProgName(clProg(c)), c.days]]);      // (1.80.39) tìm theo đầu từ
   const disp = (c, k) => {
     if (k === 'programId') { const p = clProg(c); return p ? '<span class="cg-prog" style="--pc:' + progColor(p) + '">' + esc(clProgName(p)) + '</span>' + clPkTag(c) : '<span class="cg-empty">— chọn —</span>'; }      // (1.74) kèm huy hiệu GS xác nhận
     if (k === 'tutorEmail') { if (!c.tutorEmail) return '<span class="cg-empty">chưa có</span>'; const na = clNoAs(c);      // (1.80.25) cờ “Không gán bài” của gia sư
@@ -16923,9 +16940,7 @@ function clTutors(B, v, em) {
   const offOpen = CL.tuOff = CL.tuOff || {};
   const lockT = clPkTag;      // (1.74) GS xác nhận · cấp chương trình · chờ xác nhận khi đang có đợt khảo sát
   const paint = () => {
-    const w = fold(q).split(/\s+/).filter(Boolean);
-    const ft = t => t._ft || (t._ft = fold([t.name, t.email].concat(t.list.map(c => c.code + ' ' + (c.student || '') + ' ' + c.grade + ' ' + clProgName(clProg(c)))).join(' ')));      // (1.80.38) chữ để lọc dựng một lần cho mỗi gia sư
-    const list = Object.values(by).filter(t => w.every(z => ft(t).indexOf(z) >= 0))
+    const list = clQFilter(Object.values(by), q, t => [[t.name].concat(t.list.map(c => c.student), t.list.map(c => c.code)), [t.email].concat(t.list.map(c => c.grade + ' ' + clProgName(clProg(c))))])      // (1.80.39) tìm theo đầu từ: tên gia sư / tên bé / mã lớp trước
       .sort((a, b) => (a.email ? 0 : 1) - (b.email ? 0 : 1) || (b.list.some(classActiveC) ? 1 : 0) - (a.list.some(classActiveC) ? 1 : 0) || natCmp(a.name || a.email, b.name || b.email));
     const pend = c => clSess(c.id).filter(x => x.released && x.status !== 'taught').length;      // (1.80.38) tra theo lớp, không quét mọi buổi
     // (1.74) lớp trùng (cùng bé, cùng gia sư: lớp tự nhập + lớp KGS) → nhãn ngay trên thẻ, bấm là mở hộp gộp (giữ lớp KGS, chuyển tiến trình, xoá lớp tự nhập)
