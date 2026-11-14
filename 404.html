@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T03:02:56.586Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-14T04:17:51.468Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4687,6 +4687,16 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 .tl-i.unr .gc-m b::before{ content:''; display:inline-block; width:7px; height:7px; margin:0 6px 1px 0; border-radius:50%; background:#E5484D; vertical-align:middle } .gc-new{ font-style:normal; font-weight:700; color:#C5282F; white-space:nowrap }
 .gc-m b, .gc-m small{ overflow-wrap:anywhere } .gc-ct b{ overflow-wrap:anywhere; min-width:0 }
 .gc-due{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 4px 0 10px; border:1px solid var(--border); border-radius:99px; font-size:12.5px; color:var(--ink-2) } .gc-due input{ border:0; background:transparent; font:inherit; color:inherit; height:28px; min-width:0 }
+/* (1.80.41) ảnh trong yêu cầu / trả lời: dải ảnh nhỏ dưới ô chữ (bấm xem to, × bỏ) · ảnh trong nội dung đã gửi */
+.gc-dl{ display:flex; align-items:center; justify-content:space-between; gap:8px } .gc-dl .flabel{ margin-bottom:0 }
+.gc-ims{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px } .gc-ims[hidden]{ display:none }
+.gc-im{ position:relative; width:84px; height:64px; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); overflow:hidden; flex:none }
+.gc-im img{ width:100%; height:100%; object-fit:cover; display:block; cursor:zoom-in }
+.gc-im.up{ width:auto; padding:0 12px; display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--muted) }
+.gc-imx{ position:absolute; top:3px; right:3px; width:20px; height:20px; border:0; border-radius:50%; display:grid; place-items:center; padding:0; font-size:10px; color:#fff; background:rgba(15,23,42,.62); cursor:pointer } .gc-imx:hover{ background:rgba(192,57,43,.9) }
+.ta.gc-drag{ box-shadow:0 0 0 2px var(--primary); background:color-mix(in srgb, var(--primary) 4%, var(--surface)) }
+.md-gal{ display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 2px; white-space:normal } .md-gal .tk-dimg{ margin:0; max-height:200px; max-width:min(100%, 360px) }
+.gc-rp > .ibtn{ flex:none; align-self:flex-end }
 .gc-rp{ display:flex; gap:8px; align-items:flex-end; margin-top:6px } .gc-rp .ta{ flex:1; min-width:0; min-height:44px; height:64px; resize:vertical } .gc-ml{ margin-top:6px; font-size:12.5px }
 /* link dán trong yêu cầu / trao đổi → khối bấm được */
 .lk-blk{ display:flex; align-items:center; gap:10px; max-width:100%; margin:6px 0; padding:8px 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--ink); text-decoration:none; white-space:normal; cursor:pointer; vertical-align:middle }
@@ -17371,7 +17381,20 @@ const TN_ST = { todo: ['Mới gửi', 'gray', 'bi-send'], doing: ['Đang xử l�
 const tnPg = x => x.cls && x.cls.prog ? ' <em class="tn-pg">' + esc(x.cls.prog) + '</em>' : '';
 const TN_IC = { note: 'bi-journal-text', mat: 'bi-file-earmark-arrow-down', bug: 'bi-bug', idea: 'bi-lightbulb', prog: 'bi-arrow-left-right', ask: 'bi-life-preserver', other: 'bi-chat-left-text' };
 /** (1.43.15) chữ của ghi chú / trao đổi: link dán vào thành KHỐI bấm được — tài liệu / thư mục có trong Thư viện hiện tên + mở ngay trong app, link khác mở tab mới */
-function tnRich(s) {
+function tnRich(s) { return mdImgRich(s, tnRich0); }      // (1.80.41) ![tên](link ảnh) → ảnh (bấm xem to), phần chữ như cũ
+/** (1.80.41) chữ có ảnh ![tên](link): ảnh liền nhau gom thành MỘT HÀNG ảnh nhỏ (bỏ dòng trống giữa chúng), phần chữ qua fn. Dùng cho yêu cầu (Kiến CM) và bình luận (Kiến Task) */
+function mdImgRich(s, fn) {
+  s = String(s == null ? '' : s); const re = /!\[([^\]\n]{0,200})\]\(((?:https:\/\/|data:image\/(?:png|jpe?g|gif|webp);base64,)[^\s)]+)\)/g, P = []; let i = 0, m;
+  while ((m = re.exec(s))) { P.push(s.slice(i, m.index), { a: m[1], u: m[2] }); i = re.lastIndex; }
+  if (!P.length) return fn(s); P.push(s.slice(i));
+  let out = '', G = [];
+  P.forEach((p, k) => { if (typeof p !== 'string') { G.push(p); return; }
+    if (G.length && !p.trim() && k < P.length - 1) return;      // chỉ khoảng trắng giữa hai ảnh → cùng hàng
+    if (G.length) { out += '<span class="md-gal">' + G.map(g => tkImg(g.u, g.a)).join('') + '</span>'; G = []; p = p.replace(/^[ \t]*\n/, ''); }
+    if (k < P.length - 1) p = p.replace(/\s+$/, ''); if (p) out += fn(p); });
+  return out;
+}
+function tnRich0(s) {
   return esc(s).replace(/https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"”’]/g, u => {
     const raw = u.replace(/&amp;/g, '&'), m = /\/(?:file\/d|file|folders|document\/d|spreadsheets\/d|presentation\/d)\/([\w-]{20,})|[?&]id=([\w-]{20,})/.exec(raw), id = m && (m[1] || m[2]);
     const f = id && IX.byId && IX.byId[id], d = id && IX.dirs && IX.dirs[id], host = (/^https?:\/\/([^/?#]+)/.exec(raw) || [])[1] || '';
@@ -17519,6 +17542,49 @@ function tnKanban(D, L, unread) {
       (K.length > lim ? '<button type="button" class="btn xs ghost gc-more" data-tnmore="' + esc(c.id) + '">Xem thêm ' + (K.length - lim) + ' thẻ</button>' : '') +
       (K.length ? '' : '<div class="gc-ce">' + (drag ? 'Kéo thẻ vào đây' : 'Trống') + '</div>') + '</div></section>'; }).join('') + '</div></div>';
 }
+/** (1.80.41) ẢNH trong yêu cầu / trao đổi: lưu kèm chữ dạng ![tên](link) — giống mô tả Kiến Task, qua Kiến Task vẫn hiện thành ảnh */
+const TN_IMG = /!\[([^\]\n]{0,200})\]\(((?:https:\/\/|data:image\/(?:png|jpe?g|gif|webp);base64,)[^\s)]+)\)/g;
+/** chữ đã lưu → { t: phần chữ, L: [{ a: tên, u: link }] } (mở lại để sửa) */
+function tnImgSplit(s) { const L = []; const t = String(s || '').replace(new RegExp(TN_IMG.source, 'g'), (m0, a, u) => { L.push({ a: a, u: u }); return ''; }).replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim(); return { t: t, L: L }; }
+function tnImgJoin(t, L) { t = String(t || '').trim(); const md = (L || []).map(i => '![' + String(i.a || 'ảnh').replace(/[[\]\n()]/g, ' ').trim() + '](' + i.u + ')').join('\n'); return t && md ? t + '\n\n' + md : t || md; }
+/** ảnh → data URL; ảnh to (cạnh dài > 2000px hoặc > 1,5 MB) thu nhỏ thành JPEG trước khi gửi */
+async function tnImgData(f) {
+  let url = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(f); }), mime = f.type;
+  const im = await new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = url; });
+  if (im && f.type !== 'image/gif' && (Math.max(im.naturalWidth, im.naturalHeight) > 2000 || f.size > 1.5 * 1024 * 1024)) {
+    const k = Math.min(1, 2000 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); url = c.toDataURL('image/jpeg', .86); mime = 'image/jpeg'; }
+  return { url: url, mime: mime };
+}
+/** gắn ẢNH vào ô chữ ta: dán ảnh chụp màn hình (⌘V / Ctrl+V), kéo thả ảnh vào ô, hoặc bấm nút btn chọn ảnh → hiện ảnh nhỏ ở dải strip (bấm xem to, × bỏ).
+    Trả { L: ảnh đã tải xong, busy(): còn ảnh đang tải, set(L) } */
+function tnImgBox(ta, strip, btn) {
+  const o = { L: [], n: 0, busy: () => o.n > 0, set: L => { o.L = (L || []).slice(); paint(); } };
+  function paint() { strip.hidden = !o.L.length && !o.n;
+    strip.innerHTML = o.L.map((i, k) => '<span class="gc-im"><img src="' + esc(i.u) + '" alt="' + esc(i.a || 'ảnh') + '" data-imk="' + k + '" title="Bấm để xem to" loading="lazy"><button type="button" class="gc-imx" data-imx="' + k + '" title="Bỏ ảnh này" aria-label="Bỏ ảnh"><i class="bi bi-x-lg"></i></button></span>').join('') +
+      (o.n ? '<span class="gc-im up"><i class="bi bi-cloud-arrow-up"></i>Đang tải ' + (o.n > 1 ? o.n + ' ảnh' : 'ảnh') + '…</span>' : ''); }
+  const up = async fs => {
+    fs = fs.filter(f => /^image\//.test(f.type)); if (!fs.length) return toast('Chỉ chèn được ảnh (PNG, JPG, GIF, WEBP)', 'warn');
+    if (o.L.length + o.n + fs.length > 10) { toast('Tối đa 10 ảnh mỗi lần gửi', 'warn'); fs = fs.slice(0, Math.max(0, 10 - o.L.length - o.n)); }
+    o.n += fs.length; paint();
+    for (const f of fs) {
+      try { if (f.size > 15 * 1024 * 1024) throw new Error('“' + f.name + '” lớn quá (tối đa 15 MB)');
+        const d = await tnImgData(f), r = await rpc('tnImage', { data: d.url, mime: d.mime, name: f.name }, { quiet: true });
+        o.L.push({ a: String(f.name || 'ảnh').replace(/\.\w+$/, '').replace(/^image$/i, 'ảnh chụp').slice(0, 80) || 'ảnh', u: r.src });
+      } catch (e) { toast(e.message || String(e), 'err', 6000); }
+      o.n--; paint(); }
+  };
+  ta.addEventListener('paste', e => { const fs = Array.from((e.clipboardData && e.clipboardData.files) || []).filter(f => /^image\//.test(f.type)); if (!fs.length) return; e.preventDefault(); up(fs); });
+  ta.addEventListener('dragover', e => { if (e.dataTransfer && Array.from(e.dataTransfer.types || []).indexOf('Files') >= 0) { e.preventDefault(); ta.classList.add('gc-drag'); } });
+  ta.addEventListener('dragleave', () => ta.classList.remove('gc-drag'));
+  ta.addEventListener('drop', e => { const fs = Array.from((e.dataTransfer && e.dataTransfer.files) || []); ta.classList.remove('gc-drag'); if (!fs.length) return; e.preventDefault(); up(fs); });
+  if (btn) { const fi = document.createElement('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = true; fi.hidden = true; btn.after(fi);
+    btn.onclick = () => fi.click(); fi.onchange = () => { const fs = Array.from(fi.files || []); fi.value = ''; if (fs.length) up(fs); }; }
+  strip.addEventListener('click', e => {
+    const x = e.target.closest('[data-imx]'); if (x) { o.L.splice(+x.dataset.imx, 1); paint(); return; }
+    const im = e.target.closest('img[data-imk]'); if (im) { const k = +im.dataset.imk; tkImgView(im.src, im.alt, () => { o.L.splice(k, 1); paint(); }); } });
+  paint(); return o;
+}
 /** gửi một ghi chú: hiện ngay trong danh sách (đang gửi…), lưu ngầm qua hàng đợi ghi (mất mạng vẫn còn) */
 /** tạo yêu cầu — hoặc (1.69) SỬA yêu cầu x như lúc tạo: mọi ô mở lại (loại, nội dung, lớp, bài, chi tiết, hạn, gấp), sửa được cả khi vừa gửi chưa lưu xong */
 function tnForm(done, x0) {
@@ -17530,15 +17596,17 @@ function tnForm(done, x0) {
       '<div class="fg"><label class="flabel" id="tnTl">Nội dung yêu cầu *</label><input class="inp" id="tnT" maxlength="200" placeholder="VD: Xin phiếu ôn tập phân số cho bé My · Phiếu Topic 06 bài 4 thiếu hình"></div>' +
       '<div class="row gc-2"><div class="fg"><label class="flabel" id="tnCl">Lớp liên quan <span class="opt">tuỳ chọn</span></label><select class="sel" id="tnC"><option value="">— Không gắn lớp —</option>' + (D.classes || []).map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + (c.code && c.code !== c.name ? ' · ' + esc(c.code) : '') + '</option>').join('') + '</select></div>' +
         '<div class="fg"><label class="flabel">Bài / tài liệu liên quan <span class="opt">tuỳ chọn</span></label><input class="inp" id="tnL" maxlength="200" placeholder="VD: Topic 06NT — Bài 12"></div></div>' +
-      '<div class="fg"><label class="flabel">Chi tiết <span class="opt">tuỳ chọn</span></label><textarea class="ta" id="tnD" rows="4" maxlength="4000" placeholder="Mô tả cụ thể, trang / câu nào, đề xuất cách sửa… Dán link tài liệu nếu có"></textarea></div>' +
+      '<div class="fg"><div class="gc-dl"><label class="flabel">Chi tiết <span class="opt">tuỳ chọn</span></label><button type="button" class="btn xs ghost" id="tnIb" title="Chèn ảnh chụp lỗi — hoặc dán (⌘V / Ctrl+V) / kéo thả ảnh vào ô bên dưới"><i class="bi bi-image"></i>Chèn ảnh</button></div><textarea class="ta" id="tnD" rows="4" maxlength="4000" placeholder="Mô tả cụ thể, trang / câu nào, đề xuất cách sửa… Dán link tài liệu nếu có · dán / kéo thả ảnh chụp lỗi vào đây"></textarea><div class="gc-ims" id="tnIm" hidden></div></div>' +
       '<div class="row gc-2"><div class="fg"><label class="flabel" title="Hiện ở Lịch / Timeline của Kiến Task">Cần xong trước ngày <span class="opt">tuỳ chọn</span></label><input class="inp" type="date" id="tnDue" min="' + (d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()))(new Date()) + '"></div>' +
         '<div class="fg"><label class="flabel">&nbsp;</label><label class="tp-f"><input type="checkbox" id="tnP"> Gấp — cần xử lý trước buổi học tới</label></div></div></div>',
     foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: ed ? 'Lưu' : 'Gửi', i: ed ? 'bi-check2' : 'bi-send', cls: 'pri', fn: mm => {
       if (kind === 'prog' && !mm.$('#tnC').value) { toast('Chọn lớp cần chuyển chương trình', 'warn'); return false; }
       const title = mm.$('#tnT').value.trim(); if (!title) { toast('Nhập nội dung yêu cầu', 'warn'); mm.$('#tnT').focus(); return false; }
+      if (IB.busy()) { toast('Đợi ảnh tải xong rồi gửi', 'warn'); return false; }
+      const desc = tnImgJoin(mm.$('#tnD').value, IB.L);      // (1.80.41) ảnh nối sau phần chữ
       if (ed) {      // (1.69) đổi ngay trên màn hình, lưu ngầm sau lệnh gửi (hàng đợi giữ thứ tự) — không phải chờ
         const cid = mm.$('#tnC').value, c = cid && (D.classes || []).find(z => z.id === cid), x = x0;
-        const pl = { id: x.id, title: title, desc: mm.$('#tnD').value.trim(), classId: cid, lesson: mm.$('#tnL').value.trim(), kind: kind, pri: mm.$('#tnP').checked ? 'high' : 'med', due: mm.$('#tnDue').value };
+        const pl = { id: x.id, title: title, desc: desc, classId: cid, lesson: mm.$('#tnL').value.trim(), kind: kind, pri: mm.$('#tnP').checked ? 'high' : 'med', due: mm.$('#tnDue').value };
         const old = JSON.parse(JSON.stringify(x));
         Object.assign(x, { title: pl.title, desc: pl.desc, lesson: pl.lesson, kind: kind, pri: pl.pri, due: pl.due, cls: c ? { id: c.id, name: c.name, code: c.code } : cid && x.cls && x.cls.id === cid ? x.cls : null, upd: new Date().toISOString() });
         lsSet(TN.ck, D); done && done();
@@ -17548,7 +17616,7 @@ function tnForm(done, x0) {
         return;
       }
       const cid = mm.$('#tnC').value, c = cid && (D.classes || []).find(x => x.id === cid), newId = 'TK' + Array.from(crypto.getRandomValues(new Uint8Array(5)), x => ('0' + x.toString(16)).slice(-2)).join('');
-      const pl = { newId: newId, title: title, desc: mm.$('#tnD').value.trim(), classId: cid, lesson: mm.$('#tnL').value.trim(), kind: kind, pri: mm.$('#tnP').checked ? 'high' : 'med', due: mm.$('#tnDue').value };
+      const pl = { newId: newId, title: title, desc: desc, classId: cid, lesson: mm.$('#tnL').value.trim(), kind: kind, pri: mm.$('#tnP').checked ? 'high' : 'med', due: mm.$('#tnDue').value };
       const x = { id: newId, key: '', title: title, desc: pl.desc, st: 'Mới gửi', stage: 'todo', done: 0, pri: pl.pri, kind: kind, lesson: pl.lesson, due: pl.due, cls: c ? { id: c.id, name: c.name } : null, by: S.me.email, byName: S.me.name, who: [], at: new Date().toISOString(), upd: new Date().toISOString(), nc: 0, pend: 1 };
       D.items.unshift(x); TN.f = 'open'; done && done();
       queueRpc('tnAdd', pl, { label: 'Gửi yêu cầu “' + title.slice(0, 50) + '”' }).then(r => { Object.assign(x, r); delete x.pend; lsSet(TN.ck, D); done && done(); toast('Đã gửi ' + r.key + ' — quản lý đã nhận thông báo', 'ok', 3000); },
@@ -17565,8 +17633,10 @@ function tnForm(done, x0) {
   const kd = m.$('#tnKd'); if (kd) kd.onclick = async () => { if (!/^k_/.test(kind)) return; const nm = (D.kinds || {})[kind];
     if (!await ask('Bỏ loại “' + nm + '”? Ghi chú đã gửi giữ nguyên.', { ok: 'Bỏ', danger: true })) return; sv({ del: kind }, 'Đã bỏ loại “' + nm + '”').then(() => { kind = 'note'; kinds(); }).catch(() => {}); };
   kinds();
+  const IB = tnImgBox(m.$('#tnD'), m.$('#tnIm'), m.$('#tnIb'));
   if (ed) { const v = (id, val) => { const el = m.$(id); if (el) el.value = val || ''; };      // (1.69) điền sẵn như lúc gửi
-    v('#tnT', x0.title); v('#tnD', x0.desc); v('#tnL', x0.lesson); v('#tnDue', x0.due); m.$('#tnP').checked = x0.pri === 'high';
+    const sp = tnImgSplit(x0.desc); IB.set(sp.L);
+    v('#tnT', x0.title); v('#tnD', sp.t); v('#tnL', x0.lesson); v('#tnDue', x0.due); m.$('#tnP').checked = x0.pri === 'high';
     const cs = m.$('#tnC'); if (x0.cls && x0.cls.id) { if (![...cs.options].some(o => o.value === x0.cls.id)) cs.insertAdjacentHTML('beforeend', '<option value="' + esc(x0.cls.id) + '">' + esc(x0.cls.name || x0.cls.id) + '</option>'); cs.value = x0.cls.id; }
     const du = m.$('#tnDue'); if (du && x0.due && x0.due < du.min) du.min = x0.due; }
   selSearch(m.$('#tnC'), 6);      // nhiều lớp (quản lý thấy mọi lớp) → ô chọn lớp có tìm kiếm
@@ -17601,7 +17671,7 @@ function tnView(x, done) {
       (x.cls || x.lesson ? '<div class="gc-vm">' + (x.cls ? '<a data-go="classes/c/' + esc(x.cls.id) + '"><i class="bi bi-person-video3"></i>' + esc(x.cls.name) + tnPg(x) + '</a>' : '') + (x.lesson ? '<span><i class="bi bi-book"></i>' + esc(x.lesson) + '</span>' : '') + '</div>' : '') +
       (x.desc ? '<div class="gc-vd">' + tnRich(x.desc) + '</div>' : '') +
       '<div class="tk-h">Trao đổi</div><div id="tnCm">' + miniLoader('Đang tải…') + '</div>' +
-      '<div class="gc-rp"><textarea class="ta" id="tnCt" placeholder="' + (D.man ? 'Trả lời gia sư… (dán link tài liệu — tự thành khối bấm được)' : 'Bổ sung / trả lời quản lý… (dán link nếu có)') + '"></textarea><button class="btn pri sm" id="tnCs"><i class="bi bi-send"></i>Gửi</button></div>' +
+      '<div class="gc-ims" id="tnCi" hidden></div><div class="gc-rp"><textarea class="ta" id="tnCt" placeholder="' + (D.man ? 'Trả lời gia sư… (dán link tài liệu — tự thành khối bấm được · dán / kéo thả ảnh)' : 'Bổ sung / trả lời quản lý… (dán link, dán / kéo thả ảnh chụp nếu có)') + '"></textarea><button type="button" class="ibtn" id="tnCb" title="Chèn ảnh — hoặc dán (⌘V / Ctrl+V) / kéo thả ảnh vào ô trả lời" aria-label="Chèn ảnh"><i class="bi bi-image"></i></button><button class="btn pri sm" id="tnCs"><i class="bi bi-send"></i>Gửi</button></div>' +
       (D.man && !mine ? '<label class="tp-f gc-ml"><input type="checkbox" id="tnMl"' + (lsGet('tnMail', 1) ? ' checked' : '') + '> Gửi mail báo ' + esc(x.byName || 'gia sư') + ' khi trả lời / chuyển sang cột xong</label>' : '') + '</div>',
     foot: [mine && x.stage === 'todo' || D.man ? { t: D.man && !mine ? 'Xoá ghi chú' : 'Rút lại', cls: 'ghost', i: 'bi-trash', fn: async () => { if (!await ask(D.man && !mine ? 'Xoá ghi chú này?' : 'Rút lại ghi chú này?', { ok: D.man && !mine ? 'Xoá' : 'Rút lại', danger: true })) return false;
         try { await rpc('tnDelete', { id: x.id }); D.items = D.items.filter(y => y.id !== x.id); lsSet(TN.ck, D); done && done(); toast(D.man && !mine ? 'Đã xoá ghi chú' : 'Đã rút lại ghi chú'); } catch (e) { fail(e); return false; } } } : null,
@@ -17627,8 +17697,9 @@ function tnView(x, done) {
     obPending('tnMove', true).forEach(q => { const c = q.id === x.id && tnCols(D).find(k => k.id === q.status); if (c) tnColSet(D, x, c); });      // vừa đổi cột mà chưa lưu xong → giữ cột mới
     const mv = m.$('#tnMv'); if (mv) mv.value = tnColOf(D, x); done && done(); }).catch(e => { if (!m.closed) m.$('#tnCm').innerHTML = '<div class="small muted">' + esc(e.message) + '</div>'; });
   const mv = m.$('#tnMv'); if (mv) mv.onchange = () => tnMoveTo(x, mv.value, done, ml());
-  m.$('#tnCs').onclick = async () => { const ta = m.$('#tnCt'), text = ta.value.trim(); if (!text) return ta.focus(); const b = m.$('#tnCs'); b.disabled = true;
-    try { const r = await rpc('tnComment', { id: x.id, text: text, mail: ml() ? 1 : 0 }); ta.value = ''; cm(r.comments); Object.assign(x, r.item); lsSet(TN.ck, D); done && done();
+  const CB = tnImgBox(m.$('#tnCt'), m.$('#tnCi'), m.$('#tnCb'));      // (1.80.41) ảnh trong trả lời
+  m.$('#tnCs').onclick = async () => { const ta = m.$('#tnCt'); if (CB.busy()) return toast('Đợi ảnh tải xong rồi gửi', 'warn'); const text = tnImgJoin(ta.value, CB.L); if (!text) return ta.focus(); const b = m.$('#tnCs'); b.disabled = true;
+    try { const r = await rpc('tnComment', { id: x.id, text: text, mail: ml() ? 1 : 0 }); ta.value = ''; CB.set([]); cm(r.comments); Object.assign(x, r.item); lsSet(TN.ck, D); done && done();
       if (D.man && x.by !== S.me.email) toast('Đã trả lời — ' + (x.byName || 'gia sư') + ' nhận thông báo trong app' + (r.mailed ? ' + mail' : ''), 'ok', 3500); } catch (e) { fail(e); } b.disabled = false; };
   ntSeen('classes/notes/' + x.id);
 }
@@ -26292,7 +26363,9 @@ function tkMnPool(t) {
   return tkAsgPool(p, keep).concat(d.users.filter(u => (p.leads || []).indexOf(u.email) >= 0)).filter((u, i, a) => a.indexOf(u) === i);
 }
 /** nội dung bình luận: @email → khối tên người */
-function tkCmText(s) { return esc(s).replace(/@([^\s@,;]+@[^\s,;]+\.[a-z]{2,})/gi, (m0, e) => '<span class="tk-mn" title="' + e + '"><i class="bi bi-at"></i>' + esc(tkUser(e.toLowerCase())) + '</span>'); }
+/** chữ bình luận → HTML: @email thành thẻ tên · (1.80.41) ![tên](link ảnh) thành ảnh (gia sư gửi kèm ảnh từ Kiến CM) */
+function tkCmText(s) { return typeof mdImgRich === 'function' ? mdImgRich(s, tkCmText0) : tkCmText0(s); }
+function tkCmText0(s) { return esc(s).replace(/@([^\s@,;]+@[^\s,;]+\.[a-z]{2,})/gi, (m0, e) => '<span class="tk-mn" title="' + e + '"><i class="bi bi-at"></i>' + esc(tkUser(e.toLowerCase())) + '</span>'); }
 function tkCmHtml(list, delOk) {
   return list.length ? list.map(c => '<div class="tk-cm' + (c.kind === 'a' ? ' a' : '') + (c.pend ? ' pend' : '') + (c.kind === 'mo' || c.kind === 'mi' ? ' ml' : '') + '">' + (c.kind === 'a' ? '<i class="bi bi-dot muted"></i>' : '<span class="av sm">' + esc(initials(c.name)) + '</span>') +
     '<div class="b"><span class="h"><b>' + esc(c.name) + '</b>' + (c.ai && typeof aiMk === 'function' ? aiMk('Trợ lý AI trả lời') : '') + ((c.kind === 'mo' || c.kind === 'mi') && typeof mlTag === 'function' ? mlTag(c.kind === 'mo' ? 'o' : 'i', c.ml) : '') + (c.kind === 'a' ? ' ' : ' · ' + (c.pend ? '<i class="spin-s"></i> đang gửi…' : esc(ago(c.at)))) + '</span>' + (c.kind === 'a' ? '<span class="x">' + esc(c.text) + ' · ' + esc(ago(c.at)) + '</span>' : '<div class="x">' + tkCmText(c.text) + '</div>') + '</div>' +
