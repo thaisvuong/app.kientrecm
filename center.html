@@ -77,6 +77,18 @@ const KPS = (() => {
       if (drop.length) await tx('readwrite', s => { drop.forEach(k => s.delete(k)); }); } catch (e) {} }
   };
 })();
+/** (1.80.55) LINK VỪA TẠO TRÊN MÁY: ghi sẵn thông tin link (đánh dấu pend) vào kho — trang link mở trên máy này vẽ ngay danh sách tài liệu,
+    không đứng ở màn “Link đang được chuẩn bị…” chờ máy chủ lưu xong; tệp nào có sẵn trên máy (tải sẵn / lần trước) hiện liền.
+    o: { name, note, files:[{ id, n, t, s, m, d, p }], expiresAt, print, download, pnum, maxPrints, track, pickOnly } */
+function kpsPendLink(token, o) {
+  try {
+    const ix = typeof IX !== 'undefined' && IX.byId ? IX.byId : {};
+    const files = (o.files || []).filter(f => f && f.id).map(f => { const x = ix[f.id] || {};
+      return { id: f.id, n: f.n || x.name || '', d: f.d || '', t: f.t || x.type || '', s: Number(f.s || x.size) || 0, p: f.p, m: f.m || x.mod || '' }; });
+    KPS.metaPut(token, { pend: 1, dk: '', name: o.name || '', note: o.note || '', files: files, expiresAt: o.expiresAt || '', download: !!o.download, print: !!(o.print || o.download),
+      pnum: o.pnum || { pos: 'none' }, pickDl: false, maxPrints: Number(o.maxPrints) || 0, prints: 0, notice: '', app: '', sub: '', track: o.track ? 1 : 0, pickOnly: !!o.pickOnly });
+  } catch (e) {}
+}
 /* tải sẵn trong app — chỉ khi đang mở app trên tên miền (trang link tạm cùng kho), không ở chế độ tiết kiệm dữ liệu */
 async function kpsPrefetch() {
   if (kpsPrefetch.run || typeof rpc !== 'function' || typeof partsGet !== 'function' || typeof S === 'undefined' || !S.me || S.me.preview || S.me.guest) return;

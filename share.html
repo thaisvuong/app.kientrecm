@@ -5299,6 +5299,7 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
     <div class="sh-t"><small id="app">Kiến Chuyên môn</small><h1 id="ttl">Đang mở…</h1><div class="meta" id="meta"></div></div>
     <div class="sh-a" id="acts" hidden>
       <div class="sh-zoom"><button class="ibtn" data-z="-1" aria-label="Thu nhỏ"><i class="bi bi-dash-lg"></i></button><span id="zv" title="Vừa khung">Vừa</span><button class="ibtn" data-z="1" aria-label="Phóng to"><i class="bi bi-plus-lg"></i></button></div>
+      <button class="ibtn" id="rfr" title="Cập nhật tệp mới — tệp trong thư mục vừa sửa / thay bản mới thì bấm để tải lại bản mới nhất (giữ nguyên link)" aria-label="Cập nhật tệp mới"><i class="bi bi-arrow-clockwise"></i></button>
       <button class="btn sm sh-dl" id="prSel" hidden title="Chọn tệp cần in và thứ tự in — tệp không chọn chỉ để xem"><i class="bi bi-files"></i><span class="bl">Chọn tệp in</span></button>
       <button class="btn sm sh-dl" id="pr" hidden><i class="bi bi-printer"></i><span class="bl">In</span></button>
       <button class="btn sm pri sh-dl" id="dl" hidden><i class="bi bi-download"></i><span class="bl">Tải PDF</span></button>
@@ -5401,6 +5402,18 @@ const KPS = (() => {
       if (drop.length) await tx('readwrite', s => { drop.forEach(k => s.delete(k)); }); } catch (e) {} }
   };
 })();
+/** (1.80.55) LINK VỪA TẠO TRÊN MÁY: ghi sẵn thông tin link (đánh dấu pend) vào kho — trang link mở trên máy này vẽ ngay danh sách tài liệu,
+    không đứng ở màn “Link đang được chuẩn bị…” chờ máy chủ lưu xong; tệp nào có sẵn trên máy (tải sẵn / lần trước) hiện liền.
+    o: { name, note, files:[{ id, n, t, s, m, d, p }], expiresAt, print, download, pnum, maxPrints, track, pickOnly } */
+function kpsPendLink(token, o) {
+  try {
+    const ix = typeof IX !== 'undefined' && IX.byId ? IX.byId : {};
+    const files = (o.files || []).filter(f => f && f.id).map(f => { const x = ix[f.id] || {};
+      return { id: f.id, n: f.n || x.name || '', d: f.d || '', t: f.t || x.type || '', s: Number(f.s || x.size) || 0, p: f.p, m: f.m || x.mod || '' }; });
+    KPS.metaPut(token, { pend: 1, dk: '', name: o.name || '', note: o.note || '', files: files, expiresAt: o.expiresAt || '', download: !!o.download, print: !!(o.print || o.download),
+      pnum: o.pnum || { pos: 'none' }, pickDl: false, maxPrints: Number(o.maxPrints) || 0, prints: 0, notice: '', app: '', sub: '', track: o.track ? 1 : 0, pickOnly: !!o.pickOnly });
+  } catch (e) {}
+}
 /* tải sẵn trong app — chỉ khi đang mở app trên tên miền (trang link tạm cùng kho), không ở chế độ tiết kiệm dữ liệu */
 async function kpsPrefetch() {
   if (kpsPrefetch.run || typeof rpc !== 'function' || typeof partsGet !== 'function' || typeof S === 'undefined' || !S.me || S.me.preview || S.me.guest) return;
@@ -5484,19 +5497,33 @@ const V = { L: null, docs: [], zoom: 1, main: null, obs: null, total: 0, cur: 0 
 const ZS = [0.5, 0.67, 0.8, 0.9, 1, 1.15, 1.3, 1.5, 1.75, 2, 2.5];
 const targetW = () => Math.min(1000, Math.max(240, V.main.clientWidth - (innerWidth <= 820 ? 12 : 28)));
 
+/* (1.80.55) LINK VỪA TẠO, MÁY CHỦ CHƯA LƯU XONG: lỗi “Link không tồn tại” lúc này là tạm — chờ lưu xong (SAVED) rồi tải tiếp, không báo lỗi */
+const unsaved = e => e && e.code === 'GONE' && /không tồn tại/.test(e.message || '');
+const SAVED = { ok: 0, w: [] };
+const whenSaved = () => SAVED.ok ? Promise.resolve() : new Promise(r => { SAVED.w.push(r); setTimeout(r, 4000); });
+async function keepTry(fn, onWait) {
+  for (let n = 0; ; n++) { try { return await fn(); } catch (e) { if (!unsaved(e) || n > 60) throw e; if (onWait) onWait(); await whenSaved(); } }
+}
 async function start(tries) {
   let L;
   // (1.77.22) thông tin link đã lưu trên máy (app tải sẵn / lần mở trước) → vẽ ngay; máy chủ kiểm ngầm: hết hạn / thu hồi → báo, danh sách tệp đổi → tải lại
   const C0 = await KPS.meta(TOKEN), fresh = rpc('shareOpen', { t: TOKEN, ua: navigator.userAgent, v: 2 });
   rpc('shareSeen', { t: TOKEN, ua: navigator.userAgent }).catch(() => {});
   if (C0 && (!C0.expiresAt || new Date(C0.expiresAt) > new Date())) {
-    fresh.then(j => { KPS.metaPut(TOKEN, j); if (j.files.map(f => f.id + f.m).join() !== C0.files.map(f => f.id + f.m).join()) location.reload(); },
-      e => { if (e.code === 'EXPIRED' || e.code === 'GONE') { KPS.metaPut(TOKEN, null); const b = document.querySelector('.sh-b'); if (b) b.remove(); fail(e.code === 'EXPIRED' ? 'Link đã hết hạn' : 'Link không còn hiệu lực', e.message, 'bi-link-45deg'); } });
-  }
+    const ids = F => F.map(f => f.id).join();
+    const ok = j => { KPS.metaPut(TOKEN, j);
+      // (1.80.55) link vừa tạo trên máy này (pend): máy chủ lưu xong cùng danh sách tệp → chỉ cập nhật thông tin, không tải lại trang
+      if (C0.pend && ids(j.files) === ids(C0.files)) { C0.files.forEach((f, i) => Object.assign(f, j.files[i])); ['dk', 'notice', 'app', 'sub', 'track', 'pickOnly', 'pickDl', 'expiresAt', 'pnum'].forEach(k => { C0[k] = j[k]; }); delete C0.pend; SAVED.ok = 1; SAVED.w.splice(0).forEach(f => f()); if (V.meta) V.meta(); return; }
+      if (j.files.map(f => f.id + f.m).join() !== C0.files.map(f => f.id + f.m).join()) location.reload(); };
+    const bad = e => { if (e.code === 'EXPIRED' || e.code === 'GONE') { KPS.metaPut(TOKEN, null); const b = document.querySelector('.sh-b'); if (b) b.remove(); fail(e.code === 'EXPIRED' ? 'Link đã hết hạn' : 'Link không còn hiệu lực', e.message, 'bi-link-45deg'); } };
+    // máy chủ chưa lưu xong link vừa tạo → hỏi lại mỗi 1,5 giây (tối đa ~2 phút), trang vẫn hiện bình thường
+    const poll = (n, pr) => pr.then(ok, e => { if (C0.pend && unsaved(e) && n < 80) return setTimeout(() => poll(n + 1, rpc('shareOpen', { t: TOKEN, ua: navigator.userAgent, v: 2 })), 1500); bad(e); });
+    poll(0, fresh);
+  } else SAVED.ok = 1;
   try { L = C0 && (!C0.expiresAt || new Date(C0.expiresAt) > new Date()) ? C0 : await fresh; if (L !== C0) KPS.metaPut(TOKEN, L); }      // (1.77.21) lượt xem ghi ngầm, song song
   catch (e) {
     // (1.69) link in vừa tạo trên máy gia sư (hiện ngay, lưu ngầm) — mở trước khi máy chủ lưu xong → chờ thêm vài giây rồi thử lại
-    if (e.code === 'GONE' && /không tồn tại/.test(e.message || '') && (tries || 0) < 12) { const t = document.querySelector('#load .ld-t'); if (t) t.textContent = 'Link đang được chuẩn bị… (' + ((tries || 0) + 1) + ')'; return setTimeout(() => start((tries || 0) + 1), 2500); }
+    if (e.code === 'GONE' && /không tồn tại/.test(e.message || '') && (tries || 0) < 60) { const t = document.querySelector('#load .ld-t'); if (t) t.textContent = 'Link vừa tạo — đang lưu, chờ chút… (' + ((tries || 0) + 1) + ')'; return setTimeout(() => start((tries || 0) + 1), 1500); }      // (1.80.55) hỏi lại nhanh hơn (2,5 → 1,5 giây), lâu hơn
     return fail(e.code === 'EXPIRED' ? 'Link đã hết hạn' : e.code === 'GONE' ? 'Link không còn hiệu lực' : 'Không mở được link', e.message, e.code === 'GONE' ? 'bi-link-45deg' : 'bi-hourglass-bottom'); }
   V.L = L; V.box = PNK.box(L.pnum);
   document.title = L.name + ' · ' + (L.app || 'Kiến Chuyên môn');
@@ -5506,6 +5533,13 @@ async function start(tries) {
   V.meta = meta;
   meta(); setInterval(meta, 60000);
   $('#acts').hidden = false;
+  // (1.80.55) CẬP NHẬT TỆP MỚI: máy chủ đối chiếu Drive ngầm — bấm xong dùng tiếp ngay, có tệp đổi thì trang tự tải lại bản mới
+  $('#rfr').onclick = async e => { const b = e.currentTarget; if (b.disabled) return; b.disabled = true; b.querySelector('i').className = 'bi bi-arrow-clockwise'; b.querySelector('i').style.cssText = 'display:inline-block;animation:spin 1s linear infinite';
+    toast('Đang kiểm tệp mới trên Drive — cứ xem tiếp…', 'info');
+    try { const r = await rpc('shareRefresh', { t: TOKEN }); if (r.changed) { toast('Có ' + r.changed + ' tệp mới — đang tải lại…'); const j = await rpc('shareOpen', { t: TOKEN, ua: navigator.userAgent, v: 2 }); await KPS.metaPut(TOKEN, j); location.reload(); return; }
+      toast(r.wait ? 'Vừa kiểm xong — đang là bản mới nhất' : 'Đã là bản mới nhất'); }
+    catch (er) { toast('Chưa kiểm được: ' + (er.message || er), 'err'); }
+    finally { b.disabled = false; b.querySelector('i').style.cssText = ''; } };
   $('#dl').hidden = !L.download;
   // link buổi học của gia sư: chỉ một nút In (biểu tượng máy in) → mở Ghép file in để chọn đúng tệp cần in · link khác: In tất cả + Chọn tệp in
   $('#pr').hidden = !L.print || !!L.pickOnly;
@@ -5604,14 +5638,16 @@ function load(d) {
     d.state = 'load';
     const sec = $('#sec' + d.i), st = $('#st' + d.i);
     // (1.70) XEM NHANH: ảnh trang đầu (Google dựng sẵn, nhẹ) hiện ngay trong lúc tải PDF đầy đủ — 3 tài liệu đầu, khi trang đầu nằm trong phần được chọn
-    if (d.i < 3 && !(d.f.p && d.f.p.length && d.f.p[0] !== 1)) rpc('sharePeek', { t: TOKEN, id: d.f.id, w: Math.round(Math.min(1000, innerWidth) * Math.min(2, devicePixelRatio || 1)) })
+    // (1.80.55) BẢN NHẸ TRƯỚC cho MỌI tài liệu (3 tài liệu đầu gửi ngay, còn lại xếp hàng chung giới hạn lệnh) — bản đầy đủ tải ngầm rồi thay vào
+    const peek = () => keepTry(() => rpc('sharePeek', { t: TOKEN, id: d.f.id, w: Math.round(Math.min(1000, innerWidth) * Math.min(2, devicePixelRatio || 1)) }));
+    if (!(d.f.p && d.f.p.length && d.f.p[0] !== 1)) (d.i < 3 ? peek() : slot(peek))
       .then(r => { const ph = sec && $('.ph', sec); if (r && r.url && ph && !ph.firstChild) ph.innerHTML = '<img src="' + r.url + '" alt="" style="width:100%;height:100%;object-fit:contain;display:block">'; }).catch(() => {});
     try {
       // (1.77.22) 1 · bản đã tải sẵn trên máy (app tải ngầm cho gia sư / lần mở trước) → 2 · tải thẳng từ Drive (chế độ “Ai có link”) → 3 · qua máy chủ
       let bytes = d.f.m ? await KPS.get(d.f.id, d.f.m) : null; d.src = bytes ? 'máy' : '';
       if (!bytes && V.L.dk) { bytes = await direct(d.f); if (bytes) d.src = 'drive'; }
       if (!bytes) {
-        const r = await partsGet((fn, pl) => slot(() => rpc(fn, pl)), 'shareFile', { t: TOKEN, id: d.f.id }, partsGuess(d.f.t, d.f.s));      // theo phần, gửi mọi phần ngay từ đầu (1.37.3)
+        const r = await keepTry(() => partsGet((fn, pl) => slot(() => rpc(fn, pl)), 'shareFile', { t: TOKEN, id: d.f.id }, partsGuess(d.f.t, d.f.s)), () => { st.title = 'Link vừa tạo — đang lưu lên máy chủ'; });      // (1.80.55) link chưa lưu xong → chờ rồi tải tiếp      // theo phần, gửi mọi phần ngay từ đầu (1.37.3)
         if (r.type !== 'pdf') throw Object.assign(new Error(r.type === 'big' ? 'Tài liệu quá lớn để xem trực tuyến (' + fmtSize(r.size) + ')' : 'Không xem được định dạng này'), { soft: 1 });
         bytes = b64bytes(r.b64); d.src = 'máy chủ';
       }

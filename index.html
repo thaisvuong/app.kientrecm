@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-15T09:23:33.936Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-15T16:52:33.940Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -6328,7 +6328,9 @@ function queueRpc(fn, payload, opt) {
     const i = OB.q.findIndex(x => x.key === it.key && !x.sending);
     if (i >= 0) { const old = OB.q[i]; if (opt.merge) it.p = opt.merge(old.p, payload); OB.q.splice(i, 1); const cb = OB.cb[old.id]; if (cb) { delete OB.cb[old.id]; OB.cb[it.id] = cb; } }
   }
-  OB.q.push(it); obSave();
+  // (1.80.55) opt.front: lệnh người khác đang CHỜ dùng ngay (link vừa tạo đã gửi đi) → chen lên đầu hàng (sau lệnh đang gửi), không đứng sau cả dãy lưu ngầm
+  if (opt.front) { let i = 0; while (i < OB.q.length && OB.q[i].sending) i++; OB.q.splice(i, 0, it); } else OB.q.push(it);
+  obSave();
   const pr = new Promise((res, rej) => { const prev = OB.cb[it.id]; OB.cb[it.id] = { res: r => { res(r); prev && prev.res(r); }, rej: e => { rej(e); prev && prev.rej(e); } }; });
   pr.catch(() => {});
   setTimeout(obFlush, 0);
@@ -6443,7 +6445,7 @@ function obPanel() {
   paint();
 }
 addEventListener('online', () => { if (OB.q.length) { OB.q.forEach(x => { x.tries = 0; }); clearTimeout(OB.t); obFlush(); } });
-addEventListener('beforeunload', e => { if (OB.q.length || WK.list.length || Object.values(VIEWS).some(r => r.el._guard && r.el._guard())) { e.preventDefault(); e.returnValue = ''; } });   // vẫn còn trong máy — lần mở sau gửi tiếp
+addEventListener('beforeunload', e => { if (OB.q.some(x => !x.sending) || WK.list.length || Object.values(VIEWS).some(r => r.el._guard && r.el._guard())) { e.preventDefault(); e.returnValue = ''; } });   // vẫn còn trong máy — lần mở sau gửi tiếp · (1.80.55) lệnh đã gửi lên máy chủ thì tắt tab máy chủ vẫn làm xong → không hỏi lại
 addEventListener('storage', e => { if (e.key === 'ktcm.outbox' && !OB.run) { OB.q = lsGet('outbox', []); obUI(); } });
 
 /* ══════════ NHỊP "ĐANG TRUY CẬP" — cho tab Hoạt động của quản trị ══════════ */
@@ -6631,13 +6633,15 @@ function modal(o) {
         if (!b.fn) return m.close();
         if (f.classList.contains('wait')) return;
         btn.classList.add('busy'); btn.disabled = true;
-        // việc chạy lâu hơn chớp mắt → hiện dòng báo + khoá các nút khác: tránh bấm lại / đóng hộp giữa chừng
-        const tw = setTimeout(() => { if (m.closed) return; f.classList.add('wait'); m.btns.forEach(x => { if (x !== btn) x.disabled = true; }); bg.querySelector('[data-x]').disabled = true;
-          if (!f.querySelector('.modal-wait')) f.insertAdjacentHTML('afterbegin', '<span class="modal-wait" role="status"><span class="mw-ring" aria-hidden="true"></span>Đang xử lý — đừng bấm lại hay đóng hộp</span>'); }, 250);
+        // (1.80.55) KHÔNG BẮT CHỜ: việc chạy lâu hơn chớp mắt → chỉ khoá các nút làm việc (tránh bấm lại); nút Huỷ / ✕ vẫn bấm được —
+        // đóng hộp thì việc vẫn chạy tiếp ngầm (lệnh đã gửi lên máy chủ thì tắt tab máy chủ vẫn làm xong), lỗi vẫn báo bằng thông báo góc
+        const tw = setTimeout(() => { if (m.closed) return; f.classList.add('wait'); m.btns.forEach(x => { if (x !== btn && x._fn) x.disabled = true; });
+          if (!f.querySelector('.modal-wait')) f.insertAdjacentHTML('afterbegin', '<span class="modal-wait" role="status"><span class="mw-ring" aria-hidden="true"></span>Đang lưu ngầm — có thể đóng hộp</span>'); }, 250);
         try { const r = await b.fn(m, btn); if (r !== false) m.close(); }
         catch (e) { fail(e); }
-        finally { clearTimeout(tw); btn.classList.remove('busy'); btn.disabled = false; if (!m.closed) { f.classList.remove('wait'); const w = f.querySelector('.modal-wait'); if (w) w.remove(); m.btns.forEach(x => { x.disabled = false; }); bg.querySelector('[data-x]').disabled = false; } }
+        finally { clearTimeout(tw); btn.classList.remove('busy'); btn.disabled = false; if (!m.closed) { f.classList.remove('wait'); const w = f.querySelector('.modal-wait'); if (w) w.remove(); m.btns.forEach(x => { x.disabled = false; }); } }
       };
+      btn._fn = !!b.fn;
       f.appendChild(btn);
       m.btns.push(btn);
     });
@@ -9618,6 +9622,18 @@ const KPS = (() => {
       if (drop.length) await tx('readwrite', s => { drop.forEach(k => s.delete(k)); }); } catch (e) {} }
   };
 })();
+/** (1.80.55) LINK VỪA TẠO TRÊN MÁY: ghi sẵn thông tin link (đánh dấu pend) vào kho — trang link mở trên máy này vẽ ngay danh sách tài liệu,
+    không đứng ở màn “Link đang được chuẩn bị…” chờ máy chủ lưu xong; tệp nào có sẵn trên máy (tải sẵn / lần trước) hiện liền.
+    o: { name, note, files:[{ id, n, t, s, m, d, p }], expiresAt, print, download, pnum, maxPrints, track, pickOnly } */
+function kpsPendLink(token, o) {
+  try {
+    const ix = typeof IX !== 'undefined' && IX.byId ? IX.byId : {};
+    const files = (o.files || []).filter(f => f && f.id).map(f => { const x = ix[f.id] || {};
+      return { id: f.id, n: f.n || x.name || '', d: f.d || '', t: f.t || x.type || '', s: Number(f.s || x.size) || 0, p: f.p, m: f.m || x.mod || '' }; });
+    KPS.metaPut(token, { pend: 1, dk: '', name: o.name || '', note: o.note || '', files: files, expiresAt: o.expiresAt || '', download: !!o.download, print: !!(o.print || o.download),
+      pnum: o.pnum || { pos: 'none' }, pickDl: false, maxPrints: Number(o.maxPrints) || 0, prints: 0, notice: '', app: '', sub: '', track: o.track ? 1 : 0, pickOnly: !!o.pickOnly });
+  } catch (e) {}
+}
 /* tải sẵn trong app — chỉ khi đang mở app trên tên miền (trang link tạm cùng kho), không ở chế độ tiết kiệm dữ liệu */
 async function kpsPrefetch() {
   if (kpsPrefetch.run || typeof rpc !== 'function' || typeof partsGet !== 'function' || typeof S === 'undefined' || !S.me || S.me.preview || S.me.guest) return;
@@ -10750,8 +10766,10 @@ const SCANS = {};          // sourceId → { st, done, err, result }
 const SV = Object.assign({ q: '', f: 'all', sort: 'order', grp: false, dense: false, shut: {} }, lsGet('srcView', {}));
 const SRC_F = [['all', 'Tất cả', () => true], ['new', 'Chưa quét', x => !x.lastScanAt], ['chg', 'Có thay đổi', x => x.lastResult && (x.lastResult.added || x.lastResult.changed || x.lastResult.removed)],
   ['old', 'Lâu chưa quét', x => x.lastScanAt && Date.now() - new Date(x.lastScanAt).getTime() > 14 * 86400000], ['lock', 'Giới hạn xem', x => !!x.viewers], ['pause', 'Tạm dừng', x => x.status === 'paused']];
+/** (1.80.55) phủ các lệnh xếp nhóm còn đang chờ lưu ngầm lên danh sách vừa tải (khỏi “lưu rồi lại nhảy về nhóm cũ”) */
+function srcOverlay(list) { obPending('saveSource', true).forEach(p => { if (!('grp' in p)) return; (p.ids || [p.id]).forEach(id => { const x = list.find(y => y.id === id); if (x) x.grp = p.grp; }); }); return list; }
 async function viewSources(arg, v) {
-  let list = await rpc('listSources', {}, { quiet: true });
+  let list = srcOverlay(await rpc('listSources', {}, { quiet: true }));
   topBtns(v, '<button class="btn sm" id="sAll"' + (list.length ? '' : ' disabled') + ' title="Quét mọi nguồn rồi tự làm mới link buổi học"><i class="bi bi-arrow-repeat"></i>Quét tất cả</button>' +
     (can('classes.manage') ? '<button class="btn sm" id="sRel" title="Ghép lại link tài liệu của mọi buổi đã duyệt từ hôm nay theo tệp hiện có trong thư mục bài — giữ nguyên địa chỉ link"><i class="bi bi-link-45deg"></i>Làm mới link</button>' : '') + '<button class="btn pri sm" id="sAdd"><i class="bi bi-plus-lg"></i>Thêm nguồn</button>');
   const top = viewRec(v).topNode;
@@ -10806,8 +10824,11 @@ async function viewSources(arg, v) {
     modal({ title: 'Xếp nhóm' + (S0.length === 1 ? ' · ' + S0[0].name : ' · ' + S0.length + ' nguồn'), icon: 'bi-collection', body: '<div class="stack"><div class="fg"><label class="flabel">Tên nhóm (để trống = bỏ khỏi nhóm)</label>' +
         '<input class="inp" id="gN" list="gNL" value="' + esc(S0.length === 1 ? S0[0].grp || '' : '') + '" placeholder="VD: Toán Cambridge · Văn · Kho đề thi"><datalist id="gNL">' + names.map(n => '<option value="' + esc(n) + '">').join('') + '</datalist></div>' +
         (names.length ? '<div class="row" style="gap:6px;flex-wrap:wrap">' + names.map(n => '<button type="button" class="chip-f" data-gn="' + esc(n) + '">' + esc(n) + '</button>').join('') + '</div>' : '') + '</div>',
-      foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', cls: 'pri', i: 'bi-check2', fn: async mm => { const g = mm.$('#gN').value.trim();
-        await rpc('saveSource', { id: ids[0], ids: ids, grp: g }); S0.forEach(x => { x.grp = g; }); if (g) { SV.grp = true; lsSet('srcView', SV); } paint(); toast(g ? 'Đã xếp vào nhóm “' + g + '”' : 'Đã bỏ khỏi nhóm'); } }] })
+      foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', cls: 'pri', i: 'bi-check2', fn: mm => { const g = mm.$('#gN').value.trim(), old = S0.map(x => x.grp || '');
+        // (1.80.55) đổi ngay trên máy, đóng hộp liền; lưu lên máy chủ ngầm (hàng đợi — tắt tab / mất mạng vẫn gửi tiếp) · lỗi hẳn thì trả lại nhóm cũ
+        S0.forEach(x => { x.grp = g; }); if (g) { SV.grp = true; lsSet('srcView', SV); } paint(); toast(g ? 'Đã xếp vào nhóm “' + g + '”' : 'Đã bỏ khỏi nhóm');
+        queueRpc('saveSource', { id: ids[0], ids: ids, grp: g }, { label: 'Xếp nhóm nguồn', key: 'srcGrp:' + ids.slice().sort().join(',') })
+          .catch(e => { S0.forEach((x, i) => { x.grp = old[i]; }); if (v.isConnected) paint(); toast('Chưa lưu được nhóm: ' + (e.message || e), 'bad', 6000); }); } }] })
       .el.addEventListener('click', e => { const b = e.target.closest('[data-gn]'); if (b) { const i = b.closest('.modal, .mdl, [role=dialog]') || document; const inp = $('#gN', i) || $('#gN'); inp.value = b.dataset.gn; } });
   };
   const srcCard = s => {
@@ -10856,7 +10877,7 @@ async function viewSources(arg, v) {
       }
       if (sc.cancel) { await rpc('scanCancel', { id: id }, { quiet: true }).catch(() => {}); delete SCANS[id]; repaintCard(id); toast('Đã dừng quét', 'warn'); return; }
       sc.done = true; sc.result = sc.st.result;
-      list = await rpc('listSources', {}, { quiet: true });
+      list = srcOverlay(await rpc('listSources', {}, { quiet: true }));
       await reloadIndex(); setNavCount();
       const s = list.find(x => x.id === id) || {};
       toast('Quét xong “' + s.name + '”: ' + fmtN(sc.result.files) + ' tài liệu (+' + sc.result.added + ' mới, −' + sc.result.removed + ' xoá)', 'ok', 5000);
@@ -13433,7 +13454,10 @@ function lkCreateLocal(payload, cfg, files) {
               status: 'active', state: 'active', download: !!payload.download, print: !!(payload.print || payload.download), pnum: payload.pnum || cfg.pnum, maxViews: Number(payload.maxViews) || 0, maxPrints: payload.print && !payload.download ? Number(payload.maxPrints) || 0 : 0, prints: 0, views: 0, lastViewAt: '', pending: true };
   LK.pend = LK.pend || {}; LK.pend[token] = L;
   if (LK.data) LK.data.links.unshift(L);
-  queueRpc('saveLink', Object.assign({}, payload, { token: token, newId: newId }), { label: 'Tạo link “' + payload.name + '”' })
+  // (1.80.55) trang link mở trên máy này có ngay danh sách tệp (không chờ máy chủ) · lệnh lưu chen lên đầu hàng đợi
+  const pp = {}; (payload.files || []).forEach(f => { if (f && f.p) pp[f.id] = f.p; });
+  kpsPendLink(token, Object.assign({}, L, { files: (files || []).map(f => Object.assign({}, f, { p: f.p || pp[f.id] })) }));
+  queueRpc('saveLink', Object.assign({}, payload, { token: token, newId: newId }), { label: 'Tạo link “' + payload.name + '”', front: true })
     .then(() => { delete LK.pend[token]; if (LK.data) lkReload().catch(() => {}); })
     .catch(e => { delete LK.pend[token]; if (LK.data) LK.data.links = LK.data.links.filter(x => x.token !== token); toast('Link “' + payload.name + '” chưa tạo được: ' + (e.message || e) + ' — link đã gửi đi sẽ không mở được', 'bad'); });
   return L;
@@ -13911,6 +13935,9 @@ function lkTrack(B, v) {
       { t: 'Lượt mở gần đây', i: 'bi-graph-up', fn: () => lkViews(L) },
       { t: 'Đếm lại lượt mở từ 0', i: 'bi-arrow-counterclockwise', fn: () => act(L, 'reset').catch(fail), hidden: !L.maxViews },
       { t: 'Cho in lại từ đầu (đếm lượt in từ 0)', i: 'bi-printer', fn: () => act(L, 'resetPrints').catch(fail), hidden: !(L.maxPrints && L.prints) },
+      // (1.80.55) tệp trong thư mục vừa sửa / thay bản mới → cập nhật ngầm, giữ nguyên link (không chờ)
+      { t: 'Cập nhật tệp mới', d: 'Tệp trên Drive vừa sửa / thay bản mới · giữ nguyên link', i: 'bi-arrow-clockwise', hidden: L.pending, fn: () => { toast('Đang cập nhật tệp mới cho “' + L.name + '” — chạy ngầm, cứ làm việc khác', 'info', 3000);
+        queueRpc('linkRefresh', { id: L.id }, { label: 'Cập nhật tệp · ' + L.name, key: 'lkr:' + L.id, front: true }).then(r => toast(r.changed ? '“' + L.name + '”: đã cập nhật ' + r.changed + ' tệp mới' : '“' + L.name + '” đã là bản mới nhất', 'ok', 4000)).catch(fail); } },
       { t: 'Nhân bản thành link mới', i: 'bi-copy', fn: () => { lkEditContent(L); LK.editId = ''; LK.form.name = L.name + ' (bản sao)'; LK.form.at = ''; LK.form.days = LK.data.cfg.days; delete LK.form.touched; const rec = VIEWS.links; rec && rec.el._onArg && rec.el._onArg(''); } },
       '-',
       L.state === 'revoked' ? { t: 'Mở lại link', i: 'bi-unlock', fn: () => act(L, 'restore').catch(fail) } : { t: 'Thu hồi ngay', d: 'Link khoá lập tức, giữ lại để mở lại sau', i: 'bi-slash-circle', danger: true, fn: () => act(L, 'revoke').catch(fail) },
@@ -15107,7 +15134,8 @@ function clPrintFast(c, sess, fids, base) {
       '<div class="search"><i class="bi bi-link-45deg"></i><input class="inp" readonly value="' + esc(st.url) + '" id="cpU"></div>';
     const u = m.$('#cpU'); if (u) u.onclick = () => u.select(); };
   paint();
-  queueRpc('printPick', { mode: 'print', items: items, groups: [{ classId: c.id, newId: newId, token: token }] }, { label: 'In gộp · ' + clName(c) })
+  kpsPendLink(token, { name: 'In gộp · ' + clName(c), files: fids.map(k => ({ id: k.slice(k.indexOf('|') + 1) })), expiresAt: new Date(Date.now() + 7 * 864e5).toISOString(), print: true, track: 1, pickOnly: true });      // (1.80.55) mở bản in ngay, không chờ máy chủ
+  queueRpc('printPick', { mode: 'print', items: items, groups: [{ classId: c.id, newId: newId, token: token }] }, { label: 'In gộp · ' + clName(c), front: true })
     .then(k => { const x = (k.links || [])[0]; st.s = 'ok'; if (x && x.url) st.url = x.url; paint(); })
     .catch(e => { st.s = 'bad'; st.err = e.message || String(e); paint(); toast('Chưa lưu được link in gộp — ' + st.err, 'err', 8000); });
 }
@@ -18617,9 +18645,10 @@ async function clPbOpen(L, btn) {
     if (mode === 'qltt') lsSet('pbCenter', center);
     const job = { mode: mode, K: K, reqId: reqId, ct: ct, note: stepQ.note || '' };
     step3(job);
+    if (!keep) K.forEach(g => kpsPendLink(g.token, { name: 'In gộp · ' + (g.who || ''), files: g.L.reduce((a, o) => a.concat(o.f), []), expiresAt: new Date(Date.now() + 7 * 864e5).toISOString(), print: true, track: 1, pickOnly: true }));      // (1.80.55) mở bản in ngay, không chờ máy chủ
     queueRpc('printPick', { mode: mode, center: mode === 'qltt' ? center : '', note: mode === 'qltt' ? job.note : '', reqId: mode === 'qltt' ? reqId : '',
         items: K.reduce((a, g) => a.concat(g.L.map(o => ({ id: o.s.id, f: o.f.map(f => f.id) }))), []), groups: K.map(g => ({ classId: g.classId, newId: g.newId, token: g.token })) },
-      { label: (mode === 'qltt' ? 'Gửi QLTT · ' : 'Link in · ') + K.map(g => g.who).join(', ').slice(0, 60) })
+      { label: (mode === 'qltt' ? 'Gửi QLTT · ' : 'Link in · ') + K.map(g => g.who).join(', ').slice(0, 60) , front: true })
       .then(k => { (k.links || []).forEach(x => { const g = K.find(z => z.classId === x.classId); if (g) { g.st = 'ok'; g.url = x.url; g.exp = x.expiresAt; } }); job.req = k.req; if (!m.closed) step3(job);
         toast(mode === 'qltt' ? 'Đã gửi cho QLTT ' + (ct ? ct.name : '') + (k.req && k.req.mailed ? ' (đã gửi mail)' : '') : 'Đã lưu ' + K.length + ' link in', 'ok', 3500); })
       .catch(e => { K.forEach(g => { if (g.st !== 'ok') g.st = 'bad'; }); job.err = e.message; if (!m.closed) step3(job); toast('Chưa lưu được link in — ' + e.message, 'err', 8000); });
@@ -26654,11 +26683,13 @@ function tkViewSave(v) {
    Tên tài liệu Google Drive / Docs / Sheets lấy ở máy chủ (taskLinkTitle); không lấy được thì ghi theo loại link (VD “Thư mục Drive”). ══ */
 const TK_LK = { folder: ['bi-folder-fill', 'Thư mục Drive', '#E8A100'], doc: ['bi-file-earmark-text-fill', 'Google Docs', '#2B6BE6'], sheet: ['bi-file-earmark-spreadsheet-fill', 'Google Sheets', '#188038'],
   slide: ['bi-file-earmark-slides-fill', 'Google Slides', '#E8710A'], form: ['bi-ui-checks', 'Google Forms', '#7248B9'], pdf: ['bi-file-earmark-pdf-fill', 'Tệp PDF', '#D93025'], file: ['bi-file-earmark-fill', 'Tệp Drive', '#1A73E8'],
-  yt: ['bi-youtube', 'YouTube', '#FF0000'], web: ['bi-link-45deg', '', '#5F6B7A'] };
+  yt: ['bi-youtube', 'YouTube', '#FF0000'], share: ['bi-link-45deg', 'Link tạm', '#204983'], web: ['bi-link-45deg', '', '#5F6B7A'] };
+/** (1.80.55) mã link tạm của app trong một URL (…/s/<mã> · ?s=<mã>) */
+function tkShareTok(u) { const m = /(?:\/s\/|[?&]s=)([A-Za-z0-9]{22})(?![A-Za-z0-9])/.exec(String(u || '')); return m ? m[1] : ''; }
 function tkLinkKind(u) {
   u = String(u || '');
   return /\/folders\/|[?&]folder/.test(u) ? 'folder' : /docs\.google\.com\/document/.test(u) ? 'doc' : /docs\.google\.com\/spreadsheets/.test(u) ? 'sheet' : /docs\.google\.com\/presentation/.test(u) ? 'slide'
-    : /docs\.google\.com\/forms|forms\.gle/.test(u) ? 'form' : /\.pdf([?#]|$)/i.test(u) ? 'pdf' : /drive\.google\.com/.test(u) ? 'file' : /youtube\.com|youtu\.be/.test(u) ? 'yt' : 'web';
+    : /docs\.google\.com\/forms|forms\.gle/.test(u) ? 'form' : /\.pdf([?#]|$)/i.test(u) ? 'pdf' : /drive\.google\.com/.test(u) ? 'file' : /youtube\.com|youtu\.be/.test(u) ? 'yt' : tkShareTok(u) ? 'share' : 'web';
 }
 function tkLinkHost(u) { const m = /^https?:\/\/(?:www\.)?([^/?#]+)/i.exec(u || ''); return m ? m[1] : 'Liên kết'; }
 function tkChip(url, title) { const k = TK_LK[tkLinkKind(url)];
@@ -26732,9 +26763,17 @@ function tkRte(el, hint, imgBtn) {
     const box = document.createElement('span'); box.innerHTML = tkChip(a.url, T[a.url]); const c = box.firstChild, sp = document.createTextNode(' ');
     r.insertNode(sp); r.insertNode(c); tkChipFix(el); const sel = getSelection(), r2 = document.createRange(); r2.setStart(sp, 1); r2.collapse(true); sel.removeAllRanges(); sel.addRange(r2);
     el.dispatchEvent(new Event('input', { bubbles: true })); sync();
-    if (!T[a.url] && /google\.com/.test(a.url)) { c.classList.add('tk-ld'); rpc('taskLinkTitle', { url: a.url }, { quiet: true }).then(x => { if (x && x.title) { T[a.url] = x.title; $$('.tk-lchip', el).forEach(k => { if (k.dataset.url === a.url && k.classList.contains('tk-ld')) $('span', k).textContent = x.title; }); } })
+    const tk = tkShareTok(a.url), lp = tk && typeof LK !== 'undefined' && LK.pend && LK.pend[tk];      // link tạm vừa tạo trên máy (chưa lên máy chủ) → có tên sẵn
+    if (lp && !T[a.url]) { T[a.url] = lp.name; $('span', c).textContent = lp.name; }
+    if (!T[a.url] && (/google\.com/.test(a.url) || tk || /\/file\/[\w-]{20,}/.test(a.url))) { c.classList.add('tk-ld'); rpc('taskLinkTitle', { url: a.url }, { quiet: true }).then(x => { if (x && x.title) { T[a.url] = x.title; $$('.tk-lchip', el).forEach(k => { if (k.dataset.url === a.url && k.classList.contains('tk-ld')) $('span', k).textContent = x.title; }); } })
       .catch(() => {}).finally(() => $$('.tk-lchip.tk-ld', el).forEach(k => { if (k.dataset.url === a.url) k.classList.remove('tk-ld'); })); }
     return true; };
+  // (1.80.55) thẻ link tạm lưu trước đây mang tên miền (vd “kientre-internal.click”) → mở ô soạn là tự đổi thành tên link
+  const fixNames = () => $$('.tk-lchip', el).forEach(k => { const u = k.dataset.url, sp = $('span', k); if (!u || !sp || !tkShareTok(u) || sp.textContent.trim() !== tkLinkHost(u)) return;
+    const put = t => { if (t && sp.textContent.trim() === tkLinkHost(u)) { sp.textContent = t; el.dispatchEvent(new Event('input', { bubbles: true })); } };
+    if (T[u]) return put(T[u]);
+    rpc('taskLinkTitle', { url: u }, { quiet: true }).then(x => { if (x && x.title) { T[u] = x.title; put(x.title); } }).catch(() => {}); });
+  el.addEventListener('focus', fixNames, { once: true });
   el.addEventListener('keydown', e => {
     if (e.key === 'Tab' && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) { if (chip()) e.preventDefault(); return; }
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); document.execCommand('insertLineBreak'); }
