@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-16T07:38:45.590Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-16T08:50:08.459Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -14867,7 +14867,7 @@ function clOverlay(d) {
   P('classKnowDone').forEach(p => { if (C[p.id]) C[p.id].kask = p.cancel ? null : Object.assign({}, C[p.id].kask || {}, { done: C[p.id].kask && C[p.id].kask.done || new Date().toISOString(), doneName: S.me && S.me.name }); });      // (1.74) ghi chú đặc biệt đang chờ gửi
   const lkAll = Math.max(0, ...P('classLinkCfgAll').map(p => p.at || 0)); if (lkAll) d.classes.forEach(c => { c.linkcfg = null; });
   P('classLinkCfg').forEach(p => { if (C[p.id] && (p.at || 0) > lkAll) C[p.id].linkcfg = p.cfg || null; });
-  if (d.manage) P('classStart').forEach(p => { const c = C[p.id]; if (c) { c.done = (p.done || []).slice(); c.started = 1; } });
+  if (d.manage) P('classStart').forEach(p => { const c = C[p.id]; if (c) { c.done = clStartMerge(c.done, p); c.started = 1; } });
   P('sessionAdd').forEach(p => { if (p.newId && !X[p.newId] && C[p.classId]) { const x = { id: p.newId, classId: p.classId, no: 0, date: p.date, time: p.time || '', status: '', note: '', released: false, gate: 'wait', folders: [], extra: [], auto: false, fill: C[p.classId].manual ? 0 : 1 }; d.sessions.push(x); X[x.id] = x; } });   // buổi vừa thêm, chưa lưu xong — máy chủ đang tự xếp bài
   P('sessionTaught').forEach(p => { const x = X[p.id]; if (x) { x.status = p.undo ? 'approved' : 'taught'; if (!p.undo) x.taughtAt = x.taughtAt || new Date().toISOString();
     if (!p.undo && p.rate) x.rate = p.rate;
@@ -17646,6 +17646,7 @@ async function clReqDecide(ids, act, btn) {
     .then(r => { if (r && r.failed) toast('Chưa áp dụng được: ' + (r.errors || [])[0], 'warn', 7000); }).catch(e => toast('Chưa lưu được — ' + e.message, 'err', 7000));
 }
 const RQ_ST = { pending: ['Chờ duyệt', 'warn', 'bi-hourglass-split'], approved: ['Đã duyệt', 'ok', 'bi-check2-circle'], rejected: ['Từ chối', 'bad', 'bi-x-circle'] };
+const RQ_AGAIN = { classStart: 1, classMine: 1, classStudent: 1, sessionSave: 1 };      // (1.80.56) như REQ_AGAIN máy chủ
 const RQ_IC = { classRemove: 'bi-trash', classAdd: 'bi-person-plus', classMine: 'bi-pencil-square', classStudent: 'bi-person', classStart: 'bi-flag', sessionSave: 'bi-calendar-event' };
 async function clReqs(B, v) {
   const man = CL.d.manage;
@@ -17675,7 +17676,8 @@ async function clReqs(B, v) {
           '<span class="rq-ic"><i class="bi ' + (RQ_IC[r.fn] || 'bi-inbox') + '"></i></span><div class="rq-m"><div class="rq-t"><b>' + esc(r.label) + '</b>' + (r.cls ? '<a data-go="classes/c/' + r.classId + '">' + esc(r.cls) + '</a>' : '') + '<span class="tag ' + st[1] + '"><i class="bi ' + st[2] + '"></i>' + st[0] + '</span></div>' +
           '<div class="rq-s">' + esc(r.summary) + '</div><small class="muted">' + (man ? esc(r.byName || r.by) + ' · ' : '') + 'gửi ' + ago(r.createdAt) + (r.decidedAt ? ' · ' + (r.status === 'approved' ? 'duyệt' : 'từ chối') + ' ' + ago(r.decidedAt) : '') + '' + (r.ai ? aiMk('Trợ lý AI ' + (r.status === 'rejected' ? 'từ chối' : 'duyệt')) : '') + '</small>' +
           (r.note ? '<div class="rq-n"><i class="bi bi-chat-left-text"></i>' + esc(r.note) + '</div>' : '') + (r.err ? '<div class="rq-n bad"><i class="bi bi-exclamation-triangle"></i>Chưa áp dụng được: ' + esc(r.err) + '</div>' : '') + '</div>' +
-          (man && r.status === 'pending' ? '<div class="rq-a"><button class="btn xs" data-no="' + r.id + '"><i class="bi bi-x-lg"></i>Từ chối</button><button class="btn xs pri" data-ok="' + r.id + '"><i class="bi bi-check2"></i>Duyệt</button></div>' : '') + '</div>'; }).join('')
+          (man && r.status === 'pending' ? '<div class="rq-a"><button class="btn xs" data-no="' + r.id + '"><i class="bi bi-x-lg"></i>Từ chối</button><button class="btn xs pri" data-ok="' + r.id + '"><i class="bi bi-check2"></i>Duyệt</button></div>' :
+            man && RQ_AGAIN[r.fn] ? '<div class="rq-a"><button class="btn xs" data-again="' + r.id + '" title="Áp dụng lại yêu cầu này' + (r.fn === 'classStart' ? ' — chỉ THÊM các bài trong yêu cầu, không bỏ bài đã xác nhận khác' : '') + '"><i class="bi bi-arrow-repeat"></i>Duyệt lại</button></div>' : '') + '</div>'; }).join('')
         : '<div class="lk-empty"><i class="bi bi-inboxes"></i><b>' + (f === 'pending' ? 'Không có yêu cầu chờ duyệt' : 'Chưa có yêu cầu') + '</b></div>') + '</div></div>';
   };
   const decide = async (ids, act) => {
@@ -17694,6 +17696,11 @@ async function clReqs(B, v) {
   B.onclick = e => {
     const fb = e.target.closest('[data-f]'); if (fb) { f = fb.dataset.f; if (f !== 'pending' && !full) { full = true; paint(); load().then(() => { if (B.dataset.tab === 'reqs') paint(); }).catch(e2 => fail(e2)); return; } return paint(); }      // chọn tay → giữ nguyên · (1.80.21) tab đã xử lý: tải đủ khi cần
     const o = e.target.closest('[data-ok]'); if (o) return decide([o.dataset.ok], 'approve');
+    const ag = e.target.closest('[data-again]'); if (ag) { const r = L.find(x => x.id === ag.dataset.again); if (!r) return;      // (1.80.56) duyệt lại — lưu ngầm, không bắt chờ
+      clFlash(ag, 'Đang duyệt lại', 'ok'); r.status = 'approved'; r.decidedAt = new Date().toISOString(); r.err = ''; lsSet(ck, L); paint();
+      clQueue('reqDecide', { ids: [r.id], act: 'approve', again: 1 }, { label: 'Duyệt lại · ' + (r.label || 'yêu cầu') })
+        .then(x => { if (x && x.failed) toast('Chưa áp dụng được: ' + x.errors[0], 'warn', 7000); else { toast('Đã duyệt lại' + (r.fn === 'classStart' ? ' — đã gộp các bài vào bài đã học của bé' : ''), 'ok'); if (r.classId) { delete CL_LES[r.classId]; } } load().then(() => { if (B.dataset.tab === 'reqs') paint(); }).catch(() => {}); });
+      return; }
     const n = e.target.closest('[data-no]'); if (n) return decide([n.dataset.no], 'reject');
     if (e.target.closest('#rqOk')) return decide([...pk], 'approve');
     if (e.target.closest('#rqNo')) return decide([...pk], 'reject');
@@ -18170,8 +18177,14 @@ function clLessons(id, fresh) {
 function clLesOver(id, Ls) {
   const P = obPending('classStart', true).filter(p => p && p.id === id); if (!P.length || !Ls) return Ls;
   const last = (P[P.length - 1].done || []).slice();
-  if (Ls.ap) { Ls.pend = last; Ls.pendAt = Ls.pendAt || new Date().toISOString(); } else { Ls.done = last; const c = clClass(id); if (c) c.done = last.slice(); }
+  if (Ls.ap) { Ls.pend = last; Ls.pendAt = Ls.pendAt || new Date().toISOString(); } else { Ls.done = P.reduce((a, p) => clStartMerge(a, p), Ls.done || []); const c = clClass(id); if (c) c.done = Ls.done.slice(); }
   return Ls;
+}
+/** (1.80.56) bài đã học sau lệnh classStart, GỘP như máy chủ: có base → chỉ thêm bài vừa tick, chỉ bỏ bài vừa bỏ tick (bài người khác / AI xác nhận sau đó giữ nguyên) */
+function clStartMerge(cur, p) {
+  const done = (p && p.done || []).map(String); if (!p || !Array.isArray(p.base)) return done.slice();
+  const rem = new Set(p.base.map(String).filter(f => done.indexOf(f) < 0)), out = (cur || []).map(String).filter(f => !rem.has(f));
+  done.forEach(f => { if (out.indexOf(f) < 0) out.push(f); }); return out;
 }
 /** Gia sư xác nhận NỘI DUNG đã dạy của một buổi: bỏ tick bài chưa dạy (tự chuyển sang buổi sau), tick thêm bài đã dạy ngoài kế hoạch (không bị xếp lại). */
 function clTaughtDlg(x, c, done, opt) {
@@ -18332,11 +18345,11 @@ function clProgMount(el, c, Ls, used, exit) {      // exit: quản lý — thoá
     if (e.target.closest('[data-pgx]')) { const d = diff(); if ((d.add || d.rem) && !await ask('Bỏ các thay đổi chưa lưu?', { ok: 'Bỏ thay đổi', danger: true })) return; sel = null; return draw(); }
     if (e.target.closest('[data-pgs]')) {
       const d = diff(); if (!d.add && !d.rem) return;
-      const done = Ls.lessons.filter(l => sel.has(l.id)).map(l => l.id), ap = !!Ls.ap && !S.asW;
-      clQueue('classStart', { id: c.id, done: done }, { key: 'cst:' + c.id, label: 'Cập nhật bài đã học · ' + clName(c), merge: (a, b) => b })
+      const done = Ls.lessons.filter(l => sel.has(l.id)).map(l => l.id), ap = !!Ls.ap && !S.asW, pl = { id: c.id, done: done, base: [...base()] };      // (1.80.56) base → máy chủ gộp, không ghi đè bài người khác / AI vừa xác nhận
+      clQueue('classStart', pl, { key: 'cst:' + c.id, label: 'Cập nhật bài đã học · ' + clName(c), merge: (a, b) => Object.assign({}, b, { base: a.base }) })
         .then(() => { delete CL_LES[c.id]; clLessons(c.id, true).then(L2 => { Object.assign(Ls, L2); if (!sel && el.isConnected) draw(); }).catch(() => {}); });      // lưu xong → tải lại (vẫn phủ lệnh vừa gửi)
       if (ap) { Ls.pend = done; Ls.pendAt = new Date().toISOString(); toast('Đã gửi quản lý duyệt — danh sách giữ như bạn đã tick, duyệt xong sẽ áp dụng', 'info', 4500); }
-      else { Ls.done = done; Ls.pend = null; c.done = done; if (CL.d && CL.d.manage) c.started = 1; toast('Đã lưu bài đã học — các buổi chưa duyệt đang xếp lại', 'ok', 3500); }
+      else { Ls.done = clStartMerge(Ls.done, pl); Ls.pend = null; c.done = Ls.done.slice(); if (CL.d && CL.d.manage) c.started = 1; toast('Đã lưu bài đã học — các buổi chưa duyệt đang xếp lại', 'ok', 3500); }
       sel = null; draw();
     }
   };
