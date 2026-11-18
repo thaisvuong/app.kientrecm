@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T09:51:53.925Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T10:06:03.549Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5280,6 +5280,11 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 .fbt-dv{ display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; font-weight:700; background:var(--surface-2); color:var(--muted); white-space:nowrap } .fbt-dv.ok{ color:var(--ok, #1a7f4b) } .fbt-dv.no{ color:var(--danger, #c0392b) }
 .fbt-w{ max-height:66vh; border:1px solid var(--border); border-radius:10px } .fbt td{ vertical-align:top; font-size:12.5px; line-height:1.45; min-width:140px; max-width:280px; white-space:normal }
 .fbt td.fbt-d, .fbt td.fbt-st, .fbt td.fbt-btvnp, .fbt td.fbt-dvt{ min-width:0; white-space:nowrap } .fbt td.fbt-d{ font-weight:700 }
+.tm-l{ display:flex; flex-direction:column; gap:8px }      /* (1.82.4) gắn gia sư KGS ↔ tài khoản */
+.tm-r{ display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:10px 14px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface) } .tm-r.ok{ opacity:.75 }
+.tm-h{ min-width:0; display:flex; flex-direction:column; gap:2px } .tm-h b{ font-size:13.5px } .tm-h small{ font-size:11.5px; color:var(--muted); line-height:1.45; overflow-wrap:anywhere } .tm-h .tm-now{ color:var(--ink-2) }
+.tm-bad{ color:var(--danger) !important; font-weight:600 } .tm-c{ display:flex; flex-direction:column; gap:6px; min-width:0 } .tm-c .sel{ width:100%; height:34px; font-size:12.5px }
+@media (max-width:720px){ .tm-r{ grid-template-columns:minmax(0,1fr) } }
 .fbt-act{ flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:8px } .fbt-act .sp{ flex:1 }
 /* (1.82) cột Bài đã gán · nút gán · AI phân tích nhận xét → gán bài */
 .fbt td.fbt-bai{ min-width:190px } .fbt-bl{ display:flex; flex-direction:column; gap:3px; margin-bottom:4px }
@@ -5353,7 +5358,13 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 }
 .tu-h .tu-tf{ justify-content:flex-end; margin-right:6px; max-width:46%; flex:none } .tu-h .tu-tf:empty{ display:none }
 .tf-r{ display:flex; flex-direction:column; gap:4px; padding:8px 0; border-bottom:1px dashed var(--border) } .tf-r:last-child{ border-bottom:0 }
-.tf-cs{ display:flex; flex-wrap:wrap; gap:6px 16px; padding-left:16px } .tf-ck{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-2); cursor:pointer } .tf-ck input{ accent-color:var(--primary) }</style>
+.tf-cs{ display:flex; flex-wrap:wrap; gap:6px 16px; padding-left:16px } .tf-ck{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-2); cursor:pointer } .tf-ck input{ accent-color:var(--primary) }/* (1.82.4) ĐIỆN THOẠI · trang bé: dòng buổi cách mép (trước padding 2px — chữ, nhãn, nút Link dính sát mép / vạch xanh buổi sắp tới) · biểu tượng thư mục canh dòng đầu của tên bài dài */
+@media (max-width:820px){
+  .cd-sess .cl-row{ padding-left:12px !important; padding-right:10px !important }
+  .cd-sess .cl-row.next, .cd-sess .cl-row.today{ padding-left:15px !important }
+  .cl-rf .cl-fold{ align-items:flex-start } .cl-rf .cl-fold > i{ margin-top:2px; flex-shrink:0 }
+}
+</style>
 
   <style>
 /* Con diều của logo Kiến Trẻ (cắt từ logo gốc, nền trong — KHÔNG dùng phần chữ “Kiến trẻ”): --kite-w = cánh diều trắng · --kite = cánh diều xanh. Sinh tự động — không sửa tay. */
@@ -17490,7 +17501,7 @@ function clTutors(B, v, em, fresh) {
     const cls = (c, off, tt) => { const p = clProg(c), n = off ? 0 : pend(c), co = tt && tt.co && tt.co[c.id]; return '<a class="tu-s' + (off ? ' off' : '') + (DM[c.id] ? ' dup' : '') + '" data-go="classes/c/' + c.id + '"><b>' + esc(clName(c)) + clIssueDot(c) + '</b>' + (c.student ? '<span class="cl-cd">' + esc(c.code) + '</span>' : '') + (c.grade ? '<span class="cl-gr">' + esc(c.grade) + '</span>' : '') + (off ? '<em class="cl-ub gray">' + esc(c.status || 'Đã dừng') + '</em>' : '') + '<small>' + esc(c.days || '') + (c.times ? ' · ' + esc(c.times.split(';')[0]) : '') + '</small>' +
       (p ? '<small class="tu-p">' + esc(p.name) + '</small>' : '<small class="cl-warn">chưa có chương trình</small>') + lockT(c) + (n ? '<em class="cl-ub warn">' + n + ' chưa xác nhận</em>' : '') + dupT(c) + (co ? '<em class="cl-ub blue" title="Lớp hai gia sư — gia sư này dạy kèm các thứ ' + esc(co.join(', ')) + '; gia sư chính: ' + esc(c.tutorName || c.tutorEmail || '') + '">dạy kèm' + (co.length ? ' · ' + esc(co.join(', ')) : '') + '</em>' : (c.cotutor || []).length ? '<em class="cl-ub gray" title="Lớp có gia sư dạy kèm: ' + esc(c.cotutor.map(t => (t.n || t.e) + ' (' + (t.days || []).join(', ') + ')').join(', ')) + '">+ ' + c.cotutor.length + ' GS kèm</em>' : '') + ((c.snote || []).length ? '<em class="cl-ub warn" title="' + esc(c.snote.map(x => x.t).join('\n').slice(0, 300)) + '"><i class="bi bi-pin-angle-fill"></i> ' + c.snote.length + ' lưu ý</em>' : '') + '</a>'; };
     const nAct = list.reduce((a, t) => a + t.list.filter(classActiveC).length, 0);
-    B.innerHTML = '<div class="cl-bar tu-bar"><div class="search"><i class="bi bi-search"></i><input class="inp" id="tuQ" value="' + esc(q) + '" placeholder="Tìm gia sư, học sinh, mã lớp">' + (q ? '<button class="ibtn sm tu-qx" id="tuQX" title="Xoá tìm kiếm" aria-label="Xoá tìm kiếm"><i class="bi bi-x-lg"></i></button>' : '') + '</div><span class="small muted">' + list.filter(t => t.email).length + ' gia sư · ' + nAct + ' lớp đang học</span><span class="sp"></span><button type="button" class="btn sm" data-tuscan title="Khớp tên gia sư bên KGS với tên tài khoản / tên Google để gán lớp chưa có gia sư"><i class="bi bi-person-check"></i>Quét lại gia sư</button><button type="button" class="btn sm" data-tuname title="Tên tài khoản khác tên gia sư bên Kiến Gia Sư → đề xuất đổi cho khớp"><i class="bi bi-pencil-square"></i>Tên theo KGS</button>' + (D.manage ? '<button type="button" class="btn sm" data-mgo title="Gộp các lớp của cùng một bé — app chưa tự nhận ra thì tự chọn 2 lớp để đánh dấu trùng"><i class="bi bi-intersect"></i>Lớp trùng</button>' : '') + '</div>' +      // (1.70) TutorMapView.html · (1.80.56) nút Lớp trùng luôn có (kể cả khi app chưa tự thấy cặp nào)
+    B.innerHTML = '<div class="cl-bar tu-bar"><div class="search"><i class="bi bi-search"></i><input class="inp" id="tuQ" value="' + esc(q) + '" placeholder="Tìm gia sư, học sinh, mã lớp">' + (q ? '<button class="ibtn sm tu-qx" id="tuQX" title="Xoá tìm kiếm" aria-label="Xoá tìm kiếm"><i class="bi bi-x-lg"></i></button>' : '') + '</div><span class="small muted">' + list.filter(t => t.email).length + ' gia sư · ' + nAct + ' lớp đang học</span><span class="sp"></span><button type="button" class="btn sm" data-tuscan title="Khớp tên gia sư bên KGS với tên tài khoản / tên Google để gán lớp chưa có gia sư"><i class="bi bi-person-check"></i>Quét lại gia sư</button><button type="button" class="btn sm" data-tumap title="Chọn tài khoản cho từng gia sư bên KGS — đồng bộ không còn gán lớp sang người trùng tên / gia sư cũ"><i class="bi bi-link-45deg"></i>Gắn gia sư KGS</button><button type="button" class="btn sm" data-tuname title="Tên tài khoản khác tên gia sư bên Kiến Gia Sư → đề xuất đổi cho khớp"><i class="bi bi-pencil-square"></i>Tên theo KGS</button>' + (D.manage ? '<button type="button" class="btn sm" data-mgo title="Gộp các lớp của cùng một bé — app chưa tự nhận ra thì tự chọn 2 lớp để đánh dấu trùng"><i class="bi bi-intersect"></i>Lớp trùng</button>' : '') + '</div>' +      // (1.70) TutorMapView.html · (1.80.56) nút Lớp trùng luôn có (kể cả khi app chưa tự thấy cặp nào)
       (D.manage && D.dupN ? '<div class="cl-np cg-dupbar"><i class="bi bi-intersect"></i><span><b>' + D.dupN + ' lớp trùng</b> (cùng bé) — gộp lại để giữ tiến trình.</span><button class="btn xs" data-mgo>Xem & gộp</button></div>' : '') +      // (1.74)
       '<div class="tu-list">' + list.slice(0, CLP.tu || 30).map(t => { const on = t.list.filter(classActiveC), off = t.list.filter(c => !classActiveC(c)), k = t.email || '_', op = !!offOpen[k];
         return '<div class="card tu-c' + (CL.tuHi && CL.tuHi === String(t.email).toLowerCase() ? ' hi' : '') + (on.length ? '' : ' dim') + '"><div class="tu-h"><span class="av">' + esc(initials(t.name || t.email || '?')) + '</span><div class="tu-t"><b>' + (t.email ? zlName(t.name || t.email.split('@')[0], t.email) : 'Chưa có gia sư') + '</b><small>' + esc(t.email || 'Các lớp chưa gán gia sư') + '</small></div>' + (t.email && D.manage ? (fl => '<span class="tf-chips tu-tf">' + clTFlagChips(t.email) + '</span><button type="button" class="tu-flag' + (fl.length ? ' on' : '') + '" data-tunoas="' + esc(t.email) + '" aria-haspopup="menu" title="Cờ gia sư — bấm để gắn / bỏ: Không gán bài, Cần chú ý, Học sách của phụ huynh… (tự thêm loại cờ & điều kiện)"><i class="bi bi-flag' + (fl.length ? '-fill' : '') + '"></i></button>')(clTFlags(t.email)) : '') + '<span class="lk-n" title="Lớp đang học">' + on.length + '</span></div>' +      // (1.80.27) cờ theo cả gia sư
@@ -17508,11 +17519,41 @@ function clTutors(B, v, em, fresh) {
     const a = e.target.closest('a.tu-s[data-go]'); if (!a || e.metaKey || e.ctrlKey) return;
     e.preventDefault(); e.stopPropagation(); const vw = B.closest('.view') || document.scrollingElement, sc = { v: vw.scrollTop, w: window.scrollY }, back = () => { vw.scrollTop = sc.v; window.scrollTo(0, sc.w); };
     clPeek(a.dataset.go.split('/').pop(), () => { if (B.isConnected && B.dataset.tab === 'tutors') { clTutors(B, v); back(); } }); }, true); }      // (1.74) nhãn “trùng” nằm trong thẻ lớp (link) → mở hộp gộp, không mở trang lớp
-  B.onclick = e => { if (e.target.closest('[data-tuscan]')) return clTutorScan(); if (e.target.closest('[data-tuname]')) return clTutorName(); const b = e.target.closest('[data-tuoff]'); if (b) { offOpen[b.dataset.tuoff] = !offOpen[b.dataset.tuoff]; paint(); } };
+  B.onclick = e => { if (e.target.closest('[data-tuscan]')) return clTutorScan(); if (e.target.closest('[data-tuname]')) return clTutorName(); if (e.target.closest('[data-tumap]')) return clTutorMap(); const b = e.target.closest('[data-tuoff]'); if (b) { offOpen[b.dataset.tuoff] = !offOpen[b.dataset.tuoff]; paint(); } };
   paint();
 }
 
 /* ══════════ CHI TIẾT LỚP ══════════ */
+/** (1.82.4) GẮN GIA SƯ KGS ↔ TÀI KHOẢN: mỗi gia sư bên KGS (theo lớp đang học) chọn đúng tài khoản ở đây — đồng bộ dùng tài khoản này, không khớp theo tên nữa.
+    Tick “Đổi tên tài khoản theo KGS” để tên hiển thị trùng tên bên KGS (cần quyền quản lý tài khoản). Lưu xong các lớp của gia sư đó được gán lại ngay. */
+async function clTutorMap() {
+  const m = modal({ title: 'Gắn gia sư Kiến Gia Sư với tài khoản', icon: 'bi-link-45deg', size: 'lg tm-m', body: miniLoader('Đang đọc gia sư bên KGS…'), foot: [{ t: 'Đóng', cls: 'ghost' }] });
+  let R; try { R = await rpc('kgsTutMapGet', {}, { quiet: true }); } catch (e) { m.close(); return fail(e); } if (m.closed) return;
+  const ch = {}, Uo = {}; R.users.forEach(u => { Uo[u.email] = u; });
+  const opts = sel => '<option value="">— Tự khớp (email KGS / tên) —</option>' + R.users.map(u => '<option value="' + esc(u.email) + '"' + (u.email === sel ? ' selected' : '') + '>' + esc(u.name) + ' · ' + esc(u.email) + (/admin/.test(u.role) ? ' · quản trị' : '') + '</option>').join('');
+  let q = '';
+  const paint = () => { const w = fold(q.trim()), L = R.list.filter(x => !w || fold([x.n, x.cls.join(' '), x.map, x.auto, x.now.map(z => z.n).join(' ')].join(' ')).indexOf(w) >= 0);
+    m.$('.tm-l').innerHTML = L.length ? L.map(x => { const c = ch[x.key] || {}, sel = c.email != null ? c.email : x.map, res = sel || x.auto, uN = res ? (Uo[res] || {}).name || res : '';
+      return '<div class="tm-r' + (x.ok && c.email == null ? ' ok' : '') + '" data-tmk="' + esc(x.key) + '"><div class="tm-h"><b>' + esc(x.n || 'Mã KGS ' + x.id) + '</b><small>' + x.nCls + ' lớp: ' + esc(x.cls.slice(0, 6).join(', ')) + (x.nCls > 6 ? '…' : '') + (x.ke ? ' · email KGS ' + esc(x.ke) : ' · KGS chưa có email') + '</small>' +
+        '<small class="tm-now">Đang gán ở app: ' + (x.now.length ? x.now.map(z => esc(z.n) + (x.now.length > 1 ? ' (' + z.k + ')' : '')).join(', ') : '<i>chưa có</i>') + (res ? ' · đồng bộ sẽ dùng: <b>' + esc(uN) + '</b>' + (sel ? ' (gắn tay)' : ' (tự khớp)') : ' · <span class="tm-bad">chưa khớp được tài khoản nào</span>') + '</small>' +
+        (x.adminHit && !sel ? '<small class="tm-bad"><i class="bi bi-exclamation-triangle"></i> Tự khớp theo tên đang trúng tài khoản QUẢN TRỊ — chọn đúng tài khoản gia sư bên dưới</small>' : '') + '</div>' +
+        '<div class="tm-c"><select class="sel" data-tme aria-label="Tài khoản của ' + esc(x.n) + '">' + opts(sel) + '</select>' + (R.canRename ? '<label class="chk small" title="Đổi tên hiển thị của tài khoản đã chọn thành tên bên KGS"><input type="checkbox" data-tmr' + (c.rename ? ' checked' : '') + (sel ? '' : ' disabled') + '> Đổi tên tài khoản thành “' + esc(x.n) + '”</label>' : '') + '</div></div>'; }).join('')
+      : '<div class="empty" style="padding:24px"><i class="bi bi-people"></i>' + (R.list.length ? 'Không có gia sư khớp' : 'Chưa có lớp nào có gia sư bên KGS') + '</div>';
+    const n = Object.keys(ch).length; sv.disabled = !n; sv.innerHTML = '<i class="bi bi-check2"></i>Lưu' + (n ? ' ' + n + ' gia sư' : ''); };
+  m.$('.modal-b').innerHTML = '<div class="small muted" style="line-height:1.6;margin-bottom:10px">KGS không có email của gia sư thì app phải khớp theo <b>tên</b> — trùng tên tài khoản khác (VD tài khoản quản trị) hoặc tên ngắn (“Minh”) là lớp bị gán sang người khác / quay về gia sư cũ. <b>Chọn tài khoản cho từng gia sư</b> bên dưới: đồng bộ luôn dùng đúng tài khoản đó, lưu xong các lớp được gán lại ngay.</div>' +
+    '<input class="inp" id="tmQ" placeholder="Tìm gia sư, mã lớp…" style="margin-bottom:10px"><div class="tm-l"></div>';
+  const ft = m.$('.modal-f'), sv = document.createElement('button'); sv.className = 'btn pri'; if (ft) ft.appendChild(sv); else m.$('.modal-b').appendChild(sv);
+  m.$('#tmQ').oninput = e => { q = e.target.value; paint(); };
+  m.$('.tm-l').addEventListener('change', e => { const r = e.target.closest('[data-tmk]'); if (!r) return; const x = R.list.find(z => z.key === r.dataset.tmk), c = ch[x.key] = ch[x.key] || {};
+    if (e.target.matches('[data-tme]')) { c.email = e.target.value; if (c.email === x.map && !c.rename) delete ch[x.key]; }
+    if (e.target.matches('[data-tmr]')) { c.rename = e.target.checked; if (c.email == null) c.email = x.map || x.auto; }
+    paint(); });
+  sv.onclick = async () => { const items = Object.keys(ch).map(k => { const x = R.list.find(z => z.key === k); return { key: k, n: x.n, email: ch[k].email != null ? ch[k].email : x.map, rename: !!ch[k].rename }; });
+    if (!items.length) return; sv.disabled = true; sv.classList.add('busy');
+    try { const r = await rpc('kgsTutMapSave', { items: items }); toast('Đã gắn ' + r.saved + ' gia sư' + (r.cls ? ' · gán lại ' + r.cls + ' lớp' : '') + (r.renamed ? ' · đổi tên ' + r.renamed + ' tài khoản' : ''), 'ok', 6000); m.close(); clReload(Date.now()).then(() => CL.repaint && CL.repaint()); }
+    catch (er) { fail(er); sv.disabled = false; sv.classList.remove('busy'); } };
+  paint();
+}
 /** (1.77.27) đề xuất đổi tên gia sư cho khớp tên bên KGS — tick chọn rồi đổi (cần quyền quản lý tài khoản) */
 async function clTutorName() {
   const m = modal({ title: 'Đổi tên gia sư theo Kiến Gia Sư', icon: 'bi-pencil-square', size: 'lg', body: miniLoader('Đang so tên với KGS…'), foot: [{ t: 'Đóng', cls: 'ghost' }] });
