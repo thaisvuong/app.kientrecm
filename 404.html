@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T18:29:37.402Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T18:40:38.303Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -23119,6 +23119,9 @@ html[data-mode="dark"] .of-flr{ fill:var(--flr); fill-opacity:.9 }
 @media (max-width:760px){ .of-fab{ display:none } .of-dock.min{ display:flex } }
 .of-dk{ display:flex !important; gap:5px; align-items:center; color:var(--muted) !important; font-size:11.5px !important } .of-dk i{ font-size:11px } .of-doc .btn.xs{ flex:none; align-self:flex-start }
 .of-dpk:empty{ display:none } .of-dpk{ margin-top:6px; font-size:12px; line-height:1.5 } .of-dpk-ok{ color:var(--ok, #15803d) } .of-dpk-no{ color:var(--danger) } .of-dpk q{ display:block; margin-top:4px; padding:6px 8px; border-radius:8px; background:var(--surface-2); color:var(--ink-2); quotes:none; white-space:pre-wrap; max-height:120px; overflow:auto }
+.of-turn{ position:relative; display:flex; flex-direction:column; gap:8px } .of-turn > .of-m.me{ align-self:flex-end }
+.of-del{ position:absolute; left:0; top:2px; width:26px; height:26px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer; display:grid; place-items:center; opacity:0; transition:opacity .15s } .of-turn:hover .of-del, .of-del:focus-visible{ opacity:1 } .of-del:hover{ color:var(--danger); border-color:var(--danger) }
+@media (hover:none){ .of-del{ opacity:.7 } }
 </style>
 <script>
 /* ═════ (1.82.7) VĂN PHÒNG AI (Trợ lý › Văn phòng AI, route asst/office) — máy chủ asstOffice_ (AiAgents.gs). Thiết kế: docs/van-phong-ai.md
@@ -23317,19 +23320,20 @@ function ofDock() {
   const gv = G => G.length ? '<div class="of-gv">' + G.map(g => { const a = OF.d.agents.find(x => x.key === g.ag) || { key: g.ag, av: 0, t: g.toT || ofName(g.ag) }, w = wS(g.st) || !g.st, run = (OF.d.run || []).find(r => r.id === g.id);
     return '<button type="button" ' + (w || !g.id ? 'data-ofr="' + esc(a.key) + '"' : 'data-ofres="' + esc(g.id) + '" data-ofag="' + esc(a.key) + '"') + ' title="' + (w ? 'Mở phòng' : 'Xem kết quả') + '">' + asstAva(a.av, 'xs', w) + '<span class="t"><b>' + esc(a.t) + '</b><span>' + esc(g.t) + '</span></span><span class="of-pl ' + (g.st === 'err' ? 'e' : w ? 'w' : 'ok') + '">' + (g.st === 'err' ? 'lỗi' : w ? 'đang làm' + (run && run.sp ? ' · B' + run.sp : '') : 'xem kết quả') + '</span></button>'; }).join('') + '</div>' : '';
   const msgs = C.length ? C.map(c => { const w = c.wait || wS(c.st);
-      return '<div class="of-m me">' + esc(c.q) + '</div><div class="of-m ai">' + asstBot('xs', w) + '<div class="b">' +
+      return '<div class="of-turn">' + (c.id && !w ? '<button type="button" class="of-del" data-ofdel="' + esc(c.id) + '" title="Xoá lượt này khỏi lịch sử" aria-label="Xoá lượt này"><i class="bi bi-trash"></i></button>' : '') + '<div class="of-m me">' + esc(c.q) + '</div><div class="of-m ai">' + asstBot('xs', w) + '<div class="b">' +
         (w ? '<span class="of-say" data-ofsay="' + esc(c.t0 || c.at) + '">' + esc(ofSay(c.t0 || c.at)) + '</span>' : c.st === 'err' || c.err ? '<span class="muted">' + esc(c.err || 'Chưa trả lời được') + '</span>' : (c.reply ? aiMd(c.reply, {}) : '')) + gv(c.gives || []) +
-        '<small class="at">' + esc(asbAgo(c.at || c.t0)) + (okS(c.st) && c.ms ? ' · ' + Math.max(1, Math.round(c.ms / 1000)) + ' giây' : '') + (c.id && !w && okS(c.st) ? ' · <button type="button" class="tka-lk" data-ofres="' + esc(c.id) + '" data-ofag="hub">chi tiết</button>' : '') + '</small></div></div>'; }).join('')
+        '<small class="at">' + esc(asbAgo(c.at || c.t0)) + (okS(c.st) && c.ms ? ' · ' + Math.max(1, Math.round(c.ms / 1000)) + ' giây' : '') + (c.id && !w && okS(c.st) ? ' · <button type="button" class="tka-lk" data-ofres="' + esc(c.id) + '" data-ofag="hub">chi tiết</button>' : '') + '</small></div></div></div>'; }).join('')
     : '<div class="of-dk-e">' + asstBot('md') + '<b>Giao việc cho Trợ lý chung</b><span>Trợ lý tự chọn phòng làm — xem luồng chạy trên sơ đồ, kết quả hiện ở đây.</span></div>';
   el.innerHTML = '<span class="of-dk-rs" data-ofrs title="Kéo để đổi cỡ" aria-hidden="true"></span><div class="of-dk-h" data-ofdkh>' + asstBot('xs', C.some(c => c.wait || wS(c.st))) + '<span class="t"><b>Trợ lý chung</b><small>' + (C.length ? C.length + ' lượt gần đây · ' : '') + esc(ofKeepT(OF.d.keep)) + '</small></span>' +
       (OF.d.can ? '<select class="sel of-keep" data-ofkeep aria-label="Thời gian lưu lịch sử" title="Lịch sử việc AI lưu bao lâu">' + [[30, '30 ngày'], [90, '90 ngày'], [180, '180 ngày'], [365, '1 năm'], [0, 'Không xoá']].map(o => '<option value="' + o[0] + '"' + (Number(OF.d.keep) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' : '') +
-      '<button type="button" class="ibtn sm" data-ofdk aria-label="' + (OF.dockMin ? 'Mở khung chat' : 'Thu nhỏ') + '"><i class="bi bi-' + (OF.dockMin ? 'chat-dots' : 'dash-lg') + '"></i></button></div>' +
+      (C.some(c => c.id && !(c.wait || wS(c.st))) ? '<button type="button" class="ibtn sm" data-ofdelall title="Xoá toàn bộ lịch sử chat với Trợ lý chung" aria-label="Xoá lịch sử chat"><i class="bi bi-trash"></i></button>' : '') +
+      '<button type="button" class="ibtn sm" data-ofdk title="Thu nhỏ về robot ở góc — bấm robot để mở lại" aria-label="Thu nhỏ về robot"><i class="bi bi-chevron-down"></i></button></div>' +
     '<div class="of-dk-b">' + msgs + '</div>' +
     '<div class="of-dk-f"><textarea class="ta" id="ofDq" rows="1" placeholder="Nhắn Trợ lý chung… (Enter để gửi)" aria-label="Nhắn Trợ lý chung"></textarea><button type="button" class="ax-send" data-ofdsend aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>';
   const b = $('.of-dk-b', el); if (b && atBot) b.scrollTop = b.scrollHeight;
   const q = $('#ofDq', el); q.value = draft; q.oninput = () => { q.style.height = 'auto'; q.style.height = Math.min(120, q.scrollHeight) + 'px'; };
   q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); const t = q.value; q.value = ''; ofAsk(t); } };
-  el.onclick = e => ofClick(e); el.onchange = e => { const k = e.target.closest('[data-ofkeep]'); if (k) rpc('aiCfgSave', { keepDays: Number(k.value) }).then(() => { OF.d.keep = Number(k.value); toast('Lịch sử việc AI: ' + ofKeepT(k.value), 'ok'); ofDock(); }, fail); };
+  el.onclick = null; el.onchange = e => { const k = e.target.closest('[data-ofkeep]'); if (k) rpc('aiCfgSave', { keepDays: Number(k.value) }).then(() => { OF.d.keep = Number(k.value); toast('Lịch sử việc AI: ' + ofKeepT(k.value), 'ok'); ofDock(); }, fail); };
   const rs = $('[data-ofrs]', el); rs.onpointerdown = ev => { if (narrow) return; ev.preventDefault(); const r0 = el.getBoundingClientRect(), x0 = ev.clientX, y0 = ev.clientY; rs.setPointerCapture(ev.pointerId);
     rs.onpointermove = m => { const w = Math.max(300, Math.min(innerWidth - 32, r0.width + x0 - m.clientX)), h = Math.max(220, Math.min(innerHeight - 90, r0.height + y0 - m.clientY)); el.style.width = w + 'px'; el.style.height = h + 'px'; };
     rs.onpointerup = () => { rs.onpointermove = null; lsSet('ofDockWH', { w: Math.round(el.offsetWidth), h: Math.round(el.offsetHeight) }); }; };
@@ -23377,6 +23381,11 @@ async function ofAsk(text) {
   clearTimeout(OF.t); OF.t = setTimeout(ofLoad, 1500);
 }
 function ofClick(e) {
+  const dl = e.target.closest('[data-ofdel]'), da = e.target.closest('[data-ofdelall]');      // (1.82.10) xoá lượt / toàn bộ lịch sử chat (xoá cả luồng thư với flow; việc các phòng đã làm vẫn giữ ở phòng)
+  if (dl || da) { (async () => { const ids = dl ? [dl.dataset.ofdel] : (OF.d.chat || []).filter(c => c.id && !/^(send|wait|proc)$/.test(c.st)).map(c => c.id); if (!ids.length) return;
+      if (!(await ask(dl ? 'Xoá lượt này khỏi lịch sử chat?' : 'Xoá toàn bộ ' + ids.length + ' lượt chat với Trợ lý chung?', { ok: 'Xoá', danger: 1 }))) return;
+      const keep = OF.d.chat; OF.d.chat = (OF.d.chat || []).filter(c => ids.indexOf(c.id) < 0); ofDock();
+      try { for (const id of ids) await rpc('aiConvDel', { id: id }, { quiet: true }); toast('Đã xoá ' + ids.length + ' lượt chat', 'ok'); ofLoad(); } catch (er) { OF.d.chat = keep; ofDock(); fail(er); } })(); return; }
   if (e.target.closest('[data-ofdk]')) { OF.dockMin = !OF.dockMin; lsSet('ofDockMin', OF.dockMin); return ofDock(); }
   const rs = e.target.closest('[data-ofres]'); if (rs) return ofResult(rs.dataset.ofres, rs.dataset.ofag);      // (1.82.8) xem kết quả + thao tác ngay ở văn phòng
   if (e.target.closest('[data-ofdsend]')) { const q = $('#ofDq'); if (q) { const t = q.value; q.value = ''; ofAsk(t); } return; }
