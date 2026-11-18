@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T09:00:03.136Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T09:51:53.925Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -15015,7 +15015,20 @@ function clOverlay(d) {
     if (!(x.folders || []).length) Object.assign(x, { status: 'approved', folders: [], extra: [], pick: null, hold: 0, link: null, auto: false }); }));      // (1.77.8)
   P('sessionClear').forEach(p => (p.ids || []).forEach(id => { const x = X[id]; if (x && x.status !== 'taught' && x.status !== 'off') Object.assign(x, { folders: [], extra: [], pick: null, tags: [], status: '', hold: 1, link: null, auto: false }); }));      // (1.44.11) xoá nội dung đang chờ gửi
   if (d.manage && d.reqs) { const dec = new Set(); P('reqDecide').forEach(p => (p.ids || []).forEach(i => dec.add(i))); if (dec.size) d.reqs = d.reqs.filter(r => !dec.has(r.id)); }
+  if (d.manage) clRel(d);
   return d;
+}
+/** (1.82.3) TÍNH “ĐÃ PHÁT” NGAY TRÊN MÁY (quản lý) — đúng luật máy chủ (Code.gs › released_): buổi đã duyệt / đã dạy là phát luôn; bật “chặn theo buổi trước” thì
+    chỉ phát khi buổi trước (không tính buổi nghỉ) đã dạy hoặc là buổi đã qua để trống. Trước: bấm Duyệt chỉ đổi nhãn, buổi nằm ở “Chưa phát” tới khi máy chủ tải về (vài chục giây). */
+function clRel(d) {
+  const gate = !!(d.cfg && d.cfg.gate), today = d.today || '', by = {};
+  d.sessions.forEach(x => { if (!x.spare && x.status !== 'off') (by[x.classId] = by[x.classId] || []).push(x); });
+  Object.keys(by).forEach(k => { let prevOk = true;
+    by[k].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (Number(a.no) || 0) - (Number(b.no) || 0)).forEach(x => {
+      const ok = (x.status === 'approved' || x.status === 'taught') && (prevOk || !gate);
+      x.released = ok; x.gate = ok ? 'ok' : x.status === 'approved' ? 'prev' : 'wait';
+      prevOk = x.status === 'taught' || (clSelf(x) && x.date < today); }); });
+  d.sessions.forEach(x => { if (x.status === 'off') { x.released = false; x.gate = 'off'; } });
 }
 /* Tải bản mới từ máy chủ. Thay đổi đang chờ gửi + vừa lưu xong luôn được phủ lên (clOverlay) nên bản tải về dù cũ hơn cũng không làm
    giao diện “quay lại” trạng thái trước. after = cần bản bắt đầu tải SAU thời điểm này (vừa lưu xong) — lần tải đang chạy cũ hơn thì tải thêm một lần.
