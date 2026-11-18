@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T19:30:12.519Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T23:07:02.993Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -20722,7 +20722,7 @@ async function aiFbGan(btn, cids, done) {
   const parts = []; for (let i = 0; i < cids.length; i += 6) parts.push(cids.slice(i, i + 6)); let left = parts.length;
   const fin = () => { if (--left > 0) return; toast('AI đã gán xong — xem ở Cần duyệt', 'ok', 5000); done && done(); };
   parts.forEach(g => rpc('aiAssignPlan', { cids: g, days: 14, apply: 'draft', strict: 1 }, { quiet: true })
-    .then(r => { if (r.log && AI_WAIT.test(r.log.status)) aiWatch(r.log.id, fin); else { if (!r.log) toast(r.msg || 'Không có buổi nào để gán', 'info'); fin(); } }).catch(e => { toast(e.message, 'err'); fin(); }));
+    .then(r => { const L = (r.logs || (r.log ? [r.log] : [])).filter(l => AI_WAIT.test(l.status)); if (!r.log) toast(r.msg || 'Không có buổi nào để gán', 'info'); if (!L.length) return fin(); left += L.length - 1; L.forEach(l => aiWatch(l.id, fin)); }).catch(e => { toast(e.message, 'err'); fin(); }));      // (1.82.12) mỗi bé một lượt
   toast('Đã giao AI gán bài ' + cids.length + ' bé — xong sẽ báo', 'info', 4000);
 }
 /** (1.80.46) Cần duyệt › Sửa: mở hộp sửa nội dung buổi như ở trang bé (dữ liệu lớp chưa tải thì tải trước) */
@@ -21544,7 +21544,7 @@ async function aiAssignRun(body) {
   for (let i = 0; i < N; i++) {
     if (h.isConnected) h.innerHTML = '<div class="ax-card ax-run"><div style="flex:1">' + aiThink('assign', t0) + '<div class="small ax-muted" style="margin-top:4px">Giao việc ' + (i + 1) + '/' + N + ' · ' + Math.min(ids.length, (i + 1) * per) + '/' + ids.length + ' bé</div><div class="bar"><i style="width:' + Math.round(i / N * 100) + '%"></i></div></div></div>';
     try { const r = await rpc('aiAssignPlan', { cids: ids.slice(i * per, i * per + per), days: A.days, text: A.text, apply: A.apply }, { quiet: true });
-      if (r.log) { sent++; A.plans.unshift(r.log); aiWatchPlan(r.log); if (body.isConnected) { aiPlansPaint(body, 'aiPlans', A.plans); aiSubPaint(body); } } else if (r.msg) toast(r.msg, 'info', 5000); }
+      if (r.log) { sent++; (r.logs || [r.log]).forEach(l => { A.plans.unshift(l); aiWatchPlan(l); }); if (body.isConnected) { aiPlansPaint(body, 'aiPlans', A.plans); aiSubPaint(body); } } else if (r.msg) toast(r.msg, 'info', 5000); }
     catch (e) { toast('Lượt ' + (i + 1) + ': ' + aiErr(e), 'err', 9000); if (/AIOFF|AICFG/.test(e.code || '')) break; }
   }
   A.run = null; if (h.isConnected) h.innerHTML = ''; if (sent) toast('Đã giao AI ' + ids.length + ' bé — ' + (A.apply === 'review' ? 'đề xuất hiện ở đây khi xong' : 'AI chọn xong sẽ tự ' + (A.apply === 'approve' ? 'gán & duyệt' : 'gán nháp')) + '. Rời trang cũng được: xong sẽ báo chuông.', 'ok', 8000);
@@ -21711,11 +21711,11 @@ function aiQvHtml(D) {
 async function aiTaskSend(cids, text, apply, link, days) {
   const r = await rpc('aiAssignPlan', { cids: cids, text: text, apply: apply, link: link || null, days: days || (AI.b && AI.b.days) || 7 }, { quiet: true });
   if (!r.log) { toast(r.msg || 'Không có buổi nào còn sửa được', 'info', 6000); return r; }
-  AI.as.plans.unshift(r.log); AI.dash = null;
-  toast('Đã giao Trợ lý AI · ' + (cids.length > 1 ? cids.length + ' bé' : 'xong sẽ báo bạn'), 'ok', 4000);
-  aiWatch(r.log.id, o => { const i = AI.as.plans.findIndex(p => p.id === o.id); if (i >= 0) AI.as.plans[i] = o; const el = document.querySelector('[data-plan="' + o.id + '"]'); if (el) el.outerHTML = aiPlanHtml(o);
+  (r.logs || [r.log]).forEach(l => AI.as.plans.unshift(l)); AI.dash = null;
+  toast('Đã giao Trợ lý AI · ' + (cids.length > 1 ? cids.length + ' bé (mỗi bé một lượt)' : 'xong sẽ báo bạn'), 'ok', 4000);
+  (r.logs || [r.log]).forEach(l => aiWatch(l.id, o => { const i = AI.as.plans.findIndex(p => p.id === o.id); if (i >= 0) AI.as.plans[i] = o; const el = document.querySelector('[data-plan="' + o.id + '"]'); if (el) el.outerHTML = aiPlanHtml(o);
     AI.as.scan = null; AI.dash = null; toast(aiDoneMsg(o), o.status === 'err' ? 'err' : 'ok', 8000, 'ai/assign/' + o.id);
-    if (typeof clReload === 'function' && typeof CL !== 'undefined') clReload(Date.now()).then(x => x !== 'same' && CL.repaint && CL.repaint()).catch(() => {}); });
+    if (typeof clReload === 'function' && typeof CL !== 'undefined') clReload(Date.now()).then(x => x !== 'same' && CL.repaint && CL.repaint()).catch(() => {}); }));
   return r;
 }
 /** hộp “Giao việc cho Trợ lý AI” — cids: một hoặc nhiều lớp */
@@ -22878,7 +22878,7 @@ function asstAva(av, sz, busy) {
     '<i class="bi ' + A[1] + ' as-av-b"></i></span>';
 }
 const AGL = [[1, 'Chuỗi flow', 'Model + API'], [2, 'Chỉ dẫn', 'System prompt'], [3, 'Dữ liệu tra cứu', 'RAG'], [4, 'Công cụ', 'Tools / MCP'], [5, 'Phân quyền', 'Ai được dùng'], [6, 'Rào chắn', 'Guardrails'], [7, 'Bộ đệm + định tuyến', 'Cache + Router'], [8, 'Giám sát', 'Monitoring + Eval']];
-const AG_TOOLS_RO = { hub: ['Tổng quan các trợ lý', 'Việc đang chạy', 'Giao việc cho trợ lý con', 'Tóm tắt Kiến Task'], chat: ['Lớp & buổi', 'Lộ trình bé', 'Nhận xét KGS', 'Thư viện tài liệu', 'Link tạm', 'Tìm web (nếu bật)'], task: ['Bảng Kiến Task', 'Check-in', 'Hiệu suất 30 ngày'],
+const AG_TOOLS_RO = { hub: ['Tổng quan các trợ lý', 'Việc đang chạy', 'Giao việc cho trợ lý con', 'Tóm tắt Kiến Task'], chat: ['Lớp & buổi', 'Lộ trình bé', 'Nhận xét KGS', 'Thư viện tài liệu', 'Link tạm', 'Tìm web (nếu bật)'], task: ['Bảng Kiến Task', 'Check-in', 'Hiệu suất 30 ngày'], audit: ['Buổi sắp tới của mọi bé', 'Lộ trình & tiến độ trường', 'Báo cáo các phòng hôm nay', 'Giao Gán bài gán lại (nháp)'],
   assign: ['Lộ trình bé', 'Buổi sắp tới', 'Nhận xét KGS', 'Kho topic'], route: ['Nội dung dạy bên KGS', 'Chương trình cũ', 'Bài nháp 3 tuần'], match: ['Nội dung gia sư ghi bên KGS', 'Bài đã gán'], pmap: ['Bài đã học ở chương trình cũ'], reqs: ['Yêu cầu của gia sư', 'Trao đổi lớp'], grade: ['Tệp phiếu / đề', 'Tiêu chuẩn chấm'] };
 const AG_GUARD_RO = { assign: 'Máy chủ luôn kiểm: mã bài có thật trong lộ trình, không gán bài đã học / bài cũ / bị bỏ qua, không xếp lùi.', route: 'Máy chủ luôn kiểm: chỉ xếp lại bài NHÁP, không xếp lùi, có Hoàn tác.', match: 'Chỉ đề xuất — quản lý bấm Lưu.', pmap: 'Chỉ khớp bài có trong chương trình mới.', reqs: 'Chỉ áp dụng những việc quản trị cho tự làm.', grade: 'Điểm 0–10, tiêu chí theo bộ tiêu chuẩn.' };
 const AGS = { d: null, sel: 'hub', dr: null, dirty: false, test: null };
@@ -23106,6 +23106,13 @@ html[data-mode="dark"] .of-stage{ --st1:#15204A; --st2:#0A1022; --dot:rgba(148,1
 .of-rug{ fill:none; stroke:var(--primary); stroke-opacity:.18; stroke-dasharray:4 5 }
 html[data-mode="dark"] .of-flr{ fill:var(--flr); fill-opacity:.9 }
 .of-rail{ stroke:var(--primary); stroke-opacity:.22 } .of-comet{ stroke:var(--primary); color:var(--primary) } .of-ping{ stroke:var(--primary) }
+/* (1.82.12) dây nối kiểu sơ đồ: rảnh = mảnh mờ · đang làm = nét đứt chạy + vệt sáng nhỏ, chấm cổng ở hai đầu */
+.of-wire{ fill:none; stroke:var(--primary); stroke-opacity:.16; stroke-width:1.3; stroke-linejoin:round }
+.of-port{ fill:var(--flr); stroke:var(--primary); stroke-opacity:.35; stroke-width:1.3 } .of-port.on{ stroke-opacity:1; stroke-width:1.8 }
+.of-rail{ stroke-width:2; stroke-opacity:.18; stroke-linejoin:round } .of-dash{ fill:none; stroke:var(--primary); stroke-width:1.8; stroke-dasharray:6 5; stroke-linejoin:round; stroke-linecap:round; animation:ofDash .9s linear infinite }
+.of-comet{ stroke-width:3.6; stroke-dasharray:7 93 } @keyframes ofDash{ to{ stroke-dashoffset:-22 } }
+.of-mail.on{ box-shadow:0 0 0 3px color-mix(in oklab, var(--mail) 18%, transparent); animation:ofMailP 1.6s ease-in-out infinite } @keyframes ofMailP{ 50%{ box-shadow:0 0 0 6px color-mix(in oklab, var(--mail) 6%, transparent) } }
+@media (prefers-reduced-motion:reduce){ .of-dash, .of-mail.on{ animation:none } }
 .of-lb.in{ display:inline-flex; align-items:center; gap:6px; transform:translate(-50%, -50%); padding:4px 10px; border-radius:999px; background:var(--lb); border:1px solid var(--border); box-shadow:0 4px 12px -8px var(--lbsh); max-width:none; width:auto; color:var(--lbi); font-size:12px }
 .of-lb.in::before{ display:none } .of-lb.in b{ font-size:12px; font-weight:650 } .of-lb.in i.bi{ font-size:10px; color:var(--primary) } .of-lb.in em{ font-style:normal; font-size:10.5px; font-weight:700; color:#16A34A }
 .of-lb.in.busy{ border-color:color-mix(in oklab, var(--primary) 55%, var(--border)); box-shadow:0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent) } .of-lb.in.hub{ border-color:color-mix(in oklab, var(--primary) 40%, var(--border)) } .of-lb.in:hover{ border-color:var(--primary) }
@@ -23127,6 +23134,20 @@ html[data-mode="dark"] .of-flr{ fill:var(--flr); fill-opacity:.9 }
 .of-lb.in{ transform:translate(-50%, 0); padding:2px 9px; gap:5px; font-size:11px; z-index:4; border-color:color-mix(in oklab, var(--lbi) 12%, transparent); box-shadow:0 3px 10px -6px var(--lbsh) } .of-lb.in b{ font-size:11px; font-weight:650 } .of-lb.in .of-dot{ width:6px; height:6px } .of-lb.in i.bi{ font-size:9px }      /* (1.82.11) thẻ tên nhỏ gọn, nằm trên robot */
 .of-stage.mid .of-lb.in{ padding:1px 6px } .of-stage.mid .of-lb.in b{ font-size:10px }
 .of-stage.sm .of-lb.in{ padding:0 5px; gap:3px } .of-stage.sm .of-lb.in b{ font-size:9.5px } .of-stage.sm .of-lb.in .of-dot{ width:5px; height:5px } .of-stage.sm .of-mail{ display:none }
+/* (1.82.12) chat mở → văn phòng dời trái · danh sách phòng tự cuộn · Tủ báo cáo */
+.of.dk-on{ max-width:none; margin:0 }
+.of.dk-tight .of-main{ grid-template-columns:62px minmax(0, 1fr) } .of.dk-tight .of-side{ padding:8px 4px } .of.dk-tight .of-si{ justify-content:center; padding:4px 0 } .of.dk-tight .of-si .t, .of.dk-tight .of-si > .of-dot, .of.dk-tight .of-sh, .of.dk-tight .of-rule{ display:none } .of.dk-tight .of-sh + .of-si{ margin-top:6px }
+@media (max-width:1100px){ .of.dk-tight .of-main{ grid-template-columns:minmax(0, 1fr) } }
+.of-side{ overflow:auto; overscroll-behavior:contain }
+.of-rpb{ flex:none; position:relative } .of-rpb em{ font-style:normal; display:inline-grid; place-items:center; min-width:18px; height:18px; padding:0 5px; margin-left:4px; border-radius:9px; background:var(--primary); color:#fff; font-size:10.5px; font-weight:700 }
+.of-rp-days{ display:flex; gap:6px; flex-wrap:wrap } .of-rp-days button{ border:1px solid var(--border); background:var(--surface); color:inherit; font:inherit; font-size:12px; padding:3px 10px; border-radius:999px; cursor:pointer } .of-rp-days button.on{ border-color:var(--primary); color:var(--primary); font-weight:700; background:color-mix(in oklab, var(--primary) 8%, transparent) }
+.of-au{ border:1px solid var(--border); border-radius:12px; padding:10px 12px } .of-au.warn{ border-color:color-mix(in oklab, #F59E0B 55%, var(--border)); background:color-mix(in oklab, #F59E0B 6%, transparent) }
+.of-au .r{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px } .of-au ul{ margin:6px 0 0; padding-left:18px; font-size:12.5px; line-height:1.5 } .of-au ul li b{ font-weight:650 } .of-au .k{ font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:6px; background:var(--surface-2); margin-right:4px }
+.of-rp{ display:flex; gap:8px; align-items:flex-start; padding:8px 0; border-top:1px solid var(--border); font-size:12.5px } .of-rp:first-of-type{ border-top:0 } .of-rp input{ margin-top:3px; accent-color:var(--primary); flex:none }
+.of-rp .t{ flex:1; min-width:0; cursor:pointer } .of-rp .t b{ display:block; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .of-rp .t small{ display:block; color:var(--muted); font-size:11.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .of-rp .t:hover b{ color:var(--primary) }
+.of-rp .fl{ display:block; color:#B45309; font-size:11.5px; margin-top:2px } html[data-mode="dark"] .of-rp .fl{ color:#FCD34D }
+.of-rv{ font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:6px; white-space:nowrap; flex:none } .of-rv.ok{ background:color-mix(in oklab, #16A34A 13%, transparent); color:#15803D } .of-rv.fix{ background:color-mix(in oklab, var(--danger) 12%, transparent); color:var(--danger) } .of-rv.no{ background:var(--surface-2); color:var(--muted) }
+.of-rp-g{ margin-top:14px } .of-rp-g > h5{ display:flex; gap:8px; align-items:center; margin:0 0 2px; font-size:12px; color:var(--ink-2) } .of-rp-g > h5 .sp{ flex:1 } .of-rp-act{ position:sticky; bottom:0; display:flex; gap:8px; justify-content:flex-end; padding:10px 0 2px; background:var(--surface) }
 </style>
 <script>
 /* ═════ (1.82.7) VĂN PHÒNG AI (Trợ lý › Văn phòng AI, route asst/office) — máy chủ asstOffice_ (AiAgents.gs). Thiết kế: docs/van-phong-ai.md
@@ -23137,9 +23158,9 @@ html[data-mode="dark"] .of-flr{ fill:var(--flr); fill-opacity:.9 }
    · BỘ NÃO CHUNG ở giữa: bấm → ngăn thiết lập (ghi nhớ bật / tắt / thêm / quên, hướng dẫn, kỹ năng) ═════ */
 const OF = { d: null, seen: null, prev: {}, t: 0, fx: {}, pend: [], sig: '', dockMin: !!lsGet('ofDockMin', true) };
 const OF_TW = 300, OF_TH = 150, OF_WH = 48;
-const OF_SHORT = { hub: 'Điều phối', chat: 'Chuyên môn', task: 'Kiến Task', assign: 'Gán bài', route: 'Rà soát lộ trình', match: 'Khớp bài đã dạy', pmap: 'Đổi chương trình', reqs: 'Yêu cầu & trao đổi', grade: 'Nhận xét bài' };
+const OF_SHORT = { hub: 'Điều phối', chat: 'Chuyên môn', task: 'Kiến Task', assign: 'Gán bài', route: 'Rà soát lộ trình', match: 'Khớp bài đã dạy', pmap: 'Đổi chương trình', reqs: 'Yêu cầu & trao đổi', grade: 'Nhận xét bài', audit: 'Kiểm tra báo cáo' };
 const OF_TOOLS = { tong: 'Tổng quan các trợ lý', task: 'Dữ liệu Kiến Task', giao: 'Giao việc cho trợ lý con', web: 'Tìm trên web' };
-const OF_VIA = { hub: 'hub', chat: 'cm', task: 'task' };
+const OF_VIA = { hub: 'hub', chat: 'cm', task: 'task' }, OF_ROOM = { assign: 1, route: 1, match: 1, pmap: 1, reqs: 1, grade: 1, audit: 1 };      // (1.82.12) phòng chuyên biệt nhận việc thẳng
 function ofShort(a) { return OF_SHORT[a.key] || a.t; }
 function ofCol(a) { return 'var(--primary)'; }      /* (1.82.9) phòng / thẻ / luồng dùng màu chính của bộ thiết kế — robot vẫn giữ màu riêng */
 function ofName(k) { const a = OF.d && OF.d.agents.find(x => x.key === k); return a ? a.t : k; }
@@ -23154,7 +23175,7 @@ function ofCells(G) {
 }
 /** dựng trang (một lần — chuyển tab trong module Trợ lý không dựng lại) */
 function viewOffice(host) {
-  host.innerHTML = '<div class="of" id="ofR"><div class="of-top"><div class="of-ask"><i class="bi bi-stars" style="color:var(--primary)"></i><input id="ofQ" placeholder="Giao việc hoặc hỏi Trợ lý chung — trợ lý tự chọn phòng nào làm…" aria-label="Giao việc cho Trợ lý chung"><button type="button" class="btn sm pri" id="ofGo"><i class="bi bi-send"></i>Giao việc</button></div><div class="of-clk"><small id="ofDay"></small><b id="ofClk">--:--:--</b></div></div>' +
+  host.innerHTML = '<div class="of" id="ofR"><div class="of-top"><div class="of-ask"><i class="bi bi-stars" style="color:var(--primary)"></i><input id="ofQ" placeholder="Giao việc hoặc hỏi Trợ lý chung — trợ lý tự chọn phòng nào làm…" aria-label="Giao việc cho Trợ lý chung"><button type="button" class="btn sm pri" id="ofGo"><i class="bi bi-send"></i>Giao việc</button></div><button type="button" class="btn sm of-rpb" data-ofrep title="Tủ báo cáo: việc các phòng đã làm hôm nay — xem, duyệt, kiểm tra"><i class="bi bi-archive"></i>Tủ báo cáo<em id="ofRpN" hidden></em></button><div class="of-clk"><small id="ofDay"></small><b id="ofClk">--:--:--</b></div></div>' +
     '<div class="of-k" id="ofK"></div><div class="of-main"><aside class="of-side" id="ofS" aria-label="Phòng ban"></aside><div class="of-stagew"><div class="of-stage" id="ofSt"><div class="of-in" id="ofIn"></div><div class="of-ov" id="ofOv"></div></div><div class="of-tick" id="ofT"><b><span class="of-dot run"></span>TRỰC TIẾP</b><span class="ev">Đang mở văn phòng…</span></div></div></div></div>';
   const q = $('#ofQ', host);
   q.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); ofAsk(q.value); } }; $('#ofGo', host).onclick = () => ofAsk(q.value);
@@ -23164,6 +23185,7 @@ function viewOffice(host) {
   const tickClock = () => { const c = $('#ofClk'); if (!c) return clearInterval(OF.ck); const d = new Date(); c.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); const dd = $('#ofDay'); if (dd) dd.textContent = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][d.getDay()] + ', ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1); };
   clearInterval(OF.ck); OF.ck = setInterval(tickClock, 1000); tickClock();
   if (window.ResizeObserver) { if (OF.ro) OF.ro.disconnect(); OF.ro = new ResizeObserver(() => { ofFit(); const dk = $('#ofDock'); if (dk && (innerWidth <= 760) === (dk.parentElement === $('#ofR'))) ofDock(); }); OF.ro.observe($('#ofSt', host)); }      // co theo khung thật (cả lúc thanh bên thu / mở, lúc trang vừa hiện)
+  if (!OF.rsz) { OF.rsz = 1; addEventListener('resize', () => { if ($('#ofR')) ofShift(); }); }
   ofLoad();
 }
 /** quay lại tab Văn phòng (đã dựng sẵn): vẽ lại theo bề rộng hiện tại + tải mới ngay */
@@ -23172,29 +23194,33 @@ async function ofLoad() {
   clearTimeout(OF.t); const R = $('#ofR'); if (!R) return;
   if (!document.hidden && !R.closest('[hidden]')) try { const d = await rpc('asstOffice', {}, { quiet: true }); OF.d = d; lsSet('ofD:' + (S.me && S.me.email || ''), d); ofPaint(); } catch (e) { if (!OF.d) { const o = $('#ofOv'); if (o) o.innerHTML = '<div style="padding:40px;color:var(--muted)">' + esc(e.message || e) + '</div>'; } }
   const busy = OF.d && ((OF.d.run || []).length || OF.pend.some(p => p.wait) || (OF.d.chat || []).some(c => /^(send|wait|proc)$/.test(c.st)));
-  if ($('#ofR')) OF.t = setTimeout(ofLoad, busy ? 4000 : 12000);
+  if ($('#ofR')) OF.t = setTimeout(ofLoad, busy ? 2500 : 12000);      // (1.82.12) đang có việc: hỏi lại nhanh hơn
 }
 /** vẽ lại theo dữ liệu mới rồi chạy hiệu ứng cho việc mới / việc xong */
 function ofPaint() {
   const D = OF.d, R = $('#ofR'); if (!D || !R) return;
-  const run = D.run || [], byAg = {}; run.forEach(r => { (byAg[r.ag || 'chat'] = byAg[r.ag || 'chat'] || []).push(r); });
+  /* (1.82.12) VIỆC VỪA GÕ hiện NGAY trên sơ đồ (bản tạm ở máy khách) — không chờ máy chủ dựng + gửi thư (5–15 giây) */
+  OF.tmp = (OF.tmp || []).filter(t => Date.now() - t.t0 < 90000 && !(D.run || []).concat(D.done || []).some(r => r.id === t.id));      // (1.82.12) giao cho phòng → phòng sáng NGAY (bản tạm)
+  const run = (D.run || []).concat(OF.pend.filter(p => p.st !== 'err' && !(D.run || []).some(r => r.id === p.id)).map(p => ({ id: p.id || 'tmp:' + p.t0, ag: 'hub', t: p.q, at: p.t0, tmp: 1 })), OF.tmp.map(t => ({ id: t.id, ag: t.ag, hub: 1, t: t.t, at: new Date(t.t0).toISOString(), tmp: 1 }))), byAg = {}; run.forEach(r => { (byAg[r.ag || 'chat'] = byAg[r.ag || 'chat'] || []).push(r); });
   const A = D.agents.slice(), busyN = Object.keys(byAg).length, chainN = A.filter(a => a.chain > 1).length, td = new Date().toISOString().slice(0, 10), givenToday = (D.given || []).filter(g => String(g.at).slice(0, 10) === td).length;
   $('#ofK').innerHTML = [['Nhân sự AI', A.length, busyN + ' đang làm · ' + (A.length - busyN) + ' rảnh'], ['Đang chạy', run.length, run.length ? (run.length > 1 ? 'song song · ' : '') + run.map(r => ofShort({ key: r.ag || 'chat', t: ofName(r.ag || 'chat') })).filter((x, i, X) => X.indexOf(x) === i).slice(0, 3).join(', ') : 'văn phòng đang rảnh', run.length ? 'run' : ''],
     ['Hôm nay', (D.today || {}).n || 0, ((D.today || {}).ok || 0) + ' xong · ' + ((D.today || {}).act || 0) + ' việc đã làm'], ['Trợ lý chung giao', givenToday, 'việc hôm nay' + ((D.bq || []).length ? ' · ' + D.bq.length + ' việc chia đợt' : '')],
     ['Chuỗi flow', chainN, chainN ? 'agent suy nghĩ nhiều bước' : 'chưa lắp chuỗi'], ['Hộp thư flow', D.box ? 'Bật' : 'Tắt', D.flows + ' flow đang bật' + (D.gem ? ' · Gemini' : '')]]
     .map(k => '<div><small>' + k[0] + '</small><b>' + (k[3] ? '<span class="of-dot run"></span>' : '') + esc(String(k[1])) + '</b><span>' + esc(k[2]) + '</span></div>').join('');
-  const grp = [['Điều phối', A.filter(a => a.key === 'hub')], ['Phòng chuyên môn', A.filter(a => /^(chat|assign|route|match|pmap|grade)$/.test(a.key))], ['Phòng vận hành', A.filter(a => /^(task|reqs)$/.test(a.key))], ['Agent riêng', A.filter(a => /^x:/.test(a.key))]];
+  { const rn = $('#ofRpN'); if (rn) { const u = (D.rep || {}).unrev || 0; rn.hidden = !u; rn.textContent = u; } }
+  const grp = [['Điều phối', A.filter(a => a.key === 'hub')], ['Phòng chuyên môn', A.filter(a => /^(chat|assign|route|match|pmap|grade)$/.test(a.key))], ['Phòng vận hành', A.filter(a => /^(task|reqs)$/.test(a.key))], ['Kiểm soát', A.filter(a => a.key === 'audit')], ['Agent riêng', A.filter(a => /^x:/.test(a.key))]];
   $('#ofS').innerHTML = grp.filter(g => g[1].length || g[0] === 'Agent riêng').map(g => '<div class="of-sh">' + g[0] + '</div>' + g[1].map(a => { const b = byAg[a.key];
-    return '<button type="button" class="of-si" data-ofr="' + esc(a.key) + '"><span class="of-dot ' + (b ? 'run' : 'idle') + '"></span>' + asstAva(a.av, 'xs', !!b) + '<span class="t"><b>' + esc(a.t) + '</b><small>' + esc(b ? (b.length > 1 ? b.length + ' việc song song' : 'đang làm' + (b[0].sp ? ' · bước ' + b[0].sp : '')) : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow' : 'rảnh') + '</small></span></button>'; }).join('') +
+    return '<button type="button" class="of-si" data-ofr="' + esc(a.key) + '" title="' + esc(a.t) + '"><span class="of-dot ' + (b ? 'run' : 'idle') + '"></span>' + asstAva(a.av, 'xs', !!b) + '<span class="t"><b>' + esc(a.t) + '</b><small>' + esc(b ? (b.length > 1 ? b.length + ' việc song song' : 'đang làm' + (b[0].sp ? ' · bước ' + b[0].sp : '')) : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow' : 'rảnh') + '</small></span></button>'; }).join('') +
     (g[0] === 'Agent riêng' && D.can ? '<button type="button" class="of-si" data-ofadd><span class="of-dot"></span><span class="t"><b style="color:var(--primary)">+ Thêm phòng (agent)</b></span></button>' : '')).join('') +
     '<div class="of-sh">Công cụ</div><div class="of-si" style="cursor:default"><span class="of-dot ' + (D.box ? 'idle' : '') + '"></span><span class="t"><b>Hộp thư flow</b><small>' + (D.box ? D.flows + ' flow · gửi việc / đọc thư trả lời' : 'chưa kết nối') + '</small></span></div>' +
     '<button type="button" class="of-si" data-ofbrain><span class="of-dot idle" style="background:#F59E0B"></span><span class="t"><b>Bộ não chung</b><small>' + D.brain.mem + ' ghi nhớ · ' + D.brain.kb + ' hướng dẫn · ' + D.brain.sk + ' kỹ năng</small></span></button>' +
+    '<button type="button" class="of-si" data-ofrep><span class="of-dot ' + ((D.rep || {}).flags ? 'run' : 'idle') + '"' + ((D.rep || {}).flags ? ' style="background:#F59E0B;box-shadow:none;animation:none"' : '') + '></span><span class="t"><b>Tủ báo cáo</b><small>' + ((D.rep || {}).n || 0) + ' việc hôm nay · ' + ((D.rep || {}).unrev || 0) + ' chưa duyệt' + ((D.rep || {}).flags ? ' · ' + D.rep.flags + ' cảnh báo' : '') + '</small></span></button>' +
     '<div class="of-rule"><b>NGUYÊN TẮC</b>AI đề xuất, người duyệt: gán bài lưu nháp, tin nhắn nhóm kiểu đồng nghiệp — kết quả nào cũng qua bước kiểm của máy chủ.</div>';
   const ids = {}; run.forEach(r => { ids[r.id] = r; });
   if (OF.seen) Object.keys(OF.prev).forEach(id => { if (!ids[id]) { const d = (D.done || []).find(x => x.id === id); OF.fx[OF.prev[id]] = { k: d && d.st === 'err' ? 'err' : 'ok', t: Date.now(), x: d ? d.t : '' }; } });
   ofStage(A, byAg);
   if (OF.seen) run.forEach(r => { if (!OF.seen.has(r.id)) ofFly(r.hub ? 'hub' : '@brain', r.ag || 'chat', r); });
-  OF.seen = new Set(run.map(r => r.id)); OF.prev = {}; run.forEach(r => { OF.prev[r.id] = r.ag || 'chat'; });
+  OF.seen = new Set(run.map(r => r.id).concat(OF.pend.map(p => p.id).filter(Boolean))); OF.prev = {}; run.forEach(r => { if (!r.tmp) OF.prev[r.id] = r.ag || 'chat'; });
   OF.pend = OF.pend.filter(p => !(D.chat || []).some(c => c.id === p.id));      // máy chủ đã có lượt → bỏ bản tạm
   ofDock(); ofTicker();
   const dr = $('#ofDr'); if (dr && dr.dataset.k && dr.dataset.k !== '@brain') ofDrawer(dr.dataset.k, true);
@@ -23206,10 +23232,10 @@ function ofStage(A, byAg, force) {
   const In = $('#ofIn'), Ov = $('#ofOv'), St = $('#ofSt'); if (!In || !St) return; const D = OF.d; OF.last = [A, byAg];
   const slots = A.concat(D.can ? [{ key: '+add' }] : []), G = slots.length <= 12 ? 4 : 6, cells = ofCells(G), W = G * OF_TW + 200, H = G * OF_TH + 250, X0 = W / 2, Y0 = 170;
   const sc = Math.min(1, (St.clientWidth || W) / W), fxK = Object.keys(OF.fx).filter(k => Date.now() - OF.fx[k].t < 8000), mid = sc < .6;
-  const sig = [W, sc.toFixed(3), A.map(a => a.key + a.av + a.t + a.docs.length + (a.today || {}).n).join(), (D.run || []).map(r => r.id + r.sp).join(), fxK.join(), D.box, D.brain.mem, D.brain.kb, D.brain.sk, OF.bOpen ? 1 : 0, document.documentElement.dataset.mode].join('|');
+  const sig = [W, sc.toFixed(3), A.map(a => a.key + a.av + a.t + a.docs.length + (a.today || {}).n).join(), Object.keys(byAg).map(k => k + ':' + byAg[k].map(r => r.id + r.sp).join(';')).join(), fxK.join(), D.box, D.brain.mem, D.brain.kb, D.brain.sk, OF.bOpen ? 1 : 0, document.documentElement.dataset.mode].join('|');
   if (!force && sig === OF.sig) return; OF.sig = sig;
   const P = (gx, gy) => [X0 + (gx - gy) * OF_TW / 2, Y0 + (gx + gy) * OF_TH / 2], pt = p => p[0].toFixed(1) + ',' + p[1].toFixed(1), up = (p, h) => [p[0], p[1] - h], poly = (L, a) => '<polygon points="' + L.map(pt).join(' ') + '" ' + a + '/>';
-  const S = p => [p[0] * sc, p[1] * sc], C = P(G / 2, G / 2), svg = [], flows = [], lbs = [], bots = [], bubs = [], pos = {}, boxes = [], W2 = W * sc, H2 = H * sc;
+  const S = p => [p[0] * sc, p[1] * sc], C = P(G / 2, G / 2), svg = [], flows = [], lbs = [], bots = [], bubs = [], pos = {}, boxes = [], RB = {}, W2 = W * sc, H2 = H * sc;
   const box = (x, y, w, h) => ({ x: x, y: y, w: w, h: h }), hit = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
   const ctx = ofStage.cx || (ofStage.cx = document.createElement('canvas').getContext('2d')), tw = (t, f) => { ctx.font = f; return ctx.measureText(t).width; };
   const BRY = C[1] - 40; pos['@brain'] = [C[0], BRY]; pos['@mail'] = [C[0] + 118, BRY - 4];
@@ -23220,7 +23246,6 @@ function ofStage(A, byAg, force) {
       const q = S(ctr); lbs.push('<button type="button" class="of-add" data-ofadd style="left:' + q[0] + 'px;top:' + q[1] + 'px">+ Thêm phòng</button>'); boxes.push(box(q[0] - 55, q[1] - 14, 110, 28)); return; }
     const col = ofCol(a), b = byAg[a.key], busy = !!b, fx = OF.fx[a.key] && Date.now() - OF.fx[a.key].t < 8000 ? OF.fx[a.key] : null;
     const Ap = P(gx + m, gy + m), Bp = P(gx + 1 - m, gy + m), Cp = P(gx + 1 - m, gy + 1 - m), Dp = P(gx + m, gy + 1 - m);
-    svg.push('<line class="of-ln" x1="' + ctr[0] + '" y1="' + ctr[1] + '" x2="' + C[0] + '" y2="' + C[1] + '"/>');
     const hb = a.key === 'hub' ? ' hub' : '';
     svg.push(poly([Ap, Dp, up(Dp, OF_WH), up(Ap, OF_WH)], 'class="of-w1' + hb + '"'));
     svg.push(poly([Ap, Bp, up(Bp, OF_WH), up(Ap, OF_WH)], 'class="of-w2' + hb + '"'));
@@ -23240,6 +23265,7 @@ function ofStage(A, byAg, force) {
     lbs.push('<button type="button" class="of-cab" data-ofcab="' + esc(a.key) + '" style="left:' + cab[0] + 'px;top:' + cab[1] + 'px" title="Tủ hồ sơ: những gì agent xem được"><i class="bi bi-archive"></i><span>' + nCab + '</span></button>');
     // robot giữa phòng, trước bàn
     const bp = S(P(gx + .55, gy + .42)), rs = sc > .9 ? 52 : sc < .6 ? 32 : 40;      /* (1.82.11) robot lùi về sau, thẻ tên ở chân sàn không bị che */      /* khung hẹp: robot nhỏ để thẻ tên không đè */ boxes.push(box(bp[0] - rs / 2, bp[1] - rs / 2, rs, rs));
+    RB[a.key] = { c: P(gx + .55, gy + .42), r: rs / 2 / sc + 5 };
     bots.push('<span class="of-bot" data-ofr="' + esc(a.key) + '" title="' + esc(a.t) + '" style="left:' + bp[0] + 'px;top:' + bp[1] + 'px">' + asstAva(a.av, rs > 50 ? 'md' : rs < 40 ? 'xs' : 'sm', busy) + (b && b.length > 1 ? '<span class="of-par">×' + b.length + '</span>' : '') + '</span>');
     if (b) { b.slice(0, 2).forEach((r, j) => bubs.push('<span class="of-bub" style="--rc:' + col + ';left:' + (bp[0] + rs / 2 + 4) + 'px;top:' + (bp[1] - rs / 2 - 4 - j * 28) + 'px" title="' + esc(r.t) + '">' + esc(aiCut(r.t, 30)) + (r.sp ? ' · B' + r.sp : '') + '<span class="ty"><i></i><i></i><i></i></span></span>'));
       if (b.length > 2) bubs.push('<span class="of-bub more" style="left:' + (bp[0] + rs / 2 + 4) + 'px;top:' + (bp[1] - rs / 2 - 60) + 'px">+' + (b.length - 2) + ' việc nữa</span>'); }
@@ -23251,23 +23277,43 @@ function ofStage(A, byAg, force) {
   const hubBusy = !!byAg.hub, bc = S([C[0], BRY]), pillT = 'Bộ não chung · ' + D.brain.mem + ' ghi nhớ · ' + D.brain.kb + ' hướng dẫn · ' + D.brain.sk + ' kỹ năng', pw = tw(pillT, '600 11px system-ui') + 22;
   boxes.push(box(bc[0] - 80 * sc, bc[1] - 60 * sc, 160 * sc, 120 * sc), box(bc[0] - pw / 2, bc[1] + 62 * sc, pw, 24));
   const mc = S(pos['@mail']), mt = (D.box ? D.flows + ' flow' : 'chưa nối'), mw = tw(mt, '800 10.5px system-ui') + 38; boxes.push(box(mc[0] - 10, mc[1] - 12, mw, 24));
-  lbs.push('<button type="button" class="of-bhit" data-ofbtog aria-label="Xem bộ não chung" title="Bấm để xem bộ não chung" style="left:' + bc[0] + 'px;top:' + bc[1] + 'px;width:' + (150 * sc) + 'px;height:' + (115 * sc) + 'px"></button>');
+  lbs.push('<button type="button" class="of-bhit" data-ofbtog aria-label="Xem bộ não chung" style="left:' + bc[0] + 'px;top:' + bc[1] + 'px;width:' + (150 * sc) + 'px;height:' + (115 * sc) + 'px"></button>');
   if (OF.bOpen) lbs.push('<button type="button" class="of-brain" data-ofbrain style="left:' + bc[0] + 'px;top:' + (bc[1] + 62 * sc) + 'px" title="Bấm để thiết lập bộ não chung">' + esc(pillT) + '</button>');
-  lbs.push('<div class="of-mail' + (D.box ? '' : ' off') + '" style="left:' + (mc[0] - 10) + 'px;top:' + mc[1] + 'px" title="Hộp thư flow — mỗi bước agent là một thư"><i class="bi bi-envelope-paper"></i> ' + esc(mt) + '</div>');
+  lbs.push('<div class="of-mail' + (D.box ? '' : ' off') + (Object.keys(byAg).length && D.box ? ' on' : '') + '" style="left:' + (mc[0] - 10) + 'px;top:' + mc[1] + 'px" title="Hộp thư flow — mỗi bước agent là một thư"><i class="bi bi-envelope-paper"></i> ' + esc(mt) + '</div>');
   // THẺ TÊN PHÒNG (1.82.9): luôn nằm ở chân sàn của CHÍNH phòng đó (không trôi sang phòng khác), một dòng tên + chấm trạng thái
   rooms.forEach(R => { const t = (R.a.key === 'hub' ? '' : '') + ofShort(R.a);
     lbs.push('<button type="button" class="of-lb in' + (R.b ? ' busy' : '') + (R.a.key === 'hub' ? ' hub' : '') + '" data-ofr="' + esc(R.a.key) + '" style="left:' + R.F[0].toFixed(1) + 'px;top:' + R.F[1].toFixed(1) + 'px" title="' + esc(R.a.t + ' · ' + R.st) + '"><span class="of-dot ' + (R.b ? 'run' : 'idle') + '"></span>' + (R.a.key === 'hub' ? '<i class="bi bi-star-fill"></i>' : '') + '<b>' + esc(t) + '</b>' + (R.b ? '<em>' + esc(R.b.length > 1 ? '×' + R.b.length : (R.b[0].sp ? 'B' + R.b[0].sp : 'đang làm')) + '</em>' : '') + '</button>');
   });
   /* LUỒNG VIỆC (1.82.8 — thiết kế lại): đường cong mảnh mờ làm “ray” + vệt sáng (sao chổi) lướt liên tục từ phòng giao tới phòng nhận,
      điểm đến có vòng sóng lan; việc đang gửi thư flow: chuỗi chấm nhỏ trôi về hộp thư. Không còn nét đứt dày / chấm to đè lên nhau */
-  const curve = (a, b, k, lift) => { const d = Math.hypot(b[0] - a[0], b[1] - a[1]), mx = (a[0] + b[0]) / 2 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 26, my = (a[1] + b[1]) / 2 - lift * Math.max(50, d * .3) - k * 10; return 'M' + pt(a) + ' Q' + mx.toFixed(1) + ',' + my.toFixed(1) + ' ' + pt(b); };
-  (D.run || []).forEach((r, i) => { const to = r.ag || 'chat', b = pos[to]; if (!b) return; const from = r.hub ? 'hub' : '@brain', a = from === '@brain' ? [C[0], BRY] : pos[from] || C, col = ofCol((D.agents.find(x => x.key === to) || { key: to, av: 0 })), k = (byAg[to] || []).indexOf(r);
-    if (from !== to && Math.hypot(b[0] - a[0], b[1] - a[1]) > 20) { const d = curve(a, b, k, 1), dur = (2.4 + (i % 3) * .3).toFixed(1);
-      flows.push('<path class="of-rail" d="' + d + '"/>');
-      [0, .5].forEach(o => flows.push('<path class="of-comet" pathLength="100" style="animation-duration:' + dur + 's;animation-delay:-' + (o * dur).toFixed(2) + 's" d="' + d + '"/>'));
-      flows.push('<circle class="of-ping" cx="' + b[0] + '" cy="' + b[1] + '" r="14"><animate attributeName="r" values="10;46" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0" dur="2s" repeatCount="indefinite"/></circle>'); }
-    const M = pos['@mail'], d2 = curve(b, M, k, -.6);
-    flows.push('<path class="of-mrail" d="' + d2 + '"/><path class="of-mdots" pathLength="100" style="animation-delay:-' + (i * .3).toFixed(1) + 's" d="' + d2 + '"/>'); });
+  /* LUỒNG VIỆC (1.82.12 — kiểu sơ đồ nối): đường gấp khúc NGANG – DỌC – NGANG bo tròn góc giữa các “cổng” (chấm tròn ở hai đầu),
+     ra / vào bộ não ở cổng trái – phải (không đâm thẳng qua giữa bộ não); phòng gần thẳng hàng dọc với bộ não → vòng ra bên trái.
+     Lúc rảnh: dây mảnh mờ từ bộ não tới mọi phòng · đang làm: nét đứt chạy + vệt sáng nhỏ, vòng sóng ở phòng nhận */
+  /* (1.82.12b) DÂY NỐI KIỂU SƠ ĐỒ (như sơ đồ Trợ lý chung): CHỈ việc đang chạy mới có dây (bỏ dây rảnh tới mọi phòng, bỏ đường thẳng Điều phối ↓ bộ não).
+     Mỗi dây: cổng bên hông phòng giao → ra “làn” dọc riêng (mỗi dây một làn, cách nhau 16px — không chồng khi giao nhiều phòng cùng lúc) → rẽ ngang vào cổng bên hông phòng nhận;
+     góc bo tròn; làn không cắt qua bộ não (đẩy ra ngoài vòng não). Nét đứt chạy + vệt sáng, chấm cổng hai đầu, vòng sóng ở phòng nhận. */
+  const BRN = { c: [C[0], BRY], r: 70, ry: 58 }, lanes = {};
+  const rpath = Q => { let d = 'M' + pt(Q[0]);
+    for (let i = 1; i < Q.length - 1; i++) { const p = Q[i], p0 = Q[i - 1], p1 = Q[i + 1], l0 = Math.hypot(p[0] - p0[0], p[1] - p0[1]), l1 = Math.hypot(p1[0] - p[0], p1[1] - p[1]), r = Math.min(16, l0 / 2, l1 / 2);
+      const u = (q, l, t) => l ? [p[0] + (q[0] - p[0]) / l * t, p[1] + (q[1] - p[1]) / l * t] : p;
+      d += ' L' + pt(u(p0, l0, r)) + ' Q' + pt(p) + ' ' + pt(u(p1, l1, r)); }
+    return d + ' L' + pt(Q[Q.length - 1]); };
+  const wire = (A, B, src, k) => { k = k || 0; const dx = B.c[0] - A.c[0], s = dx >= 0 ? 1 : -1, key = src + s, n = lanes[key] = (lanes[key] || 0) + 1;
+    const a = [A.c[0] + s * A.r, A.c[1]]; let lx = a[0] + s * (26 + (n - 1) * 22);
+    const ylo = Math.min(a[1], B.c[1]), yhi = Math.max(a[1], B.c[1]), bx0 = C[0] - BRN.r - 22, bx1 = C[0] + BRN.r + 22;
+    if (src !== '@brain' && lx > bx0 && lx < bx1 && ylo < BRY + BRN.ry && yhi > BRY - BRN.ry) lx = s > 0 ? bx1 + (n - 1) * 22 : bx0 - (n - 1) * 22;      // làn không cắt qua bộ não
+    const ts = lx < B.c[0] ? -1 : 1, yo = k ? (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 7 : 0, b = [B.c[0] + ts * B.r, B.c[1] + yo];
+    if (Math.abs(lx - b[0]) < 22) lx = b[0] + ts * 22;
+    return { d: rpath(Math.abs(b[1] - a[1]) < 4 ? [a, b] : [a, [lx, a[1]], [lx, b[1]], b]), a: a, b: b }; };
+  const port = (q, on) => '<circle class="of-port' + (on ? ' on' : '') + '" cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="' + (on ? 4.2 : 3.2) + '"/>';
+  const drawn = {}, act = [].concat.apply([], Object.keys(byAg).map(k => byAg[k])).filter(r => (r.ag || 'chat') !== 'hub' && RB[r.ag || 'chat']);
+  act.sort((x, y) => Math.abs(RB[x.ag || 'chat'].c[1] - BRY) - Math.abs(RB[y.ag || 'chat'].c[1] - BRY));      // dây gần nguồn đi làn trong, xa đi làn ngoài → không bắt chéo
+  act.forEach((r, i) => { const to = r.ag || 'chat', from = r.hub && RB.hub ? 'hub' : '@brain', k = (byAg[to] || []).indexOf(r);
+    const w = wire(from === 'hub' ? RB.hub : BRN, RB[to], from, k), dur = (2.2 + (i % 3) * .3).toFixed(1), key = from + '>' + to;
+    flows.push('<path class="of-rail" d="' + w.d + '"/><path class="of-dash" d="' + w.d + '"' + (drawn[key] ? '' : ' data-w="' + esc(key) + '"') + '/>');
+    flows.push('<path class="of-comet" pathLength="100" style="animation-duration:' + dur + 's" d="' + w.d + '"/>' + port(w.a, 1) + port(w.b, 1));
+    if (!drawn[to]) flows.push('<circle class="of-ping" cx="' + RB[to].c[0] + '" cy="' + RB[to].c[1] + '" r="14"><animate attributeName="r" values="10;40" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".6;0" dur="2s" repeatCount="indefinite"/></circle>');
+    drawn[key] = drawn[to] = 1; });
   // biểu tượng não phát sáng
   svg.unshift('<defs><radialGradient id="ofBr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FDE68A" stop-opacity=".55"/><stop offset=".65" stop-color="#FEF3C7" stop-opacity=".18"/><stop offset="1" stop-color="#FEF3C7" stop-opacity="0"/></radialGradient>' +
     '<linearGradient id="ofBL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FEF9C3"/><stop offset="1" stop-color="#FCD34D"/></linearGradient><linearGradient id="ofBR2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FEF3C7"/><stop offset="1" stop-color="#FBBF24"/></linearGradient>' +
@@ -23278,18 +23324,30 @@ function ofStage(A, byAg, force) {
   svg.push('<g transform="translate(' + C[0] + ',' + BRY + ') scale(1.45)"><g class="of-brn' + (hubBusy ? ' on' : '') + '"><g filter="url(#ofGl)" opacity=".75"><path d="' + lobe + '" fill="#FDE68A"/><path d="' + lobe + '" transform="scale(-1,1)" fill="#FDE68A"/></g>' +
     '<path d="' + lobe + '" fill="url(#ofBL)" stroke="#B45309" stroke-opacity=".35" stroke-width="1.2"/><path d="' + lobe + '" transform="scale(-1,1)" fill="url(#ofBR2)" stroke="#B45309" stroke-opacity=".35" stroke-width="1.2"/>' +
     '<path d="' + fold + '" fill="none" stroke="#B45309" stroke-opacity=".4" stroke-width="1.5" stroke-linecap="round"/><path d="' + fold + '" transform="scale(-1,1)" fill="none" stroke="#B45309" stroke-opacity=".4" stroke-width="1.5" stroke-linecap="round"/></g></g>');
-  if (hubBusy && pos.hub) { const d = curve(pos.hub, [C[0], BRY - 50], 0, .4); flows.push('<path class="of-rail" d="' + d + '"/><path class="of-comet" pathLength="100" style="animation-duration:1.8s" d="' + d + '"/>'); }      // điều phối đang đọc bộ não
-  lbs.push('<div class="of-legend"><span><span class="of-dot run"></span>đang làm</span><span><span class="of-dot idle"></span>rảnh</span><span><svg width="26" height="8" aria-hidden="true"><path d="M1 4 H25" stroke="#F59E0B" stroke-width="2" stroke-dasharray="5 3"/></svg>luồng việc</span><span><i class="bi bi-envelope-fill" style="color:var(--mail)"></i>thư flow</span></div>');
+  lbs.push('<div class="of-legend"><span><span class="of-dot run"></span>đang làm</span><span><span class="of-dot idle"></span>rảnh</span><span><svg width="26" height="8" aria-hidden="true"><path d="M1 4 H25" stroke="var(--primary)" stroke-width="1.8" stroke-dasharray="4 3"/></svg>luồng việc</span><span><i class="bi bi-envelope-fill" style="color:var(--mail)"></i>thư flow</span></div>');
   In.style.width = W + 'px'; In.style.height = H + 'px'; OF.pos = pos; OF.W = W; OF.H = H; OF.sc = sc;
   In.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" aria-hidden="true">' + svg.join('') + flows.join('') + '</svg>';
   Ov.innerHTML = lbs.join('') + bots.join('') + bubs.join('');      // thứ tự lớp: nhãn < robot < bong bóng
   In.style.transform = 'scale(' + sc + ')'; St.style.height = Math.round(H2) + 'px';
   St.classList.toggle('cpt', sc < .38); St.classList.toggle('mid', mid && sc >= .38); St.classList.toggle('sm', sc >= .38 && sc < .5);      /* (1.82.11) rất hẹp: thẻ nhỏ hơn, ẩn hộp thư flow */
+  ofSideH();
 }
+/** (1.82.12) khung chat đang mở (màn rộng) → văn phòng dời sang trái, chừa chỗ bên phải cho khung chat (không bị che) · danh sách phòng bên trái cao bằng sân khấu, tự cuộn */
+function ofShift() {
+  const R = $('#ofR'), el = $('#ofDock'); if (!R) return; const on = el && !OF.dockMin && innerWidth > 1180 && el.offsetWidth > 0, w = on ? Math.round(el.offsetWidth + 22) : 0;
+  const tight = !!w && R.clientWidth - w < 1180;      // chỗ còn chật → danh sách phòng thu còn biểu tượng, nhường chỗ cho văn phòng
+  if (R.dataset.sh !== w + ':' + tight) { R.dataset.sh = w + ':' + tight; R.style.paddingRight = w ? w + 'px' : ''; R.classList.toggle('dk-on', !!w); R.classList.toggle('dk-tight', tight); requestAnimationFrame(() => ofFit()); }
+}
+function ofSideH() { const sd = $('#ofS'), St = $('#ofSt'), T = $('#ofT'); if (!sd || !St) return; sd.style.maxHeight = innerWidth > 1100 ? Math.max(360, St.offsetHeight + (T ? T.offsetHeight + 10 : 0)) + 'px' : ''; }
 function ofFit(force) { const St = $('#ofSt'); if (!St || !OF.last || !OF.W || St.closest('[hidden]')) return; if (force || Math.abs(Math.min(1, St.clientWidth / OF.W) - (OF.sc || 0)) > .004) ofStage(OF.last[0], OF.last[1], 1); }
 /** chấm sáng một lần (việc vừa giao): phòng giao → bộ não → phòng nhận */
 function ofFly(from, to) {
-  const In = $('#ofIn'); if (!In || !OF.pos || !OF.pos[to]) return; const a = OF.pos[from] || OF.pos['@brain'], c = OF.pos['@brain'], b = OF.pos[to], pts = from === '@brain' || from === to ? [a, b] : [a, c, b];
+  const In = $('#ofIn'); if (!In) return;
+  { const w = $$('#ofIn path[data-w]').find(p => p.dataset.w === from + '>' + to || p.dataset.w === '@brain>' + to);      // (1.82.12) chạy dọc đúng dây nối đã vẽ
+    if (w && w.getTotalLength) { const L = w.getTotalLength(), el = document.createElement('span'), t0 = performance.now(), dur = 700 + L * 1.2; el.className = 'of-pk'; In.appendChild(el);
+      const step = now => { const k = Math.min(1, (now - t0) / dur), q = w.getPointAtLength(L * (1 - Math.pow(1 - k, 2))); el.style.left = q.x + 'px'; el.style.top = q.y + 'px'; if (k < 1 && el.isConnected) requestAnimationFrame(step); else el.remove(); };
+      return requestAnimationFrame(step); } }
+  if (!OF.pos || !OF.pos[to]) return; const a = OF.pos[from] || OF.pos['@brain'], c = OF.pos['@brain'], b = OF.pos[to], pts = from === '@brain' || from === to ? [a, b] : [a, c, b];
   const el = document.createElement('span'); el.className = 'of-pk'; In.appendChild(el);
   const segs = []; let tot = 0; for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push(l); tot += l; }
   const dur = 900 + tot * 1.4, t0 = performance.now();
@@ -23321,7 +23379,7 @@ function ofDock() {
     fb.classList.toggle('open', !OF.dockMin); fb.setAttribute('aria-label', OF.dockMin ? 'Mở chat với Trợ lý chung' : 'Thu nhỏ chat');
     const h2 = '<span class="sp">' + esc(say) + (busyN ? '<em>' + busyN + '</em>' : '') + '</span>' + asstBot('lg', wt || busyN > 0); if (fb.dataset.h !== h2) { fb.dataset.h = h2; fb.innerHTML = h2; } }
   if (!narrow) { const sz = lsGet('ofDockWH', null); if (sz && sz.w) { el.style.width = Math.min(sz.w, innerWidth - 44) + 'px'; el.style.height = Math.min(sz.h, innerHeight - 140) + 'px'; }      /* cỡ đã lưu nhưng không tràn màn hình */ }
-  const keepB = $('.of-dk-b', el), atBot = !keepB || keepB.scrollHeight - keepB.scrollTop - keepB.clientHeight < 40, draft = ($('#ofDq', el) || {}).value || '';
+  const keepB = $('.of-dk-b', el), atBot = !keepB || keepB.scrollHeight - keepB.scrollTop - keepB.clientHeight < 60, top0 = keepB ? keepB.scrollTop : 0;
   const gv = G => G.length ? '<div class="of-gv">' + G.map(g => { const a = OF.d.agents.find(x => x.key === g.ag) || { key: g.ag, av: 0, t: g.toT || ofName(g.ag) }, w = wS(g.st) || !g.st, run = (OF.d.run || []).find(r => r.id === g.id);
     return '<button type="button" ' + (w || !g.id ? 'data-ofr="' + esc(a.key) + '"' : 'data-ofres="' + esc(g.id) + '" data-ofag="' + esc(a.key) + '"') + ' title="' + (w ? 'Mở phòng' : 'Xem kết quả') + '">' + asstAva(a.av, 'xs', w) + '<span class="t"><b>' + esc(a.t) + '</b><span>' + esc(g.t) + '</span></span><span class="of-pl ' + (g.st === 'err' ? 'e' : w ? 'w' : 'ok') + '">' + (g.st === 'err' ? 'lỗi' : w ? 'đang làm' + (run && run.sp ? ' · B' + run.sp : '') : 'xem kết quả') + '</span></button>'; }).join('') + '</div>' : '';
   const msgs = C.length ? C.map(c => { const w = c.wait || wS(c.st);
@@ -23329,19 +23387,28 @@ function ofDock() {
         (w ? '<span class="of-say" data-ofsay="' + esc(c.t0 || c.at) + '">' + esc(ofSay(c.t0 || c.at)) + '</span>' : c.st === 'err' || c.err ? '<span class="muted">' + esc(c.err || 'Chưa trả lời được') + '</span>' : (c.reply ? aiMd(c.reply, {}) : '')) + gv(c.gives || []) +
         '<small class="at">' + esc(asbAgo(c.at || c.t0)) + (okS(c.st) && c.ms ? ' · ' + Math.max(1, Math.round(c.ms / 1000)) + ' giây' : '') + (c.id && !w && okS(c.st) ? ' · <button type="button" class="tka-lk" data-ofres="' + esc(c.id) + '" data-ofag="hub">chi tiết</button>' : '') + '</small></div></div></div>'; }).join('')
     : '<div class="of-dk-e">' + asstBot('md') + '<b>Giao việc cho Trợ lý chung</b><span>Trợ lý tự chọn phòng làm — xem luồng chạy trên sơ đồ, kết quả hiện ở đây.</span></div>';
-  el.innerHTML = '<span class="of-dk-rs" data-ofrs title="Kéo để đổi cỡ" aria-hidden="true"></span><div class="of-dk-h" data-ofdkh>' + asstBot('xs', C.some(c => c.wait || wS(c.st))) + '<span class="t"><b>Trợ lý chung</b><small>' + (C.length ? C.length + ' lượt gần đây · ' : '') + esc(ofKeepT(OF.d.keep)) + '</small></span>' +
+  /* (1.82.12) KHÔNG dựng lại cả khung mỗi lần tải mới (trước: 2,5 giây một lần → cuộn nhảy lên đầu, ô gõ mất con trỏ): khung dựng một lần, chỉ thay đầu khung / danh sách tin khi đổi.
+     Tin mới (gửi / trả lời / trạng thái đổi) → tự cuộn xuống tin mới nhất; đang đọc tin cũ ở giữa thì giữ nguyên chỗ đang đọc */
+  if (!$('.of-dk-b', el)) {
+    el.innerHTML = '<span class="of-dk-rs" data-ofrs title="Kéo để đổi cỡ" aria-hidden="true"></span><div class="of-dk-h" data-ofdkh></div><div class="of-dk-b" aria-live="polite"></div>' +
+      '<div class="of-dk-f"><textarea class="ta" id="ofDq" rows="1" placeholder="Nhắn Trợ lý chung… (Enter để gửi)" aria-label="Nhắn Trợ lý chung"></textarea><button type="button" class="ax-send" data-ofdsend aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>';
+    const q = $('#ofDq', el); q.oninput = () => { q.style.height = 'auto'; q.style.height = Math.min(120, q.scrollHeight) + 'px'; };
+    q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); const t = q.value; q.value = ''; q.style.height = ''; ofAsk(t); } };
+    el.onclick = null; el.onchange = e => { const k = e.target.closest('[data-ofkeep]'); if (k) rpc('aiCfgSave', { keepDays: Number(k.value) }).then(() => { OF.d.keep = Number(k.value); toast('Lịch sử việc AI: ' + ofKeepT(k.value), 'ok'); ofDock(); }, fail); };
+    const rs = $('[data-ofrs]', el); rs.onpointerdown = ev => { if (innerWidth <= 760) return; ev.preventDefault(); const r0 = el.getBoundingClientRect(), x0 = ev.clientX, y0 = ev.clientY; rs.setPointerCapture(ev.pointerId);
+      rs.onpointermove = m => { const w = Math.max(300, Math.min(innerWidth - 32, r0.width + x0 - m.clientX)), h = Math.max(220, Math.min(innerHeight - 90, r0.height + y0 - m.clientY)); el.style.width = w + 'px'; el.style.height = h + 'px'; ofShift(); };
+      rs.onpointerup = () => { rs.onpointermove = null; lsSet('ofDockWH', { w: Math.round(el.offsetWidth), h: Math.round(el.offsetHeight) }); ofShift(); }; };
+  }
+  const hH = asstBot('xs', C.some(c => c.wait || wS(c.st))) + '<span class="t"><b>Trợ lý chung</b><small>' + (C.length ? C.length + ' lượt gần đây · ' : '') + esc(ofKeepT(OF.d.keep)) + '</small></span>' +
       (OF.d.can ? '<select class="sel of-keep" data-ofkeep aria-label="Thời gian lưu lịch sử" title="Lịch sử việc AI lưu bao lâu">' + [[30, '30 ngày'], [90, '90 ngày'], [180, '180 ngày'], [365, '1 năm'], [0, 'Không xoá']].map(o => '<option value="' + o[0] + '"' + (Number(OF.d.keep) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' : '') +
       (C.some(c => c.id && !(c.wait || wS(c.st))) ? '<button type="button" class="ibtn sm" data-ofdelall title="Xoá toàn bộ lịch sử chat với Trợ lý chung" aria-label="Xoá lịch sử chat"><i class="bi bi-trash"></i></button>' : '') +
-      '<button type="button" class="ibtn sm" data-ofdk title="Thu nhỏ về robot ở góc — bấm robot để mở lại" aria-label="Thu nhỏ về robot"><i class="bi bi-chevron-down"></i></button></div>' +
-    '<div class="of-dk-b">' + msgs + '</div>' +
-    '<div class="of-dk-f"><textarea class="ta" id="ofDq" rows="1" placeholder="Nhắn Trợ lý chung… (Enter để gửi)" aria-label="Nhắn Trợ lý chung"></textarea><button type="button" class="ax-send" data-ofdsend aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>';
-  const b = $('.of-dk-b', el); if (b && atBot) b.scrollTop = b.scrollHeight;
-  const q = $('#ofDq', el); q.value = draft; q.oninput = () => { q.style.height = 'auto'; q.style.height = Math.min(120, q.scrollHeight) + 'px'; };
-  q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); const t = q.value; q.value = ''; ofAsk(t); } };
-  el.onclick = null; el.onchange = e => { const k = e.target.closest('[data-ofkeep]'); if (k) rpc('aiCfgSave', { keepDays: Number(k.value) }).then(() => { OF.d.keep = Number(k.value); toast('Lịch sử việc AI: ' + ofKeepT(k.value), 'ok'); ofDock(); }, fail); };
-  const rs = $('[data-ofrs]', el); rs.onpointerdown = ev => { if (narrow) return; ev.preventDefault(); const r0 = el.getBoundingClientRect(), x0 = ev.clientX, y0 = ev.clientY; rs.setPointerCapture(ev.pointerId);
-    rs.onpointermove = m => { const w = Math.max(300, Math.min(innerWidth - 32, r0.width + x0 - m.clientX)), h = Math.max(220, Math.min(innerHeight - 90, r0.height + y0 - m.clientY)); el.style.width = w + 'px'; el.style.height = h + 'px'; };
-    rs.onpointerup = () => { rs.onpointermove = null; lsSet('ofDockWH', { w: Math.round(el.offsetWidth), h: Math.round(el.offsetHeight) }); }; };
+      '<button type="button" class="ibtn sm" data-ofdk title="Thu nhỏ về robot ở góc — bấm robot để mở lại" aria-label="Thu nhỏ về robot"><i class="bi bi-chevron-down"></i></button>';
+  const hd = $('.of-dk-h', el); if (hd.dataset.h !== hH && !(document.activeElement && hd.contains(document.activeElement))) { hd.dataset.h = hH; hd.innerHTML = hH; }
+  const b = $('.of-dk-b', el), mSig = C.map(c => (c.id || c.t0) + ':' + (c.wait ? 'w' : c.st) + ':' + (c.reply || '').length + ':' + (c.gives || []).map(g => g.st).join('')).join('|');
+  if (b.dataset.h !== msgs) { const grew = b.dataset.sig !== mSig; b.dataset.h = msgs; b.dataset.sig = mSig; b.innerHTML = msgs;
+    b.scrollTop = atBot || grew || OF.toEnd ? b.scrollHeight : top0; OF.toEnd = 0; }
+  else if (OF.toEnd) { b.scrollTop = b.scrollHeight; OF.toEnd = 0; }
+  ofShift();
   clearInterval(OF.sayT); if (C.some(c => c.wait || wS(c.st))) OF.sayT = setInterval(() => { const L = $$('[data-ofsay]'); if (!L.length) return clearInterval(OF.sayT); L.forEach(s => { const t = ofSay(s.dataset.ofsay); if (s.textContent !== t) { s.textContent = t; s.classList.remove('nw'); void s.offsetWidth; s.classList.add('nw'); } }); }, 1000);
 }
 /** XEM KẾT QUẢ một việc đã xong (bấm ở khung chat / ngăn phòng / dòng trực tiếp) */
@@ -23380,9 +23447,9 @@ async function ofResult(id, ag) {
 /** giao việc / hỏi Trợ lý chung ở ô trên — bong bóng hiện ngay ở khung chat; trợ lý quyết định phòng nào làm */
 async function ofAsk(text) {
   text = String(text || '').trim(); const q = $('#ofQ'); if (!text) return q && q.focus(); if (OF.pend.some(p => p.wait)) return toast('Trợ lý chung đang nhận việc trước…', 'info');
-  if (q) q.value = ''; const W = { q: text, wait: 1, t0: new Date().toISOString(), st: 'send', gives: [] }; OF.pend.push(W); OF.dockMin = false; lsSet('ofDockMin', false); ofDock(); ofFly('@brain', 'hub');
-  try { const r = await rpc('aiChat', { mode: 'hub', text: text }, { quiet: true }); W.id = r.id; W.wait = 0; W.st = r.status; setTimeout(ofLoad, 900); }
-  catch (e) { W.wait = 0; W.st = 'err'; W.err = e.message || String(e); ofDock(); }
+  if (q) q.value = ''; const W = { q: text, wait: 1, t0: new Date().toISOString(), st: 'send', gives: [] }; OF.pend.push(W); OF.toEnd = 1; OF.dockMin = false; lsSet('ofDockMin', false); if (OF.d) ofPaint(); else ofDock();      // (1.82.12) phòng Điều phối nhận việc ngay
+  try { const r = await rpc('aiChat', { mode: 'hub', text: text }, { quiet: true }); W.id = r.id; W.wait = 0; W.st = r.status; if (OF.seen) OF.seen.add(r.id); if (OF.d) ofPaint(); setTimeout(ofLoad, 900); }
+  catch (e) { W.wait = 0; W.st = 'err'; W.err = e.message || String(e); if (OF.d) ofPaint(); else ofDock(); }
   clearTimeout(OF.t); OF.t = setTimeout(ofLoad, 1500);
 }
 function ofClick(e) {
@@ -23399,6 +23466,7 @@ function ofClick(e) {
   if (e.target.closest('[data-ofadd]')) { lsSet('asSubT', 'ag'); OF.newAg = 1; return go('asst/subs'); }
   if (e.target.closest('[data-ofbtog]')) { OF.bOpen = !OF.bOpen; return ofStage(OF.last[0], OF.last[1], 1); }      // (1.82.11) bấm bộ não → hiện / ẩn dòng số liệu; bấm dòng đó → thiết lập
   if (e.target.closest('[data-ofbrain]')) return ofBrain();
+  if (e.target.closest('[data-ofrep]')) return ofReports();
 }
 /* ── NGĂN BÊN ── */
 function ofDrawerClose() { const d = $('#ofDr'), b = $('#ofBk'); if (d) d.remove(); if (b) b.remove(); document.removeEventListener('keydown', ofEsc); }
@@ -23410,13 +23478,13 @@ function ofDrawer(k, refresh, focus) {
   let dr = $('#ofDr'); if (refresh && (!dr || dr.dataset.k !== k)) return; if (refresh && document.activeElement && dr.contains(document.activeElement) && /TEXTAREA|INPUT/.test(document.activeElement.tagName)) return;      // đang gõ → không vẽ lại
   const keep = dr && refresh ? { g: ($('#ofGx', dr) || {}).value || '', s: $('.of-dr-b', dr) ? $('.of-dr-b', dr).scrollTop : 0, f: dr.querySelector('.of-docf') ? 1 : 0 } : null;
   dr = ofShell(k, 'Phòng ' + a.t);
-  const runs = (D.run || []).filter(r => (r.ag || 'chat') === k), done = (D.done || []).filter(r => (r.ag || 'chat') === k), via = OF_VIA[k] || (/^x:/.test(k) ? k : 'cm'), job = !OF_VIA[k] && !/^x:/.test(k);
-  const okS = s => /^(ok|applied|partial|empty)$/.test(s), bq = k === 'assign' ? (D.bq || []) : [];
+  const runs = (D.run || []).filter(r => (r.ag || 'chat') === k), done = (D.done || []).filter(r => (r.ag || 'chat') === k), via = OF_VIA[k] || (/^x:/.test(k) || OF_ROOM[k] ? k : 'cm'), job = !OF_VIA[k] && !/^x:/.test(k) && !OF_ROOM[k];
+  const okS = s => /^(ok|applied|partial|empty)$/.test(s), bq = k === 'assign' ? (D.bq || []) : [], room = !!OF_ROOM[k];
   dr.innerHTML = '<div class="of-dr-h">' + asstAva(a.av, 'md', runs.length > 0) + '<div class="t"><b>' + esc(k === 'hub' ? 'Phòng điều phối · ' + a.t : 'Phòng ' + a.t) + '</b><small>' + esc(a.d || '') + '</small></div><button type="button" class="ibtn sm" data-ofx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
     '<div class="of-dr-b"><div class="of-dr-s"><div class="of-chips"><span>' + (runs.length ? (runs.length > 1 ? runs.length + ' việc song song' : 'đang làm 1 việc') : a.off ? 'đang tắt' : 'rảnh') + '</span><span>' + (a.chain > 1 ? a.chain + ' bước flow' : 'một flow') + '</span><span>Hôm nay ' + a.today.n + ' lượt · ' + a.today.ok + ' xong' + (a.today.err ? ' · ' + a.today.err + ' lỗi' : '') + '</span>' + (a.sys ? '<span>có chỉ dẫn riêng</span>' : '') + (a.guard ? '<span>có rào chắn</span>' : '') + '</div></div>' +
       (runs.length ? '<div class="of-dr-s"><h4>Đang làm' + (runs.length > 1 ? ' song song' : '') + '</h4>' + runs.map(r => '<div class="of-run"><b>' + esc(r.t) + '</b><small>' + esc(r.kt) + (r.sp ? ' · bước ' + r.sp + ' của chuỗi flow' : '') + (r.hub ? ' · Trợ lý chung giao' : '') + ' · ' + esc(r.who) + ' · ' + esc(asbAgo(r.at)) + '</small>' + (r.sp ? '<div class="of-bar"><i style="width:' + Math.round(100 * (Number(r.sp.split('/')[0]) - .5) / Number(r.sp.split('/')[1])) + '%"></i></div>' : '') + '</div>').join('') + '</div>' : '') +
       (bq.length ? '<div class="of-dr-s"><h4>Việc dài chia đợt</h4>' + bq.map(j => '<div class="of-run"><b>' + esc(j.t || 'Gán bài') + '</b><small>Đợt ' + Math.min(j.i + 1, j.n) + '/' + j.n + ' · ' + j.be + ' bé · ' + j.days + ' ngày tới · mỗi phút máy chủ gửi tiếp một đợt, tắt trang vẫn chạy</small><div class="of-bar"><i style="width:' + Math.round(100 * j.i / Math.max(1, j.n)) + '%"></i></div></div>').join('') + '</div>' : '') +
-      '<div class="of-dr-s of-give"><h4>Giao việc cho phòng này</h4><textarea class="ta" id="ofGx" placeholder="' + esc(k === 'hub' ? 'VD “rà soát các bé lệch KGS rồi báo mình” — Trợ lý chung tự chia việc' : job ? 'VD “gán bài tuần tới cho bé Hồng Nhật” — đi qua Trợ lý chuyên môn' : 'Việc cần làm…') + '"></textarea><div class="r"><small>' + (job ? 'Việc của phòng này chạy qua Trợ lý chuyên môn (cần dữ liệu lớp / buổi).' : 'Giao nhiều việc liền nhau được — các phòng làm song song, tắt trang vẫn chạy.') + '</small><button type="button" class="btn sm pri" data-ofg="' + esc(via) + '"><i class="bi bi-send"></i>Giao</button></div></div>' +
+      '<div class="of-dr-s of-give"><h4>Giao việc cho phòng này</h4><textarea class="ta" id="ofGx" placeholder="' + esc(k === 'hub' ? 'VD “rà soát các bé lệch KGS rồi báo mình” — Trợ lý chung tự chia việc' : job ? 'VD “gán bài tuần tới cho bé Hồng Nhật” — đi qua Trợ lý chuyên môn' : 'Việc cần làm…') + '"></textarea><div class="r"><small>' + (room ? (k === 'audit' ? 'Phòng soát ngay các buổi sắp tới + báo cáo hôm nay, nhận xét và tự giao gán lại (nháp).' : k === 'reqs' ? 'Phòng đọc ngay yêu cầu / ghi chú / tin chờ trả lời và đề xuất cách xử lý.' : 'Phòng LÀM LIỀN: chọn bé, mỗi bé một thư theo đúng lộ trình của bé, bài gán lưu NHÁP — kết quả vào Tủ báo cáo.') : job ? 'Việc của phòng này chạy qua Trợ lý chuyên môn (cần dữ liệu lớp / buổi).' : 'Giao nhiều việc liền nhau được — các phòng làm song song, tắt trang vẫn chạy.') + '</small><button type="button" class="btn sm pri" data-ofg="' + esc(via) + '"><i class="bi bi-send"></i>Giao</button></div></div>' +
       '<div class="of-dr-s" id="ofCab"><h4><i class="bi bi-archive"></i> Tủ hồ sơ của phòng<span class="sp"></span>' + (D.can ? '<button type="button" class="btn xs" data-ofdn><i class="bi bi-plus-lg"></i>Thêm tài liệu</button>' : '') + '</h4>' +
         '<div class="small muted" style="margin-bottom:6px">Agent xem được:</div><div class="of-chips" style="margin-bottom:10px">' + ofSees(a).map(x => '<span>' + esc(x) + '</span>').join('') + '</div>' +
         (a.docs.length ? a.docs.map((d, i) => '<div class="of-doc"><i class="bi bi-' + (/docs\.google|drive\.google/.test(d.url) ? 'file-earmark-text' : d.url ? 'link-45deg' : 'sticky') + '"></i><div class="t">' + (d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">' + esc(d.t || d.url) + '</a>' : '<b>' + esc(d.t || 'Ghi chú') + '</b>') + (d.b ? '<small>' + esc(aiCut(d.b, 300)) + '</small>' : '') + '<small class="of-dk">' + (d.url && /docs\.google|drive\.google/.test(d.url) ? '<i class="bi bi-eye"></i> Agent đọc nội dung tệp (tối đa 5.000 ký tự)' : d.url ? '<i class="bi bi-exclamation-triangle"></i> Link web: agent chỉ thấy đường link, không đọc trang' : '<i class="bi bi-eye"></i> Agent đọc nguyên ghi chú') + '</small><div class="of-dpk" id="ofDpk' + i + '"></div></div>' + (D.can ? '<button type="button" class="btn xs ghost" data-ofdpk="' + i + '" title="Đọc thử đúng như agent đọc"><i class="bi bi-search"></i>Thử đọc</button><button type="button" class="ibtn sm" data-ofdx="' + i + '" aria-label="Xoá tài liệu"><i class="bi bi-trash"></i></button>' : '') + '</div>').join('')
@@ -23443,9 +23511,52 @@ async function ofDrClick(ev, a, dr) {
   const dx = ev.target.closest('[data-ofdx]'); if (dx) { if (!(await ask('Xoá tài liệu này khỏi tủ hồ sơ?', { ok: 'Xoá', danger: 1 }))) return; return save(a.docs.filter((d, i) => i !== Number(dx.dataset.ofdx))); }
   const g = ev.target.closest('[data-ofg]'); if (g) { const ta = $('#ofGx', dr), text = ta.value.trim(); if (text.length < 3) return ta.focus(); const to = g.dataset.ofg;
     if (to === 'hub') { ofDrawerClose(); return ofAsk(text); }
-    g.disabled = true; try { const body = !OF_VIA[a.key] && !/^x:/.test(a.key) ? '[' + a.t + '] ' + text : text; await rpc('asstGive', { to: to, text: body }); ta.value = ''; ofFly('hub', to === 'cm' ? 'chat' : to);
+    const ag = to === 'cm' ? 'chat' : to, tmp = { id: 'tmp:' + Date.now(), ag: ag, t: text, t0: Date.now() }; OF.tmp = (OF.tmp || []).concat([tmp]); OF.sig = ''; ofPaint(); ta.value = '';      // (1.82.12) phòng sáng ngay khi bấm Giao
+    g.disabled = true; try { const body = !OF_VIA[a.key] && !/^x:/.test(a.key) && !OF_ROOM[a.key] ? '[' + a.t + '] ' + text : text; const r0 = await rpc('asstGive', { to: to, text: body }); tmp.id = r0.id || tmp.id; ofFly('hub', ag);
       toast('Đã giao cho phòng ' + a.t + ' — có thể giao tiếp việc khác, các phòng làm song song', 'ok', 5000); clearTimeout(OF.t); OF.t = setTimeout(ofLoad, 900); }
-    catch (er) { fail(er); } finally { g.disabled = false; } }
+    catch (er) { OF.tmp = OF.tmp.filter(t => t !== tmp); OF.sig = ''; ofPaint(); ta.value = text; fail(er); } finally { g.disabled = false; } }
+}
+/* ── (1.82.12) TỦ BÁO CÁO: việc các phòng đã làm theo ngày · người duyệt đánh dấu đã xem / cần sửa · cảnh báo của phòng Kiểm tra báo cáo (soát tự động các buổi sắp tới) ── */
+const OF_FLK = { trong: 'Chưa có bài', lui: 'Bài lùi', truong: 'Trường đã qua', dahoc: 'Đã học', trung: 'Trùng bài' };
+async function ofReports(day) {
+  const dr = ofShell('@rep', 'Tủ báo cáo'), head = '<div class="of-dr-h"><span class="as-av md" style="--av:var(--primary)"><i class="bi bi-archive" style="font-size:24px;color:var(--primary)"></i></span><div class="t"><b>Tủ báo cáo</b><small>Việc các phòng AI đã làm — xem kết quả, duyệt, nhờ phòng Kiểm tra báo cáo soát lại.</small></div><button type="button" class="ibtn sm" data-ofx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>';
+  if (!OF.rp || OF.rp.day !== day || !$('.of-dr-b', dr)) { dr.innerHTML = head + '<div class="of-dr-b">' + miniLoader('Đang mở tủ báo cáo…') + '</div>'; dr.onclick = ev => { if (ev.target.closest('[data-ofx]')) ofDrawerClose(); }; }
+  let R; try { R = await rpc('asstReports', day ? { day: day } : {}, { quiet: true }); } catch (e) { const b = $('.of-dr-b', dr); if (b) b.innerHTML = '<div class="small muted">' + esc(e.message || e) + '</div>'; return; }
+  if (!$('#ofDr') || $('#ofDr').dataset.k !== '@rep') return; OF.rp = R;
+  const td = R.days[0], dl = d => d === td ? 'Hôm nay' : d === R.days[1] ? 'Hôm qua' : d.slice(8, 10) + '/' + d.slice(5, 7), A = R.audit || {}, F = A.flags || [], hm = t => { const d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+  const beN = F.map(f => f.cid).filter((c, i, X) => X.indexOf(c) === i).length;
+  const au = '<div class="of-dr-s"><h4><i class="bi bi-shield-check"></i> Phòng Kiểm tra báo cáo<span class="sp"></span>' + (A.at ? '<small class="muted" style="text-transform:none;letter-spacing:0">soát lúc ' + hm(A.at) + ' · ' + (A.days || 7) + ' ngày tới</small>' : '') + '</h4>' +
+    '<div class="of-au' + (F.length ? ' warn' : '') + '">' + (!A.at ? '<div class="small muted">Chưa soát lần nào — bấm “Kiểm tra ngay”.</div>' : F.length ? '<b>' + A.n + ' cảnh báo · ' + beN + ' bé</b> <span class="small muted">— ' + Object.keys(A.by || {}).map(k => (OF_FLK[k] || k) + ' ' + A.by[k]).join(' · ') + '</span>' +
+        '<ul>' + F.slice(0, 14).map(f => '<li><span class="k">' + esc(OF_FLK[f.k] || f.k) + '</span><b>' + esc(f.be) + '</b> · ' + esc(f.d.slice(8, 10) + '/' + f.d.slice(5, 7)) + (f.bai ? ' · ' + esc(aiCut(f.bai, 40)) : '') + ' — ' + esc(f.why) + '</li>').join('') + (F.length > 14 ? '<li class="muted">… và ' + (F.length - 14) + ' cảnh báo nữa</li>' : '') + '</ul>'
+      : '<div class="small"><i class="bi bi-check-circle-fill" style="color:#16A34A"></i> Các buổi sắp tới không có gì bất thường (không bài lùi, không bài trường đã qua, buổi gần đều đã có bài).</div>') +
+    (R.can ? '<div class="r"><button type="button" class="btn xs" data-ofau><i class="bi bi-arrow-repeat"></i>Kiểm tra ngay</button>' + (F.length ? '<button type="button" class="btn xs pri" data-ofaufix><i class="bi bi-magic"></i>Gán lại ' + beN + ' bé (nháp)</button>' : '') + '<button type="button" class="btn xs ghost" data-ofaugive title="Agent đọc cảnh báo + báo cáo hôm nay, nhận xét và tự giao gán lại"><i class="bi bi-robot"></i>Nhờ agent soát & nhận xét</button></div>' : '') + '</div></div>';
+  const G = {}; R.list.forEach(r => { (G[r.ag] = G[r.ag] || []).push(r); });
+  const rv = r => r.rev ? '<span class="of-rv ' + r.rev.s + '" title="' + esc(r.rev.by + ' · ' + asbAgo(r.rev.at) + (r.rev.note ? ' · ' + r.rev.note : '')) + '">' + (r.rev.s === 'ok' ? 'đã duyệt' : 'cần sửa') + '</span>' : '<span class="of-rv no">chưa xem</span>';
+  const list = R.list.length ? Object.keys(G).map(k => '<div class="of-rp-g"><h5>' + esc(ofName(k)) + '<span class="sp"></span><small class="muted">' + G[k].length + ' việc · ' + G[k].filter(r => !r.rev).length + ' chưa xem</small></h5>' + G[k].map(r =>
+      '<div class="of-rp">' + (R.can ? '<input type="checkbox" data-ofrk="' + esc(r.id) + '" aria-label="Chọn báo cáo">' : '') + '<span class="t" data-ofres="' + esc(r.id) + '" data-ofag="' + esc(r.ag) + '" title="Xem kết quả"><b>' + esc(r.t || r.title) + '</b><small>' + esc([hm(r.at), r.st === 'err' ? 'lỗi: ' + r.err : r.n ? r.n + ' mục · ' + r.done + ' đã làm' : 'xong', r.auto ? r.auto + ' việc tự chạy' : '', r.hub ? 'Trợ lý chung giao' : r.who, r.be].filter(Boolean).join(' · ')) + '</small>' +
+        (r.flags.length ? '<span class="fl"><i class="bi bi-exclamation-triangle"></i> ' + esc(r.flags.join(' · ')) + '</span>' : '') + '</span>' + rv(r) + '</div>').join('') + '</div>').join('')
+    : '<div class="small muted" style="padding:8px 0">' + (R.day !== td ? 'Ngày này' : 'Hôm nay') + ' chưa có việc nào các phòng đã làm xong.</div>';
+  dr.innerHTML = head + '<div class="of-dr-b"><div class="of-dr-s"><div class="of-rp-days">' + R.days.map(d => '<button type="button" data-ofday="' + d + '"' + (d === R.day ? ' class="on"' : '') + '>' + dl(d) + '</button>').join('') + '</div></div>' + au +
+    '<div class="of-dr-s"><h4><i class="bi bi-archive"></i> Báo cáo ' + esc(dl(R.day).toLowerCase()) + '<span class="sp"></span>' + R.list.length + ' việc · ' + R.list.filter(r => !r.rev).length + ' chưa xem</h4>' + list +
+    (R.can && R.list.length ? '<div class="of-rp-act"><button type="button" class="btn xs ghost" data-ofrsel>Chọn hết chưa xem</button><button type="button" class="btn xs" data-ofrv="fix"><i class="bi bi-flag"></i>Cần sửa</button><button type="button" class="btn xs pri" data-ofrv="ok"><i class="bi bi-check2-all"></i>Đã xem · đạt</button></div>' : '') + '</div></div>';
+  dr.onclick = async ev => {
+    if (ev.target.closest('[data-ofx]')) return ofDrawerClose();
+    const dy = ev.target.closest('[data-ofday]'); if (dy) return ofReports(dy.dataset.ofday === td ? '' : dy.dataset.ofday);
+    const rs = ev.target.closest('[data-ofres]'); if (rs) return ofResult(rs.dataset.ofres, rs.dataset.ofag);
+    if (ev.target.closest('[data-ofrsel]')) { const un = R.list.filter(r => !r.rev).map(r => r.id); $$('[data-ofrk]', dr).forEach(c => { c.checked = un.indexOf(c.dataset.ofrk) >= 0; }); return; }
+    const bt = ev.target.closest('[data-ofau],[data-ofaufix],[data-ofaugive],[data-ofrv]'); if (!bt) return; bt.disabled = true;
+    try {
+      if (bt.dataset.ofau != null) { const a = await rpc('asstAudit', { days: 7 }); toast(a.n ? 'Phòng Kiểm tra: ' + a.n + ' cảnh báo ở ' + a.be + ' bé' : 'Phòng Kiểm tra: các buổi sắp tới đều ổn', a.n ? 'warn' : 'ok'); }
+      else if (bt.dataset.ofaufix != null) { if (!(await ask('Giao phòng Gán bài gán lại ' + beN + ' bé có cảnh báo? Mỗi bé một thư theo đúng lộ trình của bé, bài lưu NHÁP để bạn duyệt.', { ok: 'Gán lại' }))) return;
+        OF.tmp = (OF.tmp || []).concat([{ id: 'tmp:fix' + Date.now(), ag: 'assign', t: 'Gán lại ' + beN + ' bé theo cảnh báo', t0: Date.now() }]); OF.sig = ''; ofPaint();
+        const r = await rpc('asstAuditFix', {}); toast('Đã giao phòng Gán bài ' + r.n + ' lượt gán lại (nháp)' + (r.why.length ? ' · ' + r.why[0] : ''), r.n ? 'ok' : 'warn', 7000); clearTimeout(OF.t); OF.t = setTimeout(ofLoad, 900); }
+      else if (bt.dataset.ofaugive != null) { const tmp = { id: 'tmp:au' + Date.now(), ag: 'audit', t: 'Soát báo cáo & cảnh báo', t0: Date.now() }; OF.tmp = (OF.tmp || []).concat([tmp]); OF.sig = ''; ofPaint();
+        const r = await rpc('asstGive', { to: 'audit', text: 'Soát các cảnh báo và báo cáo hôm nay, nhận xét từng nhóm, gán lại (nháp) các bé có bài sai' }); tmp.id = r.id || tmp.id; toast('Đã giao phòng Kiểm tra báo cáo — kết quả hiện ở phòng và trong tủ', 'ok'); clearTimeout(OF.t); OF.t = setTimeout(ofLoad, 900); }
+      else { const ids = $$('[data-ofrk]', dr).filter(c => c.checked).map(c => c.dataset.ofrk); if (!ids.length) return toast('Chọn báo cáo cần duyệt', 'warn');
+        await rpc('asstRepRev', { ids: ids, s: bt.dataset.ofrv }); toast('Đã đánh dấu ' + ids.length + ' báo cáo: ' + (bt.dataset.ofrv === 'ok' ? 'đã xem · đạt' : 'cần sửa'), 'ok'); OF.sig = ''; ofLoad(); }
+      ofReports(R.day === td ? '' : R.day);
+    } catch (er) { fail(er); } finally { bt.disabled = false; }
+  };
 }
 /* ── BỘ NÃO CHUNG: thiết lập ghi nhớ (bật / tắt / thêm / quên) · hướng dẫn · kỹ năng ── */
 async function ofBrain(B) {
@@ -24187,17 +24298,19 @@ function sdPaint(B, v) {
     const ai = e.target.closest('[data-sdai]');
     // (1.77.28) chạm lại khi đang giao → HUỶ: chưa nhận việc thì bỏ kết quả về sau; AI đang chờ trả lời thì huỷ lượt đó trên máy chủ
     if (ai && ai.dataset.busy) { ai.dataset.stop = '1'; ai.innerHTML = '<i class="bi bi-x-circle"></i>Đang huỷ…';
-      if (ai.dataset.log) rpc('aiCancel', { id: ai.dataset.log }).then(z => { toast(z.cancelled ? 'Đã huỷ lượt AI gán bài' : 'AI đã gán xong (lưu NHÁP) — bỏ ở Buổi học nếu không dùng', z.cancelled ? 'ok' : 'warn', 6000); }).catch(fail).finally(() => { delete ai.dataset.busy; delete ai.dataset.log; delete ai.dataset.stop; ai.innerHTML = '<i class="bi bi-robot"></i>AI gán bài'; });
+      if (ai.dataset.log) Promise.all(ai.dataset.log.split(',').map(id => rpc('aiCancel', { id: id }))).then(Z => Z.find(z => !z.cancelled) || Z[0]).then(z => { toast(z.cancelled ? 'Đã huỷ lượt AI gán bài' : 'AI đã gán xong (lưu NHÁP) — bỏ ở Buổi học nếu không dùng', z.cancelled ? 'ok' : 'warn', 6000); }).catch(fail).finally(() => { delete ai.dataset.busy; delete ai.dataset.log; delete ai.dataset.stop; ai.innerHTML = '<i class="bi bi-robot"></i>AI gán bài'; });
       return; }
     if (ai) { const cids = ai.dataset.sdai.split(','); ai.dataset.busy = '1'; if (typeof aibMark === 'function') aibMark(cids, 'assign'); ai.innerHTML = '<span class="dot spin"></span>Đang giao AI… <small>· chạm để huỷ</small>';
       try { const r = await rpc('aiAssignPlan', { cids: cids, days: Math.max(SD.days, 3), apply: 'draft',
           text: 'Điều độ in bài: gia sư ' + ai.dataset.sdn + ' cần có bài TRƯỚC hạn in. Gán bài cho các buổi trống gần nhất theo đúng lộ trình của từng bé (bài kế tiếp chưa học), không lặp bài đã học / đã xếp; chưa chắc thì hỏi gia sư.' }, { quiet: true });
-        if (ai.dataset.stop) { if (r.log) rpc('aiCancel', { id: r.log.id }).then(z => toast(z.cancelled ? 'Đã huỷ lượt AI gán bài' : 'AI đã gán xong (lưu NHÁP) — bỏ ở Buổi học nếu không dùng', z.cancelled ? 'ok' : 'warn', 6000)).catch(fail);
+        const LG = r.logs || (r.log ? [r.log] : []);      // (1.82.12) mỗi bé một lượt
+        if (ai.dataset.stop) { if (r.log) Promise.all(LG.map(l => rpc('aiCancel', { id: l.id }))).then(Z => Z.find(z => !z.cancelled) || Z[0]).then(z => toast(z.cancelled ? 'Đã huỷ lượt AI gán bài' : 'AI đã gán xong (lưu NHÁP) — bỏ ở Buổi học nếu không dùng', z.cancelled ? 'ok' : 'warn', 6000)).catch(fail);
           delete ai.dataset.busy; delete ai.dataset.stop; ai.innerHTML = '<i class="bi bi-robot"></i>AI gán bài'; return; }
-        if (r.log) { ai.dataset.log = r.log.id; toast('AI đang gán bài (lưu NHÁP để bạn / CTV duyệt) — xem kết quả ở Trợ lý AI › Gán bài', 'ok', 7000); ai.innerHTML = r.log.status === 'wait' ? '<i class="bi bi-hourglass-split"></i>AI đang gán… <small>· chạm để huỷ</small>' : '<i class="bi bi-check2"></i>AI đã gán (nháp)';
-          if (r.log.status !== 'wait') { delete ai.dataset.busy; ai.disabled = true; if (typeof aiAfterAssign === 'function') aiAfterAssign(); }
-          else if (typeof aiWatch === 'function') aiWatch(r.log.id, o => { delete ai.dataset.busy; delete ai.dataset.log; ai.disabled = o.status !== 'err'; ai.innerHTML = o.status === 'err' ? '<i class="bi bi-exclamation-triangle"></i>AI lỗi — thử lại' : '<i class="bi bi-check2"></i>AI đã gán (nháp)';      // (1.80.28) xong → nút báo xong, trang tự cập nhật
-            if (typeof aiDoneMsg === 'function') toast(aiDoneMsg(o), o.status === 'err' ? 'err' : 'ok', 6000, 'ai/assign/' + o.id); }); }
+        if (r.log) { ai.dataset.log = LG.map(l => l.id).join(','); toast('AI đang gán bài (lưu NHÁP để bạn / CTV duyệt) — xem kết quả ở Trợ lý AI › Gán bài', 'ok', 7000); ai.innerHTML = LG.some(l => l.status === 'wait') ? '<i class="bi bi-hourglass-split"></i>AI đang gán… <small>· chạm để huỷ</small>' : '<i class="bi bi-check2"></i>AI đã gán (nháp)';
+          const LW = LG.filter(l => l.status === 'wait'); let left = LW.length;
+          if (!LW.length) { delete ai.dataset.busy; ai.disabled = true; if (typeof aiAfterAssign === 'function') aiAfterAssign(); }
+          else if (typeof aiWatch === 'function') LW.forEach(l => aiWatch(l.id, o => { if (--left > 0 && o.status !== 'err') return; delete ai.dataset.busy; delete ai.dataset.log; ai.disabled = o.status !== 'err'; ai.innerHTML = o.status === 'err' ? '<i class="bi bi-exclamation-triangle"></i>AI lỗi — thử lại' : '<i class="bi bi-check2"></i>AI đã gán (nháp)';      // (1.80.28) xong → nút báo xong, trang tự cập nhật
+            if (typeof aiDoneMsg === 'function') toast(aiDoneMsg(o), o.status === 'err' ? 'err' : 'ok', 6000, 'ai/assign/' + o.id); })); }
         else { toast(r.msg || 'Không có buổi để gán', 'info', 5000); delete ai.dataset.busy; ai.innerHTML = '<i class="bi bi-robot"></i>AI gán bài'; } }
       catch (x) { fail(x); delete ai.dataset.busy; ai.innerHTML = '<i class="bi bi-robot"></i>AI gán bài'; } }
   };
