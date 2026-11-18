@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T16:40:04.465Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T16:56:39.759Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7775,6 +7775,7 @@ const NAV_DEF = [
   { r: 'tasks/perf', t: 'Hiệu suất', i: 'bi-graph-up-arrow', g: 'lib', cap: 'tasks.tab.perf', m: /^tasks\/perf/ },
   /* Quản trị Kiến Task (1.43): một tab gom Phân quyền · Thống kê bảng · Cài đặt (nhắc việc, dữ liệu mẫu) — mục con hiện theo quyền */
   { r: 'asst', t: 'Trợ lý chung', i: 'bi-robot', g: 'lib', cap: ['ai.admin', 'ai.log', 'settings.manage'], m: /^asst(\/v:.*)?$/ },      // (1.81.1) module Trợ lý: Trợ lý chung (Flow · hỏi · giao việc) — AssistView.html › viewAsst
+  { r: 'asst/office', t: 'Văn phòng AI', i: 'bi-buildings', g: 'lib', cap: ['ai.admin', 'ai.log', 'settings.manage'], m: /^asst\/office/ },      // (1.82.6) mỗi agent một phòng 2.5D (OfficeView.html)
   { r: 'asst/subs', t: 'Các trợ lý', i: 'bi-diagram-3', g: 'lib', cap: ['ai.admin', 'ai.log', 'settings.manage'], m: /^asst\/subs/ },      // bộ não từng trợ lý con
   { r: 'tasks/admin', t: 'Quản trị', i: 'bi-shield-check', g: 'lib', cap: ['tasks.roles', 'tasks.boards', 'tasks.remind', 'tasks.manage'], m: /^tasks\/(admin|roles|boards)/ },
   // (1.70) bỏ tab Hướng dẫn khỏi thanh bên — hướng dẫn nằm ở Kiến Cẩm Nang; link cũ …/guide vẫn mở được
@@ -22423,6 +22424,7 @@ async function asbOpen(body, conv) {
 /** module Trợ lý (1.81.1): asst = Trợ lý chung · asst/v:<cuộc> mở lại cuộc cũ · asst/subs = bộ não các trợ lý con */
 async function viewAsst(arg, v) {
   arg = String(arg || ''); v._onArg = () => 'rebuild';
+  if (/^office/.test(arg) && typeof viewOffice === 'function') return viewOffice(v);      // (1.82.6) Văn phòng AI (OfficeView.html)
   if (/^subs/.test(arg)) { setTitle('Các trợ lý', 'bi-diagram-3', [{ t: 'Trợ lý', r: 'asst' }], v);
     /* (1.82.5) hai tab rõ ràng: Xưởng agent (chuỗi flow · 8 tầng · agent riêng) | Bộ não từng trợ lý — dựng một lần, chuyển tab tức thì; không chờ máy chủ mới hiện trang */
     const man = can('settings.manage'), T = (man ? [['ag', 'bi-diagram-3', 'Xưởng agent']] : []).concat([['br', 'bi-cpu', 'Bộ não từng trợ lý']]);
@@ -22852,6 +22854,7 @@ async function asstAgentStudio(host) {
   try { AGS.d = await rpc('aiAgentGet', {}, { quiet: true }); } catch (e) { host.innerHTML = '<div class="br-card"><div class="br-empty">' + esc(e.message || e) + '</div></div>'; return; }
   if (!agsCur()) AGS.sel = 'hub'; agsPick(AGS.sel); agsPaint(host);
   host.onclick = e => agsClick(e, host); host.oninput = e => agsInput(e, host); host.onchange = e => agsInput(e, host);
+  if (typeof OF !== 'undefined' && OF.newAg) { OF.newAg = 0; const nb = host.querySelector('[data-agnew]'); if (nb) nb.click(); }      // (1.82.6) bấm “+ Thêm phòng” ở Văn phòng AI
 }
 /** agent đang chọn trong dữ liệu máy chủ */
 function agsCur(id) { id = id || AGS.sel; const D = AGS.d; return D.agents.find(a => a.k === id) || D.custom.find(a => a.id === id) || null; }
@@ -22928,7 +22931,7 @@ async function agsClick(e, host) {
   const pr = e.target.closest('[data-spre]'); if (pr) { const n = +pr.dataset.spre, f0 = (a.chain[0] || {}).f || '', b0 = (a.chain[0] || {}).b || '';
     a.chain = [{ f: f0, b: b0 }].concat(n >= 2 ? [{ f: (a.chain[1] || {}).f || '', b: '' }] : []).concat(n >= 3 ? [{ f: (a.chain[2] || {}).f || '', b: 'Rút gọn câu trả lời của bước trước còn khoảng một nửa: giữ đủ ý chính, số liệu, tên; bỏ phần lặp; gạch đầu dòng rõ ràng.' }] : []); return agsDirty(host, true); }
   const sv = e.target.closest('[data-agsave]'); if (sv) { sv.disabled = true;
-    const body = a.k ? { k: a.k, sys: a.sys, chain: a.chain, guard: a.guard, cache: a.cache, mem: a.mem, kb: a.kb, off: a.off } : { id: a.id, t: a.t, d: a.d, av: a.av, sys: a.sys, chain: a.chain, guard: a.guard, cache: a.cache, mem: a.mem, kb: a.kb, off: a.off, roles: a.roles, tools: a.tools, route: a.route };
+    const body = a.k ? { k: a.k, sys: a.sys, chain: a.chain, guard: a.guard, cache: a.cache, mem: a.mem, kb: a.kb, off: a.off, docs: a.docs || [] } : { id: a.id, t: a.t, d: a.d, av: a.av, sys: a.sys, chain: a.chain, guard: a.guard, cache: a.cache, mem: a.mem, kb: a.kb, off: a.off, roles: a.roles, tools: a.tools, route: a.route, docs: a.docs || [] };      // (1.82.6) giữ tài liệu riêng (sửa ở Văn phòng AI)
     if (!a.k && !String(a.t || '').trim()) { sv.disabled = false; return toast('Đặt tên cho agent', 'warn'); }
     try { const r = await rpc('aiAgentSave', { agent: body }); AGS.d = r; agsPick(a.k || r.saved); agsPaint(host); toast('Đã lưu agent', 'ok'); if (typeof ASB !== 'undefined') ASB.at = 0; }
     catch (er) { fail(er); sv.disabled = false; } return; }
@@ -22939,6 +22942,259 @@ async function agsClick(e, host) {
     const T = AGS.test = { q: text, wait: 1, t0: new Date().toISOString() }, R = () => { const el = $('#agtR', host); if (el) el.innerHTML = agsTestHtml(); }; q.value = ''; R();
     const got = o => { delete T.wait; if (o.status === 'ok') { T.text = o.text; T.refs = o.refs; } else T.err = o.err || 'Agent chưa trả lời được'; if (AGS.test === T) R(); };
     try { const r = await rpc('aiAgentRun', { ag: a.id, text: text }, { quiet: true }); if (AI_WAIT.test(r.status)) aiWatch(r.id, got); else got(r); } catch (er) { delete T.wait; T.err = er.message || String(er); R(); } }
+}
+</script>
+
+<style>
+/* ═════ (1.82.6) VĂN PHÒNG AI — mỗi agent một phòng (2.5D), Trợ lý chung ở phòng điều phối, bộ não chung ở giữa; việc chạy từ phòng này sang phòng kia ═════ */
+.of{ --of-bg:#0A1022; --of-ln:#1E2B4D; max-width:1320px; margin:0 auto; padding:2px 0 24px }
+.of-top{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px }
+.of-ask{ flex:1 1 380px; display:flex; gap:8px; align-items:center; padding:6px 6px 6px 14px; border:1px solid var(--border); border-radius:16px; background:var(--surface); box-shadow:0 8px 24px -18px color-mix(in oklab, var(--primary) 60%, transparent) }
+.of-ask:focus-within{ border-color:color-mix(in oklab, var(--primary) 55%, var(--border)) } .of-ask input{ flex:1; min-width:0; border:0; background:none; font:inherit; font-size:14px; color:var(--ink); outline:none; padding:6px 0 }
+.of-ask .btn{ flex:none } .of-clk{ text-align:right; line-height:1.15 } .of-clk small{ display:block; font-size:11.5px; color:var(--muted) } .of-clk b{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:24px; letter-spacing:.04em; color:var(--ink) }
+.of-k{ display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:10px; margin-bottom:12px }
+.of-k > div{ position:relative; padding:10px 14px 11px; border:1px solid var(--border); border-radius:14px; background:var(--surface); overflow:hidden } .of-k > div::before{ content:""; position:absolute; left:0; right:0; top:0; height:3px; background:var(--kc, var(--primary)) }
+.of-k small{ display:block; font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--kc, var(--primary)) } .of-k b{ display:block; font-size:22px; line-height:1.25; font-family:ui-monospace, SFMono-Regular, Menlo, monospace } .of-k span{ display:block; font-size:11.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.of-ans{ margin-bottom:12px; padding:12px 14px; border:1px solid color-mix(in oklab, var(--primary) 30%, var(--border)); border-radius:14px; background:var(--surface); display:flex; gap:12px; align-items:flex-start; font-size:13.5px; line-height:1.6 } .of-ans .b{ flex:1; min-width:0 } .of-ans:empty{ display:none }
+.of-main{ display:grid; grid-template-columns:220px minmax(0, 1fr); gap:12px; align-items:start }
+.of-side{ border:1px solid var(--border); border-radius:16px; background:var(--surface); padding:10px 8px; display:flex; flex-direction:column; gap:2px; max-height:760px; overflow:auto }
+.of-sh{ font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:8px 8px 4px } .of-sh:first-child{ margin-top:2px }
+.of-si{ display:flex; gap:8px; align-items:center; padding:6px 8px; border:0; border-radius:10px; background:none; font:inherit; color:inherit; text-align:left; cursor:pointer; width:100% } .of-si:hover, .of-si.on{ background:var(--surface-2) }
+.of-si .t{ flex:1; min-width:0 } .of-si b{ display:block; font-size:12.5px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .of-si small{ display:block; font-size:11px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.of-dot{ width:8px; height:8px; border-radius:50%; flex:none; background:#64748B } .of-dot.run{ background:#22C55E; box-shadow:0 0 0 3px color-mix(in oklab, #22C55E 25%, transparent); animation:ofBlink 1.2s ease-in-out infinite } .of-dot.idle{ background:#3B82F6 } .of-dot.off{ background:#64748B }
+.of-rule{ margin:10px 6px 4px; padding:10px 12px; border:1px solid color-mix(in oklab, #F59E0B 45%, var(--border)); border-radius:12px; font-size:12px; line-height:1.5; color:var(--ink-2) } .of-rule b{ display:block; font-size:10.5px; letter-spacing:.08em; color:#D97706; margin-bottom:3px }
+/* sân khấu */
+.of-stage{ position:relative; border-radius:18px; overflow:hidden; background:radial-gradient(ellipse at 50% 45%, #14204A 0%, var(--of-bg) 62%); border:1px solid #1B2647; box-shadow:inset 0 0 80px rgba(0,0,0,.45) }
+.of-stage::before{ content:""; position:absolute; inset:0; background-image:radial-gradient(rgba(148,163,184,.13) 1px, transparent 1.2px); background-size:22px 22px; pointer-events:none }
+.of-in{ position:absolute; left:0; top:0; transform-origin:0 0 }
+.of-in svg{ position:absolute; inset:0; overflow:visible } .of-ov{ position:absolute; inset:0; pointer-events:none } .of-ov > *{ pointer-events:auto } .of-ov .of-bub, .of-ov .of-mail, .of-ov .of-legend{ pointer-events:none } .of-ov .of-bot{ cursor:pointer }
+.of-stage.cpt .of-lb, .of-stage.cpt .of-mail, .of-stage.cpt .of-bub, .of-stage.cpt .of-brain small, .of-stage.cpt .of-brain .ch, .of-stage.cpt .of-add{ display:none } .of-stage.cpt .of-brain{ padding:4px 8px } .of-stage.cpt .of-brain b{ font-size:9px }
+.of-fl{ transition:fill-opacity .3s } .of-fl.busy{ animation:ofFloor 1.8s ease-in-out infinite } .of-fl.done{ animation:ofDone 1.2s ease-out 3 }
+.of-wl{ fill-opacity:.14 } .of-ln{ stroke:#3B5BA8; stroke-width:1.2; stroke-dasharray:3 6; opacity:.45 } .of-ln.on{ stroke:#7DD3FC; opacity:1; animation:ofDash 1s linear infinite }
+.of-mon{ fill:#1E293B } .of-mon.on{ fill:#7DD3FC; animation:ofBlink 1s ease-in-out infinite }
+.of-lb{ position:absolute; transform:translate(-50%, -100%); padding:6px 11px 6px 10px; border-radius:10px; background:rgba(10,16,34,.92); border:1px solid var(--rc); box-shadow:0 0 0 1px rgba(0,0,0,.4), 0 8px 18px -8px var(--rc); color:#E2E8F0; font:inherit; text-align:left; cursor:pointer; white-space:nowrap; max-width:220px }
+.of-lb.dn{ transform:translate(-50%, 0) } .of-lb::before{ content:""; position:absolute; left:0; top:6px; bottom:6px; width:3px; border-radius:3px; background:var(--rc) } .of-lb:hover{ background:rgba(20,30,60,.96) }
+.of-lb b{ display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; padding-left:4px } .of-lb b i{ font-size:10px; opacity:.6 } .of-lb small{ display:flex; align-items:center; gap:5px; font-size:10.5px; color:#94A3B8; padding-left:4px; overflow:hidden; text-overflow:ellipsis }
+.of-lb .of-dot{ width:6px; height:6px } .of-lb.busy small{ color:#86EFAC }
+.of-bot{ position:absolute; transform:translate(-50%, -88%) } .of-bot .as-av, .of-bot .as-bot{ box-shadow:0 10px 20px -8px rgba(0,0,0,.7) }
+.of-bub{ position:absolute; transform:translate(-50%, -100%); padding:3px 9px; border-radius:10px 10px 10px 2px; background:#F8FAFC; color:#0F172A; font-size:11px; font-weight:600; white-space:nowrap; max-width:200px; overflow:hidden; text-overflow:ellipsis; box-shadow:0 6px 16px -6px rgba(0,0,0,.6); pointer-events:none; animation:ofPop .3s ease-out }
+.of-bub .ty{ display:inline-flex; gap:2px; margin-left:4px; vertical-align:middle } .of-bub .ty i{ width:4px; height:4px; border-radius:50%; background:#64748B; animation:ofType 1s infinite } .of-bub .ty i:nth-child(2){ animation-delay:.15s } .of-bub .ty i:nth-child(3){ animation-delay:.3s }
+.of-bub.ok{ background:#DCFCE7; color:#166534 } .of-bub.err{ background:#FEE2E2; color:#991B1B }
+.of-brain{ position:absolute; transform:translate(-50%, -50%); text-align:center; color:#E2E8F0; cursor:pointer; padding:10px 16px 8px; border-radius:16px; background:rgba(10,16,34,.78); border:1px solid rgba(167,139,250,.55); box-shadow:0 0 40px -6px rgba(139,92,246,.6) }
+.of-brain b{ display:block; font-size:12.5px; letter-spacing:.14em; font-weight:800 } .of-brain small{ display:block; font-size:10.5px; color:#A5B4FC; margin-top:2px } .of-brain .ch{ display:flex; gap:4px; justify-content:center; margin-top:6px }
+.of-brain .ch span{ font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; background:rgba(139,92,246,.18); color:#C4B5FD; border:1px solid rgba(139,92,246,.4) }
+.of-mail{ position:absolute; transform:translate(-50%, -50%); padding:4px 10px; border-radius:8px; background:rgba(10,16,34,.9); border:1px solid #38BDF8; color:#BAE6FD; font-size:10.5px; font-weight:800; letter-spacing:.06em; white-space:nowrap; pointer-events:none } .of-mail.off{ border-color:#64748B; color:#94A3B8 }
+.of-add{ position:absolute; transform:translate(-50%, -50%); border:0; background:none; color:#93C5FD; font:inherit; font-size:13px; font-weight:700; cursor:pointer; padding:8px 12px; border-radius:10px } .of-add:hover{ background:rgba(59,130,246,.15) }
+.of-pk{ position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border-radius:50%; background:#FDE68A; box-shadow:0 0 0 3px rgba(253,230,138,.25), 0 0 16px 4px rgba(253,230,138,.65); pointer-events:none; z-index:5 }
+.of-pk.ml{ width:16px; height:11px; margin:-6px 0 0 -8px; border-radius:2px; background:#7DD3FC; box-shadow:0 0 12px 2px rgba(125,211,252,.6) } .of-pk.ml::after{ content:""; position:absolute; inset:0; background:linear-gradient(to bottom right, transparent 49%, rgba(10,16,34,.6) 50%, transparent 51%), linear-gradient(to bottom left, transparent 49%, rgba(10,16,34,.6) 50%, transparent 51%) }
+.of-tick{ display:flex; gap:10px; align-items:center; margin-top:10px; padding:8px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface); font-size:12.5px; overflow:hidden; white-space:nowrap }
+.of-tick > b{ display:inline-flex; gap:6px; align-items:center; font-size:11px; letter-spacing:.1em; color:#16A34A; flex:none } .of-tick .ev{ overflow:hidden; text-overflow:ellipsis } .of-tick .ev em{ font-style:normal; color:var(--muted); margin-right:6px } .of-tick .ev b{ color:var(--primary) }
+.of-legend{ position:absolute; right:12px; bottom:10px; display:flex; gap:10px; font-size:10.5px; color:#94A3B8 } .of-legend span{ display:inline-flex; gap:5px; align-items:center }
+/* ngăn phòng (bấm vào phòng) */
+.of-dr{ position:fixed; top:0; right:0; bottom:0; width:min(440px, 100%); z-index:60; background:var(--surface); border-left:1px solid var(--border); box-shadow:-24px 0 60px -30px rgba(15,23,42,.55); display:flex; flex-direction:column; animation:ofIn .22s ease-out }
+.of-dr-h{ display:flex; gap:12px; align-items:center; padding:16px 16px 12px; border-bottom:1px solid var(--border) } .of-dr-h .t{ flex:1; min-width:0 } .of-dr-h b{ display:block; font-size:16px } .of-dr-h small{ display:block; color:var(--muted); font-size:12.5px; line-height:1.45 }
+.of-dr-b{ flex:1; overflow:auto; padding:12px 16px 20px } .of-dr-s{ margin-top:16px } .of-dr-s:first-child{ margin-top:4px } .of-dr-s > h4{ display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted) } .of-dr-s > h4 .sp{ flex:1 }
+.of-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px } .of-chips span{ font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--surface-2); color:var(--ink-2) }
+.of-run{ padding:9px 12px; border:1px solid color-mix(in oklab, #22C55E 35%, var(--border)); border-radius:12px; margin-bottom:6px; font-size:13px } .of-run small{ display:block; color:var(--muted); font-size:11.5px; margin:2px 0 4px }
+.of-hi{ display:flex; gap:8px; align-items:center; padding:6px 0; border-top:1px solid var(--border); font-size:12.5px } .of-hi:first-of-type{ border-top:0 } .of-hi .t{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .of-hi .s{ font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:6px; background:var(--surface-2) } .of-hi .s.ok{ color:var(--ok, #16a34a) } .of-hi .s.e{ color:var(--danger) }
+.of-doc{ display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border:1px solid var(--border); border-radius:12px; margin-bottom:6px; font-size:13px } .of-doc > i{ color:var(--primary); margin-top:2px } .of-doc .t{ flex:1; min-width:0 } .of-doc .t a, .of-doc .t b{ font-weight:650; color:var(--ink); word-break:break-word } .of-doc .t small{ display:block; color:var(--muted); font-size:12px; line-height:1.45; margin-top:2px; white-space:pre-wrap }
+.of-docf{ display:flex; flex-direction:column; gap:6px; padding:10px; border:1px dashed var(--border); border-radius:12px } .of-docf textarea{ min-height:56px } .of-docf .r{ display:flex; gap:6px; justify-content:flex-end }
+.of-give textarea{ width:100%; min-height:64px } .of-give .r{ display:flex; gap:8px; align-items:center; margin-top:6px } .of-give .r small{ flex:1; color:var(--muted); font-size:11.5px; line-height:1.4 }
+.of-bk{ position:fixed; inset:0; z-index:59; background:rgba(15,23,42,.25) }
+@keyframes ofFloor{ 0%,100%{ fill-opacity:.12 } 50%{ fill-opacity:.32 } } @keyframes ofDone{ 0%{ fill-opacity:.5 } 100%{ fill-opacity:.1 } } @keyframes ofDash{ to{ stroke-dashoffset:-18 } }
+@keyframes ofBlink{ 0%,100%{ opacity:.55 } 50%{ opacity:1 } } @keyframes ofType{ 0%,100%{ opacity:.25 } 50%{ opacity:1 } } @keyframes ofPop{ from{ opacity:0; transform:translate(-50%, -80%) } } @keyframes ofIn{ from{ transform:translateX(30px); opacity:0 } }
+@media (prefers-reduced-motion:reduce){ .of-fl.busy, .of-ln.on, .of-mon.on, .of-dot.run{ animation:none } }
+@media (max-width:1560px){ .of-main{ grid-template-columns:minmax(0, 1fr) } .of-side{ order:2; max-height:none; display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:2px 8px } .of-sh, .of-rule{ grid-column:1 / -1 } }      /* sân khấu chiếm trọn bề ngang, danh sách phòng xuống dưới */
+@media (max-width:1100px){ .of-k{ grid-template-columns:repeat(3, minmax(0, 1fr)) } }
+@media (max-width:560px){ .of-k{ grid-template-columns:repeat(2, minmax(0, 1fr)) } .of-clk{ display:none } .of-legend{ display:none } }
+</style>
+<script>
+/* ═════ (1.82.6) VĂN PHÒNG AI (Trợ lý › Văn phòng AI, route asst/office) — máy chủ asstOffice_ (AiAgents.gs)
+   · Phòng điều phối = Trợ lý chung (nhận việc, quyết định giao cho ai) · mỗi agent một phòng, robot riêng (asstAva) ngồi bàn
+   · Việc mới: chấm sáng chạy từ phòng điều phối (việc được giao) / từ bộ não (hỏi thẳng) tới phòng nhận · đang làm: phòng sáng nhịp, bong bóng “bước 2/3”,
+     phong thư bay giữa phòng và Hộp thư flow · xong: bong bóng “Xong” · bấm phòng → ngăn bên: việc đang làm, kết quả, TÀI LIỆU RIÊNG, giao việc trực tiếp ═════ */
+const OF = { d: null, seen: null, prev: {}, t: 0, ml: 0, fx: {}, ans: null };
+const OF_TW = 300, OF_TH = 150, OF_WH = 48;
+const OF_SHORT = { hub: 'Điều phối', chat: 'Chuyên môn', task: 'Kiến Task', assign: 'Gán bài', route: 'Rà soát lộ trình', match: 'Khớp bài đã dạy', pmap: 'Đổi chương trình', reqs: 'Yêu cầu & trao đổi', grade: 'Nhận xét bài' };      // tên phòng ngắn trên sơ đồ
+function ofShort(a) { return OF_SHORT[a.key] || a.t; }
+function ofCol(a) { return a.key === 'hub' ? '#F59E0B' : (ASST_AV[(Number(a.av) || 0) % ASST_AV.length] || ['#3B82F6'])[0]; }
+function ofCells(G) {
+  const c = (G - 1) / 2, lo = G / 2 - 1, out = [];
+  for (let x = 0; x < G; x++) for (let y = 0; y < G; y++) { if (x >= lo && x <= lo + 1 && y >= lo && y <= lo + 1) continue;
+    const sx = (x - c) - (y - c), sy = (x - c) + (y - c), ring = Math.max(Math.abs(x - c), Math.abs(y - c)), ang = (Math.atan2(sy, sx) * 180 / Math.PI + 90 + 360) % 360; out.push({ x: x, y: y, k: ring * 1000 + ang }); }
+  return out.sort((a, b) => a.k - b.k);
+}
+async function viewOffice(v) {
+  setTitle('Văn phòng AI', 'bi-buildings', [{ t: 'Trợ lý', r: 'asst' }], v);
+  v.innerHTML = '<div class="of" id="ofR"><div class="of-top"><div class="of-ask"><i class="bi bi-stars" style="color:var(--primary)"></i><input id="ofQ" placeholder="Giao việc hoặc hỏi Trợ lý chung — trợ lý tự chọn phòng nào làm…" aria-label="Giao việc cho Trợ lý chung"><button type="button" class="btn sm pri" id="ofGo"><i class="bi bi-send"></i>Giao việc</button></div><div class="of-clk"><small id="ofDay"></small><b id="ofClk">--:--:--</b></div></div>' +
+    '<div class="of-k" id="ofK"></div><div class="of-ans" id="ofA"></div><div class="of-main"><aside class="of-side" id="ofS" aria-label="Phòng ban"></aside><div><div class="of-stage" id="ofSt"><div class="of-in" id="ofIn"></div></div><div class="of-tick" id="ofT"><b><span class="of-dot run"></span>TRỰC TIẾP</b><span class="ev">Đang mở văn phòng…</span></div></div></div></div>';
+  const R = $('#ofR', v), q = $('#ofQ', v);
+  q.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); ofAsk(q.value); } }; $('#ofGo', v).onclick = () => ofAsk(q.value);
+  R.onclick = e => ofClick(e);
+  OF.d = OF.d || lsGet('ofD:' + (S.me && S.me.email || ''), null); OF.seen = null;
+  if (OF.d) ofPaint(); else $('#ofIn', v).innerHTML = '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:#CBD5E1">' + asstAva(3, 'lg', 1) + '<div style="margin-top:12px;font-size:13px">Đang mở văn phòng…</div></div>';
+  const tickClock = () => { const c = $('#ofClk'); if (!c) return clearInterval(OF.ck); const d = new Date(); c.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); const dd = $('#ofDay'); if (dd) dd.textContent = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][d.getDay()] + ', ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1); };
+  clearInterval(OF.ck); OF.ck = setInterval(tickClock, 1000); tickClock();
+  if (!ofFit.on) { ofFit.on = 1; window.addEventListener('resize', debounce(ofFit, 120)); }
+  ofLoad();
+}
+async function ofLoad() {
+  clearTimeout(OF.t); if (!$('#ofR')) return;
+  if (!document.hidden && !$('#ofR').closest('[hidden]')) try { const d = await rpc('asstOffice', {}, { quiet: true }); OF.d = d; lsSet('ofD:' + (S.me && S.me.email || ''), d); ofPaint(); } catch (e) { if (!OF.d) { const i = $('#ofIn'); if (i) i.innerHTML = '<div style="padding:40px;color:#CBD5E1">' + esc(e.message || e) + '</div>'; } }
+  if ($('#ofR')) OF.t = setTimeout(ofLoad, OF.d && OF.d.run && OF.d.run.length ? 6000 : 12000);
+}
+/** vẽ lại toàn bộ (dữ liệu mới) rồi chạy hiệu ứng cho việc mới / việc xong */
+function ofPaint() {
+  const D = OF.d, R = $('#ofR'); if (!D || !R) return;
+  const run = D.run || [], byAg = {}; run.forEach(r => { (byAg[r.ag || 'chat'] = byAg[r.ag || 'chat'] || []).push(r); });
+  const A = D.agents.slice(), busyN = Object.keys(byAg).length, chainN = A.filter(a => a.chain > 1).length, givenToday = (D.given || []).filter(g => String(g.at).slice(0, 10) === new Date().toISOString().slice(0, 10)).length;
+  $('#ofK').innerHTML = [['#22D3EE', 'Nhân sự AI', A.length, busyN + ' đang làm · ' + (A.length - busyN) + ' rảnh'], ['#22C55E', 'Đang chạy', run.length, run.length ? run.map(r => r.kt).slice(0, 2).join(' · ') : 'văn phòng đang rảnh'],
+    ['#F59E0B', 'Hôm nay', (D.today || {}).n || 0, ((D.today || {}).ok || 0) + ' xong · ' + ((D.today || {}).act || 0) + ' việc đã làm'], ['#EC4899', 'Trợ lý chung giao', givenToday, 'việc hôm nay'],
+    ['#A78BFA', 'Chuỗi flow', chainN, chainN ? 'agent suy nghĩ nhiều bước' : 'chưa lắp chuỗi'], [D.box ? '#38BDF8' : '#EF4444', 'Hộp thư flow', D.box ? 'ON' : 'OFF', D.flows + ' flow đang bật' + (D.gem ? ' · Gemini' : '')]]
+    .map(k => '<div style="--kc:' + k[0] + '"><small>' + k[1] + '</small><b>' + esc(String(k[2])) + '</b><span>' + esc(k[3]) + '</span></div>').join('');
+  // danh sách phòng ban (bên trái)
+  const grp = [['Điều phối', A.filter(a => a.key === 'hub')], ['Phòng chuyên môn', A.filter(a => /^(chat|assign|route|match|pmap|grade)$/.test(a.key))], ['Phòng vận hành', A.filter(a => /^(task|reqs)$/.test(a.key))], ['Agent riêng', A.filter(a => /^x:/.test(a.key))]];
+  $('#ofS').innerHTML = grp.filter(g => g[1].length || g[0] === 'Agent riêng').map(g => '<div class="of-sh">' + g[0] + '</div>' + g[1].map(a => { const b = byAg[a.key];
+    return '<button type="button" class="of-si" data-ofr="' + esc(a.key) + '"><span class="of-dot ' + (b ? 'run' : a.off ? 'off' : 'idle') + '"></span>' + asstAva(a.av, 'xs', !!b) + '<span class="t"><b>' + esc(a.t) + '</b><small>' + esc(b ? 'đang làm' + (b[0].sp ? ' · bước ' + b[0].sp : '') : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow' : 'rảnh') + '</small></span></button>'; }).join('') +
+    (g[0] === 'Agent riêng' && D.can ? '<button type="button" class="of-si" data-ofadd><span class="of-dot off"></span><span class="t"><b style="color:var(--primary)">+ Thêm phòng (agent)</b></span></button>' : '')).join('') +
+    '<div class="of-sh">Công cụ</div><div class="of-si" style="cursor:default"><span class="of-dot ' + (D.box ? 'idle' : 'off') + '"></span><span class="t"><b>Hộp thư flow</b><small>' + (D.box ? D.flows + ' flow · gửi việc / đọc thư trả lời' : 'chưa kết nối') + '</small></span></div>' +
+    '<div class="of-si" style="cursor:default"><span class="of-dot idle" style="background:#A78BFA"></span><span class="t"><b>Bộ não chung</b><small>' + D.brain.mem + ' ghi nhớ · ' + D.brain.kb + ' hướng dẫn · ' + D.brain.sk + ' kỹ năng</small></span></div>' +
+    '<div class="of-rule"><b>NGUYÊN TẮC</b>AI đề xuất, người duyệt: gán bài lưu nháp, tin nhắn nhóm kiểu đồng nghiệp — kết quả nào cũng qua bước kiểm của máy chủ.</div>';
+  ofStage(A, byAg);
+  ofTicker();
+  // hiệu ứng: việc mới → chấm chạy tới phòng · việc xong → bong bóng
+  const ids = {}; run.forEach(r => { ids[r.id] = r; });
+  if (OF.seen) { run.forEach(r => { if (!OF.seen.has(r.id)) ofFly(r.hub ? 'hub' : '@brain', r.ag || 'chat', r); });
+    Object.keys(OF.prev).forEach(id => { if (!ids[id]) { const d = (D.done || []).find(x => x.id === id), ag = OF.prev[id]; OF.fx[ag] = { k: d && d.st === 'err' ? 'err' : 'ok', t: Date.now(), x: d ? d.t : '' }; ofStage(A, byAg); } }); }
+  OF.seen = new Set(run.map(r => r.id)); OF.prev = {}; run.forEach(r => { OF.prev[r.id] = r.ag || 'chat'; });
+  clearInterval(OF.ml); if (run.length) OF.ml = setInterval(() => { if (!$('#ofIn')) return clearInterval(OF.ml); const r = OF.d.run[Math.floor(Math.random() * OF.d.run.length)]; if (r) ofMail(r.ag || 'chat'); }, 2600);
+  const dr = $('#ofDr'); if (dr && dr.dataset.k) ofDrawer(dr.dataset.k, true);
+}
+/** sân khấu 2.5D: sàn + tường + bàn (SVG), nhãn / robot / bong bóng (HTML) — cùng một hệ toạ độ, co theo bề rộng */
+function ofStage(A, byAg) {
+  const In = $('#ofIn'), St = $('#ofSt'); if (!In || !St) return; const D = OF.d; OF.last = [A, byAg];
+  const slots = A.concat(D.can ? [{ key: '+add' }] : []), G = slots.length <= 12 ? 4 : 6, cells = ofCells(G), W = G * OF_TW + 200, H = G * OF_TH + 230, X0 = W / 2, Y0 = 150;
+  const sc = Math.min(1, (St.clientWidth || W) / W), Q = p => 'left:' + (p[0] * sc).toFixed(1) + 'px;top:' + (p[1] * sc).toFixed(1) + 'px';      // (1.82.6) nhãn / robot đặt theo toạ độ đã co nhưng KHÔNG co chữ
+  const P = (gx, gy) => [X0 + (gx - gy) * OF_TW / 2, Y0 + (gx + gy) * OF_TH / 2], pt = p => p[0].toFixed(1) + ',' + p[1].toFixed(1), up = (p, h) => [p[0], p[1] - h];
+  const C = P(G / 2, G / 2), svg = [], html = [], pos = {};
+  pos['@brain'] = C; pos['@mail'] = [C[0], C[1] + 84];
+  // sàn chung
+  svg.push('<polygon points="' + [P(-.15, -.15), P(G + .15, -.15), P(G + .15, G + .15), P(-.15, G + .15)].map(pt).join(' ') + '" fill="#0F1A3A" fill-opacity=".55" stroke="#22315E" stroke-width="1.2"/>');
+  slots.forEach((a, i) => { const c = cells[i]; if (!c) return; const gx = c.x, gy = c.y, m = .07, ctr = P(gx + .5, gy + .5); pos[a.key] = ctr;
+    if (a.key === '+add') { svg.push('<polygon points="' + [P(gx + m, gy + m), P(gx + 1 - m, gy + m), P(gx + 1 - m, gy + 1 - m), P(gx + m, gy + 1 - m)].map(pt).join(' ') + '" fill="none" stroke="#60A5FA" stroke-opacity=".6" stroke-dasharray="6 6" stroke-width="1.4"/>');
+      html.push('<button type="button" class="of-add" data-ofadd style="' + Q(ctr) + '">+ Thêm phòng</button>'); return; }
+    const col = ofCol(a), busy = !!byAg[a.key], fx = OF.fx[a.key] && Date.now() - OF.fx[a.key].t < 8000 ? OF.fx[a.key] : null;
+    const Ap = P(gx + m, gy + m), Bp = P(gx + 1 - m, gy + m), Cp = P(gx + 1 - m, gy + 1 - m), Dp = P(gx + m, gy + 1 - m);
+    svg.push('<line class="of-ln' + (busy ? ' on' : '') + '" x1="' + ctr[0] + '" y1="' + ctr[1] + '" x2="' + C[0] + '" y2="' + C[1] + '"/>');
+    svg.push('<polygon class="of-wl" points="' + [Ap, Dp, up(Dp, OF_WH), up(Ap, OF_WH)].map(pt).join(' ') + '" fill="' + col + '" stroke="' + col + '" stroke-opacity=".55"/>');
+    svg.push('<polygon class="of-wl" points="' + [Ap, Bp, up(Bp, OF_WH), up(Ap, OF_WH)].map(pt).join(' ') + '" fill="' + col + '" fill-opacity=".22" stroke="' + col + '" stroke-opacity=".7"/>');
+    svg.push('<polygon class="of-fl' + (busy ? ' busy' : fx ? ' done' : '') + '" points="' + [Ap, Bp, Cp, Dp].map(pt).join(' ') + '" fill="' + col + '" fill-opacity=".1" stroke="' + col + '" stroke-width="1.6"/>');
+    const r1 = .3; svg.push('<polygon points="' + [P(gx + r1, gy + r1), P(gx + 1 - r1, gy + r1), P(gx + 1 - r1, gy + 1 - r1), P(gx + r1, gy + 1 - r1)].map(pt).join(' ') + '" fill="none" stroke="' + col + '" stroke-opacity=".35" stroke-dasharray="4 5"/>');
+    // bàn làm việc + màn hình
+    const dx = .16, dy = .09, cx = gx + .42, cy = gy + .38, h = 16, t1 = up(P(cx - dx, cy - dy), h), t2 = up(P(cx + dx, cy - dy), h), t3 = up(P(cx + dx, cy + dy), h), t4 = up(P(cx - dx, cy + dy), h);
+    svg.push('<polygon points="' + [P(cx - dx, cy + dy), P(cx + dx, cy + dy), t3, t4].map(pt).join(' ') + '" fill="#5B3A1E"/><polygon points="' + [P(cx + dx, cy - dy), P(cx + dx, cy + dy), t3, t2].map(pt).join(' ') + '" fill="#6E4624"/><polygon points="' + [t1, t2, t3, t4].map(pt).join(' ') + '" fill="#9A6A3A"/>');
+    const mo = up(P(cx, cy - .02), h + 4); svg.push('<rect class="of-mon' + (busy ? ' on' : '') + '" x="' + (mo[0] - 11) + '" y="' + (mo[1] - 14) + '" width="22" height="14" rx="2" stroke="#94A3B8" stroke-width="1"/>');
+    // nhãn phòng
+    const front = gx + gy + 1 > G, top = front ? [Cp[0], Cp[1] + 10] : up(Ap, OF_WH + 10), b = byAg[a.key],      /* (1.82.6) phòng nửa trước: nhãn dưới chân phòng (không che bộ não) */ st = b ? 'đang làm' + (b.length > 1 ? ' ' + b.length + ' việc' : '') + (b[0].sp ? ' · bước ' + b[0].sp : '') : a.off ? 'đang tắt' : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow · rảnh' : 'rảnh';
+    html.push('<button type="button" class="of-lb' + (b ? ' busy' : '') + (front ? ' dn' : '') + '" data-ofr="' + esc(a.key) + '" style="--rc:' + col + ';' + Q(top) + '" title="' + esc(a.t) + '"><b>' + esc('Phòng ' + ofShort(a)) + '</b><small><span class="of-dot ' + (b ? 'run' : a.off ? 'off' : 'idle') + '"></span>' + esc(a.key === 'hub' ? 'Trợ lý chung · ' + st : st) + '</small></button>');
+    const bp = P(gx + .62, gy + .64), bq = [bp[0] * sc, bp[1] * sc]; html.push('<span class="of-bot" data-ofr="' + esc(a.key) + '" title="' + esc(a.t) + '" style="' + Q(bp) + '">' + asstAva(a.av, sc > .75 ? 'md' : 'sm', busy) + '</span>');
+    if (b) html.push('<span class="of-bub" style="left:' + (bq[0] + 22) + 'px;top:' + (bq[1] - 50) + 'px" title="' + esc(b[0].t) + '">' + esc(aiCut(b[0].t, 26)) + '<span class="ty"><i></i><i></i><i></i></span></span>');
+    else if (fx) html.push('<span class="of-bub ' + fx.k + '" style="left:' + (bq[0] + 22) + 'px;top:' + (bq[1] - 50) + 'px">' + (fx.k === 'ok' ? '✓ Xong' : '✗ Lỗi') + (fx.x ? ' · ' + esc(aiCut(fx.x, 20)) : '') + '</span>');
+  });
+  // bộ não chung ở giữa
+  svg.unshift('<defs><radialGradient id="ofBr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#8B5CF6" stop-opacity=".55"/><stop offset=".6" stop-color="#6366F1" stop-opacity=".18"/><stop offset="1" stop-color="#6366F1" stop-opacity="0"/></radialGradient></defs>');
+  svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * .95 + '" ry="' + OF_TH * .95 + '" fill="url(#ofBr)"/>');
+  [.55, .75].forEach((k, i) => svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * k + '" ry="' + OF_TH * k + '" fill="none" stroke="' + (i ? '#22D3EE' : '#A78BFA') + '" stroke-opacity=".55" stroke-width="1.3" stroke-dasharray="' + (i ? '2 9' : '10 6') + '"><animate attributeName="stroke-dashoffset" from="0" to="' + (i ? 44 : -64) + '" dur="' + (i ? 3 : 5) + 's" repeatCount="indefinite"/></ellipse>'));
+  html.push('<div class="of-brain" data-ofbrain style="' + Q([C[0], C[1] - 8]) + '"><b>BỘ NÃO CHUNG</b><small>mọi agent đọc trước khi làm</small><div class="ch"><span>' + D.brain.mem + ' ghi nhớ</span><span>' + D.brain.kb + ' hướng dẫn</span><span>' + D.brain.sk + ' kỹ năng</span></div></div>');
+  html.push('<div class="of-mail' + (D.box ? '' : ' off') + '" style="' + Q(pos['@mail']) + '"><i class="bi bi-envelope-paper"></i> HỘP THƯ FLOW · ' + (D.box ? D.flows + ' FLOW' : 'CHƯA NỐI') + '</div>');
+  html.push('<div class="of-legend"><span><span class="of-dot run"></span>đang làm</span><span><span class="of-dot idle"></span>rảnh</span><span><span class="of-pk" style="position:static;margin:0;width:8px;height:8px"></span>việc đang giao</span></div>');
+  In.style.width = W + 'px'; In.style.height = H + 'px'; In.dataset.w = W; In.dataset.h = H; OF.pos = pos;
+  In.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" aria-hidden="true">' + svg.join('') + '</svg>';
+  let Ov = $('#ofOv'); if (!Ov) { Ov = document.createElement('div'); Ov.id = 'ofOv'; Ov.className = 'of-ov'; St.appendChild(Ov); } Ov.innerHTML = html.join(''); St.classList.toggle('cpt', sc < .5);      /* màn hẹp: ẩn nhãn, bấm robot để mở phòng */
+  In.style.transform = 'scale(' + sc + ')'; St.style.height = Math.round(H * sc) + 'px'; OF.sc = sc; OF.W = W;
+}
+function ofFit() { if ($('#ofSt') && OF.last && OF.W && Math.abs(Math.min(1, $('#ofSt').clientWidth / OF.W) - (OF.sc || 0)) > .005) ofStage(OF.last[0], OF.last[1]); }
+/** chấm sáng chạy theo đường: phòng giao → bộ não → phòng nhận */
+function ofFly(from, to, r) {
+  const In = $('#ofIn'); if (!In || !OF.pos || !OF.pos[to]) return; const a = OF.pos[from] || OF.pos['@brain'], c = OF.pos['@brain'], b = OF.pos[to], pts = from === '@brain' ? [a, b] : [a, c, b];
+  const el = document.createElement('span'); el.className = 'of-pk'; In.appendChild(el);
+  const segs = []; let tot = 0; for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push(l); tot += l; }
+  const dur = 900 + tot * 1.6, t0 = performance.now();
+  const step = now => { let k = Math.min(1, (now - t0) / dur), d = k * tot, i = 0; while (i < segs.length - 1 && d > segs[i]) { d -= segs[i]; i++; } const f = segs[i] ? d / segs[i] : 1;
+    el.style.left = (pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f) + 'px'; el.style.top = (pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f) + 'px'; if (k < 1 && el.isConnected) requestAnimationFrame(step); else el.remove(); };
+  requestAnimationFrame(step);
+  if (r) ofEvent((from === 'hub' ? '<b>Trợ lý chung</b> giao cho ' : 'Giao cho ') + '<b>' + esc(ofName(to)) + '</b>: ' + esc(aiCut(r.t, 80)));
+}
+/** phong thư bay giữa phòng đang làm và hộp thư flow (mỗi bước chuỗi là một thư) */
+function ofMail(ag) { const In = $('#ofIn'); if (!In || !OF.pos || !OF.pos[ag]) return; const out = Math.random() < .5, a = out ? OF.pos[ag] : OF.pos['@mail'], b = out ? OF.pos['@mail'] : OF.pos[ag];
+  const el = document.createElement('span'); el.className = 'of-pk ml'; In.appendChild(el); const t0 = performance.now(), dur = 1400;
+  const step = now => { const k = Math.min(1, (now - t0) / dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; el.style.left = (a[0] + (b[0] - a[0]) * e) + 'px'; el.style.top = (a[1] + (b[1] - a[1]) * e - Math.sin(k * Math.PI) * 40) + 'px'; if (k < 1 && el.isConnected) requestAnimationFrame(step); else el.remove(); };
+  requestAnimationFrame(step); }
+function ofName(k) { const a = OF.d && OF.d.agents.find(x => x.key === k); return a ? a.t : k; }
+function ofEvent(h) { OF.ev = [{ at: new Date(), h: h }].concat(OF.ev || []).slice(0, 20); ofTicker(); }
+function ofTicker() {
+  const T = $('#ofT .ev'); if (!T || !OF.d) return; const D = OF.d, p = d => pad(new Date(d).getHours()) + ':' + pad(new Date(d).getMinutes());
+  const L = (OF.ev || []).map(e => ({ at: e.at, h: e.h })).concat((D.run || []).map(r => ({ at: r.at, h: '<b>' + esc(ofName(r.ag || 'chat')) + '</b> đang làm' + (r.sp ? ' (bước ' + r.sp + ')' : '') + ': ' + esc(aiCut(r.t, 70)) })),
+    (D.done || []).slice(0, 3).map(r => ({ at: r.at, h: '<b>' + esc(ofName(r.ag || 'chat')) + '</b> ' + (r.st === 'err' ? 'gặp lỗi' : 'xong') + ': ' + esc(aiCut(r.t, 70)) }))).sort((a, b) => new Date(b.at) - new Date(a.at));
+  T.innerHTML = L.length ? L.slice(0, 3).map(e => '<em>' + p(e.at) + '</em>' + e.h).join('<span style="margin:0 12px;color:var(--border)">•</span>') : '<em>' + p(new Date()) + '</em>Văn phòng đang rảnh — giao việc ở ô trên, Trợ lý chung sẽ chọn phòng làm.';
+}
+/** giao việc / hỏi Trợ lý chung ở ô trên cùng — trợ lý quyết định phòng nào làm (việc giao hiện thành chấm sáng chạy từ phòng điều phối) */
+async function ofAsk(text) {
+  text = String(text || '').trim(); const q = $('#ofQ'); if (!text) return q && q.focus(); if (OF.ans && OF.ans.wait) return toast('Trợ lý chung đang xử lý việc trước…', 'info');
+  if (q) q.value = ''; const W = OF.ans = { q: text, wait: 1, t0: new Date().toISOString() }; ofAns(); ofFly('@brain', 'hub', { t: text });
+  const got = o => { delete W.wait; if (o.status === 'ok') { W.text = o.text; W.refs = o.refs; } else W.err = o.err || 'Trợ lý chung chưa trả lời được'; if (OF.ans === W) ofAns(); ofLoad(); };
+  try { const r = await rpc('aiChat', { mode: 'hub', text: text }, { quiet: true }); W.conv = r.conv; if (AI_WAIT.test(r.status)) aiWatch(r.id, got); else got(r); setTimeout(ofLoad, 1200); }
+  catch (e) { delete W.wait; W.err = e.message || String(e); ofAns(); }
+}
+function ofAns() { const el = $('#ofA'), W = OF.ans; if (!el) return; if (!W) { el.innerHTML = ''; return; }
+  el.innerHTML = asstBot('xs', !!W.wait) + '<div class="b"><div class="small muted" style="margin-bottom:4px">Bạn giao: <b style="color:var(--ink)">' + esc(aiCut(W.q, 140)) + '</b></div>' + (W.wait ? aiThink('chat', W.t0) : W.err ? '<span class="muted">' + esc(W.err) + '</span>' : aiMd(W.text || '', W.refs || {})) + '</div>' +
+    (W.wait ? '' : '<button type="button" class="ibtn sm" data-ofax aria-label="Đóng"><i class="bi bi-x-lg"></i></button>'); }
+function ofClick(e) {
+  if (e.target.closest('[data-ofax]')) { OF.ans = null; return ofAns(); }
+  const r = e.target.closest('[data-ofr]'); if (r) return ofDrawer(r.dataset.ofr);
+  if (e.target.closest('[data-ofadd]')) { if (typeof AGS !== 'undefined') AGS.sel = 'hub'; lsSet('asSubT', 'ag'); OF.newAg = 1; return go('asst/subs'); }
+  if (e.target.closest('[data-ofbrain]')) return go('asst/subs');
+}
+/* ── NGĂN PHÒNG ── */
+const OF_VIA = { hub: 'hub', chat: 'cm', task: 'task' };
+function ofDrawerClose() { const d = $('#ofDr'), b = $('#ofBk'); if (d) d.remove(); if (b) b.remove(); document.removeEventListener('keydown', ofEsc); }
+function ofEsc(e) { if (e.key === 'Escape') ofDrawerClose(); }
+function ofDrawer(k, refresh) {
+  const D = OF.d, a = D && D.agents.find(x => x.key === k); if (!a) return;
+  let dr = $('#ofDr'); const keep = dr && refresh ? { g: ($('#ofGx', dr) || {}).value || '', s: $('.of-dr-b', dr) ? $('.of-dr-b', dr).scrollTop : 0, f: dr.querySelector('.of-docf') ? 1 : 0 } : null;
+  if (refresh && (!dr || dr.dataset.k !== k)) return; if (refresh && document.activeElement && dr.contains(document.activeElement) && /TEXTAREA|INPUT/.test(document.activeElement.tagName)) return;      // đang gõ → không vẽ lại
+  if (!dr) { const bk = document.createElement('div'); bk.className = 'of-bk'; bk.id = 'ofBk'; bk.onclick = ofDrawerClose; document.body.appendChild(bk); dr = document.createElement('aside'); dr.className = 'of-dr'; dr.id = 'ofDr'; dr.setAttribute('role', 'dialog'); dr.setAttribute('aria-label', 'Phòng ' + a.t); document.body.appendChild(dr); document.addEventListener('keydown', ofEsc); }
+  dr.dataset.k = k;
+  const runs = (D.run || []).filter(r => (r.ag || 'chat') === k), done = (D.done || []).filter(r => (r.ag || 'chat') === k), via = OF_VIA[k] || (/^x:/.test(k) ? k : 'cm'), job = !OF_VIA[k] && !/^x:/.test(k);
+  const okS = s => /^(ok|applied|partial|empty)$/.test(s);
+  dr.innerHTML = '<div class="of-dr-h">' + asstAva(a.av, 'md', runs.length > 0) + '<div class="t"><b>' + esc(k === 'hub' ? 'Phòng điều phối · ' + a.t : 'Phòng ' + a.t) + '</b><small>' + esc(a.d || '') + '</small></div><button type="button" class="ibtn sm" data-ofx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
+    '<div class="of-dr-b"><div class="of-chips" style="margin-top:0"><span>' + (runs.length ? '● đang làm ' + runs.length + ' việc' : a.off ? 'đang tắt' : 'rảnh') + '</span><span>' + (a.chain > 1 ? a.chain + ' bước flow' : 'một flow') + '</span><span>Hôm nay ' + a.today.n + ' lượt · ' + a.today.ok + ' xong' + (a.today.err ? ' · ' + a.today.err + ' lỗi' : '') + '</span>' + (a.sys ? '<span>có chỉ dẫn riêng</span>' : '') + (a.guard ? '<span>có rào chắn</span>' : '') + '</div>' +
+      (runs.length ? '<div class="of-dr-s"><h4>Đang làm</h4>' + runs.map(r => '<div class="of-run"><b>' + esc(r.t) + '</b><small>' + esc(r.kt) + (r.sp ? ' · bước ' + r.sp + ' của chuỗi flow' : '') + (r.hub ? ' · Trợ lý chung giao' : '') + ' · ' + esc(r.who) + ' · ' + esc(asbAgo(r.at)) + '</small>' + aiThink(r.k === 'chat' ? (r.m === 'task' ? 'task' : 'chat') : r.k, r.at) + '</div>').join('') + '</div>' : '') +
+      '<div class="of-dr-s of-give"><h4>Giao việc cho phòng này</h4><textarea class="ta" id="ofGx" placeholder="' + esc(k === 'hub' ? 'VD “rà soát các bé lệch KGS rồi báo mình”, Trợ lý chung tự chia việc' : job ? 'VD “gán bài tuần tới cho bé Hồng Nhật” — đi qua Trợ lý chuyên môn' : 'Việc cần làm…') + '"></textarea><div class="r"><small>' + (job ? 'Việc của phòng này chạy qua Trợ lý chuyên môn (cần dữ liệu lớp / buổi).' : 'Kết quả hiện ở Trợ lý chung › Kết quả việc đã giao, báo chuông khi xong.') + '</small><button type="button" class="btn sm pri" data-ofg="' + esc(via) + '"><i class="bi bi-send"></i>Giao</button></div></div>' +
+      '<div class="of-dr-s"><h4>Tài liệu riêng của phòng<span class="sp"></span>' + (D.can ? '<button type="button" class="btn xs" data-ofdn><i class="bi bi-plus-lg"></i>Thêm</button>' : '') + '</h4>' +
+        (a.docs.length ? a.docs.map((d, i) => '<div class="of-doc"><i class="bi bi-' + (/docs\.google|drive\.google/.test(d.url) ? 'file-earmark-text' : d.url ? 'link-45deg' : 'sticky') + '"></i><div class="t">' + (d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">' + esc(d.t || d.url) + '</a>' : '<b>' + esc(d.t || 'Ghi chú') + '</b>') + (d.b ? '<small>' + esc(aiCut(d.b, 300)) + '</small>' : '') + '</div>' + (D.can ? '<button type="button" class="ibtn sm" data-ofdx="' + i + '" aria-label="Xoá tài liệu"><i class="bi bi-trash"></i></button>' : '') + '</div>').join('')
+          : '<div class="small muted" style="line-height:1.5">Chưa có tài liệu riêng. Thêm bảng giá, quy trình, mẫu nhận xét… (link Google Docs đọc thẳng nội dung) — agent đọc trước mỗi lần làm.</div>') +
+        (keep && keep.f ? ofDocForm() : '') + '</div>' +
+      '<div class="of-dr-s"><h4>Kết quả gần đây</h4>' + (done.length ? done.map(r => '<div class="of-hi"><span class="s ' + (okS(r.st) ? 'ok' : r.st === 'err' ? 'e' : '') + '">' + (okS(r.st) ? 'xong' : r.st === 'err' ? 'lỗi' : r.st) + '</span><span class="t" title="' + esc(r.err || r.t) + '">' + esc(r.t) + '</span><small class="muted">' + esc(asbAgo(r.at)) + '</small></div>').join('') : '<div class="small muted">Chưa có việc nào gần đây.</div>') + '</div>' +
+      (D.can ? '<div class="of-dr-s"><button type="button" class="btn sm" data-ofst style="width:100%;justify-content:center"><i class="bi bi-diagram-3"></i>Sửa agent ở Xưởng agent (chuỗi flow · chỉ dẫn · rào chắn)</button></div>' : '') + '</div>';
+  if (keep) { const g = $('#ofGx', dr); if (g) g.value = keep.g; $('.of-dr-b', dr).scrollTop = keep.s; }
+  dr.onclick = ev => ofDrClick(ev, a, dr);
+}
+function ofDocForm() { return '<div class="of-docf"><input class="inp" id="ofDt" placeholder="Tên tài liệu — VD Quy trình gán bài lớp 1–5" maxlength="80"><input class="inp" id="ofDu" placeholder="Link (Google Docs / Drive / web) — tuỳ chọn"><textarea class="ta" id="ofDb" placeholder="Ghi chú / nội dung ngắn — tuỳ chọn"></textarea><div class="r"><button type="button" class="btn xs ghost" data-ofdc>Huỷ</button><button type="button" class="btn xs pri" data-ofds><i class="bi bi-check2"></i>Lưu tài liệu</button></div></div>'; }
+async function ofDrClick(ev, a, dr) {
+  if (ev.target.closest('[data-ofx]')) return ofDrawerClose();
+  if (ev.target.closest('[data-ofst]')) { ofDrawerClose(); if (typeof AGS !== 'undefined') AGS.sel = /^x:/.test(a.key) ? a.key.slice(2) : a.key; lsSet('asSubT', 'ag'); return go('asst/subs'); }
+  if (ev.target.closest('[data-ofdn]')) { if (!dr.querySelector('.of-docf')) { ev.target.closest('.of-dr-s').insertAdjacentHTML('beforeend', ofDocForm()); $('#ofDt', dr).focus(); } return; }
+  if (ev.target.closest('[data-ofdc]')) { const f = dr.querySelector('.of-docf'); if (f) f.remove(); return; }
+  const save = async docs => { try { const r = await rpc('aiAgentDocSave', { key: a.key, docs: docs }); a.docs = r.docs; toast('Đã lưu tài liệu của phòng', 'ok'); ofDrawer(a.key); } catch (er) { fail(er); } };
+  if (ev.target.closest('[data-ofds]')) { const t = $('#ofDt', dr).value.trim(), u = $('#ofDu', dr).value.trim(), b = $('#ofDb', dr).value.trim(); if (!t && !u && !b) return toast('Nhập tên, link hoặc ghi chú', 'warn');
+    if (u && !/^https:\/\//.test(u)) return toast('Link phải bắt đầu bằng https://', 'warn'); return save(a.docs.concat([{ t: t, url: u, b: b }])); }
+  const dx = ev.target.closest('[data-ofdx]'); if (dx) { if (!(await ask('Xoá tài liệu này khỏi phòng?', { ok: 'Xoá', danger: 1 }))) return; return save(a.docs.filter((d, i) => i !== Number(dx.dataset.ofdx))); }
+  const g = ev.target.closest('[data-ofg]'); if (g) { const ta = $('#ofGx', dr), text = ta.value.trim(); if (text.length < 3) return ta.focus(); const to = g.dataset.ofg; g.disabled = true;
+    try { if (to === 'hub') { ofDrawerClose(); return ofAsk(text); }
+      const body = !OF_VIA[a.key] && !/^x:/.test(a.key) ? '[' + a.t + '] ' + text : text, r = await rpc('asstGive', { to: to, text: body }); ta.value = '';
+      ofFly('hub', to === 'cm' ? 'chat' : to, null); toast('Đã giao cho phòng ' + a.t + ' — xong sẽ báo chuông', 'ok', 5000); setTimeout(ofLoad, 1000); }
+    catch (er) { fail(er); } finally { g.disabled = false; } }
 }
 </script>
 
