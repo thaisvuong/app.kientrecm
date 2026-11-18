@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-16T19:28:28.653Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T08:34:39.939Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -3944,6 +3944,36 @@ body.cp-dragging, body.cp-dragging *{ cursor:grabbing !important; user-select:no
 .bd-it.lib{ align-items:flex-start } .bd-it.lib .lb-it{ flex:1; min-width:0; padding:0; background:none }
 .bd-sf{ display:flex; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid var(--border); background:var(--surface) }
 .bd-sb .ta{ font-size:12.5px }
+/* (1.82) kéo rộng cột bài · tên topic hiện đủ (xuống dòng, không cắt) · nút xem nội dung bài · bài bị bỏ qua */
+.bd-lay{ grid-template-columns:minmax(0,1fr) 7px var(--bd-src, 380px) } .bd-t{ border-right:0 }
+.bd-split{ position:relative; cursor:col-resize; background:var(--border); touch-action:none; outline:none; transition:background-color .15s }
+.bd-split i{ position:absolute; top:50%; left:50%; width:3px; height:36px; transform:translate(-50%,-50%); border-radius:3px; background:var(--muted); opacity:.45 }
+.bd-split:hover, .bd-split:focus-visible, .bd-sizing .bd-split{ background:var(--brand-400) } .bd-split:hover i, .bd-sizing .bd-split i{ background:#fff; opacity:1 }
+.bd-sizing, .bd-sizing *{ cursor:col-resize !important; user-select:none }
+.bd-it{ align-items:flex-start } .bd-it > input, .bd-it > .bd-n, .bd-it > i{ margin-top:2px }
+.bd-itn{ white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; line-height:1.4 }
+.bd-u{ margin-top:2px } .bd-u.sk{ color:#B45309; font-weight:600; font-style:italic }
+.bd-eye{ flex:none; width:26px; height:26px; margin:-3px -4px -3px 0; display:inline-grid; place-items:center; border:0; border-radius:7px; background:none; color:var(--muted); cursor:pointer; opacity:.6 }
+.bd-eye:hover, .bd-eye:focus-visible{ opacity:1; color:var(--brand-700); background:var(--brand-50) } .bd-it.lib .bd-eye{ margin-top:2px }
+/* hộp xem nội dung một bài */
+.modal.xl.lp-m{ width:min(1180px, 97vw); height:calc(100vh - 40px) } .modal.lp-m > .modal-b{ padding:0; display:flex; min-height:0 }
+.lp{ flex:1; min-height:0; display:grid; grid-template-columns:minmax(220px, 300px) minmax(0,1fr) }
+.lp-l{ min-height:0; display:flex; flex-direction:column; border-right:1px solid var(--border); background:var(--surface-2) }
+.lp-p{ padding:10px 12px; font-size:11.5px; color:var(--muted); border-bottom:1px solid var(--border); line-height:1.45 }
+.lp-fl{ flex:1; min-height:0; overflow:auto; padding:6px; display:flex; flex-direction:column; gap:2px }
+.lp-f{ display:flex; align-items:flex-start; gap:8px; width:100%; text-align:left; padding:7px 8px; border:1px solid transparent; border-radius:9px; background:none; font:inherit; color:inherit; cursor:pointer }
+.lp-f:hover{ background:var(--surface) } .lp-f.on{ background:var(--surface); border-color:var(--brand-400) }
+.lp-f span{ min-width:0; display:flex; flex-direction:column } .lp-f b{ font-size:12.5px; font-weight:650; line-height:1.4; overflow-wrap:anywhere } .lp-f small{ font-size:11px; color:var(--muted) }
+.lp-v{ min-height:0; display:flex; flex-direction:column; background:var(--surface) } .lp-vb{ display:flex; justify-content:flex-end; padding:6px 10px; border-bottom:1px solid var(--border) }
+.lp-pg{ flex:1; min-height:0; overflow:auto; background:var(--surface-2); display:flex; flex-direction:column } .lp-pg iframe{ flex:1; width:100%; min-height:60vh; border:0; background:#fff }
+.lp-ld{ margin:auto; display:flex; gap:8px; align-items:center; color:var(--muted); font-size:13px } .lp-img{ display:block; max-width:min(100%, 900px); margin:12px auto 0; box-shadow:0 4px 18px -8px rgba(0,0,0,.3); background:#fff }
+@media (max-width:900px){
+  .bd-split{ display:none }
+  .bd-eye{ width:34px; height:34px; opacity:.8 }
+  .modal.xl.lp-m{ width:100%; height:96dvh } .lp{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) }
+  .lp-l{ border-right:0; border-bottom:1px solid var(--border) } .lp-fl{ flex-direction:row; overflow-x:auto; overflow-y:hidden; padding:6px 8px; gap:6px; scrollbar-width:none }
+  .lp-f{ flex:0 0 auto; max-width:230px; background:var(--surface); border-color:var(--border) } .lp-f b{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+}
 /* dòng kết quả tìm thư viện (Bảng gán bài + hộp Nội dung buổi) */
 .lb-it{ display:flex; align-items:center; gap:8px; min-width:0; padding:6px 8px; border-radius:9px; background:var(--surface) }
 .lb-tx{ flex:1; min-width:0; display:flex; flex-direction:column } .lb-tx b{ font-size:12.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .lb-tx small{ font-size:11px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
@@ -5248,6 +5278,27 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 .fbt-dv{ display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; font-weight:700; background:var(--surface-2); color:var(--muted); white-space:nowrap } .fbt-dv.ok{ color:var(--ok, #1a7f4b) } .fbt-dv.no{ color:var(--danger, #c0392b) }
 .fbt-w{ max-height:66vh; border:1px solid var(--border); border-radius:10px } .fbt td{ vertical-align:top; font-size:12.5px; line-height:1.45; min-width:140px; max-width:280px; white-space:normal }
 .fbt td.fbt-d, .fbt td.fbt-st, .fbt td.fbt-btvnp, .fbt td.fbt-dvt{ min-width:0; white-space:nowrap } .fbt td.fbt-d{ font-weight:700 }
+.fbt-act{ flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:8px } .fbt-act .sp{ flex:1 }
+/* (1.82) cột Bài đã gán · nút gán · AI phân tích nhận xét → gán bài */
+.fbt td.fbt-bai{ min-width:190px } .fbt-bl{ display:flex; flex-direction:column; gap:3px; margin-bottom:4px }
+.fbt-bc{ display:inline-flex; align-items:flex-start; gap:2px; padding:2px 2px 2px 8px; border-radius:8px; background:#ECFDF3; border:1px solid #BBF7D0; color:#14532D; font-size:12px; font-weight:650; line-height:1.4 } .fbt-bc > span{ padding-top:2px; overflow-wrap:anywhere }
+.fbt-bc .bd-eye{ width:22px; height:22px; margin:0 } .fbt-g{ height:26px; padding:0 9px; font-size:11.5px }
+.fbt-aib{ color:#6D28D9; border-color:#DDD6FE } .fbt-aib:hover{ background:#F5F3FF } .fbt-aib.busy i{ animation:spin 1.2s linear infinite }
+.fbt-ai{ margin-bottom:10px; border:1px solid #DDD6FE; border-radius:12px; background:color-mix(in oklab, #8B5CF6 5%, var(--surface)); padding:12px 14px }
+.fbt-aih{ display:flex; gap:10px; align-items:flex-start } .fbt-aih > .b{ flex:1; min-width:0; font-size:13px; line-height:1.55 } .fbt-aih.err{ color:var(--danger) }
+.fbt-ais{ margin-top:2px; color:var(--ink-2) } .fbt-aif{ margin-top:6px; font-size:13px } .fbt-aif ul{ margin:4px 0; padding-left:18px }
+.fbt-aiw{ margin-top:6px; font-size:12px; color:#92400E } .fbt-aiw ul{ margin:4px 0 0; padding-left:18px } .fbt-aiw summary{ cursor:pointer; font-weight:650 }
+.fbt-ail{ display:flex; flex-direction:column; gap:4px; margin:10px 0 0 } .fbt-ait{ display:flex; gap:9px; align-items:flex-start; padding:8px 10px; border-radius:10px; background:var(--surface); border:1px solid var(--border); font-size:13px; cursor:pointer }
+.fbt-ait input{ margin-top:3px; accent-color:var(--brand-600) } .fbt-ait > span{ flex:1; min-width:0; display:flex; flex-wrap:wrap; gap:4px 6px; align-items:center } .fbt-ait small{ flex-basis:100%; color:var(--muted); font-size:12px } .fbt-ait small.ok{ color:#15803D; font-weight:700 }
+.fbt-aia{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px } .fbt-aia .sp{ flex:1 }
+@media (max-width:820px){
+  .fbt-q{ width:100% } .fbt-act .sp{ display:none } .fbt-w{ max-height:none }
+  /* điện thoại: mỗi buổi một thẻ, nhãn cột ở đầu từng ô */
+  .fbt thead{ display:none } .fbt, .fbt tbody, .fbt tr, .fbt td{ display:block; width:100% } .fbt tr{ border-bottom:1px solid var(--border); padding:8px 10px }
+  .fbt td{ max-width:none; min-width:0 !important; border:0 !important; padding:3px 0 !important; white-space:normal !important } .fbt td:empty{ display:none }
+  .fbt td::before{ content:attr(data-l); display:block; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--muted) } .fbt td.fbt-d::before{ display:none } .fbt td.fbt-d{ font-size:14px }
+  .fbt-aia .btn{ flex:1 }
+}
 
 /* (1.80.50) khảo sát độ khó định kỳ */
 .ra-l{ display:flex; flex-direction:column } .ra-r{ display:flex; align-items:center; gap:12px; padding:9px 0; border-top:1px solid var(--border) } .ra-r:first-child{ border-top:0 }
@@ -8533,7 +8584,7 @@ async function go(route, opt) {
     if (rec.el._onArg(arg) !== 'rebuild') { applyChrome(rec, key, navKey); return; }      // (1.81.1) _onArg trả 'rebuild' = trang con khác hẳn (Kiến Task › Trợ lý / Check-in) → dựng lại trên phần tử mới
     rec.stale = true; }
   if (!fresh && rec.el._onShow && !rec.stale) rec.el._onShow();
-  if (rec.loading) return;
+  if (rec.loading) { if (rec.stale) rec.redo = 1; return; }      // (1.82) đang dựng trang (VD Kiến Task › Bảng đang tải) mà người dùng đã bấm sang trang con khác (Trợ lý) → dựng xong thì dựng lại đúng trang đang chọn — trước: bỏ qua, URL là tasks/asst mà vẫn hiện Bảng
   if (fresh || opt.refresh || rec.stale || rec.err) {
     if (!fresh) {   // dựng lại trên phần tử mới → không cộng dồn trình xử lý sự kiện của lần dựng trước
       const el = document.createElement('div');
@@ -8546,6 +8597,7 @@ async function go(route, opt) {
       await R.fn(arg, rec.el); rec.stale = false; rec.err = false; }
     catch (e) { rec.err = true; rec.el.innerHTML = '<div class="empty"><i class="bi bi-exclamation-octagon"></i>' + esc(e.message) + '<button class="btn sm" onclick="refreshView()">Thử lại</button></div>'; }
     finally { rec.loading = false; }
+    if (rec.redo) { rec.redo = 0; const cur = String(S.route || ''); if (cur.split('/')[0] === key && cur.split('/').slice(1).join('/') !== rec.arg) { rec.stale = true; return go(cur, { nohist: 1, replace: 1 }); } }
     if (seq === NAV && isShown(rec)) applyChrome(rec, key, navKey);
   }
 }
@@ -12039,6 +12091,8 @@ async function setKgs(B) {
     sw('kgSched', K.cfg.sched, 'Lấy lịch buổi học từ KGS', 'Lớp có học sinh bên KGS: buổi thêm / dời / huỷ theo KGS, app thôi tự tạo buổi theo thứ trong tuần. Buổi đã dạy giữ nguyên ngày giờ. Tắt = lớp quay về tự tạo buổi như cũ.') +
     sw('kgRoad', K.cfg.road, 'Xếp bài theo lộ trình KGS', 'Buổi chưa có bài nhận topic kế tiếp trong lộ trình của học sinh (thư mục topic phải có trong Thư viện). Tắt = xếp theo chương trình của lớp như cũ.') +
     sw('kgCls', K.cfg.cls, 'Tự thêm lớp GS- từ KGS + gán gia sư', 'Lớp mã GS-… đang học bên KGS mà chưa có ở đây → tự thêm (học sinh, khối, thứ / giờ) và gán gia sư theo email ở mục Nhân sự của KGS — gia sư chưa có tài khoản thì tự cấp. KGS chưa có email gia sư → lớp vẫn thêm, báo ở mục Cần xử lý. Lớp đã gán gia sư khác thì giữ nguyên, chỉ báo.') +
+    sw('kgSpare', K.cfg.spare, 'Gia sư thấy bài các buổi Dư để in trước', 'Buổi Dư (đã gán bài ở Kiến CM nhưng KGS chưa có buổi) hiện cho gia sư với nhãn “In trước · chờ lịch KGS” — gia sư mở / in được ngay, không sửa và không bấm Đã dạy ở buổi đó. Mặc định chỉ buổi Dư đã duyệt.') +
+    (K.cfg.spare ? sw('kgSpareD', K.cfg.spareDraft, '… kể cả buổi Dư còn nháp (chưa duyệt)', 'Gia sư thấy cả bài nháp ở buổi Dư — chỉ bật khi lộ trình đã chắc chắn.') : '') +
     sw('kgPush', K.cfg.push, 'Ghi bài đã duyệt sang KGS', 'Buổi đã duyệt / đã dạy có bài → “📄 tên bài — link” trong Lưu ý buổi học của đúng buổi bên KGS, cộng sau ghi chú của Giáo vụ. Đổi bài thì thay phần 📄, bỏ bài thì gỡ phần đó; ghi chú của Giáo vụ giữ nguyên.') +
     '<div class="fg"><label class="flabel">Môn áp dụng' + (K.cfg.subjOpen ? '' : ' <span class="tag"><i class="bi bi-lock-fill"></i> Đang khoá</span>') + '</label><div class="kg-sj">' + Object.keys(K.subjs || { MATH: 'Toán' }).map(k => { const on = (K.cfg.subj || ['MATH']).indexOf(k) >= 0, lk = !K.cfg.subjOpen; return '<label class="chk"' + (lk && !on ? ' style="opacity:.5"' : '') + (lk ? ' title="Đang khoá — admin mở khoá mới đổi được"' : '') + '><input type="checkbox" data-sj="' + k + '"' + (on ? ' checked' : '') + (lk ? ' disabled' : '') + '> ' + esc(K.subjs[k]) + '</label>'; }).join('') + '</div>' +
       '<small class="muted">KGS có nhiều môn (vd. Toán lẫn Tiếng Anh) — Kiến CM chỉ lấy buổi học, lộ trình, topic của các môn được tích; buổi môn khác không vào Kiến CM. ' + (K.cfg.subjOpen ? 'Đang mở khoá.' : 'Hiện chỉ áp dụng Toán, các môn khác đang khoá.') + '</small>' +
@@ -12147,6 +12201,8 @@ async function setKgs(B) {
     if (t.id === 'kgSched') save({ sched: t.checked ? 1 : 0 });
     else if (t.id === 'kgRoad') save({ road: t.checked ? 1 : 0 });
     else if (t.id === 'kgCls') save({ cls: t.checked ? 1 : 0 });
+    else if (t.id === 'kgSpare') save({ spare: t.checked ? 1 : 0 });
+    else if (t.id === 'kgSpareD') save({ spareDraft: t.checked ? 1 : 0 });
     else if (t.id === 'kgPush') save({ push: t.checked ? 1 : 0 });
     else if (t.id === 'kgFollow') save({ follow: t.checked ? 1 : 0 });
     else if (t.dataset.sj) { const L = $$('[data-sj]', B).filter(x => x.checked).map(x => x.dataset.sj); if (!L.length) { t.checked = true; return toast('Chọn ít nhất một môn', 'info'); } save({ subj: L }); }
@@ -14813,6 +14869,7 @@ function clSelf(x) { return !!x && (x.status === 'approved' || x.status === 'tau
 /** trạng thái hiển thị của một buổi */
 function clState(x) {
   if (x.status === 'off') return { k: 'off', t: 'Nghỉ', i: 'bi-slash-circle', c: 'gray' };
+  if (x.spare && x.spareView && !(CL.d && CL.d.manage)) return { k: 'out', t: 'In trước · chờ lịch KGS', i: 'bi-printer', c: 'blue' };      // (1.82) gia sư thấy bài buổi Dư để in trước (cài đặt Đồng bộ KGS)
   if (x.spare) return { k: 'spare', t: 'Dư · chờ KGS có buổi', i: 'bi-hourglass', c: 'gray' };      // (1.62) gia sư chưa thấy buổi này
   if (x.status === 'taught') return { k: 'taught', t: 'Đã dạy', i: 'bi-check2-all', c: 'ok' };
   if (clSelf(x) && (x.released || !CL.d.cfg.gate)) return { k: 'out', t: 'Đã duyệt · không link', i: 'bi-link-45deg', c: 'ok' };
@@ -15562,27 +15619,79 @@ async function clRateAsk(force) {
     r.querySelectorAll('[data-ra]').forEach(x => x.classList.toggle('pri', x.dataset.ra === pick[sid])); });
 }
 /** (1.80.49) BẢNG NHẬN XÉT ĐIỂM DANH KGS của bé: mỗi buổi một dòng (nhận xét GS, tiếp thu, thái độ, bài tập trên lớp, kiến thức yếu, BTVN %), tìm nhanh, tải CSV */
-const FB_COL = [['d', 'Ngày'], ['nd', 'Nội dung dạy'], ['dvt', 'KGS duyệt'], ['st', 'Điểm danh'], ['nx', 'Nhận xét GS'], ['tt', 'Mức tiếp thu'], ['td', 'Thái độ'], ['bt', 'Bài tập trên lớp'], ['yeu', 'Kiến thức còn yếu'], ['btvnp', 'BTVN làm / đúng'], ['btvn', 'BTVN giao']];      // (1.81) Nội dung dạy ngay sau Ngày
+const FB_COL = [['d', 'Ngày'], ['nd', 'Nội dung dạy'], ['bai', 'Bài đã gán'], ['dvt', 'KGS duyệt'], ['st', 'Điểm danh'], ['nx', 'Nhận xét GS'], ['tt', 'Mức tiếp thu'], ['td', 'Thái độ'], ['bt', 'Bài tập trên lớp'], ['yeu', 'Kiến thức còn yếu'], ['btvnp', 'BTVN làm / đúng'], ['btvn', 'BTVN giao']];      // (1.81) Nội dung dạy ngay sau Ngày · (1.82) Bài đã gán (buổi cùng ngày ở Kiến CM)
+/* (1.82) câu giao AI khi bấm “AI phân tích & gán bài” — không có chữ ôn lại / dạy lại (không mở khoá xếp lùi; strict) */
+const FB_AI_ASK = 'Đọc kỹ "nhanXetKGS" (nhận xét gia sư ghi bên Kiến Gia Sư từng buổi: nhận xét, mức tiếp thu, thái độ, bài tập trên lớp, kiến thức còn yếu, BTVN % làm / % đúng) cùng "noiDungKGS" và "daDay" của bé. ' +
+  'Thêm vào JSON trường "phanTich" (chuỗi, gạch đầu dòng, ≤ 160 chữ) gồm: điểm mạnh; phần kiến thức còn yếu (dẫn đúng ngày nhận xét); mức tiếp thu & BTVN; căn cứ chọn bài cho các buổi tới. ' +
+  'Sau đó đề xuất bài cho các buổi sắp tới theo đúng lộ trình (bài kế tiếp sau bài xa nhất bé đã học) — chọn bài phù hợp với phần bé còn yếu nếu bài đó nằm ở phía trước trong lộ trình; lời dặn gia sư ("note") nhắc phần cần chú ý. Không bịa nội dung không có trong nhận xét.';
 async function clFbTable(c) {
+  const man = !!(CL.d && CL.d.manage), aiOk = man && typeof aiCanTask === 'function' && aiCanTask();
   const m = modal({ title: 'Nhận xét KGS · ' + clName(c), icon: 'bi-table', size: 'xl fbt-m', body: miniLoader('Đang tải nhận xét…') });
   let R; try { R = await rpc('classFb', { id: c.id }, { quiet: true }); } catch (e) { m.close(); return fail(e); } if (m.closed) return;
+  const sOf = d => clSess(c.id).filter(x => x.date === d && !x.spare);      // buổi Kiến CM cùng ngày với dòng nhận xét
+  const bai = x => { const ss = sOf(x.d); return ss.reduce((a, z) => a.concat(clCont(z).folders), []).map(f => ({ id: f, n: clDirName(f) || 'Bài' })); };
   const L = (R.items || []).map(x => Object.assign({}, x, { btvnp: [x.lam ? x.lam + '%' : '', x.dung ? x.dung + '%' : ''].filter(Boolean).join(' / '), dvt: { ok: 'Đã duyệt', wait: 'Chờ duyệt', no: 'Từ chối' }[x.dv] || '' }));      // (1.80.50) dvt: KGS đã duyệt nhận xét (phụ huynh xem được) chưa
   const num = k => { const v = L.map(x => Number(x[k])).filter(v => !isNaN(v) && String(v) !== ''); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) + '%' : '—'; };
   const nDv = L.filter(x => x.dv === 'ok').length, vang = L.filter(x => /vang|nghi/.test(fold(x.st || ''))).length, dm = d => String(d || '').slice(8, 10) + '/' + String(d || '').slice(5, 7) + '/' + String(d || '').slice(2, 4);
   let q = '';
-  const paint = () => { const w = fold(q.trim()), V = L.filter(x => !w || fold(FB_COL.map(k => x[k[0]] || '').join(' ')).indexOf(w) >= 0);
+  const baiCell = x => { const B = bai(x), ss = sOf(x.d);
+    return (B.length ? '<span class="fbt-bl">' + B.map(b => '<span class="fbt-bc"><span>' + esc(b.n) + '</span><button type="button" class="bd-eye" data-view="' + esc(b.id) + '" title="Xem nội dung bài" aria-label="Xem nội dung bài"><i class="bi bi-eye"></i></button></span>').join('') + '</span>' : '<span class="muted">' + (ss.length ? 'Chưa gán' : '—') + '</span>') +
+      (man && ss.length ? '<button type="button" class="btn xs ghost fbt-g" data-fbg="' + esc(ss[0].id) + '" title="Mở Bảng gán bài ở buổi này"><i class="bi bi-grid-3x3-gap"></i>' + (B.length ? 'Sửa' : 'Gán') + '</button>' : ''); };
+  const paint = () => { const w = fold(q.trim()), V = L.filter(x => !w || fold(FB_COL.map(k => k[0] === 'bai' ? bai(x).map(b => b.n).join(' ') : x[k[0]] || '').join(' ')).indexOf(w) >= 0);
     m.$('.fbt-b').innerHTML = V.length ? '<div class="tbl-wrap fbt-w"><table class="tbl fbt"><thead><tr>' + FB_COL.map(k => '<th>' + k[1] + '</th>').join('') + '</tr></thead><tbody>' +
-      V.map(x => '<tr>' + FB_COL.map(k => '<td class="fbt-' + k[0] + '">' + (k[0] === 'd' ? esc(dm(x.d)) : k[0] === 'dvt' && x.dvt ? '<span class="fbt-dv ' + esc(x.dv) + '">' + esc(x.dvt) + '</span>' : esc(x[k[0]] || '')) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>'
+      V.map(x => '<tr>' + FB_COL.map(k => '<td class="fbt-' + k[0] + '" data-l="' + esc(k[1]) + '">' + (k[0] === 'd' ? esc(dm(x.d)) : k[0] === 'bai' ? baiCell(x) : k[0] === 'dvt' && x.dvt ? '<span class="fbt-dv ' + esc(x.dv) + '">' + esc(x.dvt) + '</span>' : esc(x[k[0]] || '')) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>'
       : '<div class="empty" style="padding:30px"><i class="bi bi-inbox"></i>' + (L.length ? 'Không có buổi nào khớp' : 'Chưa có nhận xét điểm danh bên KGS cho bé này (đồng bộ KGS sẽ kéo về)') + '</div>';
     m.$('.fbt-n').textContent = V.length + ' / ' + L.length + ' buổi'; };
   m.$('.modal-b').innerHTML = '<div class="fbt-h"><span class="fbt-s"><b>' + L.length + '</b> buổi có nhận xét · BTVN làm TB <b>' + num('lam') + '</b> · đúng TB <b>' + num('dung') + '</b>' + (vang ? ' · vắng / nghỉ <b>' + vang + '</b>' : '') + (L.some(x => x.dv) ? ' · KGS đã duyệt <b>' + nDv + '</b>' : '') + (R.at ? ' · cập nhật ' + esc(fmtDT(R.at)) : '') + '</span>' +
-    '<div class="fbt-note"><i class="bi bi-info-circle"></i>Nhận xét do gia sư tự ghi bên KGS. Dòng <b>Đã duyệt</b> là Chuyên môn / Giáo vụ đã duyệt bên KGS (phụ huynh xem được). Trước khi gửi phụ huynh, đọc lại các dòng chưa duyệt.</div>' +
-    '<span style="flex:1"></span><input class="inp fbt-q" placeholder="Tìm trong nhận xét…" aria-label="Tìm trong nhận xét"><small class="muted fbt-n"></small><button class="btn sm ghost" id="fbtCsv"' + (L.length ? '' : ' disabled') + '><i class="bi bi-download"></i>CSV</button></div><div class="fbt-b"></div>';
+    '<div class="fbt-note"><i class="bi bi-info-circle"></i><span>Nhận xét do gia sư tự ghi bên KGS. Dòng <b>Đã duyệt</b> là Chuyên môn / Giáo vụ đã duyệt bên KGS (phụ huynh xem được). Trước khi gửi phụ huynh, đọc lại các dòng chưa duyệt.</span></div>' +
+    '<div class="fbt-act">' + (man ? '<button class="btn sm" id="fbtBd" title="Bảng gán bài của bé — gán bài cho các buổi tới"><i class="bi bi-grid-3x3-gap"></i>Gán bài</button>' : '') +
+      (aiOk && L.length ? '<button class="btn sm fbt-aib" id="fbtAi" title="AI đọc nhận xét các buổi gần đây → tóm tắt điểm mạnh / phần còn yếu và đề xuất bài cho các buổi tới (bạn xem rồi bấm Áp dụng)"><i class="bi bi-stars"></i>AI phân tích & gán bài</button>' : '') +
+      '<span class="sp"></span><input class="inp fbt-q" placeholder="Tìm trong nhận xét…" aria-label="Tìm trong nhận xét"><small class="muted fbt-n"></small><button class="btn sm ghost" id="fbtCsv"' + (L.length ? '' : ' disabled') + '><i class="bi bi-download"></i>CSV</button></div></div>' +
+    '<div class="fbt-ai" id="fbtA" hidden></div><div class="fbt-b"></div>';
   m.$('.fbt-q').oninput = e => { q = e.target.value; paint(); };
   m.$('#fbtCsv').onclick = () => { const esc2 = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + [FB_COL.map(k => k[1])].concat(L.map(x => FB_COL.map(k => x[k[0]] || ''))).map(r => r.map(esc2).join(',')).join('\n')], { type: 'text/csv' }));
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + [FB_COL.map(k => k[1])].concat(L.map(x => FB_COL.map(k => k[0] === 'bai' ? bai(x).map(b => b.n).join('; ') : x[k[0]] || ''))).map(r => r.map(esc2).join(',')).join('\n')], { type: 'text/csv' }));
     a.download = 'Nhan-xet-KGS_' + String(c.code || c.id) + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000); };
+  const board = sid => { const nx = clSess(c.id).find(x => clEditable(x) && x.date >= CL.d.today); clBoard(c, sid || (nx && nx.id), { onClose: () => { if (m.el.isConnected) paint(); } }); };
+  m.el.addEventListener('click', e => {
+    const vw = e.target.closest('[data-view]'); if (vw) { e.preventDefault(); return clLessonPeek(vw.dataset.view); }
+    const g = e.target.closest('[data-fbg]'); if (g) return board(g.dataset.fbg);
+    if (e.target.closest('#fbtBd')) return board();
+    if (e.target.closest('#fbtAi')) return clFbAi(c, m, e.target.closest('#fbtAi'), () => paint());
+  });
   paint();
+}
+/** (1.82) AI PHÂN TÍCH NHẬN XÉT KGS → GÁN BÀI: một lượt gán bài (kind assign, chỉ đề xuất, không mở khoá bài cũ) cho 21 ngày tới; kết quả hiện ngay trong bảng nhận xét — tick mục rồi Áp dụng */
+async function clFbAi(c, m, btn, repaint) {
+  const A = m.$('#fbtA'); if (!A || btn.disabled) return; btn.disabled = true; btn.classList.add('busy');
+  const t0 = new Date().toISOString(); A.hidden = false;
+  A.innerHTML = '<div class="fbt-aih">' + (typeof asstBot === 'function' ? asstBot('xs', 1) : '<i class="bi bi-stars"></i>') + '<div class="b"><b>AI đang phân tích nhận xét của ' + esc(clName(c)) + '</b>' + (typeof aiThink === 'function' ? aiThink('assign', t0) : '') + '</div></div>';
+  const end = () => { btn.disabled = false; btn.classList.remove('busy'); };
+  const show = o => { end(); if (!A.isConnected) return; if (o.status === 'err') { A.innerHTML = '<div class="fbt-aih err"><i class="bi bi-exclamation-triangle"></i><div class="b">Trợ lý AI lỗi: ' + esc(o.err || 'không rõ') + '</div></div>'; return; }
+    const X = o.actions || {}, I = (X.items || []).map((it, i) => Object.assign({ i: i }, it)), pick = new Set(I.filter(it => it.st !== 'done').map(it => it.i));
+    const row = it => it.t === 'ask' ? '<label class="fbt-ait"><input type="checkbox" data-fai="' + it.i + '"' + (pick.has(it.i) ? ' checked' : '') + (it.st === 'done' ? ' disabled' : '') + '><span><b><i class="bi bi-chat-dots"></i> Hỏi gia sư</b> — ' + esc(it.msg) + (it.topics && it.topics.length ? '<small>' + esc(it.topics.map(t => t.n).join(' · ')) + '</small>' : '') + '</span></label>'
+      : '<label class="fbt-ait"><input type="checkbox" data-fai="' + it.i + '"' + (pick.has(it.i) ? ' checked' : '') + (it.st === 'done' ? ' disabled' : '') + '><span><b>' + esc((it.thu ? it.thu + ' ' : '') + String(it.d || '').slice(8, 10) + '/' + String(it.d || '').slice(5, 7)) + '</b> → ' + it.les.map(l => '<span class="fbt-bc"><span>' + esc(l.n) + '</span><button type="button" class="bd-eye" data-view="' + esc(l.id) + '" aria-label="Xem nội dung bài"><i class="bi bi-eye"></i></button></span>').join(' ') +
+        (it.cur && it.cur.length ? '<small>đang có: ' + esc(it.cur.map(l => l.n).join(', ')) + '</small>' : '') + (it.why ? '<small>' + esc(it.why) + (it.note ? ' · dặn GS: ' + esc(it.note) : '') + '</small>' : '') + (it.st === 'done' ? '<small class="ok">đã áp dụng</small>' : '') + '</span></label>';
+    A.innerHTML = '<div class="fbt-aih">' + (typeof asstBot === 'function' ? asstBot('xs') : '<i class="bi bi-stars"></i>') + '<div class="b"><b>AI phân tích nhận xét</b>' + (X.summary ? '<div class="fbt-ais">' + esc(X.summary) + '</div>' : '') +
+        (X.fb ? '<div class="fbt-aif">' + (typeof aiMd === 'function' ? aiMd(X.fb, {}) : esc(X.fb)) + '</div>' : '') +
+        ((X.warn || []).length ? '<details class="fbt-aiw"><summary>' + X.warn.length + ' lưu ý của hệ thống</summary><ul>' + X.warn.map(w => '<li>' + esc(w) + '</li>').join('') + '</ul></details>' : '') + '</div>' +
+        '<button type="button" class="ibtn sm" data-faix aria-label="Đóng phân tích"><i class="bi bi-x-lg"></i></button></div>' +
+      (I.length ? '<div class="fbt-ail">' + I.map(row).join('') + '</div><div class="fbt-aia"><span class="small muted">Chưa áp dụng cho tới khi bạn bấm — buổi nháp chờ duyệt ở Buổi học</span><span class="sp"></span><button class="btn sm" data-faap="draft"><i class="bi bi-check2"></i>Áp dụng (nháp)</button><button class="btn sm pri" data-faap="approve"><i class="bi bi-check2-all"></i>Áp dụng & duyệt</button></div>'
+        : '<div class="small muted" style="padding:4px 2px 2px">AI không đề xuất đổi bài — các buổi tới đã có bài hợp lý hoặc chưa có buổi để gán.</div>');
+    A.onchange = e => { const k = e.target.dataset.fai; if (k == null) return; e.target.checked ? pick.add(Number(k)) : pick.delete(Number(k)); };
+    A.onclick = async e => {
+      const vw = e.target.closest('[data-view]'); if (vw) { e.preventDefault(); e.stopPropagation(); return clLessonPeek(vw.dataset.view); }
+      if (e.target.closest('[data-faix]')) { A.hidden = true; return; }
+      const ap = e.target.closest('[data-faap]'); if (!ap) return; const P = [...pick].filter(i => I[i] && I[i].st !== 'done'); if (!P.length) return toast('Tick ít nhất một mục', 'warn');
+      ap.disabled = true; ap.classList.add('busy');
+      try { const r = await rpc('aiApply', { id: o.id, pick: P, mode: ap.dataset.faap }); toast('Đã áp dụng ' + (r.ok != null ? r.ok : P.length) + ' mục' + (ap.dataset.faap === 'approve' ? ' · đã duyệt' : ' · nháp chờ duyệt'), 'ok');
+        await clReload(Date.now()); CL.repaint && CL.repaint(); if (r.log) show(r.log); repaint && repaint(); }
+      catch (er) { fail(er); ap.disabled = false; ap.classList.remove('busy'); } };
+  };
+  try { const r = await rpc('aiAssignPlan', { cids: [c.id], days: 21, text: FB_AI_ASK, strict: 1, via: 'fb' }, { quiet: true });
+    if (!r.log) { end(); A.innerHTML = '<div class="fbt-aih"><i class="bi bi-info-circle"></i><div class="b">' + esc(r.msg || 'Không có buổi để gán') + '</div></div>'; return; }
+    if (/^(send|wait|proc)$/.test(r.log.status) && typeof aiWatch === 'function') aiWatch(r.log.id, show); else show(r.log); }
+  catch (e) { end(); A.innerHTML = '<div class="fbt-aih err"><i class="bi bi-exclamation-triangle"></i><div class="b">' + esc(e.message || e) + '</div></div>'; }
 }
 /** (1.78.6) THỜI KHOÁ BIỂU CỦA BÉ: mọi buổi của bé trên các lớp (cùng mã học sinh KGS, không có mã thì cùng tên) — sắp tới + 45 ngày đã qua, kèm người dạy + gia sư ghi gì bên KGS */
 /** (1.78.10) địa điểm học (KGS › Vận hành › Cơ sở → Classes.campus): “Tại nhà” / tên cơ sở */
@@ -19071,6 +19180,48 @@ function clLibRow(r, ctl) {
     '<span class="lb-tx"><b>' + esc(r.dir ? r.name : clFName(r.name)) + (r.copy ? ' <em class="lb-cp" title="Có tệp khác cùng tên, cùng thư mục trên Drive (bản sao) — chỉ cần chọn một">bản sao</em>' : '') + '</b><small>' + esc(r.sub || '') + (r.dir ? ' · ' + r.n + ' tệp' : r.kind ? ' · ' + esc(r.kind) : '') + (r.size ? ' · ' + fmtSize(r.size) : '') + '</small></span>' + (ctl || '') + '</div>';
 }
 
+/* ══════════ (1.82) XEM NỘI DUNG MỘT BÀI (thư mục topic / tệp) — danh sách tệp + xem trước bằng trình xem Drive, không rời bảng đang mở ══════════ */
+function clLessonPeek(id) {
+  const d = IX.dirs[id], one = !d && IX.byId[id];
+  const F = (one ? [one] : filesIn(id)).slice().sort((a, b) => natCmp(String(a.path || '') + '/' + a.name, String(b.path || '') + '/' + b.name));
+  const name = d ? d.name : one ? clFName(one.name) : (typeof clDirName === 'function' && clDirName(id)) || 'Bài';
+  const path = d ? dirPath(d.pid, d.sid).map(x => x.name).join(' / ') : one ? one.path || '' : '';
+  let cur = (F.find(f => /pdf|gdoc|gslides|docx?|pptx?/.test(String(f.type))) || F[0] || {}).id || '';
+  const m = modal({ title: name, icon: d ? 'bi-folder2-open' : 'bi-file-earmark-text', size: 'xl lp-m', foot: [{ t: 'Đóng', cls: 'pri' }],
+    body: '<div class="lp"><div class="lp-l"><div class="lp-p">' + esc(path || 'Thư viện') + ' · ' + F.length + ' tệp</div><div class="lp-fl" id="lpL"></div></div><div class="lp-v" id="lpV"></div></div>' });
+  const L = m.$('#lpL'), V = m.$('#lpV');
+  const paint = () => {
+    L.innerHTML = F.length ? F.map(f => '<button type="button" class="lp-f' + (f.id === cur ? ' on' : '') + '" data-lpf="' + esc(f.id) + '">' + ficon(f.type) + '<span><b>' + esc(clFName(f.name)) + '</b><small>' + esc([f.kind ? kindOf(f.kind).k : '', f.size ? fmtSize(f.size) : ''].filter(Boolean).join(' · ')) + '</small></span></button>').join('')
+      : '<div class="lk-empty sm"><i class="bi bi-folder2"></i><span>Thư mục này chưa có tệp nào trong thư viện (topic chưa có tài liệu)</span></div>';
+    V.innerHTML = cur ? '<div class="lp-vb"><a class="btn xs ghost" target="_blank" rel="noopener" href="' + driveUrl(cur) + '"><i class="bi bi-box-arrow-up-right"></i>Mở trên Drive</a></div><div class="lp-pg" id="lpPg"><div class="lp-ld"><span class="spin"></span>Đang mở tệp…</div></div>'
+      : '<div class="lk-empty"><i class="bi bi-eye-slash"></i><span>Không có tệp để xem</span></div>';
+    if (cur) show(cur);
+  };
+  /* bộ xem PDF của app (tải qua máy chủ — không cần quyền Drive) · tệp khác: ảnh trang đầu · cuối cùng mới dùng trình xem Drive */
+  const show = async id => { const pg = m.$('#lpPg'), f = IX.byId[id] || {}, still = () => cur === id && pg.isConnected;
+    try { if (f.type === 'pdf' && typeof fileData === 'function' && typeof PdfView === 'function') { const d = await fileData(id, true); if (!still()) return; if (d && d.type === 'pdf') { pg.innerHTML = ''; await PdfView(pg, {}).open(d.b64); return; } } }
+    catch (e) { console.warn('lessonPeek pdf', e); if (!still()) return; }
+    try { const r = await rpc('filePeek', { id: id, w: 1100 }, { quiet: true }); if (!still()) return; if (r && r.url) { pg.innerHTML = '<img class="lp-img" alt="Trang đầu" src="' + esc(r.url) + '"><div class="small muted" style="text-align:center;margin:8px 0">Trang đầu — bấm “Mở trên Drive” để xem đủ</div>'; return; } }
+    catch (e) { console.warn('lessonPeek', e); }
+    if (still()) pg.innerHTML = '<iframe src="https://drive.google.com/file/d/' + encodeURIComponent(id) + '/preview" title="Xem trước" allow="autoplay" loading="lazy"></iframe>'; };
+  L.onclick = e => { const b = e.target.closest('[data-lpf]'); if (!b || b.dataset.lpf === cur) return; cur = b.dataset.lpf; paint(); };
+  paint(); return m;
+}
+/* (1.82) THANH KÉO ĐỔI ĐỘ RỘNG hai cột (Bảng gán bài): kéo / phím ← → / bấm đúp (rộng ↔ gọn), nhớ trên máy. Điện thoại (≤ 900px) xếp dọc, không có thanh kéo */
+function clSplit(lay, sp, key, def) {
+  if (!lay || !sp) return;
+  const lim = w => { const W = lay.clientWidth || 1200; return Math.round(Math.max(260, Math.min(W - 360, w))); };
+  const set = w => { lay.style.setProperty('--bd-src', lim(w) + 'px'); };
+  set(Number(lsGet(key, def)) || def);
+  let st = null;
+  sp.addEventListener('pointerdown', e => { e.preventDefault(); try { sp.setPointerCapture(e.pointerId); } catch (x) {} st = { x: e.clientX, w: lay.querySelector('.bd-src').getBoundingClientRect().width }; lay.classList.add('bd-sizing'); });
+  sp.addEventListener('pointermove', e => { if (st) set(st.w + (st.x - e.clientX)); });
+  const end = () => { if (!st) return; st = null; lay.classList.remove('bd-sizing'); lsSet(key, parseInt(lay.style.getPropertyValue('--bd-src'), 10) || def); };
+  sp.addEventListener('pointerup', end); sp.addEventListener('pointercancel', end); sp.addEventListener('lostpointercapture', end);
+  sp.addEventListener('dblclick', () => { const w = lay.querySelector('.bd-src').getBoundingClientRect().width, wide = Math.round((lay.clientWidth || 1200) * 0.6); set(w > wide - 40 ? def : wide); end.call(null); lsSet(key, parseInt(lay.style.getPropertyValue('--bd-src'), 10) || def); });
+  sp.tabIndex = 0; sp.addEventListener('keydown', e => { const d = e.key === 'ArrowLeft' ? 40 : e.key === 'ArrowRight' ? -40 : 0; if (!d) return; e.preventDefault(); const w = lay.querySelector('.bd-src').getBoundingClientRect().width; set(w + d); lsSet(key, parseInt(lay.style.getPropertyValue('--bd-src'), 10) || def); });
+}
+
 /* ══════════ BẢNG GÁN BÀI ══════════ */
 function clBoard(c, focusId, opt) {      // (1.80.38) opt.onClose = đóng bảng (đã lưu hoặc huỷ) → nơi mở bảng tính lại số
   if (!CL.d || !CL.d.manage) return;
@@ -19082,6 +19233,10 @@ function clBoard(c, focusId, opt) {      // (1.80.38) opt.onClose = đóng bản
   const shortSt = s => ({ taught: 'Đã dạy', out: 'Đã phát', prev: 'Đã duyệt', draft: 'Chờ duyệt', none: 'Trống', off: 'Nghỉ' })[s.k] || s.t;
   // dòng: mọi buổi của lớp (đã dạy / nghỉ chỉ để xem) — buổi đã dạy quá 30 ngày ẩn bớt
   let rows = all.filter(x => !(x.status === 'taught' && x.date < clAdd(D.today, -30))).map(x => ({ id: x.id, date: x.date, time: x.time || '', sj: x.ksj || '', ed: clEditable(x), tg: x.status === 'taught', kr: x.krep || null, self: clSelf(x), rel: !!x.released, st: clState(x), orig: clCont(x), cur: clCont(x) }));
+  /* (1.82) MỐC TIẾN ĐỘ: bài xa nhất bé đã học (học trước, buổi đã dạy / đã phát mà đã qua — kể cả buổi cũ hơn 30 ngày không hiện, topic KGS của buổi đã qua).
+     “Kế tiếp” / Xếp theo CT / kéo điền đi tiếp SAU mốc — bài chưa học nằm trước mốc là bài bị bỏ qua (ghi “bỏ qua”), chỉ gán khi quản lý chủ động kéo vào. */
+  const FR = (() => { let m = -1; const f = id => { if (id in LI && LI[id] > m) m = LI[id]; };
+    (c.done || []).forEach(f); all.forEach(x => { if (x.status === 'taught' || (x.date < D.today && x.released)) clCont(x).folders.forEach(f); if (x.date < D.today && x.kt && x.kt.f) f(x.kt.f); }); return m; })();
   /* (1.80.6) buổi ĐÃ DẠY: thả / kéo bài để khớp với nội dung gia sư ghi bên KGS (hiện ngay dưới buổi) — đẩy lùi / dồn lên / kéo điền vẫn bỏ qua buổi đã dạy · lưu xong, dòng 📄 tài liệu bên KGS ghi lại theo bài mới ở lần đồng bộ tới */
   const dz = r => !!r && (r.ed || r.tg);
   const krTxt = r => { const o = r.kr; if (!o) return ''; const K = Object.keys(o).filter(k => String(o[k] || '').trim()); if (!K.length) return ''; const mk = K.find(k => /content|noidung|summary|detail|taught|teach|lesson/i.test(k)) || K.find(k => /comment|review|feedback|remark/i.test(k)) || K[0];
@@ -19122,11 +19277,13 @@ function clBoard(c, focusId, opt) {      // (1.80.38) opt.onClose = đóng bản
       (typeof aiCanTask === 'function' && aiCanTask() && rows.some(r => r.tg && r.kr) ? '<button class="btn xs bd-ai" data-b="aimatch" title="Trợ lý AI đọc nội dung gia sư ghi bên KGS ở các buổi đã dạy, đặt bài khớp vào buổi — bạn xem lại rồi bấm Lưu"><i class="bi bi-robot"></i><span>AI khớp bài đã dạy</span></button>' : '') +
       '<span class="sp"></span><span class="bd-fl">Kéo điền</span><div class="seg bd-fm" id="bdFm"><button class="seg-b" data-fm="series" title="Kéo ô vuông xuống: xếp tiếp các bài sau trong chương trình">Xếp tiếp</button><button class="seg-b" data-fm="copy" title="Kéo ô vuông xuống: chép y nội dung">Chép y</button></div></div>' +
       '<div class="bd-hint" id="bdH"></div>' +
-      '<div class="bd-lay"><div class="bd-t" id="bdT" tabindex="0"></div>' +
+      '<div class="bd-lay" id="bdLay"><div class="bd-t" id="bdT" tabindex="0"></div>' +
+        '<div class="bd-split" id="bdSp" role="separator" aria-orientation="vertical" aria-label="Kéo để đổi độ rộng cột bài" title="Kéo để đổi độ rộng · bấm đúp: rộng / gọn"><i></i></div>' +
         '<aside class="bd-src"><div class="seg bd-st" id="bdSt"><button class="seg-b" data-src="prog"><i class="bi bi-mortarboard"></i>Chương trình</button><button class="seg-b" data-src="lib"><i class="bi bi-collection"></i>Thư viện</button><button class="seg-b" data-src="drive"><i class="bi bi-google"></i>Link Drive</button></div>' +
           '<div class="bd-sb" id="bdSB"></div><div class="bd-sf" id="bdSF"></div></aside></div></div>',
     foot: [{ t: 'Đóng', cls: 'ghost', fn: () => tryClose() }, { t: 'Lưu', i: 'bi-save', fn: () => save(false) }, { t: 'Lưu & duyệt', i: 'bi-check2-all', cls: 'pri', fn: () => save(true) }] });
   const H = m.$('#bdH'), TB = m.$('#bdT'), SB = m.$('#bdSB'), SF = m.$('#bdSF');
+  clSplit(m.$('#bdLay'), m.$('#bdSp'), 'bdSrcW', 380);      // (1.82) kéo rộng cột bài để đọc đủ tên topic
   const DEF_HINT = '<i class="bi bi-lightbulb"></i><span>Kéo bài ở cột phải thả vào buổi · kéo <b class="bd-fhk"></b> ở buổi đang chọn xuống để xếp tiếp · Shift chọn nhiều buổi · ⌘Z hoàn tác.' + (rows.some(r => r.tg) ? ' Buổi <b>đã dạy</b>: kéo bài khớp dòng <b>KGS</b> (gia sư ghi) vào — lưu xong, KGS cập nhật ở lần đồng bộ tới.' : '') + ' Chưa lưu cho tới khi bấm Lưu.</span>';
   let hT = 0; const hint = (t, ok) => { H.innerHTML = '<i class="bi ' + (ok ? 'bi-check2-circle' : 'bi-info-circle') + '"></i><span>' + esc(t) + '</span>'; H.classList.toggle('ok', !!ok); clearTimeout(hT); hT = setTimeout(() => { H.innerHTML = DEF_HINT; H.classList.remove('ok'); }, 3200); };
   H.innerHTML = DEF_HINT;
@@ -19167,18 +19324,19 @@ function clBoard(c, focusId, opt) {      // (1.80.38) opt.onClose = đóng bản
     if (!T.ok) return '<div class="lk-empty sm"><i class="bi bi-mortarboard"></i><span>' + (p ? 'Thư mục của chương trình không còn' : 'Lớp chưa gán chương trình — dùng tab Thư viện hoặc Link Drive') + '</span></div>';
     const u = usedAt(), w = fold(progQ).split(/\s+/).filter(Boolean);
     const list = L.map((id, i) => ({ id: id, i: i })).filter(o => !w.length || w.every(z => fold(nm(o.id)).indexOf(z) >= 0));
-    const firstFree = L.findIndex(id => !u[id]);
+    const firstFree = L.findIndex((id, i) => i > FR && !u[id]);      // (1.82) bài kế tiếp = bài chưa dùng đầu tiên SAU mốc tiến độ
     return '<div class="search bd-q"><i class="bi bi-search"></i><input class="inp" id="bdPQ" value="' + esc(progQ) + '" placeholder="Lọc ' + L.length + ' bài của chương trình"></div>' +
       '<div class="bd-il" data-list="prog">' + list.map(o => { const k = 'f:' + o.id, us = u[o.id];
         return '<label class="bd-it' + (us ? ' used' : '') + (o.i === firstFree ? ' nx' : '') + '" draggable="true" data-it="' + esc(k) + '">' + ck(k, pk.has(k)) + '<em class="bd-n">' + (o.i + 1) + '</em>' + (IX.dirs[o.id] ? '<i class="bi bi-folder2"></i>' : '<i class="bi bi-file-earmark-text"></i>') + '<span class="bd-itn">' + esc(nm(o.id)) + '</span>' +
-          (us ? '<small class="bd-u">' + (us[0].pre ? 'học trước' : us.map(r => clDay(r.date, D.today).dm).slice(0, 2).join(', ')) + '</small>' : o.i === firstFree ? '<small class="bd-u nx">kế tiếp</small>' : '') + '</label>'; }).join('') + '</div>';
+          (us ? '<small class="bd-u">' + (us[0].pre ? 'học trước' : us.map(r => clDay(r.date, D.today).dm).slice(0, 2).join(', ')) + '</small>' : o.i === firstFree ? '<small class="bd-u nx">kế tiếp</small>' : o.i < FR ? '<small class="bd-u sk" title="Bé đã học các bài sau bài này — chỉ gán khi muốn dạy lại / bù">bỏ qua</small>' : '') +
+          '<button type="button" class="bd-eye" data-view="' + esc(o.id) + '" title="Xem nội dung bài" aria-label="Xem nội dung bài"><i class="bi bi-eye"></i></button></label>'; }).join('') + '</div>';
   };
   const srcLib = () => {
     const res = libQ.trim() ? clLibFind(libQ, clLibScopeKey(libScope), 80) : [];
     return '<div class="bd-lq"><div class="search bd-q"><i class="bi bi-search"></i><input class="inp" id="bdLQ" value="' + esc(libQ) + '" placeholder="Tìm bài, tệp trong thư viện…"></div>' +
       '<select class="sel" id="bdLS" aria-label="Chương trình">' + clLibScopes(c).map(o => '<option value="' + esc(o.id) + '"' + (o.id === libScope ? ' selected' : '') + '>' + esc(o.name) + '</option>').join('') + '</select></div>' +
       '<div class="bd-il" data-list="lib">' + (!libQ.trim() ? '<div class="lk-empty sm"><i class="bi bi-search"></i><span>Gõ tên bài / tệp — VD “phân số buổi 12”. Thư mục bài và tệp tìm được kéo thẳng vào buổi.</span></div>'
-        : res.length ? res.map(r => { const k = 'f:' + r.id; return '<label class="bd-it lib" draggable="true" data-it="' + esc(k) + '">' + ck(k, pk.has(k)) + clLibRow(r) + '</label>'; }).join('') : '<div class="lk-empty sm"><span>Không thấy “' + esc(libQ) + '”' + (libScope ? ' trong chương trình này — thử Cả thư viện' : '') + '</span></div>') + '</div>';
+        : res.length ? res.map(r => { const k = 'f:' + r.id; return '<label class="bd-it lib" draggable="true" data-it="' + esc(k) + '">' + ck(k, pk.has(k)) + clLibRow(r) + '<button type="button" class="bd-eye" data-view="' + esc(r.id) + '" title="Xem nội dung" aria-label="Xem nội dung"><i class="bi bi-eye"></i></button></label>'; }).join('') : '<div class="lk-empty sm"><span>Không thấy “' + esc(libQ) + '”' + (libScope ? ' trong chương trình này — thử Cả thư viện' : '') + '</span></div>') + '</div>';
   };
   const srcDrive = () => '<textarea class="ta" id="bdDT" rows="2" placeholder="Dán link thư mục / tệp Google Drive hoặc link tạm (…/s/…) — mỗi dòng một link"></textarea><div class="row"><button class="btn xs" id="bdDG"><i class="bi bi-box-arrow-in-down"></i>Lấy tệp</button><span class="small muted" id="bdDE"></span><span class="sp"></span>' + (drv.length ? '<button class="btn xs ghost" id="bdDA">Chọn hết ' + drv.length + '</button>' : '') + '</div>' +
     '<div class="bd-il" data-list="drive">' + (drv.length ? drv.map(f => { const k = 'x:' + f.id; return '<label class="bd-it" draggable="true" data-it="' + esc(k) + '">' + ck(k, pk.has(k)) + ficon(f.t) + '<span class="bd-itn">' + esc(f.n) + '</span>' + (f.from ? '<small class="bd-u">' + esc(f.from) + '</small>' : '') + '</label>'; }).join('')
@@ -19227,7 +19385,7 @@ function clBoard(c, focusId, opt) {      // (1.80.38) opt.onClose = đóng bản
     const s = selEd(); if (!s.length || !L.length) return;
     commit(() => {
       const inR = new Set(s), used = new Set(c.done || []); rows.forEach((r, i) => { if (!inR.has(i)) r.cur.folders.forEach(f => used.add(f)); });
-      let pos = 0; rows.slice(0, s[0]).forEach(r => r.cur.folders.forEach(id => { if (id in LI) pos = Math.max(pos, LI[id] + 1); }));
+      let pos = FR + 1; rows.slice(0, s[0]).forEach(r => r.cur.folders.forEach(id => { if (id in LI) pos = Math.max(pos, LI[id] + 1); }));      // (1.82) bắt đầu sau mốc tiến độ — không lấp bài bị bỏ qua
       s.forEach(i => { const pick = []; for (let k = pos; k < L.length && pick.length < (lc.per || 1); k++) if (!used.has(L[k])) { pick.push(L[k]); used.add(L[k]); pos = k + 1; } setCur(rows[i], { folders: pick, extra: [], pick: null, lnote: '', hold: pick.length ? 0 : 1 }); });
     }, 'Đã xếp ' + s.length + ' buổi theo chương trình');
   };
@@ -19284,6 +19442,7 @@ function clBoard(c, focusId, opt) {      // (1.80.38) opt.onClose = đóng bản
   };
   const rowOf = el => { const r = el && el.closest('.bd-r'); return r ? Number(r.dataset.i) : -1; };
   m.el.addEventListener('click', e => {
+    const vw = e.target.closest('[data-view]'); if (vw) { e.preventDefault(); e.stopPropagation(); return clLessonPeek(vw.dataset.view); }      // (1.82) xem nội dung bài
     const b = e.target.closest('[data-b]'); if (b) { const a = b.dataset.b; return a === 'undo' ? undo() : a === 'redo' ? redo() : a === 'push' ? shift(1) : a === 'pull' ? shift(-1) : a === 'clear' ? clear() : a === 'auto' ? auto() : a === 'aimatch' ? aiMatch(b) : null; }
     const fm = e.target.closest('[data-fm]'); if (fm) { fillMode = fm.dataset.fm; lsSet('bdFill', fillMode); return paint(); }
     const sb = e.target.closest('[data-src]'); if (sb) { src = sb.dataset.src; lsSet('bdSrc', src); paintBar(); return paintSrc(); }
@@ -20476,14 +20635,14 @@ function aiRunHtml(A) {
   if (!A) return '<div class="small muted" style="padding:12px 16px">Chưa có dữ liệu</div>';
   const KI = { assign: 'bi-magic', match: 'bi-robot', pmap: 'bi-arrow-left-right', reqs: 'bi-inboxes', chat: 'bi-chat-dots', grade: 'bi-clipboard-check' };
   const ago = t => { const s = Math.max(0, Math.round((Date.now() - new Date(t).getTime()) / 1000)); return s < 60 ? s + ' giây' : s < 3600 ? Math.round(s / 60) + ' phút' : s < 86400 ? Math.round(s / 3600) + ' giờ' : Math.round(s / 86400) + ' ngày'; };
-  const STEP = ['Nhận việc', A.eng === 'gemini' ? 'Gemini đang làm' : 'Chờ AI trả lời (mail)', 'Có kết quả', 'Đã áp dụng'];
+  const STEP = ['Nhận việc', A.eng === 'gemini' ? 'Gemini đang làm' : A.eng === 'claude' ? 'Claude đang làm' : 'Chờ AI trả lời (mail)', 'Có kết quả', 'Đã áp dụng'];
   const cur = r => r.st === 'send' ? 0 : r.st === 'wait' || r.st === 'proc' ? 1 : r.st === 'err' ? -1 : r.done ? 3 : 2;
   const flow = r => { const c = cur(r); return '<div class="rp2-fl' + (c < 0 ? ' err' : '') + '">' + STEP.map((t, i) => '<span class="' + (c < 0 ? (i === 0 ? 'ok' : '') : i < c ? 'ok' : i === c ? (c >= 2 ? 'ok' : 'on') : '') + '"><i></i>' + t + '</span>').join('<em></em>') + '</div>'; };
   const row = r => '<div class="rp2-ar" data-ailog="' + esc(r.id) + '"><span class="rp2-ai-i k-' + esc(r.k) + '"><i class="bi ' + (KI[r.k] || 'bi-cpu') + '"></i></span><div class="rp2-ai-b"><div class="rp2-ai-t"><b>' + esc(r.kt) + '</b><span>' + esc(r.t) + '</span><small>' + esc(r.who) + ' · ' + ago(r.at) + ' trước' + (r.via === 'job' ? ' · tự chạy' : '') + '</small></div>' + flow(r) +
     (r.st === 'err' ? '<div class="rp2-ai-e"><i class="bi bi-exclamation-circle"></i>' + esc(r.err || 'lỗi') + '</div>' : r.n ? '<div class="rp2-ai-n">' + r.n + ' mục' + (r.done ? ' · ' + r.done + ' đã áp dụng' : ' chờ bạn xem') + (r.ms ? ' · ' + Math.round(r.ms / 1000) + ' giây' : '') + '</div>' : '') + '</div></div>';
   const T = A.today || {};
   return '<div class="rp2-ai-k"><div><b>' + (A.run.length) + '</b><small>đang chạy</small></div><div><b>' + (T.n || 0) + '</b><small>việc hôm nay</small></div><div><b>' + (T.act || 0) + '</b><small>đã tự áp dụng</small></div><div class="' + (T.err ? 'bad' : '') + '"><b>' + (T.err || 0) + '</b><small>lỗi</small></div>' +
-      '<div class="rp2-ai-eng ' + A.eng + '"><i class="bi ' + (A.eng === 'gemini' ? 'bi-lightning-charge-fill' : 'bi-envelope') + '"></i>' + (A.eng === 'gemini' ? 'Gemini API' : 'Flow qua mail') + '</div></div>' +
+      '<div class="rp2-ai-eng ' + A.eng + '"><i class="bi ' + (A.eng !== 'mail' ? 'bi-lightning-charge-fill' : 'bi-envelope') + '"></i>' + (A.eng === 'gemini' ? 'Gemini API' : A.eng === 'claude' ? 'Claude API' : 'Flow qua mail') + '</div></div>' +
     (A.bq.length ? A.bq.map(j => '<div class="rp2-bq"><div><i class="bi bi-diagram-3"></i><b>Việc lớn: ' + esc(j.t) + '</b><small>' + j.be + ' bé · ' + j.days + ' ngày tới</small></div><span class="rp2-bqb"><i style="width:' + Math.round(j.i / j.n * 100) + '%"></i></span><small>đợt ' + j.i + ' / ' + j.n + ' đã gửi · đợt sau tự chạy mỗi phút</small></div>').join('') : '') +
     (A.q ? '<div class="rp2-bq q"><i class="bi bi-hourglass-split"></i>' + A.q + ' bé chờ AI gán lại sau khi gia sư xác nhận kiến thức</div>' : '') +
     (A.run.length ? '<div class="rp2-al">' + A.run.map(row).join('') + '</div>' : '<div class="rp2-idle"><span class="rp2-dot"></span>AI đang rảnh — không có việc nào đang chạy</div>') +
@@ -21628,6 +21787,7 @@ function aiCfgView(body) {
     card('bi-diagram-3', 'Kết nối nâng cao (flow nhận thư)', '<div class="small ax-muted" style="margin-bottom:10px">Mỗi flow = một địa chỉ kích hoạt + một mã trong tiêu đề (Token). Chọn flow nhận <b>việc</b> nào và cho <b>vai trò</b> nào (để trống = mọi vai trò). Nhiều flow cùng khớp → việc chia đều (chạy song song, trả lời nhanh hơn).</div>' +
       '<div id="aiFlows"></div><div class="ax-inl" style="margin-top:10px"><button class="btn sm ghost" id="aiFlowAdd"><i class="bi bi-plus-lg"></i>Thêm flow</button>' + (defMiss(c.flows).length ? '<button class="btn sm ghost" id="aiFlowDef"><i class="bi bi-magic"></i>Thêm ' + defMiss(c.flows).length + ' flow dựng sẵn còn thiếu</button>' : '') +
         '<span class="sp" style="flex:1"></span><button class="btn sm pri" id="aiFlowSave"><i class="bi bi-check2"></i>Lưu flow</button></div>', '<button class="btn sm ghost" id="aiFlowHelp"><i class="bi bi-question-circle"></i>Cách dựng flow</button>') +
+    (AI.b.gem ? card('bi-cpu', 'Agent & model (Claude / Gemini) · suy nghĩ sâu', '<div id="aiAgW" class="ag-host"></div>') : '') +      // (1.82) model + chỉ dẫn riêng từng việc (AssistView.html › asstAgentCard)
     // (1.77.25) GEMINI — khoá API chính thức · (1.80) để cuối trang: ít dùng
     (AI.b.gem ? card('bi-stars', 'Gemini (khoá API)', '<div class="ai-opt"><div><b>Dùng Gemini thay flow qua mail</b><small>' + (AI.b.gem.on ? '<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> Đang dùng ' + esc(AI.b.gem.model) + '</span> — Hỏi AI, gán bài, xử lý yêu cầu trả lời ngay.' : AI.b.gem.has ? 'Đã có khoá — bật để dùng.' : 'Lấy khoá ở Google AI Studio › Get API key, dán vào đây. Khoá chỉ nằm trên máy chủ.') +
         (AI.b.gem.err ? '<br><span style="color:var(--danger)">Lỗi gần nhất: ' + esc(AI.b.gem.err) + '</span>' : '') + '</small></div>' + sw('gemOn', AI.b.gem.on, 'Dùng Gemini') + '</div>' +
@@ -21648,6 +21808,7 @@ function aiCfgView(body) {
       '<textarea class="ta" data-kb="body" rows="5" placeholder="Nội dung / các bước — dán link tài liệu ngay trong câu, VD: Bé mới → gửi tài liệu buổi đầu https://drive.google.com/…">' + esc(k.body || '') + '</textarea></div>').join('') : '<div class="small ax-muted">Chưa có tài liệu nào.</div>'; };
   const kbRead = () => { $$('[data-kbi]', body).forEach(el => { const k = KB[Number(el.dataset.kbi)]; $$('[data-kb]', el).forEach(i => { k[i.dataset.kb] = i.value; }); }); };
   kbPaint();
+  { const ag = $('#aiAgW', body); if (ag && typeof asstAgentCard === 'function') asstAgentCard(ag); }      // (1.82)
   let F = JSON.parse(JSON.stringify(c.flows || []));
   const saved = id => (c.flows || []).some(f => f.id === id);
   function flowsPaint() {
@@ -21806,6 +21967,26 @@ body[data-asrun~="cm"] .nav-i[data-r="ai"] > .bi::after, body[data-asrun~="task"
 body[data-asrun]:not([data-asrun=""]) .as-bot.xs .pc{ animation:asGlow 1.6s ease-in-out infinite }
 @keyframes asGlow{ 0%,100%{ box-shadow:0 0 0 1px var(--border) } 50%{ box-shadow:0 0 0 3px color-mix(in oklab, var(--primary) 45%, transparent) } }
 @media (max-width:860px){ .br-map{ grid-template-columns:1fr; gap:12px; padding-top:8px } .br-c{ order:-1 } .br-col.l, .br-col.r{ align-items:stretch } .br-n{ width:auto } .br-svg{ display:none } .br-pop{ left:12px !important; right:12px; width:auto } }
+/* (1.82) AGENT & MODEL */
+.ag{ display:flex; flex-direction:column; gap:10px } .ag-k{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2) }
+.ag-k .t{ flex:1 1 220px; min-width:0; font-size:13px } .ag-k .t small{ display:block; color:var(--muted); font-size:12px; margin-top:2px } .ag-k .inp{ flex:1 1 220px; height:34px } .ag-ok{ color:var(--ok, #16a34a); font-weight:700 } .ag-err{ color:var(--danger); font-size:12px }
+.ag-l{ display:flex; flex-direction:column; border:1px solid var(--border); border-radius:12px; overflow:hidden }
+.ag-r{ display:grid; grid-template-columns:minmax(160px,1.1fr) minmax(170px,1fr) 104px 128px 34px; gap:8px; align-items:center; padding:9px 12px; border-top:1px solid var(--border); background:var(--surface) } .ag-r:first-child{ border-top:0 }
+.ag-r .n b{ display:block; font-size:13px } .ag-r .n small{ display:block; font-size:11.5px; color:var(--muted); line-height:1.35 } .ag-r .sel{ height:32px; font-size:12.5px; width:100%; min-width:0 }
+.ag-dp{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-2); white-space:nowrap } .ag-dp input{ accent-color:var(--primary) }
+.ag-x{ grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1fr) minmax(170px,240px); gap:8px; padding-top:2px } .ag-x textarea{ min-height:64px; font-size:12.5px } .ag-x label{ font-size:11.5px; color:var(--muted); display:flex; flex-direction:column; gap:4px }
+.ag-r.on .ag-more{ color:var(--primary) } .ag-has{ display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--primary); margin-left:6px; vertical-align:2px }
+.ag-ft{ display:flex; flex-wrap:wrap; gap:8px; align-items:center } .ag-ft .sp{ flex:1 } .ag-ft small{ color:var(--muted); font-size:12px; line-height:1.45 }
+.br-agent{ margin-bottom:12px }
+@media (max-width:760px){ .ag-r{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } .ag-r .n{ grid-column:1 / -1 } .ag-r .ag-more{ justify-self:end } .ag-x{ grid-template-columns:minmax(0,1fr) } }
+.br-ask textarea{ overflow-y:hidden } .br-ask textarea::placeholder{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }      /* (1.82) chữ gợi ý không rớt dòng, không hiện thanh cuộn */
+.br-gv textarea{ overflow-y:hidden } .br-gv textarea::placeholder{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.br-res{ margin-top:14px } .br-rs{ border:1px solid var(--border); border-radius:12px; background:var(--surface); margin-top:6px; overflow:hidden } .br-rs.on{ border-color:color-mix(in oklab, var(--primary) 40%, var(--border)) }
+.br-rh{ display:flex; gap:8px; align-items:center; width:100%; padding:9px 12px; border:0; background:none; font:inherit; color:inherit; text-align:left; cursor:pointer } .br-rh:hover{ background:var(--surface-2) }
+.br-rh .t{ flex:1; min-width:0; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .br-rh small{ color:var(--muted); font-size:11.5px; white-space:nowrap } .br-rh > i{ color:var(--muted) }
+.br-rh .st{ font-size:11px; font-weight:700; padding:1px 7px; border-radius:6px; white-space:nowrap } .br-rh .st.ok{ color:var(--ok, #16a34a); background:color-mix(in oklab, var(--ok, #16a34a) 10%, transparent) } .br-rh .st.w{ color:var(--primary); background:color-mix(in oklab, var(--primary) 10%, transparent) } .br-rh .st.e{ color:var(--danger); background:color-mix(in oklab, var(--danger) 10%, transparent) }
+.br-rb{ padding:4px 14px 12px; font-size:13.5px; line-height:1.6; border-top:1px solid var(--border) } .br-rf{ margin-top:8px }
+@media (max-width:620px){ .br-rh{ flex-wrap:wrap } .br-rh .t{ flex-basis:100%; order:2; white-space:normal } }
 /* TRỢ LÝ KIẾN TASK */
 .tka{ max-width:1120px; margin:0 auto; padding:2px 0 28px }
 .tka-askw{ margin-bottom:14px } .tka-ask{ display:flex; gap:8px; align-items:flex-end; padding:8px 8px 8px 14px; border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:0 8px 24px -18px color-mix(in oklab, var(--primary) 60%, transparent) }
@@ -21836,6 +22017,20 @@ body[data-asrun]:not([data-asrun=""]) .as-bot.xs .pc{ animation:asGlow 1.6s ease
 .tka-days{ display:flex; gap:6px; flex-wrap:wrap } .tka-days label{ display:inline-flex } .tka-days input{ display:none } .tka-days span{ padding:5px 10px; border-radius:999px; border:1px solid var(--border); font-size:12.5px; cursor:pointer } .tka-days input:checked + span{ background:var(--primary); color:#fff; border-color:var(--primary) }
 .tka-chk{ display:flex; flex-direction:column; gap:4px; max-height:160px; overflow:auto; padding:6px 8px; border:1px solid var(--border); border-radius:10px; font-size:13px } .tka-chk label{ display:flex; gap:8px; align-items:center }
 .tka-sw{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0; font-size:13px } .tka-sw small{ display:block; color:var(--muted); font-size:12px }
+.tka-tabs{ display:flex; gap:4px; margin:0 0 14px; padding:4px; border:1px solid var(--border); border-radius:14px; background:var(--surface); overflow-x:auto; scrollbar-width:none } .tka-tabs::-webkit-scrollbar{ display:none }      /* (1.82) tab con */
+.tka-tab{ flex:1 0 auto; display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:8px 14px; border:0; border-radius:10px; background:none; font:inherit; font-size:13px; font-weight:600; color:var(--ink-2); cursor:pointer; white-space:nowrap }
+.tka-tab:hover{ background:var(--surface-2) } .tka-tab[aria-selected="true"]{ background:color-mix(in oklab, var(--primary) 11%, var(--surface)); color:var(--primary) }
+.tka-ask textarea{ overflow-y:hidden } .tka-ask textarea::placeholder{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.tkp-h{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:12px } .tkp-h .sp{ flex:1 } .tkp-h small{ font-size:12px }
+.tkp-w{ border:0 } .tkp-t td, .tkp-t th{ font-size:12.5px; white-space:nowrap } .tkp-t td{ vertical-align:middle } .tkp-n{ display:inline-flex; align-items:center; gap:8px; font-weight:600 } .tkp-n .tka-av{ width:24px; height:24px; font-size:10px }
+.tkp-b{ display:inline-block; width:70px; height:6px; border-radius:6px; background:var(--surface-2); margin-right:8px; vertical-align:middle; overflow:hidden } .tkp-b i{ display:block; height:100%; background:var(--ok, #16a34a); border-radius:6px }
+.tkp-lo{ color:var(--danger); font-weight:700 }
+@media (max-width:700px){
+  .tka-tab span{ font-size:12.5px } .tka-tab{ padding:8px 11px }
+  .tkp-t thead{ display:none } .tkp-t, .tkp-t tbody, .tkp-t tr{ display:block } .tkp-t tr{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px 10px; padding:10px 2px; border-bottom:1px solid var(--border) }
+  .tkp-t td{ border:0 !important; padding:0 !important; white-space:normal } .tkp-t td:first-child{ grid-column:1 / -1 } .tkp-t td:not(:first-child)::before{ content:attr(data-l); display:block; font-size:10.5px; color:var(--muted); font-weight:600 }
+  .tkp-b{ width:40px }
+}
 /* CHECK-IN */
 .ck{ max-width:860px; margin:0 auto; padding:4px 0 32px }
 .ck-h{ display:flex; align-items:center; gap:12px; margin-bottom:12px } .ck-h .t{ flex:1; min-width:0 } .ck-h b{ font-size:17px; display:block } .ck-h small{ color:var(--muted); font-size:12.5px }
@@ -22003,22 +22198,32 @@ function asbPaint(body) {
         '<div class="br-c" id="brC">' + asstBot('lg', engUse || asking) + '<b>' + esc(as.t) + '</b><small>' + (engUse ? 'Đang làm ' + run.length + ' việc' : esc(as.d)) + '</small><small class="br-where"><i class="bi bi-geo-alt"></i>' + esc(ASB_WHERE[k] || '') + '</small>' +
           '<div class="br-tl">' + tools.map(t => '<span class="' + (t.on ? 'on' : '') + (tUse(t) ? ' use' : '') + '" title="' + esc(t.n) + '"><i class="bi ' + (ASB_TI[t.k] || 'bi-plug') + '"></i></span>').join('') + '</div>' +
           '<div class="br-now" id="brNow" aria-live="polite"></div>' +
-          '<div class="br-ask"><textarea class="ta" id="brQ" rows="1" placeholder="Hỏi ' + esc(as.t.replace(/^Trợ lý /, 'trợ lý ')) + (hub ? ' hoặc giao việc…' : '…') + '"></textarea><button type="button" class="ax-send" id="brGo" aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>' +
+          '<div class="br-ask"><textarea class="ta" id="brQ" rows="1" placeholder="' + (hub ? 'Hỏi hoặc giao việc…' : 'Hỏi trợ lý…') + '" title="' + esc('Hỏi ' + as.t.replace(/^Trợ lý /, 'trợ lý ') + (hub ? ' hoặc giao việc' : '')) + '"></textarea><button type="button" class="ax-send" id="brGo" aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>' +
           (D.memOk ? '<button type="button" class="btn sm ghost br-addb" data-badd><i class="bi bi-plus-lg"></i>Thêm vào trợ lý</button>' : '') +
           (st.o.tabs ? '<button type="button" class="btn sm ghost br-addb" data-bopen="' + k + '"><i class="bi bi-box-arrow-up-right"></i>Mở ở ' + esc(ASB_SUB[k] ? ASB_SUB[k].at : '') + '</button>' : '') + '</div>' +
         '<div class="br-col r">' + R.join('') + '</div></div>' +
       '<div class="br-th" id="brTh"></div></div>' +
-    (hub ? '<div class="br-card br-give"><div class="br-hd"><b>Giao việc cho trợ lý</b><span class="sp"></span><small>Kết quả nằm ở module của trợ lý đó và báo chuông</small></div>' +
+    (hub ? '<div class="br-card br-give"><div class="br-hd"><b>Giao việc cho trợ lý</b><span class="sp"></span><small>Kết quả hiện ngay bên dưới · báo chuông khi xong</small></div>' +
       '<div class="br-gv"><select class="sel" id="brGt" aria-label="Giao cho">' + ['cm'].concat(D.tkOn ? ['task'] : []).map(s => '<option value="' + s + '">' + esc(ASB_SUB[s].t) + '</option>').join('') + '</select>' +
-      '<textarea class="ta" id="brGx" rows="1" placeholder="VD “rà soát lộ trình các bé đang lệch KGS”, “nhắc ai chưa check-in hôm nay”"></textarea><button type="button" class="btn sm pri" id="brGg"><i class="bi bi-send"></i>Giao</button></div><div id="brH"></div></div>' : '') +
+      '<textarea class="ta" id="brGx" rows="1" placeholder="VD “rà soát lộ trình các bé đang lệch KGS”, “nhắc ai chưa check-in hôm nay”"></textarea><button type="button" class="btn sm pri" id="brGg"><i class="bi bi-send"></i>Giao</button></div>' + asbGiven(D) + '<div id="brH"></div></div>' : '') +
     '<div class="br-card"><div class="br-hd"><b>Đang làm</b><span class="sp"></span><small>' + (D.run && D.run.today ? 'Hôm nay ' + D.run.today.n + ' lượt · ' + D.run.today.act + ' việc đã làm' + (D.run.today.err ? ' · ' + D.run.today.err + ' lỗi' : '') : '') + '</small></div>' +
       (k !== 'task' && busyK.length ? '<div class="br-kids">' + busyK.map(b => '<button type="button" class="br-kid" data-bkid="' + esc(b.id) + '"><b>' + esc(b.be || 'Bé') + '</b><span data-aibs="' + esc(b.id) + '"></span></button>').join('') + '</div>' : '') +
       '<div class="br-run">' + runH + '</div></div></div>';
   aibPaint(body); requestAnimationFrame(() => asbLines(body)); if (!asbPaint.rs) { asbPaint.rs = 1; window.addEventListener('resize', debounce(() => $$('.br-map').forEach(m => { const b = m.closest('.br-wrap'); if (b && b.parentElement) asbLines(b.parentElement); }), 120)); }
   body.onclick = e => asbClick(e, body);
-  const q = $('#brQ', body); if (q) { q.value = qv; q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); asbAsk(body, q.value); } }; q.oninput = () => { q.style.height = 'auto'; q.style.height = Math.min(140, q.scrollHeight) + 'px'; }; $('#brGo', body).onclick = () => asbAsk(body, q.value); }
-  const gx = $('#brGx', body); if (gx) { gx.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); asbGive(body); } }; $('#brGg', body).onclick = () => asbGive(body); }
+  const q = $('#brQ', body); if (q) { q.value = qv; q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); asbAsk(body, q.value); } }; q.oninput = () => { q.style.height = 'auto'; q.style.height = Math.min(140, q.scrollHeight) + 'px'; q.style.overflowY = q.scrollHeight > 140 ? 'auto' : 'hidden'; }; $('#brGo', body).onclick = () => asbAsk(body, q.value); }
+  const gx = $('#brGx', body); if (gx) { gx.oninput = () => { gx.style.height = 'auto'; gx.style.height = Math.min(160, gx.scrollHeight) + 'px'; gx.style.overflowY = gx.scrollHeight > 160 ? 'auto' : 'hidden'; }; gx.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); asbGive(body); } }; $('#brGg', body).onclick = () => asbGive(body); }
   asbThread(body); if (asking) asbFlow(body, true); if (hub) asbHist(body);
+}
+/** (1.82) KẾT QUẢ VIỆC ĐÃ GIAO: trợ lý con trả lời gì — đọc ngay tại đây (mở rộng từng việc), đang làm thì có dòng suy nghĩ, xong báo chuông như cũ */
+const ASB_OPEN = new Set();
+function asbGiven(D) {
+  const G = D.given || []; if (!G.length) return '<div class="br-res"><div class="tka-hh">Kết quả việc đã giao</div><div class="br-empty">Chưa giao việc nào — giao ở ô trên hoặc hỏi Trợ lý chung, kết quả hiện ở đây.</div></div>';
+  return '<div class="br-res"><div class="tka-hh">Kết quả việc đã giao</div>' + G.map(g => { const w = /^(send|wait|proc)$/.test(g.st), on = ASB_OPEN.has(g.id) || (!w && G.indexOf(g) === 0 && !ASB_OPEN.size && !asbGiven.seen);
+    return '<div class="br-rs' + (on ? ' on' : '') + '" data-bres="' + esc(g.id) + '"><button type="button" class="br-rh" data-bresx aria-expanded="' + on + '"><span class="br-sb">' + esc((ASB_SUB[g.to] || {}).t || 'Trợ lý') + '</span><span class="t">' + esc(g.t) + '</span>' +
+      '<span class="st ' + (w ? 'w' : g.err ? 'e' : 'ok') + '">' + (w ? 'đang làm' : g.err ? 'lỗi' : 'xong') + '</span><small>' + esc(asbAgo(g.at)) + '</small><i class="bi bi-chevron-' + (on ? 'up' : 'down') + '"></i></button>' +
+      (on ? '<div class="br-rb">' + (w ? aiThink(g.to === 'task' ? 'task' : 'chat', g.at) : g.err ? '<span class="muted">' + esc(g.err) + '</span>' : aiMd(g.reply || '(trống)', {})) +
+        (g.go ? '<div class="br-rf"><button type="button" class="tka-lk" data-bgo="' + esc(g.go) + '">Hỏi tiếp ở ' + esc((ASB_SUB[g.to] || {}).at || 'module của trợ lý') + ' →</button></div>' : '') + '</div>' : '') + '</div>'; }).join('') + '</div>';
 }
 /** hỏi thẳng trên sơ đồ */
 async function asbAsk(body, text) {
@@ -22079,7 +22284,10 @@ async function asbOpen(body, conv) {
 /** module Trợ lý (1.81.1): asst = Trợ lý chung · asst/v:<cuộc> mở lại cuộc cũ · asst/subs = bộ não các trợ lý con */
 async function viewAsst(arg, v) {
   arg = String(arg || ''); v._onArg = () => 'rebuild';
-  if (/^subs/.test(arg)) { setTitle('Các trợ lý', 'bi-diagram-3', [{ t: 'Trợ lý', r: 'asst' }], v); v.innerHTML = '<div id="asB"></div>'; return asstBrainView($('#asB', v), { tabs: ['cm'].concat(asstTkOk() ? ['task'] : []) }); }
+  if (/^subs/.test(arg)) { setTitle('Các trợ lý', 'bi-diagram-3', [{ t: 'Trợ lý', r: 'asst' }], v);
+    v.innerHTML = (can('settings.manage') ? '<div class="br-wrap br-agent"><div class="br-card"><div class="br-hd"><b>Agent & model</b><span class="sp"></span><small>Claude / Gemini theo từng việc · suy nghĩ sâu · chỉ dẫn riêng</small></div><div id="asAg" style="margin-top:10px"></div></div></div>' : '') + '<div id="asB"></div>';      // (1.82)
+    if (can('settings.manage')) asstAgentCard($('#asAg', v));
+    return asstBrainView($('#asB', v), { tabs: ['cm'].concat(asstTkOk() ? ['task'] : []) }); }
   setTitle('Trợ lý chung', 'bi-robot', [{ t: 'Trợ lý', r: 'asst' }], v); v.innerHTML = '<div id="asB"></div>'; const b = $('#asB', v);
   const oc = /^v:/.test(arg) ? arg.slice(2) : ''; if (oc && (!ASQ.gen || ASQ.gen.conv !== oc)) { ASQ.gen = { conv: oc, opening: oc, msgs: [{ wait: 1, open: 1 }] }; setTimeout(() => asbOpen(b, oc), 0); }
   return asstBrainView(b, { k: 'gen', hub: 1 });
@@ -22122,6 +22330,8 @@ async function asbMemSet(body, patch, msg) {
 function asbClick(e, body) {
   const D = ASB.d;
   const st = body._asb || {}, K = st.k;
+  const rx = e.target.closest('[data-bresx]'); if (rx) { const id = rx.closest('[data-bres]').dataset.bres, was = rx.getAttribute('aria-expanded') === 'true'; asbGiven.seen = 1; ASB_OPEN.clear(); if (!was) ASB_OPEN.add(id); return asbPaint(body); }      // (1.82) mở / gập kết quả việc đã giao
+  const bg = e.target.closest('[data-bgo]'); if (bg) return go(bg.dataset.bgo);
   const a = e.target.closest('[data-bas]'); if (a) { st.k = a.dataset.bas; lsSet('asK', st.k); return asbPaint(body); }
   const op = e.target.closest('[data-bopen]'); if (op) return go(ASB_SUB[op.dataset.bopen] ? ASB_SUB[op.dataset.bopen].go : 'asst');
   if (e.target.closest('[data-bnew]')) { ASQ[K] = { conv: '', msgs: [] }; asbThread(body); asbHist(body); const q = $('#brQ', body); return q && q.focus(); }
@@ -22175,6 +22385,42 @@ function asbClick(e, body) {
   }
 }
 
+/* ── (1.82) AGENT & MODEL: mỗi việc AI một agent — model (Claude / Gemini), mức suy nghĩ, suy nghĩ sâu 2 luồng (nháp → soát), chỉ dẫn riêng. Máy chủ: AiAgents.gs ── */
+async function asstAgentCard(host) {
+  if (!host) return; host.innerHTML = '<div class="small muted">Đang tải cấu hình agent…</div>';
+  let D; try { D = await rpc('aiAgentGet', {}, { quiet: true }); } catch (e) { host.innerHTML = '<div class="small muted">' + esc(e.message || e) + '</div>'; return; }
+  const open = new Set();
+  const mOpt = (v, def) => '<option value="">' + esc(def) + '</option>' + D.models.map(m => '<option value="' + esc(m.id) + '"' + (m.id === v ? ' selected' : '') + '>' + esc(m.t) + '</option>').join('') + (v && !D.models.some(m => m.id === v) ? '<option value="' + esc(v) + '" selected>' + esc(v) + ' (thiếu khoá)</option>' : '');
+  const paint = () => {
+    const C = D.claude, defT = D.def ? (D.models.find(m => m.id === D.def) || {}).t || D.def : C.on && !D.gem.on ? 'Claude Opus 5.5' : D.gem.on ? 'Gemini ' + D.gem.model : 'Flow qua mail';
+    host.innerHTML = '<div class="ag">' +
+      '<div class="small muted" style="line-height:1.55">Mỗi việc AI là một <b>agent</b> có model và chỉ dẫn riêng. <b>Suy nghĩ sâu</b> = hỏi 2 luồng trên cùng dữ liệu và cùng lịch sử cuộc hỏi: luồng 1 viết nháp, luồng 2 đối chiếu với dữ liệu + quy tắc rồi sửa — chính xác hơn, chậm gấp đôi. Mọi kết quả vẫn qua bước kiểm tra của máy chủ (mã bài, không xếp lùi…).</div>' +
+      '<div class="ag-k"><div class="t"><b>Claude (Anthropic API)</b><small>' + (C.on ? '<span class="ag-ok"><i class="bi bi-check-circle-fill"></i> Đang bật</span>' : C.has ? 'Đã có khoá — bật để dùng' : 'Tạo khoá ở console.anthropic.com › API keys rồi dán vào đây. Khoá chỉ nằm trên máy chủ.') + (C.err ? '<br><span class="ag-err">Lỗi gần nhất: ' + esc(C.err) + '</span>' : '') + '</small></div>' +
+        '<input class="inp mono" id="agCk" type="password" autocomplete="off" placeholder="' + (C.has ? '•••••••• (đã lưu — dán khoá mới để thay)' : 'sk-ant-…') + '"><button class="btn sm" data-agc="key"><i class="bi bi-check2"></i>Lưu khoá</button>' +
+        (C.has ? '<button class="btn sm ' + (C.on ? 'ghost' : 'pri') + '" data-agc="' + (C.on ? 'off' : 'on') + '">' + (C.on ? 'Tắt' : 'Bật Claude') + '</button>' : '') + '</div>' +
+      '<div class="ag-k"><div class="t"><b>Model mặc định</b><small>Dùng cho agent để trống model. Hiện: ' + esc(defT) + '</small></div><select class="sel" id="agDef" style="flex:1 1 220px">' + mOpt(D.def, 'Theo kết nối đang bật') + '</select></div>' +
+      '<div class="ag-l">' + D.agents.map(a => '<div class="ag-r' + (open.has(a.k) ? ' on' : '') + '" data-agk="' + a.k + '"><div class="n"><b>' + esc(a.t) + (a.sys ? '<span class="ag-has" title="Có chỉ dẫn riêng"></span>' : '') + '</b><small>' + esc(a.d) + '</small></div>' +
+        '<select class="sel" data-agf="model" aria-label="Model của ' + esc(a.t) + '">' + mOpt(a.model, 'Mặc định') + '</select>' +
+        '<select class="sel" data-agf="effort" aria-label="Mức suy nghĩ"><option value="">Mức: tự</option>' + Object.keys(D.effort).map(e => '<option value="' + e + '"' + (a.effort === e ? ' selected' : '') + '>' + esc(D.effort[e]) + '</option>').join('') + '</select>' +
+        '<label class="ag-dp" title="Hỏi 2 luồng: nháp → soát lại"><input type="checkbox" data-agf="deep"' + (a.deep ? ' checked' : '') + '>Suy nghĩ sâu</label>' +
+        '<button type="button" class="ibtn sm ag-more" data-agm aria-label="Chỉ dẫn riêng" title="Chỉ dẫn riêng · model soát"><i class="bi bi-' + (open.has(a.k) ? 'chevron-up' : 'sliders') + '"></i></button>' +
+        (open.has(a.k) ? '<div class="ag-x"><label>Chỉ dẫn riêng (system prompt — nối vào vai trò sẵn có)<textarea class="ta" data-agf="sys" placeholder="VD: Luôn nêu căn cứ từ nhận xét KGS theo ngày. Không đề xuất quá 1 bài mỗi buổi cho bé lớp 2.">' + esc(a.sys || '') + '</textarea></label>' +
+          '<label>Model soát lại (luồng 2)<select class="sel" data-agf="check">' + mOpt(a.check, 'Cùng model') + '</select></label></div>' : '') + '</div>').join('') + '</div>' +
+      '<div class="ag-ft"><small>Gợi ý: Gán bài · Rà soát lộ trình · Nhận xét bài tập dùng Claude Opus 5.5 + suy nghĩ sâu; hỏi đáp dùng Sonnet; việc nhanh dùng Haiku. Model chạy càng sâu càng tốn phí API.</small><span class="sp"></span><button class="btn sm ghost" data-agp>Điền gợi ý</button><button class="btn sm pri" data-ags><i class="bi bi-check2"></i>Lưu agent</button></div></div>';
+  };
+  const read = () => { $$('[data-agk]', host).forEach(r => { const a = D.agents.find(x => x.k === r.dataset.agk); $$('[data-agf]', r).forEach(i => { a[i.dataset.agf] = i.type === 'checkbox' ? (i.checked ? 1 : 0) : i.value; }); }); const d = $('#agDef', host); if (d) D.def = d.value; };
+  host.onclick = async e => {
+    const mo = e.target.closest('[data-agm]'); if (mo) { read(); const k = mo.closest('[data-agk]').dataset.agk; open.has(k) ? open.delete(k) : open.add(k); return paint(); }
+    if (e.target.closest('[data-agp]')) { read(); const cl = D.models.some(m => /^claude:/.test(m.id)), pick = (c, g) => cl ? 'claude:' + c : D.models.some(m => m.id === 'gemini:' + g) ? 'gemini:' + g : '';
+      const R = { hub: ['claude-sonnet-5-5', 'gemini-2.5-flash', 'medium', 0], chat: ['claude-sonnet-5-5', 'gemini-2.5-flash', 'medium', 0], task: ['claude-sonnet-5-5', 'gemini-2.5-flash', 'medium', 0], assign: ['claude-opus-5-5', 'gemini-2.5-pro', 'high', 1], route: ['claude-opus-5-5', 'gemini-2.5-pro', 'high', 1], match: ['claude-sonnet-5-5', 'gemini-2.5-pro', 'medium', 1], pmap: ['claude-sonnet-5-5', 'gemini-2.5-pro', 'medium', 0], reqs: ['claude-sonnet-5-5', 'gemini-2.5-flash', 'medium', 0], grade: ['claude-opus-5-5', 'gemini-2.5-pro', 'high', 1] };
+      D.agents.forEach(a => { const r = R[a.k]; if (!r) return; a.model = pick(r[0], r[1]); a.effort = r[2]; a.deep = r[3]; }); paint(); return toast('Đã điền gợi ý — xem lại rồi bấm Lưu agent', 'info'); }
+    const sv = e.target.closest('[data-ags]'); if (sv) { read(); sv.disabled = true;
+      try { D = await rpc('aiAgentSave', { def: D.def, agents: D.agents.map(a => ({ k: a.k, model: a.model, effort: a.effort, deep: a.deep, check: a.check, sys: a.sys })) }); toast('Đã lưu agent', 'ok'); paint(); } catch (er) { fail(er); sv.disabled = false; } return; }
+    const c = e.target.closest('[data-agc]'); if (c) { read(); const k = c.dataset.agc, key = ($('#agCk', host) || {}).value || ''; if (k === 'key' && !key.trim()) return toast('Dán khoá Claude (sk-ant-…)', 'warn');
+      c.disabled = true; try { const r = await rpc('aiClaudeSave', k === 'key' ? { key: key } : { on: k === 'on' ? 1 : 0, key: key }); D = r; toast(k === 'on' ? 'Đã bật Claude' + (r.test ? ' — thử: ' + r.test : '') : k === 'off' ? 'Đã tắt Claude' : 'Đã lưu khoá', 'ok'); paint(); } catch (er) { fail(er); c.disabled = false; } }
+  };
+  paint();
+}
 /* ── TRỢ LÝ KIẾN TASK (Trợ lý › Trợ lý Kiến Task) ── */
 const TKA = { d: null };
 function tkaKey() { return 'tkAsst:' + (S.me && S.me.email || ''); }
@@ -22205,7 +22451,7 @@ function tkaPaint(body) {
       card('tkN', 'bi-person-plus', 'Chưa ai nhận', G.none, x => tkaRow(x, x.sug ? '<span class="bd p" title="Người ít việc nhất trong bảng (' + x.sugK + ' việc mở)">gợi ý: ' + esc(x.sug) + '</span>' : ''), 'Việc nào cũng có người phụ trách') +
       card('tkR', 'bi-eye', 'Chờ duyệt lâu', G.rev, x => tkaRow(x, '<span class="bd w">' + x.im + ' ngày</span>'), 'Không có việc chờ duyệt lâu') +
       card('tkSoon', 'bi-calendar-event', 'Đến hạn hôm nay / mai', G.soon, x => tkaRow(x, '<span class="bd p">' + dm(x.due) + '</span>'), 'Không có việc đến hạn') +
-      (D.lead ? tkaSetHtml(D) : '') + '</div></div>';
+      (D.lead && !body.dataset.noset ? tkaSetHtml(D) : '') + '</div></div>';
   body.onclick = e => tkaClick(e, body);
   const st = $('#tkSet', body); if (st) st.onchange = () => tkaSave(body);      // đổi là lưu ngầm (queueRpc), không nút Lưu
 }
@@ -22235,7 +22481,7 @@ function tkaClick(e, body) {
   const j = e.target.closest('[data-tkj]'); if (j) { const el = $('#' + j.dataset.tkj, body); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (e.target.closest('[data-tkr]')) { TKA.at = 0; return tkAsstView(body); }
   if (e.target.closest('[data-tkck]')) return go('tasks/checkin');
-  if (e.target.closest('[data-tkchat]')) return tkaAsk('Phân tích các việc đang mở: ai nên làm tiếp việc gì, việc nào quá hạn / đứng yên cần nhắc ai, và ai chưa check-in hôm nay.');      // hỏi ngay trong trang (không rời Kiến Task)
+  if (e.target.closest('[data-tkchat]')) { tkaTab('ask'); return setTimeout(() => tkaAsk('Phân tích các việc đang mở: ai nên làm tiếp việc gì, việc nào quá hạn / đứng yên cần nhắc ai, và ai chưa check-in hôm nay.'), 0); }      // hỏi ngay trong trang (không rời Kiến Task) · (1.82) sang tab Hỏi trợ lý
   const ps = e.target.closest('[data-tkpush]'); if (ps) { const k = ps.dataset.tkpush; ps.disabled = true; toast(k === 'sum' ? 'Đang gửi tổng hợp check-in…' : 'Đang nhắc check-in…', 'info', 2500);
     rpc('tkAsstPush', { kind: k }, { quiet: true }).then(r => toast((k === 'sum' ? 'Đã gửi tổng hợp' : 'Đã nhắc ' + r.app + ' người') + (r.zalo ? ' · ' + r.zalo + ' nhóm Zalo' : ' · chưa chọn nhóm Zalo'), 'ok', 6000), fail).finally(() => { ps.disabled = false; }); return; }
 }
@@ -22244,16 +22490,57 @@ function tkaClick(e, body) {
    Module Trợ lý (Kiến CM › Trợ lý › Bộ não) chỉ quản lý chung; mỗi trợ lý làm việc ngay trong module của nó. */
 const TKQ = { conv: '', msgs: [] };
 function tkAskOk() { return !!((S.boot && S.boot.ai) || can('tasks.manage') || (S.me && S.me.isAdmin)); }
+/* (1.82) TAB CON — trước đây ô hỏi, tổng hợp, bộ não, cài đặt check-in xếp chồng một trang dài (đang ở Trợ lý mà trông như Bảng): Hỏi · Tổng quan · Hiệu suất · Bộ não & cài đặt */
+const TKA_TABS = [['ask', 'bi-chat-dots', 'Hỏi trợ lý'], ['ov', 'bi-grid-1x2', 'Tổng quan'], ['perf', 'bi-graph-up-arrow', 'Hiệu suất'], ['cfg', 'bi-sliders', 'Bộ não & cài đặt']];
 async function tkAsstPage(v, arg) {
   setTitle('Trợ lý Kiến Task', 'bi-robot', [{ t: 'Kiến Task', r: 'tasks' }], v);
   v._onArg = () => 'rebuild';      // (1.81.1) sang tab khác của Kiến Task → dựng lại trang đó
   const oc = /^v:/.test(arg || '') ? String(arg).slice(2) : ''; if (oc && oc !== TKQ.conv) { TKQ.conv = oc; TKQ.msgs = []; TKQ.opening = oc; }      // mở từ chuông / “Đã hỏi”
-  v.innerHTML = (tkAskOk() ? '<div class="tka tka-askw"><div class="tka-ask"><textarea class="ta" id="tkaQ" rows="1" placeholder="Hỏi Trợ lý Kiến Task… VD “hôm nay ai nên làm tiếp việc gì?”, “soạn tin nhắc check-in nhẹ nhàng”"></textarea><button class="ax-send" id="tkaGo" aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>' +
-    '<div class="tka-sg">' + ['Hôm nay ai nên làm tiếp việc gì?', 'Việc nào quá hạn / đứng yên cần nhắc ai?', 'Ai chưa check-in? Soạn tin nhắc nhẹ vào nhóm'].map(q => '<button class="ax-sug" data-tkq="' + esc(q) + '">' + esc(q) + '</button>').join('') + '</div><div id="tkaA"></div><div id="tkaH"></div></div>' : '') + '<div id="tkaBody"></div><div id="tkaBr" class="tka-br"></div>';      // (1.81.1) Bộ não của Trợ lý Kiến Task ngay trong module
-  const q = $('#tkaQ', v); if (q) { q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); tkaAsk(q.value); } }; q.oninput = () => { q.style.height = 'auto'; q.style.height = Math.min(160, q.scrollHeight) + 'px'; };
-    $('#tkaGo', v).onclick = () => tkaAsk(q.value); v.querySelector('.tka-askw').onclick = e => { const s = e.target.closest('[data-tkq]'); if (s) tkaAsk(s.dataset.tkq); }; }
-  tkaPaintA(); tkAsstView($('#tkaBody', v)); if ((S.boot && S.boot.ai) || can('settings.manage')) asstBrainView($('#tkaBr', v), { k: 'task', quiet: 1 }); if (tkAskOk()) { tkaHist(); if (TKQ.opening) tkaOpen(TKQ.opening); }
+  const tabs = TKA_TABS.filter(t => t[0] !== 'ask' || tkAskOk());
+  let tab = oc ? 'ask' : lsGet('tkaTab', tkAskOk() ? 'ask' : 'ov'); if (!tabs.some(t => t[0] === tab)) tab = tabs[0][0];
+  v.innerHTML = '<div class="tka"><div class="tka-tabs" role="tablist" aria-label="Trợ lý Kiến Task">' + tabs.map(t => '<button type="button" role="tab" class="tka-tab" data-tkt="' + t[0] + '"><i class="bi ' + t[1] + '"></i><span>' + t[2] + '</span></button>').join('') + '</div><div id="tkaPane" role="tabpanel"></div></div>';
+  const P = $('#tkaPane', v);
+  const show = t => { tab = t; lsSet('tkaTab', t); $$('[data-tkt]', v).forEach(b => b.setAttribute('aria-selected', b.dataset.tkt === t));
+    if (t === 'ask') { P.innerHTML = '<div class="tka-askw"><div class="tka-ask"><textarea class="ta" id="tkaQ" rows="1" placeholder="Hỏi Trợ lý Kiến Task…" title="VD “hôm nay ai nên làm tiếp việc gì?”, “tổng kết tuần này”"></textarea><button class="ax-send" id="tkaGo" aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>' +
+        '<div class="tka-sg">' + ['Hôm nay ai nên làm tiếp việc gì?', 'Việc nào quá hạn / đứng yên cần nhắc ai?', 'Tổng kết & đánh giá hiệu suất 30 ngày qua', 'Ai chưa check-in? Soạn tin nhắc nhẹ vào nhóm'].map(q => '<button class="ax-sug" data-tkq="' + esc(q) + '">' + esc(q) + '</button>').join('') + '</div><div id="tkaA"></div><div id="tkaH"></div></div>';
+      const q = $('#tkaQ', P); q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); tkaAsk(q.value); } }; q.oninput = () => { q.style.height = 'auto'; q.style.height = Math.min(160, q.scrollHeight) + 'px'; q.style.overflowY = q.scrollHeight > 160 ? 'auto' : 'hidden'; };
+      $('#tkaGo', P).onclick = () => tkaAsk(q.value); P.querySelector('.tka-askw').onclick = e => { const s2 = e.target.closest('[data-tkq]'); if (s2) tkaAsk(s2.dataset.tkq); };
+      tkaPaintA(); tkaHist(); if (TKQ.opening) tkaOpen(TKQ.opening); return; }
+    if (t === 'ov') { P.innerHTML = '<div id="tkaBody" data-noset="1"></div>'; return tkAsstView($('#tkaBody', P)); }
+    if (t === 'perf') { P.innerHTML = '<div id="tkaPf"></div>'; return tkaPerfView($('#tkaPf', P)); }
+    P.innerHTML = '<div id="tkaSetW"></div><div id="tkaBr" class="tka-br"></div>'; tkaCfgView($('#tkaSetW', P)); if ((S.boot && S.boot.ai) || can('settings.manage')) asstBrainView($('#tkaBr', P), { k: 'task', quiet: 1 });
+  };
+  v.querySelector('.tka-tabs').onclick = e => { const b = e.target.closest('[data-tkt]'); if (b && b.dataset.tkt !== tab) show(b.dataset.tkt); };
+  tkaTab.show = show; show(tab);
 }
+/** chuyển tab con của Trợ lý Kiến Task (VD bấm “Nhờ AI phân tích” ở Tổng quan → sang Hỏi trợ lý) */
+function tkaTab(t) { if (typeof tkaTab.show === 'function' && $('#tkaPane')) tkaTab.show(t); }
+/** tab Bộ não & cài đặt: cài đặt check-in (trưởng nhóm) */
+async function tkaCfgView(el) {
+  const paint = () => { const D = TKA.d; if (!el.isConnected || !D) return; el.innerHTML = D.lead ? '<div class="tka-gr" style="grid-template-columns:minmax(0,1fr)">' + tkaSetHtml(D) + '</div>' : '<div class="tka-c"><div class="br-empty">Cài đặt check-in do trưởng nhóm / quản lý chỉnh.</div></div>';
+    const st = $('#tkSet', el); if (st) st.onchange = () => tkaSave(el); };
+  if (!TKA.d) TKA.d = lsGet(tkaKey(), null); paint();
+  try { const d = await rpc('tkAsstGet', {}, { quiet: true }); TKA.d = d; lsSet(tkaKey(), d); paint(); } catch (e) { if (!TKA.d) el.innerHTML = '<div class="tka-c"><div class="br-empty">' + esc(e.message || e) + '</div></div>'; }
+}
+/** (1.82) HIỆU SUẤT: số do máy chủ đếm (tkAsstPerf) — người · bảng · 7 / 30 / 90 ngày; nút nhờ AI tổng kết & đánh giá */
+const TKP = { d: {} };
+async function tkaPerfView(el) {
+  const days = [7, 30, 90].indexOf(Number(lsGet('tkaPfD', 30))) >= 0 ? Number(lsGet('tkaPfD', 30)) : 30, ck = 'tkPf:' + (S.me && S.me.email || '') + ':' + days;
+  const pct = v => v == null ? '—' : v + '%', num = v => v == null ? '—' : String(v).replace('.', ',');
+  const paint = D => { if (!el.isConnected) return; const T = D.tot, mx = Math.max(1, ...D.people.map(x => x.done));
+    el.innerHTML = '<div class="tkp"><div class="tkp-h"><div class="seg" id="tkpD">' + [7, 30, 90].map(n => '<button class="seg-b" data-tkpd="' + n + '" aria-pressed="' + (n === days) + '">' + n + ' ngày</button>').join('') + '</div>' +
+        '<small class="muted">' + esc(dmyV(D.from)) + ' – ' + esc(dmyV(D.to)) + ' · việc còn trên bảng</small><span class="sp"></span>' + (tkAskOk() ? '<button class="btn sm pri" data-tkpai><i class="bi bi-stars"></i>AI tổng kết & đánh giá</button>' : '') + '</div>' +
+      '<div class="tka-k"><button class="g" type="button"><b>' + T.done + '</b><small>Việc xong</small></button><button type="button"><b>' + pct(T.ontime) + '</b><small>Xong đúng hạn</small></button><button type="button"><b>' + num(T.cyc) + '</b><small>Ngày làm TB / việc</small></button>' +
+        '<button type="button"><b>' + T.open + '</b><small>Đang mở</small></button><button class="r" type="button"><b>' + T.late + '</b><small>Đang quá hạn</small></button><button type="button"><b>' + T.made + '</b><small>Việc mới tạo</small></button></div>' +
+      '<div class="tka-c"><h3><i class="bi bi-people"></i>Theo người<span class="n">' + D.people.length + '</span></h3>' + (D.people.length ? '<div class="tbl-wrap tkp-w"><table class="tbl tkp-t"><thead><tr><th>Người</th><th>Xong</th><th>Đúng hạn</th><th>Ngày làm TB</th><th>Đang mở</th><th>Quá hạn</th><th>Check-in</th></tr></thead><tbody>' +
+        D.people.map(x => '<tr><td data-l="Người"><span class="tkp-n"><span class="tka-av">' + esc(initials(x.n)) + '</span>' + esc(x.n) + '</span></td><td data-l="Xong"><span class="tkp-b"><i style="width:' + Math.round(x.done * 100 / mx) + '%"></i></span><b>' + x.done + '</b></td><td data-l="Đúng hạn" class="' + (x.ontime != null && x.ontime < 60 ? 'tkp-lo' : '') + '">' + pct(x.ontime) + '</td><td data-l="Ngày làm TB">' + num(x.cyc) + '</td><td data-l="Đang mở">' + x.open + '</td><td data-l="Quá hạn" class="' + (x.late ? 'tkp-lo' : '') + '">' + x.late + '</td><td data-l="Check-in">' + x.ck + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="br-empty">Chưa có việc nào trong khoảng này</div>') + '</div>' +
+      '<div class="tka-c" style="margin-top:12px"><h3><i class="bi bi-kanban"></i>Theo bảng<span class="n">' + D.boards.length + '</span></h3>' + D.boards.map(b => '<div class="tka-r"><div class="tt"><b>' + esc(b.name) + '</b><small>' + b.made + ' việc mới · ' + b.open + ' đang mở' + (b.late ? ' · <span style="color:var(--danger)">' + b.late + ' quá hạn</span>' : '') + '</small></div><span class="bd p">' + b.done + ' xong</span></div>').join('') + '</div></div>';
+    el.onclick = e => { const d = e.target.closest('[data-tkpd]'); if (d) { lsSet('tkaPfD', Number(d.dataset.tkpd)); return tkaPerfView(el); }
+      if (e.target.closest('[data-tkpai]')) { tkaTab('ask'); setTimeout(() => tkaAsk('Tổng kết & đánh giá hiệu suất ' + days + ' ngày qua: cả đội, từng người, từng bảng — điểm tốt, điều cần cải thiện và 2–3 đề xuất cụ thể.'), 0); } }; };
+  const have = TKP.d[ck] || lsGet(ck, null); if (have) paint(have); else el.innerHTML = '<div class="tka-c" style="text-align:center;padding:30px">' + asstBot('md', 1) + '<div class="small muted">Đang đếm số liệu…</div></div>';
+  try { const d = await rpc('tkAsstPerf', { days: days }, { quiet: true }); TKP.d[ck] = d; lsSet(ck, d); paint(d); } catch (e) { if (!have && el.isConnected) el.innerHTML = '<div class="tka-c"><div class="br-empty">' + esc(e.message || e) + '</div></div>'; }
+}
+function dmyV(d) { d = String(d || ''); return d.slice(8, 10) + '/' + d.slice(5, 7); }
 /** (1.81) “Đã hỏi” — cuộc hỏi Trợ lý Kiến Task gần đây của chính mình, ngay trong Kiến Task (không sang Kiến CM) */
 async function tkaHist(fresh) {
   const h = $('#tkaH'); if (!h) return; const ck = 'tkaH:' + (S.me && S.me.email || '');

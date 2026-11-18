@@ -3841,6 +3841,36 @@ body.cp-dragging, body.cp-dragging *{ cursor:grabbing !important; user-select:no
 .bd-it.lib{ align-items:flex-start } .bd-it.lib .lb-it{ flex:1; min-width:0; padding:0; background:none }
 .bd-sf{ display:flex; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid var(--border); background:var(--surface) }
 .bd-sb .ta{ font-size:12.5px }
+/* (1.82) kéo rộng cột bài · tên topic hiện đủ (xuống dòng, không cắt) · nút xem nội dung bài · bài bị bỏ qua */
+.bd-lay{ grid-template-columns:minmax(0,1fr) 7px var(--bd-src, 380px) } .bd-t{ border-right:0 }
+.bd-split{ position:relative; cursor:col-resize; background:var(--border); touch-action:none; outline:none; transition:background-color .15s }
+.bd-split i{ position:absolute; top:50%; left:50%; width:3px; height:36px; transform:translate(-50%,-50%); border-radius:3px; background:var(--muted); opacity:.45 }
+.bd-split:hover, .bd-split:focus-visible, .bd-sizing .bd-split{ background:var(--brand-400) } .bd-split:hover i, .bd-sizing .bd-split i{ background:#fff; opacity:1 }
+.bd-sizing, .bd-sizing *{ cursor:col-resize !important; user-select:none }
+.bd-it{ align-items:flex-start } .bd-it > input, .bd-it > .bd-n, .bd-it > i{ margin-top:2px }
+.bd-itn{ white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; line-height:1.4 }
+.bd-u{ margin-top:2px } .bd-u.sk{ color:#B45309; font-weight:600; font-style:italic }
+.bd-eye{ flex:none; width:26px; height:26px; margin:-3px -4px -3px 0; display:inline-grid; place-items:center; border:0; border-radius:7px; background:none; color:var(--muted); cursor:pointer; opacity:.6 }
+.bd-eye:hover, .bd-eye:focus-visible{ opacity:1; color:var(--brand-700); background:var(--brand-50) } .bd-it.lib .bd-eye{ margin-top:2px }
+/* hộp xem nội dung một bài */
+.modal.xl.lp-m{ width:min(1180px, 97vw); height:calc(100vh - 40px) } .modal.lp-m > .modal-b{ padding:0; display:flex; min-height:0 }
+.lp{ flex:1; min-height:0; display:grid; grid-template-columns:minmax(220px, 300px) minmax(0,1fr) }
+.lp-l{ min-height:0; display:flex; flex-direction:column; border-right:1px solid var(--border); background:var(--surface-2) }
+.lp-p{ padding:10px 12px; font-size:11.5px; color:var(--muted); border-bottom:1px solid var(--border); line-height:1.45 }
+.lp-fl{ flex:1; min-height:0; overflow:auto; padding:6px; display:flex; flex-direction:column; gap:2px }
+.lp-f{ display:flex; align-items:flex-start; gap:8px; width:100%; text-align:left; padding:7px 8px; border:1px solid transparent; border-radius:9px; background:none; font:inherit; color:inherit; cursor:pointer }
+.lp-f:hover{ background:var(--surface) } .lp-f.on{ background:var(--surface); border-color:var(--brand-400) }
+.lp-f span{ min-width:0; display:flex; flex-direction:column } .lp-f b{ font-size:12.5px; font-weight:650; line-height:1.4; overflow-wrap:anywhere } .lp-f small{ font-size:11px; color:var(--muted) }
+.lp-v{ min-height:0; display:flex; flex-direction:column; background:var(--surface) } .lp-vb{ display:flex; justify-content:flex-end; padding:6px 10px; border-bottom:1px solid var(--border) }
+.lp-pg{ flex:1; min-height:0; overflow:auto; background:var(--surface-2); display:flex; flex-direction:column } .lp-pg iframe{ flex:1; width:100%; min-height:60vh; border:0; background:#fff }
+.lp-ld{ margin:auto; display:flex; gap:8px; align-items:center; color:var(--muted); font-size:13px } .lp-img{ display:block; max-width:min(100%, 900px); margin:12px auto 0; box-shadow:0 4px 18px -8px rgba(0,0,0,.3); background:#fff }
+@media (max-width:900px){
+  .bd-split{ display:none }
+  .bd-eye{ width:34px; height:34px; opacity:.8 }
+  .modal.xl.lp-m{ width:100%; height:96dvh } .lp{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) }
+  .lp-l{ border-right:0; border-bottom:1px solid var(--border) } .lp-fl{ flex-direction:row; overflow-x:auto; overflow-y:hidden; padding:6px 8px; gap:6px; scrollbar-width:none }
+  .lp-f{ flex:0 0 auto; max-width:230px; background:var(--surface); border-color:var(--border) } .lp-f b{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+}
 /* dòng kết quả tìm thư viện (Bảng gán bài + hộp Nội dung buổi) */
 .lb-it{ display:flex; align-items:center; gap:8px; min-width:0; padding:6px 8px; border-radius:9px; background:var(--surface) }
 .lb-tx{ flex:1; min-width:0; display:flex; flex-direction:column } .lb-tx b{ font-size:12.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .lb-tx small{ font-size:11px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
@@ -5145,6 +5175,27 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 .fbt-dv{ display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; font-weight:700; background:var(--surface-2); color:var(--muted); white-space:nowrap } .fbt-dv.ok{ color:var(--ok, #1a7f4b) } .fbt-dv.no{ color:var(--danger, #c0392b) }
 .fbt-w{ max-height:66vh; border:1px solid var(--border); border-radius:10px } .fbt td{ vertical-align:top; font-size:12.5px; line-height:1.45; min-width:140px; max-width:280px; white-space:normal }
 .fbt td.fbt-d, .fbt td.fbt-st, .fbt td.fbt-btvnp, .fbt td.fbt-dvt{ min-width:0; white-space:nowrap } .fbt td.fbt-d{ font-weight:700 }
+.fbt-act{ flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:8px } .fbt-act .sp{ flex:1 }
+/* (1.82) cột Bài đã gán · nút gán · AI phân tích nhận xét → gán bài */
+.fbt td.fbt-bai{ min-width:190px } .fbt-bl{ display:flex; flex-direction:column; gap:3px; margin-bottom:4px }
+.fbt-bc{ display:inline-flex; align-items:flex-start; gap:2px; padding:2px 2px 2px 8px; border-radius:8px; background:#ECFDF3; border:1px solid #BBF7D0; color:#14532D; font-size:12px; font-weight:650; line-height:1.4 } .fbt-bc > span{ padding-top:2px; overflow-wrap:anywhere }
+.fbt-bc .bd-eye{ width:22px; height:22px; margin:0 } .fbt-g{ height:26px; padding:0 9px; font-size:11.5px }
+.fbt-aib{ color:#6D28D9; border-color:#DDD6FE } .fbt-aib:hover{ background:#F5F3FF } .fbt-aib.busy i{ animation:spin 1.2s linear infinite }
+.fbt-ai{ margin-bottom:10px; border:1px solid #DDD6FE; border-radius:12px; background:color-mix(in oklab, #8B5CF6 5%, var(--surface)); padding:12px 14px }
+.fbt-aih{ display:flex; gap:10px; align-items:flex-start } .fbt-aih > .b{ flex:1; min-width:0; font-size:13px; line-height:1.55 } .fbt-aih.err{ color:var(--danger) }
+.fbt-ais{ margin-top:2px; color:var(--ink-2) } .fbt-aif{ margin-top:6px; font-size:13px } .fbt-aif ul{ margin:4px 0; padding-left:18px }
+.fbt-aiw{ margin-top:6px; font-size:12px; color:#92400E } .fbt-aiw ul{ margin:4px 0 0; padding-left:18px } .fbt-aiw summary{ cursor:pointer; font-weight:650 }
+.fbt-ail{ display:flex; flex-direction:column; gap:4px; margin:10px 0 0 } .fbt-ait{ display:flex; gap:9px; align-items:flex-start; padding:8px 10px; border-radius:10px; background:var(--surface); border:1px solid var(--border); font-size:13px; cursor:pointer }
+.fbt-ait input{ margin-top:3px; accent-color:var(--brand-600) } .fbt-ait > span{ flex:1; min-width:0; display:flex; flex-wrap:wrap; gap:4px 6px; align-items:center } .fbt-ait small{ flex-basis:100%; color:var(--muted); font-size:12px } .fbt-ait small.ok{ color:#15803D; font-weight:700 }
+.fbt-aia{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px } .fbt-aia .sp{ flex:1 }
+@media (max-width:820px){
+  .fbt-q{ width:100% } .fbt-act .sp{ display:none } .fbt-w{ max-height:none }
+  /* điện thoại: mỗi buổi một thẻ, nhãn cột ở đầu từng ô */
+  .fbt thead{ display:none } .fbt, .fbt tbody, .fbt tr, .fbt td{ display:block; width:100% } .fbt tr{ border-bottom:1px solid var(--border); padding:8px 10px }
+  .fbt td{ max-width:none; min-width:0 !important; border:0 !important; padding:3px 0 !important; white-space:normal !important } .fbt td:empty{ display:none }
+  .fbt td::before{ content:attr(data-l); display:block; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--muted) } .fbt td.fbt-d::before{ display:none } .fbt td.fbt-d{ font-size:14px }
+  .fbt-aia .btn{ flex:1 }
+}
 
 /* (1.80.50) khảo sát độ khó định kỳ */
 .ra-l{ display:flex; flex-direction:column } .ra-r{ display:flex; align-items:center; gap:12px; padding:9px 0; border-top:1px solid var(--border) } .ra-r:first-child{ border-top:0 }
