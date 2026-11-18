@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T17:53:35.509Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T18:13:37.315Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -20286,6 +20286,7 @@ async function apPreview(x) {
 .ax-app .ax-do{ border:0; background:none; padding:2px 0 2px 12px; border-left:2px solid color-mix(in oklab, var(--primary) 35%, transparent); border-radius:0; margin:6px 0 10px; max-width:640px }
 .ax-app .ax-do.done{ background:none; border-left-color:color-mix(in oklab, var(--ok) 55%, transparent) }
 /* (1.77.12) gợi ý hỏi tiếp (chỉ câu trả lời cuối) · Tiếp tục / Chi tiết hơn */
+.ax-num{ font-weight:800; color:var(--primary); background:color-mix(in oklab, var(--primary) 10%, transparent); padding:0 5px; border-radius:6px; font-variant-numeric:tabular-nums; white-space:nowrap }      /* (1.82.8) số liệu nổi bật */
 .ax-fu{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px } .ax-m.ai:not(.last) .ax-fu{ display:none } .ax-bb p:has(> .ax-fu:only-child){ margin:0 }
 .ax-fu button{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:6px 12px; font:inherit; font-size:12.5px; color:var(--ink-2); cursor:pointer; text-align:left }
 .ax-fu button i{ color:var(--primary); font-size:11px } .ax-fu button:hover{ border-color:var(--primary); color:var(--primary) }
@@ -20510,7 +20511,7 @@ function aiThinkPlan(q) {
 }
 function aiThink(kind, t0, steps) { const L = steps && steps.length ? steps : AI_THINK[kind] || AI_THINK.chat;
   return '<span class="ax-think" role="status" data-think="' + esc(kind || 'chat') + '" data-t0="' + esc(t0 || new Date().toISOString()) + '"' + (steps && steps.length ? ' data-steps="' + esc(JSON.stringify(steps)) + '"' : '') + '>' +
-    '<span class="ax-th1"><span class="ax-orb">' + AI_ORB + '</span><span class="ax-shim">' + esc(L[0]) + '…</span><small></small></span>' + (L.length > 2 ? '<span class="ax-steps"></span>' : '') + '<span class="ax-tip"></span></span>'; }
+    '<span class="ax-th1"><span class="ax-orb">' + AI_ORB + '</span><span class="ax-shim">' + esc(L[0]) + '…</span><small></small></span>' + '<span class="ax-tip"></span></span>'; }
 /** một đồng hồ chung cho mọi khối “đang suy nghĩ” trên trang — Gemini trả lời vài giây nên bước chạy nhanh; flow qua mail 1–2 phút nên bước chạy chậm */
 setInterval(() => { document.querySelectorAll('[data-think]').forEach(el => {
   let L = AI_THINK[el.dataset.think] || AI_THINK.chat; if (el.dataset.steps) try { L = JSON.parse(el.dataset.steps); } catch (e) {}
@@ -21089,7 +21090,7 @@ function aiChatView(body, arg) {
     if (e.target.closest('#aiSkB')) { if (!/^\//.test(ta.value)) ta.value = '/' + ta.value; ta.focus(); ta.setSelectionRange(1, 1); return aiSlash(body, 1); }
     if (e.target.closest('#aiSend')) return aiSend(body);
     const sl = e.target.closest('[data-slash]'); if (sl) return aiSlashPick(body, sl.dataset.slash);
-    const fu = e.target.closest('[data-fu]'); if (fu) { if (C.busy || C.ro) return; ta.value = fu.dataset.fu; return aiSend(body); }      // (1.77.12) bấm gợi ý / Tiếp tục → gửi luôn
+    const fu = e.target.closest('[data-fu]'); if (fu) { e.preventDefault(); if (C.busy || C.ro) return; ta.value = fu.dataset.fu; return aiSend(body); }      // (1.77.12) bấm gợi ý / Tiếp tục → gửi luôn
     const cp = e.target.closest('[data-copy]'); if (cp) { const bb = cp.closest('.ax-bb').cloneNode(true); bb.querySelectorAll('.ax-meta, .ax-fu, .ax-do, .ax-nho').forEach(x => x.remove()); try { await navigator.clipboard.writeText(bb.innerText.trim()); toast('Đã chép', 'ok', 1500); } catch (er) { toast('Không chép được', 'err'); } return; }
     if (e.target.closest('[data-skcfg]')) return go('ai/cfg');
     const sg = e.target.closest('[data-sug]'); if (sg) { ta.value = sg.dataset.sug; ta.focus(); ta.oninput(); const k = ta.value.indexOf('…'); if (k >= 0) ta.setSelectionRange(k, k + 1); return; }      // (1.80.34) mẫu có chỗ trống “…” → chọn sẵn để gõ đè
@@ -21203,6 +21204,9 @@ async function aiDrivePick(body) {
   catch (e) { const h = m.$('#aiDl'); if (h) h.innerHTML = '<div class="ax-ban"><i class="bi bi-exclamation-triangle"></i><div>' + esc(e.message) + '</div></div>'; }
 }
 /** chữ AI → HTML an toàn: **đậm**, gạch đầu dòng, số thứ tự, mã [[L:…]] thành nút tài liệu */
+/** (1.82.8) LÀM NỔI BẬT SỐ LIỆU trong câu trả lời AI: “8 mục”, “4 yêu cầu”, “49%”, “12 việc”… → chip số đậm màu chính (bỏ qua phần [[…]] và ngày / mã) */
+const AI_NUM_RE = /(^|[\s(:–—*-])(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(\s?%|\s(?:việc|yêu cầu|ghi chú|buổi|bé|học sinh|gia sư|lượt|ngày|tuần|giờ|phút|giây|tháng|topic|bài|mục|lớp|người|lỗi|phiếu|đợt|câu|điểm|tệp|nhóm|bảng|lần|link|khoá|chương trình))(?=[\s.,;:!?)]|$)/g;
+function aiNumHi(h) { return String(h).split(/(\[\[[^\]]*\]\])/).map((x, i) => i % 2 ? x : x.replace(AI_NUM_RE, '$1<b class="ax-num">$2$3</b>')).join(''); }
 function aiMd(text, refs) {
   refs = refs || {};
   const chip = id => { const o = refs[id]; if (!o) return '';
@@ -21221,7 +21225,7 @@ function aiMd(text, refs) {
   let nNho = 0; const nho = () => { const o = refs['NHO:' + nNho++]; if (!o || (!o.saved && !o.gone)) return '';      // (1.77.11) AI tự ghi nhớ điều lâu dài → dòng nhỏ + nút Bỏ
     return '<span class="ax-nho' + (o.gone ? ' gone' : '') + '"><i class="bi ' + (o.gone ? 'bi-bookmark-x' : 'bi-bookmark-check') + '"></i><span>' + (o.gone ? 'Đã bỏ khỏi bộ nhớ: ' : 'Đã ghi nhớ' + (o.be ? ' cho bé ' + esc(o.be) : '') + ': ') + '<b>' + esc(o.t) + '</b></span>' +
       (o.saved && AI.b.memOk ? '<button type="button" data-nhodel="' + esc(o.id) + '" title="Không nhớ điều này">Bỏ</button>' : '') + '</span>'; };
-  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip()).replace(/\[\[IN:([^\]]{3,3000})\]\]/g, (m, x) => aiInChip(x)).replace(/\[\[NHO:[^\]]{3,800}\]\]/g, () => nho()).replace(/\[\[TL:[^\]]{3,800}\]\]/g, () => tlchip()).replace(/\[([^\[\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>').replace(/(^|[\s(:;,])(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, (m, a, u) => a + '<a href="' + u + '" target="_blank" rel="noopener">' + (u.length > 60 ? u.slice(0, 57) + '…' : u) + '</a>')      // (1.77.13) link [chữ](url) và link trần → bấm mở tab mới
+  const inl = s => aiNumHi(esc(s)).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip()).replace(/\[\[IN:([^\]]{3,3000})\]\]/g, (m, x) => aiInChip(x)).replace(/\[\[NHO:[^\]]{3,800}\]\]/g, () => nho()).replace(/\[\[TL:[^\]]{3,800}\]\]/g, () => tlchip()).replace(/\[([^\[\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>').replace(/(^|[\s(:;,])(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, (m, a, u) => a + '<a href="' + u + '" target="_blank" rel="noopener">' + (u.length > 60 ? u.slice(0, 57) + '…' : u) + '</a>')      // (1.77.13) link [chữ](url) và link trần → bấm mở tab mới
     .replace(/\[\[GOIY:([^\]]{2,800})\]\]/g, (m, x) => '<span class="ax-fu">' + x.split('|').map(t => t.trim()).filter(Boolean).slice(0, 4).map(t => '<button type="button" data-fu="' + t + '"><i class="bi bi-arrow-up-right"></i>' + t + '</button>').join('') + '</span>');      // (1.77.12) gợi ý hỏi tiếp / lựa chọn khi AI hỏi lại (chữ đã esc)
   const lines = String(text || '').replace(/\r/g, '').split('\n'); let h = '', list = '';
   const close = () => { if (list) { h += '</' + list + '>'; list = ''; } };
@@ -22452,6 +22456,21 @@ async function viewAsst(arg, v) {
   v._onArg = a => { show(a); };
   show(arg);
 }
+/** (1.82.8) NÚT GỢI Ý [[GOIY:…]] ở mọi nơi ngoài trang Trợ lý AI (Trợ lý chung, kết quả việc đã giao, Trợ lý Kiến Task, Văn phòng AI) — trước bấm không có gì xảy ra.
+    Gửi tiếp ĐÚNG cuộc đó: khung chat / thread nơi nút nằm; kết quả việc đã giao → hỏi tiếp trợ lý con trong cùng cuộc (hiện lại ở Kết quả việc đã giao) */
+document.addEventListener('click', async e => {
+  const fu = e.target.closest && e.target.closest('[data-fu]'); if (!fu || e.defaultPrevented) return; e.preventDefault(); const t = fu.dataset.fu;
+  if (fu.closest('.of-dock') && typeof ofAsk === 'function') return ofAsk(t);
+  if (fu.closest('#ofDr')) { const q = document.getElementById('ofFu'), b = document.querySelector('#ofDr [data-offu]'); if (q && b) { q.value = t; return b.click(); } if (typeof ofAsk === 'function') return ofAsk(t); }
+  if (fu.closest('#tkaA') && typeof tkaAsk === 'function') return tkaAsk(t);
+  const rs = fu.closest('[data-bres]'); if (rs) { const g = ((ASB.d && ASB.d.given) || []).find(x => x.id === rs.dataset.bres); if (!g) return;
+    const ag = /^x:/.test(g.to) ? g.to.slice(2) : '', p = { mode: g.to === 'task' ? 'task' : ag ? 'hub' : 'gen', text: t, conv: g.conv || '', via: 'hub' }; if (ag) p.ag = ag;
+    fu.disabled = true; try { await rpc('aiChat', p, { quiet: true }); toast('Đã gửi “' + aiCut(t, 50) + '” cho ' + (g.toT || (ASB_SUB[g.to] || {}).t || 'trợ lý') + ' — kết quả hiện ở Kết quả việc đã giao', 'ok', 5000); setTimeout(asstPulse, 800);
+      let el = rs; while (el && !el._asb) el = el.parentElement; if (el) asbLoad(el).catch(() => {}); } catch (er) { fail(er); } finally { fu.disabled = false; } return; }
+  let el = fu; while (el && !el._asb) el = el.parentElement; if (el) return asbAsk(el, t);
+  if (typeof ofAsk === 'function' && document.getElementById('ofR')) return ofAsk(t);
+  try { await navigator.clipboard.writeText(t); toast('Đã chép gợi ý — dán vào ô hỏi trợ lý', 'info'); } catch (er) {}
+});
 /** DẤU “TRỢ LÝ ĐANG LÀM” trên biểu tượng Trợ lý (thanh bên: Kiến CM › Trợ lý, Kiến Task › Trợ lý, module Trợ lý) — body[data-asrun] = "cm task gen" */
 const ASP = { n: null, t: 0 };
 async function asstPulse() {
@@ -23047,6 +23066,36 @@ html[data-mode="dark"] .of-stage{ --st1:#15204A; --st2:#0A1022; --dot:rgba(148,1
 @media (max-width:1100px){ .of-k{ grid-template-columns:repeat(3, minmax(0, 1fr)) } .of-k > div:nth-child(4){ border-left:0 } .of-k > div:nth-child(n+4){ border-top:1px solid var(--border) } }
 @media (max-width:760px){ .of-dock{ position:static; width:auto; max-height:none; margin-top:10px; backdrop-filter:none; background:var(--surface) } .of-stagew{ display:flex; flex-direction:column } }
 @media (max-width:560px){ .of-k{ grid-template-columns:repeat(2, minmax(0, 1fr)) } .of-k > div:nth-child(odd){ border-left:0 } .of-k > div:nth-child(n+3){ border-top:1px solid var(--border) } .of-clk{ display:none } }
+
+/* ═════ (1.82.8) nhãn tự tìm chỗ · bộ não gọn · luồng sao chổi · khung chat nổi góc dưới phải · xem kết quả ═════ */
+.of-lb{ transform:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis } .of-lb.dn{ transform:none } .of-lb b, .of-lb small{ overflow:hidden; text-overflow:ellipsis }
+.of-bot{ transform:translate(-50%, -50%) }
+.of-brain{ transform:translate(-50%, 0); padding:4px 12px; border-radius:999px; font-size:11px; font-weight:600; letter-spacing:0; white-space:nowrap; color:var(--lbi) } .of-brain:hover{ color:var(--ring) }
+.of-bhit{ width:auto; height:auto }
+.of-mail{ transform:translate(0, -50%); padding:3px 9px 3px 8px; font-size:10.5px; letter-spacing:.02em }
+.of-rail{ fill:none; stroke-width:2.2; stroke-opacity:.28; stroke-linecap:round }
+.of-comet{ fill:none; stroke-width:5; stroke-linecap:round; stroke-dasharray:12 88; stroke-dashoffset:100; animation:ofComet 2.4s linear infinite; filter:drop-shadow(0 0 6px currentColor) }
+.of-mrail{ fill:none; stroke:var(--mail); stroke-width:1.4; stroke-opacity:.35 } .of-mdots{ fill:none; stroke:var(--mail); stroke-width:4; stroke-linecap:round; stroke-dasharray:.1 6; animation:ofDots 1.6s linear infinite }
+.of-ping{ fill:none; stroke-width:2 }
+@keyframes ofComet{ to{ stroke-dashoffset:0 } } @keyframes ofDots{ to{ stroke-dashoffset:-12.2 } }
+.of-tl{ cursor:pointer; color:inherit } .of-tl:hover b{ text-decoration:underline }
+.of-dock{ position:fixed; z-index:40; right:20px; bottom:20px; left:auto; top:auto; width:380px; height:460px; max-width:calc(100vw - 32px); max-height:calc(100vh - 90px); min-width:300px; min-height:220px; display:flex; flex-direction:column; background:var(--surface); backdrop-filter:none; border-radius:18px; box-shadow:0 24px 60px -24px rgba(15,23,42,.45), 0 0 0 1px var(--border); border:0 }
+.of-dock.min{ width:auto !important; height:auto !important; min-width:0; min-height:0 } .of-dock.min .of-dk-b, .of-dock.min .of-dk-f, .of-dock.min .of-dk-rs, .of-dock.min .of-keep{ display:none }
+.of-dk-rs{ position:absolute; left:2px; top:2px; width:16px; height:16px; cursor:nwse-resize; border-radius:12px 0 0 0; z-index:2 } .of-dk-rs::before{ content:""; position:absolute; left:5px; top:5px; width:8px; height:8px; border-left:2px solid var(--border); border-top:2px solid var(--border); border-radius:3px 0 0 0 } .of-dk-rs:hover::before{ border-color:var(--primary) }
+.of-dk-h{ display:flex; align-items:center; gap:10px; padding:10px 10px 10px 16px; border-bottom:1px solid var(--border); font-weight:600 } .of-dk-h .t{ flex:1; min-width:0; line-height:1.25 } .of-dk-h .t b{ display:block; font-size:13.5px } .of-dk-h .t small{ display:block; font-size:11px; font-weight:500; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.of-dk-h .as-bot.xs{ width:30px; height:30px } .of-keep{ width:auto; height:28px; font-size:11.5px; padding:0 24px 0 8px }
+.of-dk-b{ flex:1; max-height:none; min-height:0 } .of-dk-e{ margin:auto; text-align:center; color:var(--muted); font-size:12.5px; display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px } .of-dk-e b{ color:var(--ink); font-size:13.5px }
+.of-dk-f{ display:flex; gap:8px; align-items:flex-end; padding:10px 12px; border-top:1px solid var(--border) } .of-dk-f textarea{ flex:1; min-height:38px; max-height:120px; resize:none; font-size:13px }
+.of-say{ display:inline-block; font-size:12.5px; font-weight:600; background:linear-gradient(90deg, var(--primary) 0%, #8B5CF6 45%, var(--primary) 90%); background-size:220% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:aibS 2.4s linear infinite } .of-say.nw{ animation:aibS 2.4s linear infinite, ofSay .4s ease-out }
+@keyframes ofSay{ from{ opacity:0; transform:translateY(4px) } }
+.of-gv button .of-pl.ok{ color:var(--primary); background:color-mix(in oklab, var(--primary) 9%, transparent) }
+.of-hb{ width:100%; border:0; border-top:1px solid var(--border); background:none; font:inherit; color:inherit; text-align:left; cursor:pointer; border-radius:0 } .of-hb:first-of-type{ border-top:0 } .of-hb:hover .t{ color:var(--primary) } .of-hb > i{ color:var(--muted); font-size:11px }
+.of-res{ font-size:13.5px; line-height:1.6; padding:10px 12px; border-radius:12px; background:var(--surface-2) } .of-res p{ margin:0 0 6px } .of-res ul{ margin:2px 0; padding-left:18px }
+.of-ap{ cursor:pointer } .of-ap input{ accent-color:var(--primary); flex:none } .of-act{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px }
+@media (max-width:760px){ .of-dock{ position:static; width:auto !important; height:auto !important; max-height:none; margin-top:10px } .of-dk-b{ max-height:360px } .of-dk-rs{ display:none } }
+@media (prefers-reduced-motion:reduce){ .of-comet, .of-mdots{ animation:none } }
+.of-main{ grid-template-columns:minmax(0, 1fr) } .of-side{ order:2; max-height:none; display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:2px 8px } .of-sh, .of-rule{ grid-column:1 / -1 }      /* sơ đồ luôn rộng hết khung, danh sách phòng ở dưới */
+.of-keep{ flex:none; width:98px !important; min-width:0 } .of-dk-h .ibtn{ flex:none }
 </style>
 <script>
 /* ═════ (1.82.7) VĂN PHÒNG AI (Trợ lý › Văn phòng AI, route asst/office) — máy chủ asstOffice_ (AiAgents.gs). Thiết kế: docs/van-phong-ai.md
@@ -23075,7 +23124,7 @@ function ofCells(G) {
 /** dựng trang (một lần — chuyển tab trong module Trợ lý không dựng lại) */
 function viewOffice(host) {
   host.innerHTML = '<div class="of" id="ofR"><div class="of-top"><div class="of-ask"><i class="bi bi-stars" style="color:var(--primary)"></i><input id="ofQ" placeholder="Giao việc hoặc hỏi Trợ lý chung — trợ lý tự chọn phòng nào làm…" aria-label="Giao việc cho Trợ lý chung"><button type="button" class="btn sm pri" id="ofGo"><i class="bi bi-send"></i>Giao việc</button></div><div class="of-clk"><small id="ofDay"></small><b id="ofClk">--:--:--</b></div></div>' +
-    '<div class="of-k" id="ofK"></div><div class="of-main"><aside class="of-side" id="ofS" aria-label="Phòng ban"></aside><div class="of-stagew"><div class="of-stage" id="ofSt"><div class="of-in" id="ofIn"></div><div class="of-ov" id="ofOv"></div><section class="of-dock" id="ofDock" aria-label="Giao việc qua chat"></section></div><div class="of-tick" id="ofT"><b><span class="of-dot run"></span>TRỰC TIẾP</b><span class="ev">Đang mở văn phòng…</span></div></div></div></div>';
+    '<div class="of-k" id="ofK"></div><div class="of-main"><aside class="of-side" id="ofS" aria-label="Phòng ban"></aside><div class="of-stagew"><div class="of-stage" id="ofSt"><div class="of-in" id="ofIn"></div><div class="of-ov" id="ofOv"></div></div><div class="of-tick" id="ofT"><b><span class="of-dot run"></span>TRỰC TIẾP</b><span class="ev">Đang mở văn phòng…</span></div></div></div></div>';
   const q = $('#ofQ', host);
   q.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); ofAsk(q.value); } }; $('#ofGo', host).onclick = () => ofAsk(q.value);
   $('#ofR', host).onclick = e => ofClick(e);
@@ -23083,7 +23132,7 @@ function viewOffice(host) {
   if (OF.d) ofPaint(); else $('#ofOv', host).innerHTML = '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:var(--muted)">' + asstAva(3, 'lg', 1) + '<div style="margin-top:12px;font-size:13px">Đang mở văn phòng…</div></div>';
   const tickClock = () => { const c = $('#ofClk'); if (!c) return clearInterval(OF.ck); const d = new Date(); c.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); const dd = $('#ofDay'); if (dd) dd.textContent = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][d.getDay()] + ', ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1); };
   clearInterval(OF.ck); OF.ck = setInterval(tickClock, 1000); tickClock();
-  if (window.ResizeObserver) { if (OF.ro) OF.ro.disconnect(); OF.ro = new ResizeObserver(() => { ofFit(); const dk = $('#ofDock'), St = $('#ofSt'); if (dk && St && (innerWidth <= 760) === (dk.parentElement === St)) ofDock(); }); OF.ro.observe($('#ofSt', host)); }      // co theo khung thật (cả lúc thanh bên thu / mở, lúc trang vừa hiện)
+  if (window.ResizeObserver) { if (OF.ro) OF.ro.disconnect(); OF.ro = new ResizeObserver(() => { ofFit(); const dk = $('#ofDock'); if (dk && (innerWidth <= 760) === (dk.parentElement === $('#ofR'))) ofDock(); }); OF.ro.observe($('#ofSt', host)); }      // co theo khung thật (cả lúc thanh bên thu / mở, lúc trang vừa hiện)
   ofLoad();
 }
 /** quay lại tab Văn phòng (đã dựng sẵn): vẽ lại theo bề rộng hiện tại + tải mới ngay */
@@ -23119,21 +23168,25 @@ function ofPaint() {
   ofDock(); ofTicker();
   const dr = $('#ofDr'); if (dr && dr.dataset.k && dr.dataset.k !== '@brain') ofDrawer(dr.dataset.k, true);
 }
-/** sân khấu 2.5D: SVG (sàn, tường, bàn, tủ hồ sơ, bộ não, luồng việc) + lớp nhãn không co chữ. Không đổi gì → không vẽ lại (giữ hoạt ảnh chạy liền mạch) */
+/** sân khấu 2.5D: SVG (sàn, tường, bàn, tủ hồ sơ, bộ não, luồng việc) + lớp nhãn không co chữ. Không đổi gì → không vẽ lại (giữ hoạt ảnh chạy liền mạch)
+    (1.82.8) bố cục trong phòng: bàn + màn hình sát tường trái, tủ hồ sơ sát tường phải, robot ở giữa phòng (không che bàn);
+    NHÃN TỰ TÌM CHỖ TRỐNG: thử trên tường → dưới chân → bên phải → bên trái → trên sàn, bỏ chỗ chạm robot / bàn / tủ / bộ não / nhãn khác */
 function ofStage(A, byAg, force) {
   const In = $('#ofIn'), Ov = $('#ofOv'), St = $('#ofSt'); if (!In || !St) return; const D = OF.d; OF.last = [A, byAg];
-  const slots = A.concat(D.can ? [{ key: '+add' }] : []), G = slots.length <= 12 ? 4 : 6, cells = ofCells(G), W = G * OF_TW + 200, H = G * OF_TH + 250, X0 = W / 2, Y0 = 160;
-  const sc = Math.min(1, (St.clientWidth || W) / W), fxK = Object.keys(OF.fx).filter(k => Date.now() - OF.fx[k].t < 8000);
-  const sig = [W, sc.toFixed(3), A.map(a => a.key + a.av + a.t + a.docs.length).join(), (D.run || []).map(r => r.id + r.sp).join(), fxK.join(), D.box, D.brain.mem, D.brain.kb, D.brain.sk, document.documentElement.dataset.mode].join('|');
+  const slots = A.concat(D.can ? [{ key: '+add' }] : []), G = slots.length <= 12 ? 4 : 6, cells = ofCells(G), W = G * OF_TW + 200, H = G * OF_TH + 250, X0 = W / 2, Y0 = 170;
+  const sc = Math.min(1, (St.clientWidth || W) / W), fxK = Object.keys(OF.fx).filter(k => Date.now() - OF.fx[k].t < 8000), mid = sc < .6;
+  const sig = [W, sc.toFixed(3), A.map(a => a.key + a.av + a.t + a.docs.length + (a.today || {}).n).join(), (D.run || []).map(r => r.id + r.sp).join(), fxK.join(), D.box, D.brain.mem, D.brain.kb, D.brain.sk, document.documentElement.dataset.mode].join('|');
   if (!force && sig === OF.sig) return; OF.sig = sig;
-  const Q = p => 'left:' + (p[0] * sc).toFixed(1) + 'px;top:' + (p[1] * sc).toFixed(1) + 'px';
   const P = (gx, gy) => [X0 + (gx - gy) * OF_TW / 2, Y0 + (gx + gy) * OF_TH / 2], pt = p => p[0].toFixed(1) + ',' + p[1].toFixed(1), up = (p, h) => [p[0], p[1] - h], poly = (L, a) => '<polygon points="' + L.map(pt).join(' ') + '" ' + a + '/>';
-  const C = P(G / 2, G / 2), svg = [], flows = [], lbs = [], bots = [], bubs = [], pos = {};
-  pos['@brain'] = C; pos['@mail'] = [C[0], C[1] + 30 + 86 / sc];      /* hộp thư nằm dưới thẻ bộ não (thẻ không co theo sân khấu) */
+  const S = p => [p[0] * sc, p[1] * sc], C = P(G / 2, G / 2), svg = [], flows = [], lbs = [], bots = [], bubs = [], pos = {}, boxes = [], W2 = W * sc, H2 = H * sc;
+  const box = (x, y, w, h) => ({ x: x, y: y, w: w, h: h }), hit = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+  const ctx = ofStage.cx || (ofStage.cx = document.createElement('canvas').getContext('2d')), tw = (t, f) => { ctx.font = f; return ctx.measureText(t).width; };
+  const BRY = C[1] - 40; pos['@brain'] = [C[0], BRY]; pos['@mail'] = [C[0] + 118, BRY - 4];
   svg.push(poly([P(-.15, -.15), P(G + .15, -.15), P(G + .15, G + .15), P(-.15, G + .15)], 'class="of-base"'));
+  const rooms = [];
   slots.forEach((a, i) => { const c = cells[i]; if (!c) return; const gx = c.x, gy = c.y, m = .07, ctr = P(gx + .5, gy + .5); pos[a.key] = ctr;
     if (a.key === '+add') { svg.push(poly([P(gx + m, gy + m), P(gx + 1 - m, gy + m), P(gx + 1 - m, gy + 1 - m), P(gx + m, gy + 1 - m)], 'fill="none" stroke="#60A5FA" stroke-opacity=".7" stroke-dasharray="6 6" stroke-width="1.4"'));
-      lbs.push('<button type="button" class="of-add" data-ofadd style="' + Q(ctr) + '">+ Thêm phòng</button>'); return; }
+      const q = S(ctr); lbs.push('<button type="button" class="of-add" data-ofadd style="left:' + q[0] + 'px;top:' + q[1] + 'px">+ Thêm phòng</button>'); boxes.push(box(q[0] - 55, q[1] - 14, 110, 28)); return; }
     const col = ofCol(a), b = byAg[a.key], busy = !!b, fx = OF.fx[a.key] && Date.now() - OF.fx[a.key].t < 8000 ? OF.fx[a.key] : null;
     const Ap = P(gx + m, gy + m), Bp = P(gx + 1 - m, gy + m), Cp = P(gx + 1 - m, gy + 1 - m), Dp = P(gx + m, gy + 1 - m);
     svg.push('<line class="of-ln" x1="' + ctr[0] + '" y1="' + ctr[1] + '" x2="' + C[0] + '" y2="' + C[1] + '"/>');
@@ -23141,56 +23194,70 @@ function ofStage(A, byAg, force) {
     svg.push(poly([Ap, Bp, up(Bp, OF_WH), up(Ap, OF_WH)], 'fill="' + col + '" fill-opacity=".18" stroke="' + col + '" stroke-opacity=".65"'));
     svg.push(poly([Ap, Bp, Cp, Dp], 'class="of-fl' + (busy ? ' busy' : fx ? ' done' : '') + '" fill="' + col + '" fill-opacity=".12" stroke="' + col + '" stroke-width="1.6"'));
     const r1 = .3; svg.push(poly([P(gx + r1, gy + r1), P(gx + 1 - r1, gy + r1), P(gx + 1 - r1, gy + 1 - r1), P(gx + r1, gy + 1 - r1)], 'fill="none" stroke="' + col + '" stroke-opacity=".35" stroke-dasharray="4 5"'));
-    // tủ hồ sơ sát tường trái + chồng giấy trên nóc (số ngăn = số thứ agent xem được)
-    const x0 = gx + m + .02, x1 = gx + m + .16, y0 = gy + .56, y1 = gy + .86, hc = 36, T = h => p => up(p, h);
-    svg.push(poly([P(x1, y0), P(x1, y1), T(hc)(P(x1, y1)), T(hc)(P(x1, y0))], 'class="of-cb1"') + poly([P(x0, y1), P(x1, y1), T(hc)(P(x1, y1)), T(hc)(P(x0, y1))], 'class="of-cb2"') + poly([P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)].map(T(hc)), 'class="of-cb3"'));
-    [.3, .55, .8].forEach(k => { const a1 = up(P(x1, y0 + .03), hc * k), a2 = up(P(x1, y1 - .03), hc * k); svg.push('<line class="of-cbl" x1="' + a1[0] + '" y1="' + a1[1] + '" x2="' + a2[0] + '" y2="' + a2[1] + '"/>'); });
-    if (a.docs.length) svg.push(poly([P(x0 + .03, y0 + .06), P(x1 - .02, y0 + .06), P(x1 - .02, y0 + .14), P(x0 + .03, y0 + .14)].map(T(hc + 4)), 'class="of-pap"'));
-    // bàn làm việc + màn hình
-    const dx = .16, dy = .09, cx = gx + .46, cy = gy + .38, h = 16, t1 = up(P(cx - dx, cy - dy), h), t2 = up(P(cx + dx, cy - dy), h), t3 = up(P(cx + dx, cy + dy), h), t4 = up(P(cx - dx, cy + dy), h);
+    // tủ hồ sơ sát tường phải (A–B), 3 ngăn, chồng giấy khi có tài liệu riêng
+    const x0 = gx + .56, x1 = gx + .86, y0 = gy + m + .01, y1 = gy + m + .15, hc = 38, T = h => p => up(p, h);
+    svg.push(poly([P(x0, y1), P(x1, y1), T(hc)(P(x1, y1)), T(hc)(P(x0, y1))], 'class="of-cb1"') + poly([P(x1, y0), P(x1, y1), T(hc)(P(x1, y1)), T(hc)(P(x1, y0))], 'class="of-cb2"') + poly([P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)].map(T(hc)), 'class="of-cb3"'));
+    [.3, .55, .8].forEach(k => { const a1 = up(P(x0 + .03, y1), hc * k), a2 = up(P(x1 - .03, y1), hc * k); svg.push('<line class="of-cbl" x1="' + a1[0] + '" y1="' + a1[1] + '" x2="' + a2[0] + '" y2="' + a2[1] + '"/>'); });
+    if (a.docs.length) svg.push(poly([P(x0 + .05, y0 + .02), P(x0 + .14, y0 + .02), P(x0 + .14, y1 - .02), P(x0 + .05, y1 - .02)].map(T(hc + 4)), 'class="of-pap"'));
+    // bàn làm việc + màn hình sát tường trái (A–D)
+    const dx = .1, dy = .17, cx = gx + m + .14, cy = gy + .42, h = 16, t1 = up(P(cx - dx, cy - dy), h), t2 = up(P(cx + dx, cy - dy), h), t3 = up(P(cx + dx, cy + dy), h), t4 = up(P(cx - dx, cy + dy), h);
     svg.push(poly([P(cx - dx, cy + dy), P(cx + dx, cy + dy), t3, t4], 'class="of-dk1"') + poly([P(cx + dx, cy - dy), P(cx + dx, cy + dy), t3, t2], 'class="of-dk2"') + poly([t1, t2, t3, t4], 'class="of-dk3"'));
-    const mo = up(P(cx, cy - .02), h + 4); svg.push('<rect class="of-mon' + (busy ? ' on' : '') + '" x="' + (mo[0] - 11) + '" y="' + (mo[1] - 14) + '" width="22" height="14" rx="2"/>');
-    const nCab = ofSees(a).length + a.docs.length, cabP = up(P(x1, (y0 + y1) / 2), hc / 2);
-    lbs.push('<button type="button" class="of-cab" data-ofcab="' + esc(a.key) + '" style="' + Q(cabP) + '" title="Tủ hồ sơ: những gì agent xem được"><i class="bi bi-archive"></i><span>' + nCab + '</span></button>');
-    // nhãn phòng: nửa sau ở trên đỉnh tường, nửa trước dưới chân phòng (không che bộ não)
-    const front = gx + gy + 1 > G, top = front ? [Cp[0], Cp[1] + 10] : up(Ap, OF_WH + 10);
+    const mo = up(P(cx - .02, cy), h + 2); svg.push('<rect class="of-mon' + (busy ? ' on' : '') + '" x="' + (mo[0] - 12) + '" y="' + (mo[1] - 16) + '" width="24" height="16" rx="2"/><rect x="' + (mo[0] - 2) + '" y="' + mo[1] + '" width="4" height="3" fill="#94A3B8"/>');
+    const dc = S(up(P(cx, cy), h / 2)); boxes.push(box(dc[0] - 42 * sc, dc[1] - 30 * sc, 84 * sc, 50 * sc));
+    const cab = S(up(P((x0 + x1) / 2, y1), hc / 2)), nCab = ofSees(a).length + a.docs.length; boxes.push(box(cab[0] - 22, cab[1] - 11, 44, 22));
+    lbs.push('<button type="button" class="of-cab" data-ofcab="' + esc(a.key) + '" style="left:' + cab[0] + 'px;top:' + cab[1] + 'px" title="Tủ hồ sơ: những gì agent xem được"><i class="bi bi-archive"></i><span>' + nCab + '</span></button>');
+    // robot giữa phòng, trước bàn
+    const bp = S(P(gx + .6, gy + .6)), rs = sc > .78 ? 64 : 44; boxes.push(box(bp[0] - rs / 2, bp[1] - rs / 2, rs, rs));
+    bots.push('<span class="of-bot" data-ofr="' + esc(a.key) + '" title="' + esc(a.t) + '" style="left:' + bp[0] + 'px;top:' + bp[1] + 'px">' + asstAva(a.av, rs > 50 ? 'md' : 'sm', busy) + (b && b.length > 1 ? '<span class="of-par">×' + b.length + '</span>' : '') + '</span>');
+    if (b) { b.slice(0, 2).forEach((r, j) => bubs.push('<span class="of-bub" style="--rc:' + col + ';left:' + (bp[0] + rs / 2 + 4) + 'px;top:' + (bp[1] - rs / 2 - 4 - j * 28) + 'px" title="' + esc(r.t) + '">' + esc(aiCut(r.t, 30)) + (r.sp ? ' · B' + r.sp : '') + '<span class="ty"><i></i><i></i><i></i></span></span>'));
+      if (b.length > 2) bubs.push('<span class="of-bub more" style="left:' + (bp[0] + rs / 2 + 4) + 'px;top:' + (bp[1] - rs / 2 - 60) + 'px">+' + (b.length - 2) + ' việc nữa</span>'); }
+    else if (fx) bubs.push('<span class="of-bub ' + fx.k + '" style="left:' + (bp[0] + rs / 2 + 4) + 'px;top:' + (bp[1] - rs / 2 - 4) + 'px">' + (fx.k === 'ok' ? '✓ Xong' : '✗ Lỗi') + (fx.x ? ' · ' + esc(aiCut(fx.x, 22)) : '') + '</span>');
     const st = b ? (b.length > 1 ? b.length + ' việc song song' : 'đang làm' + (b[0].sp ? ' · bước ' + b[0].sp : '')) : a.off ? 'đang tắt' : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow · rảnh' : 'rảnh';
-    lbs.push('<button type="button" class="of-lb' + (b ? ' busy' : '') + (front ? ' dn' : '') + '" data-ofr="' + esc(a.key) + '" style="--rc:' + col + ';' + Q(top) + '" title="' + esc(a.t) + '"><b>' + esc('Phòng ' + ofShort(a)) + '</b><small><span class="of-dot ' + (b ? 'run' : 'idle') + '"></span>' + esc(a.key === 'hub' ? 'Trợ lý chung · ' + st : st) + '</small></button>');
-    const bp = P(gx + .64, gy + .64), bq = [bp[0] * sc, bp[1] * sc];
-    bots.push('<span class="of-bot" data-ofr="' + esc(a.key) + '" title="' + esc(a.t) + '" style="' + Q(bp) + '">' + asstAva(a.av, sc > .75 ? 'md' : 'sm', busy) + (b && b.length > 1 ? '<span class="of-par">×' + b.length + '</span>' : '') + '</span>');
-    if (b) { b.slice(0, 2).forEach((r, j) => bubs.push('<span class="of-bub" style="--rc:' + col + ';left:' + (bq[0] + 26) + 'px;top:' + (bq[1] - 52 - j * 28) + 'px" title="' + esc(r.t) + '">' + esc(aiCut(r.t, 30)) + (r.sp ? ' · B' + r.sp : '') + '<span class="ty"><i></i><i></i><i></i></span></span>'));
-      if (b.length > 2) bubs.push('<span class="of-bub more" style="left:' + (bq[0] + 26) + 'px;top:' + (bq[1] - 108) + 'px">+' + (b.length - 2) + ' việc nữa</span>'); }
-    else if (fx) bubs.push('<span class="of-bub ' + fx.k + '" style="left:' + (bq[0] + 26) + 'px;top:' + (bq[1] - 52) + 'px">' + (fx.k === 'ok' ? '✓ Xong' : '✗ Lỗi') + (fx.x ? ' · ' + esc(aiCut(fx.x, 22)) : '') + '</span>');
+    rooms.push({ a: a, col: col, b: b, st: a.key === 'hub' ? 'Trợ lý chung · ' + st : st, front: gx + gy + 1 > G, Ap: S(up(Ap, OF_WH)), Bp: S(up(Bp, OF_WH / 2)), Cp: S(Cp), Dp: S(up(Dp, OF_WH / 2)), F: S(P(gx + .84, gy + .84)), y: ctr[1] });
   });
-  // LUỒNG VIỆC chạy liên tục: mỗi việc đang chạy một đường cong (phòng giao → phòng nhận) + đường thư tới hộp thư flow
-  (D.run || []).forEach((r, i) => { const to = r.ag || 'chat', b = pos[to]; if (!b) return; const from = r.hub ? 'hub' : '@brain', a = pos[from] || C, col = ofCol((D.agents.find(x => x.key === to) || { key: to, av: 0 })), k = (byAg[to] || []).indexOf(r);
-    if (from !== to && Math.hypot(b[0] - a[0], b[1] - a[1]) > 20) { const mx = (a[0] + b[0]) / 2 + (k % 2 ? 1 : -1) * k * 22, my = (a[1] + b[1]) / 2 - Math.max(60, Math.hypot(b[0] - a[0], b[1] - a[1]) * .28) - k * 16, id = 'ofP' + i;
-      flows.push('<path id="' + id + '" class="of-fw" style="color:' + col + '" stroke="' + col + '" d="M' + pt(a) + ' Q' + mx.toFixed(1) + ',' + my.toFixed(1) + ' ' + pt(b) + '"/>');
-      [0, .9, 1.8].forEach(d0 => flows.push('<circle class="of-fdot" r="8" fill="' + col + '" style="color:' + col + '"><animateMotion dur="2.7s" begin="' + d0 + 's" repeatCount="indefinite"><mpath href="#' + id + '"/></animateMotion></circle>')); }
-    const M = pos['@mail'], id2 = 'ofM' + i, cx2 = (b[0] + M[0]) / 2 + (b[0] < M[0] ? -1 : 1) * 30, cy2 = (b[1] + M[1]) / 2 + 50;
-    flows.push('<path id="' + id2 + '" class="of-fw ml" d="M' + pt(b) + ' Q' + cx2.toFixed(1) + ',' + cy2.toFixed(1) + ' ' + pt(M) + '"/>');
-    flows.push('<rect class="of-env" x="-10" y="-7" width="20" height="14" rx="3"><animateMotion dur="2.2s" repeatCount="indefinite" begin="' + (i * .4).toFixed(1) + 's"><mpath href="#' + id2 + '"/></animateMotion></rect><rect class="of-env" x="-10" y="-7" width="20" height="14" rx="3" opacity=".75"><animateMotion dur="2.2s" repeatCount="indefinite" begin="' + (1.1 + i * .4).toFixed(1) + 's" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#' + id2 + '"/></animateMotion></rect>'); });
-  // BỘ NÃO CHUNG: biểu tượng não phát sáng (bấm để thiết lập)
-  const hubBusy = !!byAg.hub;
+  // BỘ NÃO CHUNG gọn: biểu tượng não + một dòng chữ ngay dưới, hộp thư flow cạnh phải biểu tượng
+  const hubBusy = !!byAg.hub, bc = S([C[0], BRY]), pillT = 'Bộ não chung · ' + D.brain.mem + ' ghi nhớ · ' + D.brain.kb + ' hướng dẫn · ' + D.brain.sk + ' kỹ năng', pw = tw(pillT, '600 11px system-ui') + 22;
+  boxes.push(box(bc[0] - 80 * sc, bc[1] - 60 * sc, 160 * sc, 120 * sc), box(bc[0] - pw / 2, bc[1] + 62 * sc, pw, 24));
+  const mc = S(pos['@mail']), mt = (D.box ? D.flows + ' flow' : 'chưa nối'), mw = tw(mt, '800 10.5px system-ui') + 38; boxes.push(box(mc[0] - 10, mc[1] - 12, mw, 24));
+  lbs.push('<button type="button" class="of-bhit" data-ofbrain aria-label="Thiết lập bộ não chung" style="left:' + bc[0] + 'px;top:' + bc[1] + 'px;width:' + (150 * sc) + 'px;height:' + (115 * sc) + 'px"></button>');
+  lbs.push('<button type="button" class="of-brain" data-ofbrain style="left:' + bc[0] + 'px;top:' + (bc[1] + 62 * sc) + 'px" title="Bấm để thiết lập bộ não chung">' + esc(pillT) + '</button>');
+  lbs.push('<div class="of-mail' + (D.box ? '' : ' off') + '" style="left:' + (mc[0] - 10) + 'px;top:' + mc[1] + 'px" title="Hộp thư flow — mỗi bước agent là một thư"><i class="bi bi-envelope-paper"></i> ' + esc(mt) + '</div>');
+  // NHÃN PHÒNG: phòng điều phối trước, rồi từ trên xuống — mỗi nhãn chọn chỗ đầu tiên không chạm gì
+  rooms.sort((p, q) => (p.a.key === 'hub' ? -1 : q.a.key === 'hub' ? 1 : p.y - q.y)).forEach(R => {
+    const t = 'Phòng ' + ofShort(R.a), w = Math.max(tw(t, '700 13px system-ui'), mid ? 0 : tw(R.st, '400 10.5px system-ui') + 12) + 30, h = mid ? 28 : 42;
+    const cand = [[R.Ap[0] - w / 2, R.Ap[1] - h - 6], [R.Cp[0] - w / 2, R.Cp[1] + 6], [R.Bp[0] + 8, R.Bp[1] - h / 2], [R.Dp[0] - w - 8, R.Dp[1] - h / 2], [R.F[0] - w / 2, R.F[1] - h / 2]];
+    if (R.front) cand.unshift(cand.splice(1, 1)[0]);
+    let best = null, bv = Infinity; cand.forEach(c => { const bx = box(c[0], c[1], w, h), out = c[0] < 4 || c[1] < 4 || c[0] + w > W2 - 4 || c[1] + h > H2 - 4 ? 1e6 : 0, v = out + boxes.reduce((s, o) => s + hit(bx, o), 0); if (v < bv) { bv = v; best = bx; } });
+    boxes.push(best);
+    lbs.push('<button type="button" class="of-lb' + (R.b ? ' busy' : '') + '" data-ofr="' + esc(R.a.key) + '" style="--rc:' + R.col + ';left:' + best.x.toFixed(1) + 'px;top:' + best.y.toFixed(1) + 'px;width:' + Math.ceil(w) + 'px" title="' + esc(R.a.t) + '"><b>' + esc(t) + '</b><small><span class="of-dot ' + (R.b ? 'run' : 'idle') + '"></span>' + esc(R.st) + '</small></button>');
+  });
+  /* LUỒNG VIỆC (1.82.8 — thiết kế lại): đường cong mảnh mờ làm “ray” + vệt sáng (sao chổi) lướt liên tục từ phòng giao tới phòng nhận,
+     điểm đến có vòng sóng lan; việc đang gửi thư flow: chuỗi chấm nhỏ trôi về hộp thư. Không còn nét đứt dày / chấm to đè lên nhau */
+  const curve = (a, b, k, lift) => { const d = Math.hypot(b[0] - a[0], b[1] - a[1]), mx = (a[0] + b[0]) / 2 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 26, my = (a[1] + b[1]) / 2 - lift * Math.max(50, d * .3) - k * 10; return 'M' + pt(a) + ' Q' + mx.toFixed(1) + ',' + my.toFixed(1) + ' ' + pt(b); };
+  (D.run || []).forEach((r, i) => { const to = r.ag || 'chat', b = pos[to]; if (!b) return; const from = r.hub ? 'hub' : '@brain', a = from === '@brain' ? [C[0], BRY] : pos[from] || C, col = ofCol((D.agents.find(x => x.key === to) || { key: to, av: 0 })), k = (byAg[to] || []).indexOf(r);
+    if (from !== to && Math.hypot(b[0] - a[0], b[1] - a[1]) > 20) { const d = curve(a, b, k, 1), dur = (2.4 + (i % 3) * .3).toFixed(1);
+      flows.push('<path class="of-rail" stroke="' + col + '" d="' + d + '"/>');
+      [0, .5].forEach(o => flows.push('<path class="of-comet" pathLength="100" stroke="' + col + '" style="color:' + col + ';animation-duration:' + dur + 's;animation-delay:-' + (o * dur).toFixed(2) + 's" d="' + d + '"/>'));
+      flows.push('<circle class="of-ping" cx="' + b[0] + '" cy="' + b[1] + '" r="14" stroke="' + col + '"><animate attributeName="r" values="10;46" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0" dur="2s" repeatCount="indefinite"/></circle>'); }
+    const M = pos['@mail'], d2 = curve(b, M, k, -.6);
+    flows.push('<path class="of-mrail" d="' + d2 + '"/><path class="of-mdots" pathLength="100" style="animation-delay:-' + (i * .3).toFixed(1) + 's" d="' + d2 + '"/>'); });
+  // biểu tượng não phát sáng
   svg.unshift('<defs><radialGradient id="ofBr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#8B5CF6" stop-opacity=".45"/><stop offset=".65" stop-color="#6366F1" stop-opacity=".12"/><stop offset="1" stop-color="#6366F1" stop-opacity="0"/></radialGradient>' +
     '<linearGradient id="ofBL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C084FC"/><stop offset="1" stop-color="#7C3AED"/></linearGradient><linearGradient id="ofBR2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#67E8F9"/><stop offset="1" stop-color="#2563EB"/></linearGradient>' +
     '<filter id="ofGl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter></defs>');
   svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * .92 + '" ry="' + OF_TH * .92 + '" fill="url(#ofBr)"/>');
   [.6, .8].forEach((k, i) => svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * k + '" ry="' + OF_TH * k + '" fill="none" stroke="var(--ring)" stroke-opacity=".5" stroke-width="1.3" stroke-dasharray="' + (i ? '2 9' : '10 6') + '"><animate attributeName="stroke-dashoffset" from="0" to="' + (i ? 44 : -64) + '" dur="' + (i ? 3 : 5) + 's" repeatCount="indefinite"/></ellipse>'));
   const lobe = 'M-2,-30 C-14,-38 -34,-34 -38,-20 C-50,-16 -52,0 -44,8 C-50,18 -40,32 -26,30 C-20,38 -6,38 -2,30 Z', fold = 'M-14,-24 C-22,-18 -18,-10 -26,-6 M-38,-6 C-30,-2 -30,8 -22,10 M-30,22 C-24,16 -16,20 -12,12 M-10,-8 C-16,0 -8,6 -14,14';
-  svg.push('<g transform="translate(' + C[0] + ',' + (C[1] - 34) + ') scale(1.45)"><g class="of-brn' + (hubBusy ? ' on' : '') + '"><g filter="url(#ofGl)" opacity=".75"><path d="' + lobe + '" fill="#8B5CF6"/><path d="' + lobe + '" transform="scale(-1,1)" fill="#22D3EE"/></g>' +
+  svg.push('<g transform="translate(' + C[0] + ',' + BRY + ') scale(1.45)"><g class="of-brn' + (hubBusy ? ' on' : '') + '"><g filter="url(#ofGl)" opacity=".75"><path d="' + lobe + '" fill="#8B5CF6"/><path d="' + lobe + '" transform="scale(-1,1)" fill="#22D3EE"/></g>' +
     '<path d="' + lobe + '" fill="url(#ofBL)" stroke="#F5F3FF" stroke-opacity=".7" stroke-width="1.2"/><path d="' + lobe + '" transform="scale(-1,1)" fill="url(#ofBR2)" stroke="#ECFEFF" stroke-opacity=".7" stroke-width="1.2"/>' +
     '<path d="' + fold + '" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" stroke-linecap="round"/><path d="' + fold + '" transform="scale(-1,1)" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" stroke-linecap="round"/></g></g>');
-  if (hubBusy) { const hb = pos.hub; if (hb) flows.push('<path class="of-fw" style="color:#8B5CF6" stroke="#8B5CF6" d="M' + pt(hb) + ' Q' + ((hb[0] + C[0]) / 2 - 40).toFixed(1) + ',' + ((hb[1] + C[1]) / 2).toFixed(1) + ' ' + pt([C[0], C[1] - 34]) + '"/>'); }
-  lbs.push('<button type="button" class="of-bhit" data-ofbrain aria-label="Thiết lập bộ não chung" style="' + Q([C[0], C[1] - 34]) + '"></button>');
-  lbs.push('<button type="button" class="of-brain" data-ofbrain style="' + Q([C[0], C[1] + 30]) + '"><b>BỘ NÃO CHUNG</b><div class="ch"><span>' + D.brain.mem + ' ghi nhớ</span><span>' + D.brain.kb + ' hướng dẫn</span><span>' + D.brain.sk + ' kỹ năng</span></div><em>bấm để thiết lập</em></button>');
-  lbs.push('<div class="of-mail' + (D.box ? '' : ' off') + '" style="' + Q(pos['@mail']) + '"><i class="bi bi-envelope-paper"></i> HỘP THƯ FLOW · ' + (D.box ? D.flows + ' FLOW' : 'CHƯA NỐI') + '</div>');
+  if (hubBusy && pos.hub) { const d = curve(pos.hub, [C[0], BRY - 50], 0, .4); flows.push('<path class="of-rail" stroke="#8B5CF6" d="' + d + '"/><path class="of-comet" pathLength="100" stroke="#8B5CF6" style="color:#8B5CF6;animation-duration:1.8s" d="' + d + '"/>'); }      // điều phối đang đọc bộ não
   lbs.push('<div class="of-legend"><span><span class="of-dot run"></span>đang làm</span><span><span class="of-dot idle"></span>rảnh</span><span><svg width="26" height="8" aria-hidden="true"><path d="M1 4 H25" stroke="#F59E0B" stroke-width="2" stroke-dasharray="5 3"/></svg>luồng việc</span><span><i class="bi bi-envelope-fill" style="color:var(--mail)"></i>thư flow</span></div>');
   In.style.width = W + 'px'; In.style.height = H + 'px'; OF.pos = pos; OF.W = W; OF.H = H; OF.sc = sc;
   In.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" aria-hidden="true">' + svg.join('') + flows.join('') + '</svg>';
-  Ov.innerHTML = lbs.join('') + bots.join('') + bubs.join('');      // thứ tự lớp: nhãn < robot < bong bóng — chữ bong bóng không bị nhãn che
-  In.style.transform = 'scale(' + sc + ')'; St.style.height = Math.round(H * sc) + 'px';
-  St.classList.toggle('cpt', sc < .38); St.classList.toggle('mid', sc >= .38 && sc < .6);
+  Ov.innerHTML = lbs.join('') + bots.join('') + bubs.join('');      // thứ tự lớp: nhãn < robot < bong bóng
+  In.style.transform = 'scale(' + sc + ')'; St.style.height = Math.round(H2) + 'px';
+  St.classList.toggle('cpt', sc < .38); St.classList.toggle('mid', mid && sc >= .38);
 }
 function ofFit(force) { const St = $('#ofSt'); if (!St || !OF.last || !OF.W || St.closest('[hidden]')) return; if (force || Math.abs(Math.min(1, St.clientWidth / OF.W) - (OF.sc || 0)) > .004) ofStage(OF.last[0], OF.last[1], 1); }
 /** chấm sáng một lần (việc vừa giao): phòng giao → bộ não → phòng nhận */
@@ -23206,27 +23273,75 @@ function ofFly(from, to) {
 function ofTicker() {
   const T = $('#ofT .ev'); if (!T || !OF.d) return; const D = OF.d, p = d => pad(new Date(d).getHours()) + ':' + pad(new Date(d).getMinutes());
   const L = (D.run || []).map(r => ({ at: r.at, h: (r.hub ? '<b>Trợ lý chung</b> giao → ' : '') + '<b>' + esc(ofName(r.ag || 'chat')) + '</b> đang làm' + (r.sp ? ' (bước ' + r.sp + ')' : '') + ': ' + esc(aiCut(r.t, 70)) }))
-    .concat((D.done || []).slice(0, 3).map(r => ({ at: r.at, h: '<b>' + esc(ofName(r.ag || 'chat')) + '</b> ' + (r.st === 'err' ? 'gặp lỗi' : 'xong') + ': ' + esc(aiCut(r.t, 70)) }))).sort((a, b) => new Date(b.at) - new Date(a.at));
+    .concat((D.done || []).slice(0, 3).map(r => ({ at: r.at, h: '<a class="of-tl" data-ofres="' + esc(r.id) + '" data-ofag="' + esc(r.ag || 'chat') + '"><b>' + esc(ofName(r.ag || 'chat')) + '</b> ' + (r.st === 'err' ? 'gặp lỗi' : 'xong') + ': ' + esc(aiCut(r.t, 70)) + '</a>' }))).sort((a, b) => new Date(b.at) - new Date(a.at));
   T.innerHTML = L.length ? L.slice(0, 3).map(e => '<em>' + p(e.at) + '</em>' + e.h).join('<span style="margin:0 12px;color:var(--border)">•</span>') : '<em>' + p(new Date()) + '</em>Văn phòng đang rảnh — giao việc ở ô trên, Trợ lý chung sẽ chọn phòng làm.';
 }
-/* ── KHUNG CHAT GIAO VIỆC (lịch sử từ máy chủ + lượt đang gửi) ── */
-const OF_STEPS = ['Đọc câu giao việc', 'Đọc bộ não chung & việc của các phòng', 'Chọn phòng phù hợp', 'Gửi thư flow cho phòng nhận'];
+/* ── KHUNG CHAT VỚI TRỢ LÝ CHUNG (1.82.8): nổi ở góc dưới phải màn hình, kéo góc trên trái để đổi cỡ (nhớ cỡ), có ô gõ ngay trong khung;
+      trạng thái = MỘT dòng chữ đổi dần (không hiện danh sách bước); thẻ “Đã giao cho …” bấm xem kết quả. Lịch sử lấy từ máy chủ (tải lại trang vẫn còn) ── */
+const OF_SAY = ['đang đọc câu giao việc', 'đang xem bộ não chung', 'đang xem việc của các phòng', 'đang chọn phòng phù hợp', 'đang gửi thư flow cho phòng nhận', 'đang chờ phòng trả lời'];
+function ofSay(t0) { const k = Math.min(OF_SAY.length - 1, Math.max(0, Math.floor((Date.now() - new Date(t0).getTime()) / 5000))); return 'Trợ lý chung ' + OF_SAY[k] + '…'; }
+function ofKeepT(d) { d = Number(d); return !d ? 'lưu không giới hạn' : 'lưu ' + (d >= 365 ? Math.round(d / 365) + ' năm' : d + ' ngày') + ', sau đó tự xoá'; }
 function ofDock() {
-  const el = $('#ofDock'); if (!el || !OF.d) return; const C = (OF.d.chat || []).concat(OF.pend), n = C.length;
-  { const St = $('#ofSt'), narrow = innerWidth <= 760; if (St) { if (narrow && el.parentElement === St) St.after(el); else if (!narrow && el.parentElement !== St) St.appendChild(el); } }      // màn hẹp: khung chat nằm dưới sơ đồ (không đè phòng)
-  const okS = s => /^(ok|applied|partial|empty)$/.test(s), wS = s => /^(send|wait|proc)$/.test(s);
-  if (!n) { el.innerHTML = '<div class="of-dk-h"><i class="bi bi-chat-dots"></i>Giao việc qua chat<span class="sp"></span><span class="n">gõ ở ô trên cùng</span></div>'; el.classList.add('min'); return; }
+  const R = $('#ofR'), St = $('#ofSt'); if (!R || !St || !OF.d) return;
+  let el = $('#ofDock'); if (!el) { el = document.createElement('section'); el.id = 'ofDock'; el.className = 'of-dock'; el.setAttribute('aria-label', 'Chat với Trợ lý chung'); }
+  const narrow = innerWidth <= 760; if (narrow) { if (el.previousElementSibling !== St) St.after(el); } else if (el.parentElement !== R) R.appendChild(el);      // máy tính: nổi góc dưới phải · điện thoại: dưới sơ đồ
+  const C = (OF.d.chat || []).concat(OF.pend), okS = s => /^(ok|applied|partial|empty)$/.test(s), wS = s => /^(send|wait|proc)$/.test(s);
   el.classList.toggle('min', OF.dockMin);
-  const steps = t0 => { const s = Math.floor((Date.now() - new Date(t0).getTime()) / 6000), k = Math.min(OF_STEPS.length - 1, Math.max(0, s));
-    return '<div class="of-st">' + OF_STEPS.map((x, i) => '<div class="' + (i < k ? 'ok' : i === k ? 'now' : '') + '"><i class="' + (i < k ? 'dn' : i === k ? 'sp' : 'wt') + '"></i>' + (i === k ? 'Trợ lý chung: ' + x.toLowerCase() + '…' : x) + '</div>').join('') + '</div>'; };
+  if (!narrow) { const sz = lsGet('ofDockWH', null); if (sz && sz.w) { el.style.width = sz.w + 'px'; el.style.height = sz.h + 'px'; } }
+  const keepB = $('.of-dk-b', el), atBot = !keepB || keepB.scrollHeight - keepB.scrollTop - keepB.clientHeight < 40, draft = ($('#ofDq', el) || {}).value || '';
   const gv = G => G.length ? '<div class="of-gv">' + G.map(g => { const a = OF.d.agents.find(x => x.key === g.ag) || { key: g.ag, av: 0, t: g.toT || ofName(g.ag) }, w = wS(g.st) || !g.st, run = (OF.d.run || []).find(r => r.id === g.id);
-    return '<button type="button" data-ofr="' + esc(a.key) + '">' + asstAva(a.av, 'xs', w) + '<span class="t"><b>Đã giao cho ' + esc(a.t) + '</b><span title="' + esc(g.t) + '">' + esc(g.t) + '</span></span><span class="of-pl ' + (g.st === 'err' ? 'e' : w ? 'w' : 'ok') + '">' + (g.st === 'err' ? 'lỗi' : w ? 'đang làm' + (run && run.sp ? ' · B' + run.sp : '') : 'xong') + '</span></button>'; }).join('') + '</div>' : '';
-  const keep = $('.of-dk-b', el), atBot = !keep || keep.scrollHeight - keep.scrollTop - keep.clientHeight < 40;
-  el.innerHTML = '<div class="of-dk-h"><i class="bi bi-chat-dots"></i>Giao việc với Trợ lý chung<span class="n">' + n + ' lượt gần đây</span><span class="sp"></span><button type="button" class="ibtn sm" data-ofdk aria-label="' + (OF.dockMin ? 'Mở khung chat' : 'Thu nhỏ khung chat') + '"><i class="bi bi-' + (OF.dockMin ? 'chevron-up' : 'dash-lg') + '"></i></button></div>' +
-    '<div class="of-dk-b">' + C.map(c => '<div class="of-m me">' + esc(c.q) + '</div><div class="of-m ai">' + asstBot('xs', wS(c.st) || !!c.wait) + '<div class="b">' +
-      (c.wait || wS(c.st) ? steps(c.t0 || c.at) : c.st === 'err' || c.err ? '<span class="muted">' + esc(c.err || 'Chưa trả lời được') + '</span>' : (c.reply ? aiMd(c.reply, {}) : '') ) + gv(c.gives || []) +
-      '<small class="at">' + esc(asbAgo(c.at || c.t0)) + (okS(c.st) && c.ms ? ' · ' + Math.max(1, Math.round(c.ms / 1000)) + ' giây' : '') + '</small></div></div>').join('') + '</div>';
+    return '<button type="button" ' + (w || !g.id ? 'data-ofr="' + esc(a.key) + '"' : 'data-ofres="' + esc(g.id) + '" data-ofag="' + esc(a.key) + '"') + ' title="' + (w ? 'Mở phòng' : 'Xem kết quả') + '">' + asstAva(a.av, 'xs', w) + '<span class="t"><b>' + esc(a.t) + '</b><span>' + esc(g.t) + '</span></span><span class="of-pl ' + (g.st === 'err' ? 'e' : w ? 'w' : 'ok') + '">' + (g.st === 'err' ? 'lỗi' : w ? 'đang làm' + (run && run.sp ? ' · B' + run.sp : '') : 'xem kết quả') + '</span></button>'; }).join('') + '</div>' : '';
+  const msgs = C.length ? C.map(c => { const w = c.wait || wS(c.st);
+      return '<div class="of-m me">' + esc(c.q) + '</div><div class="of-m ai">' + asstBot('xs', w) + '<div class="b">' +
+        (w ? '<span class="of-say" data-ofsay="' + esc(c.t0 || c.at) + '">' + esc(ofSay(c.t0 || c.at)) + '</span>' : c.st === 'err' || c.err ? '<span class="muted">' + esc(c.err || 'Chưa trả lời được') + '</span>' : (c.reply ? aiMd(c.reply, {}) : '')) + gv(c.gives || []) +
+        '<small class="at">' + esc(asbAgo(c.at || c.t0)) + (okS(c.st) && c.ms ? ' · ' + Math.max(1, Math.round(c.ms / 1000)) + ' giây' : '') + (c.id && !w && okS(c.st) ? ' · <button type="button" class="tka-lk" data-ofres="' + esc(c.id) + '" data-ofag="hub">chi tiết</button>' : '') + '</small></div></div>'; }).join('')
+    : '<div class="of-dk-e">' + asstBot('md') + '<b>Giao việc cho Trợ lý chung</b><span>Trợ lý tự chọn phòng làm — xem luồng chạy trên sơ đồ, kết quả hiện ở đây.</span></div>';
+  el.innerHTML = '<span class="of-dk-rs" data-ofrs title="Kéo để đổi cỡ" aria-hidden="true"></span><div class="of-dk-h" data-ofdkh>' + asstBot('xs', C.some(c => c.wait || wS(c.st))) + '<span class="t"><b>Trợ lý chung</b><small>' + (C.length ? C.length + ' lượt gần đây · ' : '') + esc(ofKeepT(OF.d.keep)) + '</small></span>' +
+      (OF.d.can ? '<select class="sel of-keep" data-ofkeep aria-label="Thời gian lưu lịch sử" title="Lịch sử việc AI lưu bao lâu">' + [[30, '30 ngày'], [90, '90 ngày'], [180, '180 ngày'], [365, '1 năm'], [0, 'Không xoá']].map(o => '<option value="' + o[0] + '"' + (Number(OF.d.keep) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' : '') +
+      '<button type="button" class="ibtn sm" data-ofdk aria-label="' + (OF.dockMin ? 'Mở khung chat' : 'Thu nhỏ') + '"><i class="bi bi-' + (OF.dockMin ? 'chat-dots' : 'dash-lg') + '"></i></button></div>' +
+    '<div class="of-dk-b">' + msgs + '</div>' +
+    '<div class="of-dk-f"><textarea class="ta" id="ofDq" rows="1" placeholder="Nhắn Trợ lý chung… (Enter để gửi)" aria-label="Nhắn Trợ lý chung"></textarea><button type="button" class="ax-send" data-ofdsend aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>';
   const b = $('.of-dk-b', el); if (b && atBot) b.scrollTop = b.scrollHeight;
+  const q = $('#ofDq', el); q.value = draft; q.oninput = () => { q.style.height = 'auto'; q.style.height = Math.min(120, q.scrollHeight) + 'px'; };
+  q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); const t = q.value; q.value = ''; ofAsk(t); } };
+  el.onclick = e => ofClick(e); el.onchange = e => { const k = e.target.closest('[data-ofkeep]'); if (k) rpc('aiCfgSave', { keepDays: Number(k.value) }).then(() => { OF.d.keep = Number(k.value); toast('Lịch sử việc AI: ' + ofKeepT(k.value), 'ok'); ofDock(); }, fail); };
+  const rs = $('[data-ofrs]', el); rs.onpointerdown = ev => { if (narrow) return; ev.preventDefault(); const r0 = el.getBoundingClientRect(), x0 = ev.clientX, y0 = ev.clientY; rs.setPointerCapture(ev.pointerId);
+    rs.onpointermove = m => { const w = Math.max(300, Math.min(innerWidth - 32, r0.width + x0 - m.clientX)), h = Math.max(220, Math.min(innerHeight - 90, r0.height + y0 - m.clientY)); el.style.width = w + 'px'; el.style.height = h + 'px'; };
+    rs.onpointerup = () => { rs.onpointermove = null; lsSet('ofDockWH', { w: Math.round(el.offsetWidth), h: Math.round(el.offsetHeight) }); }; };
+  clearInterval(OF.sayT); if (C.some(c => c.wait || wS(c.st))) OF.sayT = setInterval(() => { const L = $$('[data-ofsay]'); if (!L.length) return clearInterval(OF.sayT); L.forEach(s => { const t = ofSay(s.dataset.ofsay); if (s.textContent !== t) { s.textContent = t; s.classList.remove('nw'); void s.offsetWidth; s.classList.add('nw'); } }); }, 1000);
+}
+/** XEM KẾT QUẢ một việc đã xong (bấm ở khung chat / ngăn phòng / dòng trực tiếp) */
+async function ofResult(id, ag) {
+  const dr = ofShell('@res', 'Kết quả'), a = (OF.d && OF.d.agents.find(x => x.key === ag)) || { av: 0, t: 'Kết quả' };
+  dr.innerHTML = '<div class="of-dr-h">' + asstAva(a.av, 'md') + '<div class="t"><b>Kết quả · ' + esc(a.t) + '</b><small>Đang mở…</small></div><button type="button" class="ibtn sm" data-ofx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div><div class="of-dr-b">' + miniLoader('Đang tải kết quả…') + '</div>';
+  dr.onclick = ev => { if (ev.target.closest('[data-ofx]')) return ofDrawerClose(); const g = ev.target.closest('[data-ofgo]'); if (g) { ofDrawerClose(); go(g.dataset.ofgo); } };
+  let o; try { o = ((await rpc('aiPoll', { ids: [id] }, { quiet: true })).list || [])[0]; } catch (e) { $('.of-dr-b', dr).innerHTML = '<div class="small muted">' + esc(e.message || e) + '</div>'; return; }
+  if (!$('#ofDr') || $('#ofDr').dataset.k !== '@res') return;
+  if (!o) { $('.of-dr-b', dr).innerHTML = '<div class="small muted">Không còn kết quả này — có thể đã quá thời gian lưu (' + esc(ofKeepT(OF.d && OF.d.keep)) + ').</div>'; return; }
+  const J = s => { try { return JSON.parse(String(s || '').replace(/^```(?:json)?|```$/g, '').trim()); } catch (e) { return null; } };
+  const items = (o.actions && o.actions.items) || [], rj = o.kind && o.kind !== 'chat' ? J(o.reply) : null;
+  const go2 = o.kind === 'assign' ? 'ai/assign/' + o.id : o.kind === 'reqs' ? 'ai/reqs/' + o.id : /^(route|match|pmap)$/.test(o.kind) && o.classId ? 'classes/c/' + o.classId : o.conv ? (o.mode === 'task' || o.cm === 'task' ? 'tasks/asst/v:' : o.mode === 'hub' || o.cm === 'hub' ? 'asst/v:' : 'ai/chat/v:') + o.conv : '';
+  const body = o.text != null ? aiMd(o.text || '', o.refs || {}) : o.grade ? '<p><b>' + esc(o.grade.score) + '/10</b> — ' + esc(o.grade.summary || '') + '</p>' : rj ? '<p>' + esc(rj.summary || rj.nhanXet || '') + '</p>' : o.reply ? aiMd(String(o.reply), {}) : '<span class="muted">' + esc(o.err || 'Không có nội dung') + '</span>';
+  dr.querySelector('.of-dr-h small').textContent = (o.status === 'err' ? 'Lỗi' : 'Xong') + (o.ms ? ' sau ' + Math.max(1, Math.round(o.ms / 1000)) + ' giây' : '') + ' · ' + asbAgo(o.at);
+  $('.of-dr-b', dr).innerHTML = (o.prompt ? '<div class="of-dr-s"><h4>Việc được giao</h4><div class="of-m me" style="max-width:100%">' + esc(o.prompt) + '</div></div>' : '') +
+    '<div class="of-dr-s"><h4>Trả lời</h4><div class="of-res">' + body + '</div></div>' +
+    (items.length ? '<div class="of-dr-s"><h4>Việc đề xuất / đã làm<span class="sp"></span>' + items.filter(x => x.st === 'done').length + '/' + items.length + ' đã làm</h4>' + items.slice(0, 40).map((x, i) => { const dn = x.st === 'done', lab = [x.be, x.ngay || x.date, x.text || x.why || x.ly || x.msg || x.reply || x.t].filter(Boolean).join(' · ');
+        return '<label class="of-hi of-ap"><input type="checkbox" data-ofpk="' + i + '"' + (dn || x.st === 'skip' ? ' disabled' : ' checked') + ' aria-label="Chọn mục ' + (i + 1) + '"><span class="s ' + (dn ? 'ok' : x.st === 'err' ? 'e' : '') + '">' + (dn ? 'đã làm' : x.st === 'err' ? 'lỗi' : 'đề xuất') + '</span><span class="t" title="' + esc(lab) + '">' + esc(lab || ('Mục ' + (i + 1))) + '</span></label>'; }).join('') +
+      (items.some(x => x.st !== 'done' && x.st !== 'skip') && OF.d && OF.d.can ? '<div class="of-act">' + (o.kind === 'assign' ? '<button type="button" class="btn sm" data-ofap="draft"><i class="bi bi-check2"></i>Áp dụng (nháp)</button><button type="button" class="btn sm pri" data-ofap="approve"><i class="bi bi-check2-all"></i>Áp dụng & duyệt</button>' : '<button type="button" class="btn sm pri" data-ofap="draft"><i class="bi bi-check2"></i>Áp dụng mục đã chọn</button>') + '</div>' : '') + '</div>' : '') +
+    (o.conv ? '<div class="of-dr-s of-give"><h4>Hỏi tiếp / giao thêm</h4><textarea class="ta" id="ofFu" placeholder="VD “làm tiếp cho các bé còn lại”, “giải thích vì sao chọn bài này”"></textarea><div class="r"><small>Tiếp tục đúng cuộc này — trả lời hiện ngay bên dưới.</small><button type="button" class="btn sm pri" data-offu><i class="bi bi-send"></i>Gửi</button></div><div id="ofFuA"></div></div>' : '') +
+    '<div class="of-dr-s small muted">Lịch sử việc AI ' + esc(ofKeepT(OF.d && OF.d.keep)) + (OF.d && OF.d.can ? ' (đổi ở khung chat Trợ lý chung)' : '') + '.</div>' +
+    (go2 ? '<div class="of-dr-s"><button type="button" class="btn sm" data-ofgo="' + esc(go2) + '" style="width:100%;justify-content:center"><i class="bi bi-box-arrow-up-right"></i>Mở đầy đủ ở nơi làm việc</button></div>' : '');
+  dr.onclick = async ev => {
+    if (ev.target.closest('[data-ofx]')) return ofDrawerClose(); const g = ev.target.closest('[data-ofgo]'); if (g) { ofDrawerClose(); return go(g.dataset.ofgo); }
+    const ap = ev.target.closest('[data-ofap]'); if (ap) { const pick = $$('[data-ofpk]', dr).filter(c => c.checked && !c.disabled).map(c => Number(c.dataset.ofpk)); if (!pick.length) return toast('Chọn ít nhất một mục', 'warn');
+      ap.disabled = true; try { const r = await rpc('aiApply', { id: o.id, pick: pick, mode: ap.dataset.ofap }); toast('Đã áp dụng ' + ((r.done != null ? r.done : pick.length)) + ' mục' + (ap.dataset.ofap === 'approve' ? ' và duyệt' : ' (nháp)'), 'ok'); ofResult(id, ag); OF.sig = ''; ofLoad(); } catch (er) { fail(er); ap.disabled = false; } return; }
+    if (ev.target.closest('[data-offu]')) { const ta = $('#ofFu', dr), text = ta.value.trim(), out = $('#ofFuA', dr); if (text.length < 2) return ta.focus();
+      const mode = o.mode === 'task' || o.cm === 'task' ? 'task' : o.mode === 'hub' || o.cm === 'hub' ? 'hub' : 'gen', box = document.createElement('div'); ta.value = '';
+      box.innerHTML = '<div class="of-m me" style="max-width:100%;margin-top:8px">' + esc(text) + '</div><div class="of-res" style="margin-top:6px"><span class="of-say">Đang gửi cho trợ lý…</span></div>'; out.appendChild(box); const res = box.querySelector('.of-res');
+      const got = x => { res.innerHTML = x.status === 'ok' ? aiMd(x.text || '', x.refs || {}) : '<span class="muted">' + esc(x.err || 'Chưa trả lời được') + '</span>'; ofLoad(); };
+      try { const r = await rpc('aiChat', { mode: mode, text: text, conv: o.conv }, { quiet: true }); res.innerHTML = aiThink('chat', new Date().toISOString()); if (AI_WAIT.test(r.status)) aiWatch(r.id, got); else got(r); clearTimeout(OF.t); OF.t = setTimeout(ofLoad, 1200); }
+      catch (er) { res.innerHTML = '<span class="muted">' + esc(er.message || er) + '</span>'; } }
+  };
 }
 /** giao việc / hỏi Trợ lý chung ở ô trên — bong bóng hiện ngay ở khung chat; trợ lý quyết định phòng nào làm */
 async function ofAsk(text) {
@@ -23238,6 +23353,8 @@ async function ofAsk(text) {
 }
 function ofClick(e) {
   if (e.target.closest('[data-ofdk]')) { OF.dockMin = !OF.dockMin; lsSet('ofDockMin', OF.dockMin); return ofDock(); }
+  const rs = e.target.closest('[data-ofres]'); if (rs) return ofResult(rs.dataset.ofres, rs.dataset.ofag);      // (1.82.8) xem kết quả + thao tác ngay ở văn phòng
+  if (e.target.closest('[data-ofdsend]')) { const q = $('#ofDq'); if (q) { const t = q.value; q.value = ''; ofAsk(t); } return; }
   const cb = e.target.closest('[data-ofcab]'); if (cb) return ofDrawer(cb.dataset.ofcab, false, 'cab');
   const r = e.target.closest('[data-ofr]'); if (r) return ofDrawer(r.dataset.ofr);
   if (e.target.closest('[data-ofadd]')) { lsSet('asSubT', 'ag'); OF.newAg = 1; return go('asst/subs'); }
@@ -23265,11 +23382,11 @@ function ofDrawer(k, refresh, focus) {
         (a.docs.length ? a.docs.map((d, i) => '<div class="of-doc"><i class="bi bi-' + (/docs\.google|drive\.google/.test(d.url) ? 'file-earmark-text' : d.url ? 'link-45deg' : 'sticky') + '"></i><div class="t">' + (d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">' + esc(d.t || d.url) + '</a>' : '<b>' + esc(d.t || 'Ghi chú') + '</b>') + (d.b ? '<small>' + esc(aiCut(d.b, 300)) + '</small>' : '') + '</div>' + (D.can ? '<button type="button" class="ibtn sm" data-ofdx="' + i + '" aria-label="Xoá tài liệu"><i class="bi bi-trash"></i></button>' : '') + '</div>').join('')
           : '<div class="small muted" style="line-height:1.5">Chưa có tài liệu riêng. Thêm bảng giá, quy trình, mẫu nhận xét… (link Google Docs đọc thẳng nội dung) — agent đọc trước mỗi lần làm.</div>') +
         (keep && keep.f ? ofDocForm() : '') + '</div>' +
-      '<div class="of-dr-s"><h4>Kết quả gần đây</h4>' + (done.length ? done.map(r => '<div class="of-hi"><span class="s ' + (okS(r.st) ? 'ok' : r.st === 'err' ? 'e' : '') + '">' + (okS(r.st) ? 'xong' : r.st === 'err' ? 'lỗi' : r.st) + '</span><span class="t" title="' + esc(r.err || r.t) + '">' + esc(r.t) + '</span><small class="muted">' + esc(asbAgo(r.at)) + '</small></div>').join('') : '<div class="small muted">Chưa có việc nào gần đây.</div>') + '</div>' +
+      '<div class="of-dr-s"><h4>Kết quả gần đây</h4>' + (done.length ? done.map(r => '<button type="button" class="of-hi of-hb" data-ofres="' + esc(r.id) + '" data-ofag="' + esc(k) + '" title="Xem kết quả"><span class="s ' + (okS(r.st) ? 'ok' : r.st === 'err' ? 'e' : '') + '">' + (okS(r.st) ? 'xong' : r.st === 'err' ? 'lỗi' : r.st) + '</span><span class="t">' + esc(r.t) + '</span><small class="muted">' + esc(asbAgo(r.at)) + '</small><i class="bi bi-chevron-right"></i></button>').join('') : '<div class="small muted">Chưa có việc nào gần đây.</div>') + '</div>' +
       (D.can ? '<div class="of-dr-s"><button type="button" class="btn sm" data-ofst style="width:100%;justify-content:center"><i class="bi bi-diagram-3"></i>Sửa agent ở Xưởng agent (chuỗi flow · chỉ dẫn · rào chắn)</button></div>' : '') + '</div>';
   if (keep) { const g = $('#ofGx', dr); if (g) g.value = keep.g; $('.of-dr-b', dr).scrollTop = keep.s; }
   if (focus === 'cab') { const c = $('#ofCab', dr); if (c) c.scrollIntoView({ block: 'start' }); }
-  dr.onclick = ev => ofDrClick(ev, a, dr);
+  dr.onclick = ev => { const rs = ev.target.closest('[data-ofres]'); if (rs) return ofResult(rs.dataset.ofres, rs.dataset.ofag); ofDrClick(ev, a, dr); };
 }
 function ofDocForm() { return '<div class="of-docf"><input class="inp" id="ofDt" placeholder="Tên tài liệu — VD Quy trình gán bài lớp 1–5" maxlength="80"><input class="inp" id="ofDu" placeholder="Link (Google Docs / Drive / web) — tuỳ chọn"><textarea class="ta" id="ofDb" placeholder="Ghi chú / nội dung ngắn — tuỳ chọn"></textarea><div class="r"><button type="button" class="btn xs ghost" data-ofdc>Huỷ</button><button type="button" class="btn xs pri" data-ofds><i class="bi bi-check2"></i>Lưu tài liệu</button></div></div>'; }
 async function ofDrClick(ev, a, dr) {
