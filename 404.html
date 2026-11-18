@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T18:40:38.303Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T19:30:12.519Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -15356,8 +15356,9 @@ async function clKchkRun(again) {
   KCHK_RUN = { i: 0, n: G.length }; again(); let nL = 0, err = '';
   for (const g of G) {
     try { const r = await rpc('aiMatchPlan', { cids: g }, { quiet: true });
-      if (r.log) { const o = /^(send|wait|proc)$/.test(r.log.status) && typeof aiWatch === 'function' ? await new Promise(res => aiWatch(r.log.id, res)) : r.log;
-        if (o.status === 'err') err = o.err || 'lỗi'; else nL += ((o.actions || {}).items || []).filter(it => it.bai.length && !it.giu).length; } }
+      const Ls = r.logs || (r.log ? [r.log] : []);      // (1.82.11) mỗi bé một thư — chờ song song
+      const R = await Promise.all(Ls.map(l => /^(send|wait|proc)$/.test(l.status) && typeof aiWatch === 'function' ? new Promise(res => aiWatch(l.id, res)) : l));
+      R.forEach(o => { if (!o) return; if (o.status === 'err') err = o.err || 'lỗi'; else nL += ((o.actions || {}).items || []).filter(it => it.bai.length && !it.giu).length; }); }
     catch (e) { err = e.message || String(e); if (/AIOFF|AICFG/.test(e.code || '')) break; }
     KCHK_RUN.i++; again();
   }
@@ -21205,7 +21206,7 @@ async function aiDrivePick(body) {
 }
 /** chữ AI → HTML an toàn: **đậm**, gạch đầu dòng, số thứ tự, mã [[L:…]] thành nút tài liệu */
 /** (1.82.8) LÀM NỔI BẬT SỐ LIỆU trong câu trả lời AI: “8 mục”, “4 yêu cầu”, “49%”, “12 việc”… → chip số đậm màu chính (bỏ qua phần [[…]] và ngày / mã) */
-const AI_NUM_RE = /(^|[\s(:–—*-])(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(\s?%|\s(?:việc|yêu cầu|ghi chú|buổi|bé|học sinh|gia sư|lượt|ngày|tuần|giờ|phút|giây|tháng|topic|bài|mục|lớp|người|lỗi|phiếu|đợt|câu|điểm|tệp|nhóm|bảng|lần|link|khoá|chương trình))(?=[\s.,;:!?)]|$)/g;
+const AI_NUM_RE = /(^|[\s(:–—*-])(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(\s?%|\s(?:việc|yêu cầu|ghi chú|buổi|bé|học sinh|gia sư|lượt|ngày|tuần|giờ|phút|giây|tháng|topic|bài|mục|lớp|người|lỗi|phiếu|đợt|câu|điểm|tệp|nhóm|bảng|lần|link|khoá|chương trình))(?=[\s.,;:!?)*<]|$)/g;
 function aiNumHi(h) { return String(h).split(/(\[\[[^\]]*\]\])/).map((x, i) => i % 2 ? x : x.replace(AI_NUM_RE, '$1<b class="ax-num">$2$3</b>')).join(''); }
 function aiMd(text, refs) {
   refs = refs || {};
@@ -21225,7 +21226,7 @@ function aiMd(text, refs) {
   let nNho = 0; const nho = () => { const o = refs['NHO:' + nNho++]; if (!o || (!o.saved && !o.gone)) return '';      // (1.77.11) AI tự ghi nhớ điều lâu dài → dòng nhỏ + nút Bỏ
     return '<span class="ax-nho' + (o.gone ? ' gone' : '') + '"><i class="bi ' + (o.gone ? 'bi-bookmark-x' : 'bi-bookmark-check') + '"></i><span>' + (o.gone ? 'Đã bỏ khỏi bộ nhớ: ' : 'Đã ghi nhớ' + (o.be ? ' cho bé ' + esc(o.be) : '') + ': ') + '<b>' + esc(o.t) + '</b></span>' +
       (o.saved && AI.b.memOk ? '<button type="button" data-nhodel="' + esc(o.id) + '" title="Không nhớ điều này">Bỏ</button>' : '') + '</span>'; };
-  const inl = s => aiNumHi(esc(s)).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip()).replace(/\[\[IN:([^\]]{3,3000})\]\]/g, (m, x) => aiInChip(x)).replace(/\[\[NHO:[^\]]{3,800}\]\]/g, () => nho()).replace(/\[\[TL:[^\]]{3,800}\]\]/g, () => tlchip()).replace(/\[([^\[\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>').replace(/(^|[\s(:;,])(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, (m, a, u) => a + '<a href="' + u + '" target="_blank" rel="noopener">' + (u.length > 60 ? u.slice(0, 57) + '…' : u) + '</a>')      // (1.77.13) link [chữ](url) và link trần → bấm mở tab mới
+  const inl = s => aiNumHi(esc(s)).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/<b>(\d[\d.,]*\s?%?)<\/b>/g, '<b class="ax-num">$1</b>').replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<i>$2</i>').replace(/\[\[L:([\w-]{6,})\]\]/g, (m, id) => chip(id)).replace(/\[\[B:([\w-]{4,})\]\]/g, (m, id) => bchip(id)).replace(/\[\[DO:[^\]]{2,600}\]\]/g, () => dochip()).replace(/\[\[IN:([^\]]{3,3000})\]\]/g, (m, x) => aiInChip(x)).replace(/\[\[NHO:[^\]]{3,800}\]\]/g, () => nho()).replace(/\[\[TL:[^\]]{3,800}\]\]/g, () => tlchip()).replace(/\[([^\[\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>').replace(/(^|[\s(:;,])(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, (m, a, u) => a + '<a href="' + u + '" target="_blank" rel="noopener">' + (u.length > 60 ? u.slice(0, 57) + '…' : u) + '</a>')      // (1.77.13) link [chữ](url) và link trần → bấm mở tab mới
     .replace(/\[\[GOIY:([^\]]{2,800})\]\]/g, (m, x) => '<span class="ax-fu">' + x.split('|').map(t => t.trim()).filter(Boolean).slice(0, 4).map(t => '<button type="button" data-fu="' + t + '"><i class="bi bi-arrow-up-right"></i>' + t + '</button>').join('') + '</span>');      // (1.77.12) gợi ý hỏi tiếp / lựa chọn khi AI hỏi lại (chữ đã esc)
   const lines = String(text || '').replace(/\r/g, '').split('\n'); let h = '', list = '';
   const close = () => { if (list) { h += '</' + list + '>'; list = ''; } };
@@ -22999,9 +23000,9 @@ async function agsClick(e, host) {
 .of-dot{ width:8px; height:8px; border-radius:50%; flex:none; background:#94A3B8; display:inline-block } .of-dot.run{ background:#22C55E; box-shadow:0 0 0 3px color-mix(in oklab, #22C55E 25%, transparent); animation:ofBlink 1.2s ease-in-out infinite } .of-dot.idle{ background:#3B82F6 }
 .of-rule{ margin:10px 6px 4px; padding:10px 12px; border:1px dashed var(--border); border-radius:12px; font-size:12px; line-height:1.5; color:var(--ink-2) } .of-rule b{ display:block; font-size:10.5px; letter-spacing:.08em; color:var(--muted); margin-bottom:3px }
 /* SÂN KHẤU — bảng màu riêng cho trắng / tối */
-.of-stage{ --st1:#F4F7FD; --st2:#E6EDFA; --dot:rgba(30,58,138,.10); --flr:#FFFFFF; --flo:.75; --edge:#C7D3EA; --lb:rgba(255,255,255,.97); --lbi:#0F172A; --lbs:#64748B; --lbsh:rgba(15,23,42,.14); --bub:#FFFFFF; --bubi:#0F172A; --dock:rgba(255,255,255,.94); --cab1:#CBD5E1; --cab2:#94A3B8; --cab3:#E2E8F0; --dk1:#B7814E; --dk2:#9A6A3A; --dk3:#D9A56F; --mon:#E2E8F0; --mail:#0284C7; --ring:#6366F1;
+.of-stage{ --st1:#F4F7FD; --st2:#E6EDFA; --dot:rgba(30,58,138,.10); --flr:#FFFFFF; --flo:.75; --edge:#C7D3EA; --lb:rgba(255,255,255,.97); --lbi:#0F172A; --lbs:#64748B; --lbsh:rgba(15,23,42,.14); --bub:#FFFFFF; --bubi:#0F172A; --dock:rgba(255,255,255,.94); --cab1:#CBD5E1; --cab2:#94A3B8; --cab3:#E2E8F0; --dk1:#B7814E; --dk2:#9A6A3A; --dk3:#D9A56F; --mon:#E2E8F0; --mail:#0284C7; --ring:#E3A008;
   position:relative; border-radius:18px; overflow:hidden; background:radial-gradient(ellipse at 50% 42%, var(--st1) 0%, var(--st2) 75%); border:1px solid var(--border) }
-html[data-mode="dark"] .of-stage{ --st1:#15204A; --st2:#0A1022; --dot:rgba(148,163,184,.13); --flr:#0F1A3A; --flo:.6; --edge:#22315E; --lb:rgba(10,16,34,.94); --lbi:#E2E8F0; --lbs:#94A3B8; --lbsh:rgba(0,0,0,.5); --bub:#F8FAFC; --bubi:#0F172A; --dock:rgba(10,16,34,.9); --cab1:#334155; --cab2:#1E293B; --cab3:#475569; --dk1:#5B3A1E; --dk2:#6E4624; --dk3:#9A6A3A; --mon:#1E293B; --mail:#38BDF8; --ring:#A78BFA; border-color:#1B2647 }
+html[data-mode="dark"] .of-stage{ --st1:#15204A; --st2:#0A1022; --dot:rgba(148,163,184,.13); --flr:#0F1A3A; --flo:.6; --edge:#22315E; --lb:rgba(10,16,34,.94); --lbi:#E2E8F0; --lbs:#94A3B8; --lbsh:rgba(0,0,0,.5); --bub:#F8FAFC; --bubi:#0F172A; --dock:rgba(10,16,34,.9); --cab1:#334155; --cab2:#1E293B; --cab3:#475569; --dk1:#5B3A1E; --dk2:#6E4624; --dk3:#9A6A3A; --mon:#1E293B; --mail:#38BDF8; --ring:#FCD34D; border-color:#1B2647 }
 .of-stage::before{ content:""; position:absolute; inset:0; background-image:radial-gradient(var(--dot) 1px, transparent 1.2px); background-size:22px 22px; pointer-events:none }
 .of-in{ position:absolute; left:0; top:0; transform-origin:0 0 } .of-in svg{ position:absolute; inset:0; overflow:visible }
 .of-ov{ position:absolute; inset:0; pointer-events:none } .of-ov > *{ pointer-events:auto } .of-ov .of-bub, .of-ov .of-legend{ pointer-events:none }
@@ -23122,6 +23123,10 @@ html[data-mode="dark"] .of-flr{ fill:var(--flr); fill-opacity:.9 }
 .of-turn{ position:relative; display:flex; flex-direction:column; gap:8px } .of-turn > .of-m.me{ align-self:flex-end }
 .of-del{ position:absolute; left:0; top:2px; width:26px; height:26px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer; display:grid; place-items:center; opacity:0; transition:opacity .15s } .of-turn:hover .of-del, .of-del:focus-visible{ opacity:1 } .of-del:hover{ color:var(--danger); border-color:var(--danger) }
 @media (hover:none){ .of-del{ opacity:.7 } }
+.of-stage.mid .of-lb.in{ padding:2px 8px; font-size:11px; gap:4px } .of-stage.mid .of-lb.in b{ font-size:11px } .of-stage.mid .of-lb.in em, .of-stage.mid .of-cab{ display:none }      /* khung hẹp: thẻ gọn, ẩn tủ / dòng bộ não */
+.of-lb.in{ transform:translate(-50%, 0); padding:2px 9px; gap:5px; font-size:11px; z-index:4; border-color:color-mix(in oklab, var(--lbi) 12%, transparent); box-shadow:0 3px 10px -6px var(--lbsh) } .of-lb.in b{ font-size:11px; font-weight:650 } .of-lb.in .of-dot{ width:6px; height:6px } .of-lb.in i.bi{ font-size:9px }      /* (1.82.11) thẻ tên nhỏ gọn, nằm trên robot */
+.of-stage.mid .of-lb.in{ padding:1px 6px } .of-stage.mid .of-lb.in b{ font-size:10px }
+.of-stage.sm .of-lb.in{ padding:0 5px; gap:3px } .of-stage.sm .of-lb.in b{ font-size:9.5px } .of-stage.sm .of-lb.in .of-dot{ width:5px; height:5px } .of-stage.sm .of-mail{ display:none }
 </style>
 <script>
 /* ═════ (1.82.7) VĂN PHÒNG AI (Trợ lý › Văn phòng AI, route asst/office) — máy chủ asstOffice_ (AiAgents.gs). Thiết kế: docs/van-phong-ai.md
@@ -23183,7 +23188,7 @@ function ofPaint() {
     return '<button type="button" class="of-si" data-ofr="' + esc(a.key) + '"><span class="of-dot ' + (b ? 'run' : 'idle') + '"></span>' + asstAva(a.av, 'xs', !!b) + '<span class="t"><b>' + esc(a.t) + '</b><small>' + esc(b ? (b.length > 1 ? b.length + ' việc song song' : 'đang làm' + (b[0].sp ? ' · bước ' + b[0].sp : '')) : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow' : 'rảnh') + '</small></span></button>'; }).join('') +
     (g[0] === 'Agent riêng' && D.can ? '<button type="button" class="of-si" data-ofadd><span class="of-dot"></span><span class="t"><b style="color:var(--primary)">+ Thêm phòng (agent)</b></span></button>' : '')).join('') +
     '<div class="of-sh">Công cụ</div><div class="of-si" style="cursor:default"><span class="of-dot ' + (D.box ? 'idle' : '') + '"></span><span class="t"><b>Hộp thư flow</b><small>' + (D.box ? D.flows + ' flow · gửi việc / đọc thư trả lời' : 'chưa kết nối') + '</small></span></div>' +
-    '<button type="button" class="of-si" data-ofbrain><span class="of-dot idle" style="background:#8B5CF6"></span><span class="t"><b>Bộ não chung</b><small>' + D.brain.mem + ' ghi nhớ · ' + D.brain.kb + ' hướng dẫn · ' + D.brain.sk + ' kỹ năng</small></span></button>' +
+    '<button type="button" class="of-si" data-ofbrain><span class="of-dot idle" style="background:#F59E0B"></span><span class="t"><b>Bộ não chung</b><small>' + D.brain.mem + ' ghi nhớ · ' + D.brain.kb + ' hướng dẫn · ' + D.brain.sk + ' kỹ năng</small></span></button>' +
     '<div class="of-rule"><b>NGUYÊN TẮC</b>AI đề xuất, người duyệt: gán bài lưu nháp, tin nhắn nhóm kiểu đồng nghiệp — kết quả nào cũng qua bước kiểm của máy chủ.</div>';
   const ids = {}; run.forEach(r => { ids[r.id] = r; });
   if (OF.seen) Object.keys(OF.prev).forEach(id => { if (!ids[id]) { const d = (D.done || []).find(x => x.id === id); OF.fx[OF.prev[id]] = { k: d && d.st === 'err' ? 'err' : 'ok', t: Date.now(), x: d ? d.t : '' }; } });
@@ -23201,7 +23206,7 @@ function ofStage(A, byAg, force) {
   const In = $('#ofIn'), Ov = $('#ofOv'), St = $('#ofSt'); if (!In || !St) return; const D = OF.d; OF.last = [A, byAg];
   const slots = A.concat(D.can ? [{ key: '+add' }] : []), G = slots.length <= 12 ? 4 : 6, cells = ofCells(G), W = G * OF_TW + 200, H = G * OF_TH + 250, X0 = W / 2, Y0 = 170;
   const sc = Math.min(1, (St.clientWidth || W) / W), fxK = Object.keys(OF.fx).filter(k => Date.now() - OF.fx[k].t < 8000), mid = sc < .6;
-  const sig = [W, sc.toFixed(3), A.map(a => a.key + a.av + a.t + a.docs.length + (a.today || {}).n).join(), (D.run || []).map(r => r.id + r.sp).join(), fxK.join(), D.box, D.brain.mem, D.brain.kb, D.brain.sk, document.documentElement.dataset.mode].join('|');
+  const sig = [W, sc.toFixed(3), A.map(a => a.key + a.av + a.t + a.docs.length + (a.today || {}).n).join(), (D.run || []).map(r => r.id + r.sp).join(), fxK.join(), D.box, D.brain.mem, D.brain.kb, D.brain.sk, OF.bOpen ? 1 : 0, document.documentElement.dataset.mode].join('|');
   if (!force && sig === OF.sig) return; OF.sig = sig;
   const P = (gx, gy) => [X0 + (gx - gy) * OF_TW / 2, Y0 + (gx + gy) * OF_TH / 2], pt = p => p[0].toFixed(1) + ',' + p[1].toFixed(1), up = (p, h) => [p[0], p[1] - h], poly = (L, a) => '<polygon points="' + L.map(pt).join(' ') + '" ' + a + '/>';
   const S = p => [p[0] * sc, p[1] * sc], C = P(G / 2, G / 2), svg = [], flows = [], lbs = [], bots = [], bubs = [], pos = {}, boxes = [], W2 = W * sc, H2 = H * sc;
@@ -23227,27 +23232,27 @@ function ofStage(A, byAg, force) {
     [.3, .55, .8].forEach(k => { const a1 = up(P(x0 + .03, y1), hc * k), a2 = up(P(x1 - .03, y1), hc * k); svg.push('<line class="of-cbl" x1="' + a1[0] + '" y1="' + a1[1] + '" x2="' + a2[0] + '" y2="' + a2[1] + '"/>'); });
     if (a.docs.length) svg.push(poly([P(x0 + .05, y0 + .02), P(x0 + .14, y0 + .02), P(x0 + .14, y1 - .02), P(x0 + .05, y1 - .02)].map(T(hc + 4)), 'class="of-pap"'));
     // bàn làm việc + màn hình sát tường trái (A–D)
-    const dx = .1, dy = .17, cx = gx + m + .14, cy = gy + .42, h = 16, t1 = up(P(cx - dx, cy - dy), h), t2 = up(P(cx + dx, cy - dy), h), t3 = up(P(cx + dx, cy + dy), h), t4 = up(P(cx - dx, cy + dy), h);
+    const dx = .09, dy = .15, cx = gx + m + .1, cy = gy + .5, h = 16, t1 = up(P(cx - dx, cy - dy), h), t2 = up(P(cx + dx, cy - dy), h), t3 = up(P(cx + dx, cy + dy), h), t4 = up(P(cx - dx, cy + dy), h);
     svg.push(poly([P(cx - dx, cy + dy), P(cx + dx, cy + dy), t3, t4], 'class="of-dk1"') + poly([P(cx + dx, cy - dy), P(cx + dx, cy + dy), t3, t2], 'class="of-dk2"') + poly([t1, t2, t3, t4], 'class="of-dk3"'));
     const mo = up(P(cx - .02, cy), h + 2); svg.push('<rect class="of-mon' + (busy ? ' on' : '') + '" x="' + (mo[0] - 12) + '" y="' + (mo[1] - 16) + '" width="24" height="16" rx="2"/><rect x="' + (mo[0] - 2) + '" y="' + mo[1] + '" width="4" height="3" fill="#94A3B8"/>');
     const dc = S(up(P(cx, cy), h / 2)); boxes.push(box(dc[0] - 42 * sc, dc[1] - 30 * sc, 84 * sc, 50 * sc));
-    const cab = S(up(P((x0 + x1) / 2, y1), hc / 2)), nCab = ofSees(a).length + a.docs.length; boxes.push(box(cab[0] - 22, cab[1] - 11, 44, 22));
+    const cab = S(up(P((x0 + x1) / 2, (y0 + y1) / 2), hc + 10)), nCab = ofSees(a).length + a.docs.length; boxes.push(box(cab[0] - 22, cab[1] - 11, 44, 22));
     lbs.push('<button type="button" class="of-cab" data-ofcab="' + esc(a.key) + '" style="left:' + cab[0] + 'px;top:' + cab[1] + 'px" title="Tủ hồ sơ: những gì agent xem được"><i class="bi bi-archive"></i><span>' + nCab + '</span></button>');
     // robot giữa phòng, trước bàn
-    const bp = S(P(gx + .6, gy + .5)), rs = sc > .9 ? 56 : 44; boxes.push(box(bp[0] - rs / 2, bp[1] - rs / 2, rs, rs));
-    bots.push('<span class="of-bot" data-ofr="' + esc(a.key) + '" title="' + esc(a.t) + '" style="left:' + bp[0] + 'px;top:' + bp[1] + 'px">' + asstAva(a.av, rs > 50 ? 'md' : 'sm', busy) + (b && b.length > 1 ? '<span class="of-par">×' + b.length + '</span>' : '') + '</span>');
+    const bp = S(P(gx + .55, gy + .42)), rs = sc > .9 ? 52 : sc < .6 ? 32 : 40;      /* (1.82.11) robot lùi về sau, thẻ tên ở chân sàn không bị che */      /* khung hẹp: robot nhỏ để thẻ tên không đè */ boxes.push(box(bp[0] - rs / 2, bp[1] - rs / 2, rs, rs));
+    bots.push('<span class="of-bot" data-ofr="' + esc(a.key) + '" title="' + esc(a.t) + '" style="left:' + bp[0] + 'px;top:' + bp[1] + 'px">' + asstAva(a.av, rs > 50 ? 'md' : rs < 40 ? 'xs' : 'sm', busy) + (b && b.length > 1 ? '<span class="of-par">×' + b.length + '</span>' : '') + '</span>');
     if (b) { b.slice(0, 2).forEach((r, j) => bubs.push('<span class="of-bub" style="--rc:' + col + ';left:' + (bp[0] + rs / 2 + 4) + 'px;top:' + (bp[1] - rs / 2 - 4 - j * 28) + 'px" title="' + esc(r.t) + '">' + esc(aiCut(r.t, 30)) + (r.sp ? ' · B' + r.sp : '') + '<span class="ty"><i></i><i></i><i></i></span></span>'));
       if (b.length > 2) bubs.push('<span class="of-bub more" style="left:' + (bp[0] + rs / 2 + 4) + 'px;top:' + (bp[1] - rs / 2 - 60) + 'px">+' + (b.length - 2) + ' việc nữa</span>'); }
     else if (fx) bubs.push('<span class="of-bub ' + fx.k + '" style="left:' + (bp[0] + rs / 2 + 4) + 'px;top:' + (bp[1] - rs / 2 - 4) + 'px">' + (fx.k === 'ok' ? '✓ Xong' : '✗ Lỗi') + (fx.x ? ' · ' + esc(aiCut(fx.x, 22)) : '') + '</span>');
     const st = b ? (b.length > 1 ? b.length + ' việc song song' : 'đang làm' + (b[0].sp ? ' · bước ' + b[0].sp : '')) : a.off ? 'đang tắt' : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow · rảnh' : 'rảnh';
-    rooms.push({ a: a, col: col, b: b, st: a.key === 'hub' ? 'Trợ lý chung · ' + st : st, front: gx + gy + 1 > G, Ap: S(up(Ap, OF_WH)), Bp: S(up(Bp, OF_WH / 2)), Cp: S(Cp), Dp: S(up(Dp, OF_WH / 2)), F: S(P(gx + .84, gy + .84)), y: ctr[1] });      /* F = chân phòng: chỗ đặt thẻ tên */
+    rooms.push({ a: a, col: col, b: b, st: a.key === 'hub' ? 'Trợ lý chung · ' + st : st, front: gx + gy + 1 > G, Ap: S(up(Ap, OF_WH)), Bp: S(up(Bp, OF_WH / 2)), Cp: S(Cp), Dp: S(up(Dp, OF_WH / 2)), F: [bp[0], bp[1] + rs / 2 + 6], y: ctr[1] });      /* (1.82.11) F = biển tên ngay dưới chân robot của chính phòng */
   });
   // BỘ NÃO CHUNG gọn: biểu tượng não + một dòng chữ ngay dưới, hộp thư flow cạnh phải biểu tượng
   const hubBusy = !!byAg.hub, bc = S([C[0], BRY]), pillT = 'Bộ não chung · ' + D.brain.mem + ' ghi nhớ · ' + D.brain.kb + ' hướng dẫn · ' + D.brain.sk + ' kỹ năng', pw = tw(pillT, '600 11px system-ui') + 22;
   boxes.push(box(bc[0] - 80 * sc, bc[1] - 60 * sc, 160 * sc, 120 * sc), box(bc[0] - pw / 2, bc[1] + 62 * sc, pw, 24));
   const mc = S(pos['@mail']), mt = (D.box ? D.flows + ' flow' : 'chưa nối'), mw = tw(mt, '800 10.5px system-ui') + 38; boxes.push(box(mc[0] - 10, mc[1] - 12, mw, 24));
-  lbs.push('<button type="button" class="of-bhit" data-ofbrain aria-label="Thiết lập bộ não chung" style="left:' + bc[0] + 'px;top:' + bc[1] + 'px;width:' + (150 * sc) + 'px;height:' + (115 * sc) + 'px"></button>');
-  lbs.push('<button type="button" class="of-brain" data-ofbrain style="left:' + bc[0] + 'px;top:' + (bc[1] + 62 * sc) + 'px" title="Bấm để thiết lập bộ não chung">' + esc(pillT) + '</button>');
+  lbs.push('<button type="button" class="of-bhit" data-ofbtog aria-label="Xem bộ não chung" title="Bấm để xem bộ não chung" style="left:' + bc[0] + 'px;top:' + bc[1] + 'px;width:' + (150 * sc) + 'px;height:' + (115 * sc) + 'px"></button>');
+  if (OF.bOpen) lbs.push('<button type="button" class="of-brain" data-ofbrain style="left:' + bc[0] + 'px;top:' + (bc[1] + 62 * sc) + 'px" title="Bấm để thiết lập bộ não chung">' + esc(pillT) + '</button>');
   lbs.push('<div class="of-mail' + (D.box ? '' : ' off') + '" style="left:' + (mc[0] - 10) + 'px;top:' + mc[1] + 'px" title="Hộp thư flow — mỗi bước agent là một thư"><i class="bi bi-envelope-paper"></i> ' + esc(mt) + '</div>');
   // THẺ TÊN PHÒNG (1.82.9): luôn nằm ở chân sàn của CHÍNH phòng đó (không trôi sang phòng khác), một dòng tên + chấm trạng thái
   rooms.forEach(R => { const t = (R.a.key === 'hub' ? '' : '') + ofShort(R.a);
@@ -23264,22 +23269,22 @@ function ofStage(A, byAg, force) {
     const M = pos['@mail'], d2 = curve(b, M, k, -.6);
     flows.push('<path class="of-mrail" d="' + d2 + '"/><path class="of-mdots" pathLength="100" style="animation-delay:-' + (i * .3).toFixed(1) + 's" d="' + d2 + '"/>'); });
   // biểu tượng não phát sáng
-  svg.unshift('<defs><radialGradient id="ofBr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#8B5CF6" stop-opacity=".45"/><stop offset=".65" stop-color="#6366F1" stop-opacity=".12"/><stop offset="1" stop-color="#6366F1" stop-opacity="0"/></radialGradient>' +
-    '<linearGradient id="ofBL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C084FC"/><stop offset="1" stop-color="#7C3AED"/></linearGradient><linearGradient id="ofBR2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#67E8F9"/><stop offset="1" stop-color="#2563EB"/></linearGradient>' +
+  svg.unshift('<defs><radialGradient id="ofBr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FDE68A" stop-opacity=".55"/><stop offset=".65" stop-color="#FEF3C7" stop-opacity=".18"/><stop offset="1" stop-color="#FEF3C7" stop-opacity="0"/></radialGradient>' +
+    '<linearGradient id="ofBL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FEF9C3"/><stop offset="1" stop-color="#FCD34D"/></linearGradient><linearGradient id="ofBR2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FEF3C7"/><stop offset="1" stop-color="#FBBF24"/></linearGradient>' +
     '<filter id="ofGl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter></defs>');
   svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * .92 + '" ry="' + OF_TH * .92 + '" fill="url(#ofBr)"/>');
   [.6, .8].forEach((k, i) => svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * k + '" ry="' + OF_TH * k + '" fill="none" stroke="var(--ring)" stroke-opacity=".5" stroke-width="1.3" stroke-dasharray="' + (i ? '2 9' : '10 6') + '"><animate attributeName="stroke-dashoffset" from="0" to="' + (i ? 44 : -64) + '" dur="' + (i ? 3 : 5) + 's" repeatCount="indefinite"/></ellipse>'));
   const lobe = 'M-2,-30 C-14,-38 -34,-34 -38,-20 C-50,-16 -52,0 -44,8 C-50,18 -40,32 -26,30 C-20,38 -6,38 -2,30 Z', fold = 'M-14,-24 C-22,-18 -18,-10 -26,-6 M-38,-6 C-30,-2 -30,8 -22,10 M-30,22 C-24,16 -16,20 -12,12 M-10,-8 C-16,0 -8,6 -14,14';
-  svg.push('<g transform="translate(' + C[0] + ',' + BRY + ') scale(1.45)"><g class="of-brn' + (hubBusy ? ' on' : '') + '"><g filter="url(#ofGl)" opacity=".75"><path d="' + lobe + '" fill="#8B5CF6"/><path d="' + lobe + '" transform="scale(-1,1)" fill="#22D3EE"/></g>' +
-    '<path d="' + lobe + '" fill="url(#ofBL)" stroke="#F5F3FF" stroke-opacity=".7" stroke-width="1.2"/><path d="' + lobe + '" transform="scale(-1,1)" fill="url(#ofBR2)" stroke="#ECFEFF" stroke-opacity=".7" stroke-width="1.2"/>' +
-    '<path d="' + fold + '" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" stroke-linecap="round"/><path d="' + fold + '" transform="scale(-1,1)" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" stroke-linecap="round"/></g></g>');
+  svg.push('<g transform="translate(' + C[0] + ',' + BRY + ') scale(1.45)"><g class="of-brn' + (hubBusy ? ' on' : '') + '"><g filter="url(#ofGl)" opacity=".75"><path d="' + lobe + '" fill="#FDE68A"/><path d="' + lobe + '" transform="scale(-1,1)" fill="#FDE68A"/></g>' +
+    '<path d="' + lobe + '" fill="url(#ofBL)" stroke="#B45309" stroke-opacity=".35" stroke-width="1.2"/><path d="' + lobe + '" transform="scale(-1,1)" fill="url(#ofBR2)" stroke="#B45309" stroke-opacity=".35" stroke-width="1.2"/>' +
+    '<path d="' + fold + '" fill="none" stroke="#B45309" stroke-opacity=".4" stroke-width="1.5" stroke-linecap="round"/><path d="' + fold + '" transform="scale(-1,1)" fill="none" stroke="#B45309" stroke-opacity=".4" stroke-width="1.5" stroke-linecap="round"/></g></g>');
   if (hubBusy && pos.hub) { const d = curve(pos.hub, [C[0], BRY - 50], 0, .4); flows.push('<path class="of-rail" d="' + d + '"/><path class="of-comet" pathLength="100" style="animation-duration:1.8s" d="' + d + '"/>'); }      // điều phối đang đọc bộ não
   lbs.push('<div class="of-legend"><span><span class="of-dot run"></span>đang làm</span><span><span class="of-dot idle"></span>rảnh</span><span><svg width="26" height="8" aria-hidden="true"><path d="M1 4 H25" stroke="#F59E0B" stroke-width="2" stroke-dasharray="5 3"/></svg>luồng việc</span><span><i class="bi bi-envelope-fill" style="color:var(--mail)"></i>thư flow</span></div>');
   In.style.width = W + 'px'; In.style.height = H + 'px'; OF.pos = pos; OF.W = W; OF.H = H; OF.sc = sc;
   In.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" aria-hidden="true">' + svg.join('') + flows.join('') + '</svg>';
   Ov.innerHTML = lbs.join('') + bots.join('') + bubs.join('');      // thứ tự lớp: nhãn < robot < bong bóng
   In.style.transform = 'scale(' + sc + ')'; St.style.height = Math.round(H2) + 'px';
-  St.classList.toggle('cpt', sc < .38); St.classList.toggle('mid', mid && sc >= .38);
+  St.classList.toggle('cpt', sc < .38); St.classList.toggle('mid', mid && sc >= .38); St.classList.toggle('sm', sc >= .38 && sc < .5);      /* (1.82.11) rất hẹp: thẻ nhỏ hơn, ẩn hộp thư flow */
 }
 function ofFit(force) { const St = $('#ofSt'); if (!St || !OF.last || !OF.W || St.closest('[hidden]')) return; if (force || Math.abs(Math.min(1, St.clientWidth / OF.W) - (OF.sc || 0)) > .004) ofStage(OF.last[0], OF.last[1], 1); }
 /** chấm sáng một lần (việc vừa giao): phòng giao → bộ não → phòng nhận */
@@ -23392,6 +23397,7 @@ function ofClick(e) {
   const cb = e.target.closest('[data-ofcab]'); if (cb) return ofDrawer(cb.dataset.ofcab, false, 'cab');
   const r = e.target.closest('[data-ofr]'); if (r) return ofDrawer(r.dataset.ofr);
   if (e.target.closest('[data-ofadd]')) { lsSet('asSubT', 'ag'); OF.newAg = 1; return go('asst/subs'); }
+  if (e.target.closest('[data-ofbtog]')) { OF.bOpen = !OF.bOpen; return ofStage(OF.last[0], OF.last[1], 1); }      // (1.82.11) bấm bộ não → hiện / ẩn dòng số liệu; bấm dòng đó → thiết lập
   if (e.target.closest('[data-ofbrain]')) return ofBrain();
 }
 /* ── NGĂN BÊN ── */
