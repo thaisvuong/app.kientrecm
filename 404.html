@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T08:34:39.939Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T08:40:55.664Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4532,6 +4532,8 @@ html.tk-noadd .tk-quick, html.tk-noadd .tk-qadd, html.tk-noadd #tkNew, html.tk-n
 .dro-invl{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--muted) } .dro-invl > div{ display:flex; align-items:center; gap:8px } .dro-invl span{ flex:1 }
 .gmo-now > i{ font-size:20px; color:var(--primary) } .gmo-now > div{ flex:1 1 220px; display:flex; flex-direction:column; gap:2px; min-width:0 } .gmo-now small{ color:var(--muted); font-size:12px }
 .kg-hold{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:8px } .kg-hr{ display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:600; color:var(--ink-2) } .kg-hr .sel{ font-weight:400 }
+.card-h:has(.kg-rpx){ flex-wrap:wrap } .kg-rpx{ display:inline-flex; gap:6px; margin-right:6px; flex-wrap:wrap } .kg-rpx .btn{ gap:5px }      /* (1.82.1) xuất báo cáo */
+@media (max-width:640px){ .kg-rpx{ flex-basis:100%; order:3; margin:8px 0 0 } .kg-rpx .btn{ flex:1; justify-content:center } }
 .kg-rp td:first-child a{ white-space:nowrap } .kg-rp td:nth-child(2), .kg-rp td:nth-child(4){ white-space:nowrap }
 @media (max-width:640px){ .kg-rp thead{ display:none } .kg-rp, .kg-rp tbody, .kg-rp tr, .kg-rp td{ display:block; width:auto } .kg-rp tr{ padding:10px 0; border-bottom:1px solid var(--border) } .kg-rp td{ border:0; padding:3px 0; min-width:0 !important; white-space:normal !important } .kg-rp td:empty{ display:none } .kg-rp td[data-l]:not(:first-child)::before{ content:attr(data-l) ": "; color:var(--muted); font-size:11px } }
 .kg-sj{ display:flex; flex-wrap:wrap; gap:6px 14px; margin:2px 0 4px } .kg-pm{ display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:8px } .kg-pr{ display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--ink-2) } .kg-pr small{ color:var(--muted) } .kg-pr .sel{ font-weight:400 }
@@ -12174,14 +12176,57 @@ async function setKgs(B) {
     return '<details class="adv"><summary><i class="bi bi-chevron-right"></i><span><span class="tag' + (r.ok ? ' ok' : ' red') + '">' + (r.ok ? 'Xong' : 'Lỗi') + '</span> <b>' + esc(fmtDT(r.at)) + '</b> · ' + esc(r.via === 'lane' ? 'Gửi ngay một lớp' : VIA[r.via] || r.via || '—') + (sum.length ? ' · ' + esc(sum.join(' · ')) : r.ok ? ' · không có thay đổi' : '') + '</span></summary><div class="small" style="line-height:1.7;margin-top:6px">' +
       (r.err ? '<div style="color:var(--danger)">' + esc(r.err) + '</div>' : '') + ((n.tutChgL || []).length ? '<div>Đổi gia sư: ' + esc(n.tutChgL.join(' · ')) + '</div>' : '') + ((n.stuSetL || []).length ? '<div>Đổi tên bé: ' + esc(n.stuSetL.join(' · ')) + '</div>' : '') + ((n.courseL || []).length ? '<div>Đổi khoá học: ' + esc(n.courseL.join(' · ')) + '</div>' : '') + ((n.newTN || []).length ? '<div>Topic mới bên KGS: ' + esc(n.newTN.join(' · ')) + '</div>' : '') + ((n.cluMany || []).length ? '<div style="color:var(--warn,#8A5200)">Kho có quá nhiều thư mục mới (' + n.cluMany.map(x => x.nf).join(', ') + ') — không tự tạo topic, kiểm lại thư mục gốc của kho bên KGS</div>' : '') + ((n.cluErr || []).length ? '<div style="color:var(--warn,#8A5200)">Đồng bộ cả kho chưa được (đã bấm từng topic thay): ' + esc(n.cluErr[0]) + '</div>' : '') + (n.sjSkip || n.sjNone ? '<div class="muted">Bỏ qua ' + (n.sjSkip || 0) + ' buổi khác môn · ' + (n.sjNone || 0) + ' buổi chưa khai môn vẫn giữ</div>' : '') +
       rd.map(x => '<div><span class="tag">' + esc(x.c) + '</span> ' + (x.ok ? (x.cr ? 'Đã tạo lộ trình mới' : x.ch ? 'Đã lưu lộ trình' : 'KGS nhận nhưng không đổi gì') : '<span style="color:var(--danger)">KGS từ chối: ' + esc(x.err || '') + '</span>') + '</div>').join('') + (!r.err && !rd.length && !n.sjSkip && !n.sjNone ? '<div class="muted">Không gửi lộ trình nào.</div>' : '') + '</div></details>'; };
+  /** các lớp đang lọc, xếp theo mức cần xử lý (dùng chung cho bảng + bản xuất) */
+  const rpList = () => { const rank = {}; Object.keys(RP_ST).forEach((k, i) => { rank[k] = i; }); return (Rp && Rp.cls || []).filter(c => RpF ? c.st === RpF : c.st !== 'empty').sort((a, b) => rank[a.st] - rank[b.st] || String(a.code).localeCompare(String(b.code), 'vi')); };
+  const rpFName = () => RpF ? RP_ST[RpF][2] : 'Có bài gán';
+  /* (1.82.1) XUẤT BÁO CÁO để gửi Giáo vụ: PDF (bản in đẹp, A4 ngang) · CSV · Google Sheet (máy chủ tạo file định dạng sẵn) — đúng các lớp đang lọc */
+  const RP_H = ['STT', 'Mã lớp', 'Học sinh', 'Gia sư', 'Chương trình Kiến CM', 'Khoá bên KGS', 'Bài gán / buổi sắp tới', 'Khớp KGS', 'Tình trạng', 'Lý do', 'Việc cần làm'];
+  const rpRowsX = () => rpList().map((c, i) => [i + 1, c.code, c.student || '', c.tutor || '', c.kcm || '', c.program || '', c.les + '/' + c.n + ' buổi', c.ok + '/' + c.les + (c.hold ? ' (+' + c.hold + ' ngoài lộ trình)' : ''), RP_ST[c.st][2], c.why || '', RP_ST[c.st][3] || '']);
+  const rpStamp = () => { const d = new Date(), p2 = n => String(n).padStart(2, '0'); return { t: p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes()), f: d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) }; };
+  const rpCsv = () => { const R = rpRowsX(); if (!R.length) return toast('Không có lớp nào để xuất', 'info'); const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + [RP_H].concat(R).map(r => r.map(q).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'Bao-cao-KGS_' + fold(rpFName()).replace(/[^a-z0-9]+/g, '-') + '_' + rpStamp().f + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000); toast('Đã tải CSV · ' + R.length + ' lớp', 'ok'); };
+  const rpPdf = () => {
+    const L = rpList(); if (!L.length) return toast('Không có lớp nào để xuất', 'info');
+    const st = rpStamp(), cnt = {}; L.forEach(c => { cnt[c.st] = (cnt[c.st] || 0) + 1; });
+    const tone = k => ({ red: ['#FEE2E2', '#991B1B'], warn: ['#FEF3C7', '#92400E'], ok: ['#DCFCE7', '#166534'] })[RP_ST[k][0]] || ['#EEF2F7', '#334155'];
+    const e2 = v => esc(v == null ? '' : String(v)), who = (S.me && (S.me.name || S.me.email)) || '';
+    const html = '<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Bao cao KGS - ' + e2(rpFName()) + ' - ' + st.f + '</title><style>' +
+      '@page{ size:A4 landscape; margin:14mm 12mm 16mm } @page{ @bottom-right{ content:"Trang " counter(page) " / " counter(pages); font:9px Helvetica,Arial,sans-serif; color:#64748B } @bottom-left{ content:"Kiến Chuyên môn · Báo cáo đồng bộ Kiến Gia Sư"; font:9px Helvetica,Arial,sans-serif; color:#64748B } }' +
+      '*{ box-sizing:border-box } body{ margin:0; font:11px/1.45 "Helvetica Neue",Helvetica,Arial,sans-serif; color:#0F172A; -webkit-print-color-adjust:exact; print-color-adjust:exact }' +
+      '.hd{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; padding-bottom:10px; border-bottom:2.5px solid #1E3A8A; margin-bottom:12px } .hd .k{ font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#ED5814; font-weight:700 } .hd h1{ margin:2px 0 0; font-size:20px; color:#1E3A8A }' +
+      '.hd .m{ text-align:right; font-size:10px; color:#475569; line-height:1.6 } .sm{ display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px } .sm span{ padding:3px 9px; border-radius:999px; font-size:10px; font-weight:700 } .note{ font-size:10px; color:#475569; margin:0 0 10px }' +
+      'table{ width:100%; border-collapse:collapse; table-layout:fixed } thead{ display:table-header-group } th{ background:#1E3A8A; color:#fff; text-align:left; font-size:9.5px; font-weight:700; padding:6px 6px; text-transform:uppercase; letter-spacing:.03em }' +
+      'td{ padding:6px 6px; border-bottom:1px solid #E2E8F0; vertical-align:top; word-wrap:break-word } tr{ page-break-inside:avoid } tbody tr:nth-child(even) td{ background:#F8FAFC } td.c{ font-weight:700; color:#1E3A8A } td small{ display:block; color:#64748B; font-size:9.5px }' +
+      '.tg{ display:inline-block; padding:2px 7px; border-radius:6px; font-weight:700; font-size:9.5px; white-space:nowrap } .td{ color:#475569; font-size:10px } .gv{ border:1px dashed #CBD5E1; height:22px; border-radius:4px }' +
+      '</style></head><body>' +
+      '<div class="hd"><div><div class="k">Kiến Trẻ · Kiến Chuyên môn</div><h1>Tình trạng từng lớp — Đồng bộ Kiến Gia Sư</h1></div><div class="m">Lọc: <b>' + e2(rpFName()) + '</b> · ' + L.length + ' lớp<br>Xuất lúc ' + e2(st.t) + (who ? ' · ' + e2(who) : '') + '</div></div>' +
+      '<div class="sm">' + Object.keys(cnt).map(k => { const t = tone(k); return '<span style="background:' + t[0] + ';color:' + t[1] + '">' + e2(RP_ST[k][2]) + ' · ' + cnt[k] + '</span>'; }).join('') + '</div>' +
+      '<p class="note">So bài gán các buổi sắp tới ở Kiến CM với topic KGS đang gắn cho đúng buổi đó. Nhờ Giáo vụ xử lý bên KGS theo cột “Việc cần làm”, ghi kết quả vào cột cuối.</p>' +
+      '<table><colgroup><col style="width:3.5%"><col style="width:15%"><col style="width:10%"><col style="width:9%"><col style="width:8%"><col style="width:11%"><col style="width:25%"><col style="width:18.5%"></colgroup>' +
+      '<thead><tr><th>#</th><th>Lớp · học sinh</th><th>Gia sư</th><th>Bài gán</th><th>Khớp KGS</th><th>Tình trạng</th><th>Lý do · việc cần làm</th><th>Giáo vụ ghi chú</th></tr></thead><tbody>' +
+      L.map((c, i) => { const t = tone(c.st); return '<tr><td>' + (i + 1) + '</td><td class="c">' + e2(c.code) + (c.student ? '<small>' + e2(c.student) + '</small>' : '') + (c.kcm || c.program ? '<small>CM: ' + e2(c.kcm || '—') + (c.program ? ' · KGS: ' + e2(c.program) : '') + '</small>' : '') + '</td><td>' + e2(c.tutor || '—') + '</td>' +
+        '<td>' + c.les + '/' + c.n + ' buổi</td><td>' + c.ok + '/' + c.les + (c.hold ? '<small>+' + c.hold + ' ngoài lộ trình</small>' : '') + '</td><td><span class="tg" style="background:' + t[0] + ';color:' + t[1] + '">' + e2(RP_ST[c.st][2]) + '</span></td>' +
+        '<td>' + (c.why ? e2(c.why) : '') + (RP_ST[c.st][3] ? '<div class="td">' + e2(RP_ST[c.st][3]) + '</div>' : '') + '</td><td><div class="gv"></div></td></tr>'; }).join('') + '</tbody></table></body></html>';
+    let f = document.getElementById('kgRpPrint'); if (f) f.remove();
+    f = document.createElement('iframe'); f.id = 'kgRpPrint'; f.setAttribute('aria-hidden', 'true'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+    document.body.appendChild(f); const d = f.contentWindow.document; d.open(); d.write(html); d.close();
+    setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (er) { toast('Trình duyệt chặn in — thử lại', 'warn'); } }, 350);
+    toast('Đang mở hộp in — chọn “Lưu dưới dạng PDF”', 'info', 5000); };
+  const rpSheet = async btn => { const R = rpRowsX(); if (!R.length) return toast('Không có lớp nào để xuất', 'info');
+    let w = null; try { w = window.open('', '_blank'); if (w) { w.opener = null; w.document.write('<p style="font:14px sans-serif;padding:24px">Đang tạo Google Sheet…</p>'); } } catch (x) { w = null; }      // mở tab ngay lúc bấm (không bị chặn popup), có link thì chuyển tới
+    const stop = btnWait(btn, 'Đang tạo…'); try { const r = await rpc('kgsReportSheet', { filter: rpFName(), rows: R }); stop();
+      if (w && !w.closed) w.location.href = r.url;
+      toast('Đã tạo Google Sheet · ' + r.n + ' lớp — gửi link cho Giáo vụ', 'ok', 12000, '', { t: 'Mở', fn: () => window.open(r.url, '_blank', 'noopener') }); }
+    catch (er) { stop(); if (w && !w.closed) w.close(); fail(er); } };
   const report = () => {
     if (!Rp) return '<div class="card"><div class="card-b">' + miniLoader('Đang tính tình trạng từng lớp…') + '</div></div>';
     if (Rp.error) return '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được báo cáo</b><span>' + esc(Rp.error) + '</span></div></div>';
     const C = Rp.cls || [], cnt = {}; C.forEach(c => { cnt[c.st] = (cnt[c.st] || 0) + 1; });
-    const orderS = Object.keys(RP_ST).filter(k => cnt[k]), L = C.filter(c => RpF ? c.st === RpF : c.st !== 'empty'), rank = {}; Object.keys(RP_ST).forEach((k, i) => { rank[k] = i; }); L.sort((a, b) => rank[a.st] - rank[b.st]);
+    const orderS = Object.keys(RP_ST).filter(k => cnt[k]), L = rpList();
     const row = c => { const t = RP_ST[c.st]; return '<tr><td data-l="Lớp"><a data-go="classes/c/' + esc(c.classId) + '"><b>' + esc(c.code) + '</b></a>' + (c.student ? '<br><small class="muted">' + esc(c.student) + '</small>' : '') + '</td><td data-l="Bài gán">' + c.les + '/' + c.n + ' buổi</td><td data-l="Khớp KGS">' + c.ok + '/' + c.les + (c.hold ? '<br><small class="muted">+ ' + c.hold + ' buổi ngoài lộ trình</small>' : '') + '</td>' +
       '<td data-l="Tình trạng"><span class="tag' + (t[0] ? ' ' + t[0] : '') + '"><i class="bi ' + t[1] + '"></i> ' + esc(t[2]) + '</span></td><td data-l="Lý do" class="small" style="line-height:1.5;min-width:220px">' + (c.why ? esc(c.why) + '<br>' : '') + (t[3] ? '<span class="muted">' + esc(t[3]) + '</span>' : '') + '</td></tr>'; };
-    return '<div class="card"><div class="card-h"><h2><i class="bi bi-clipboard-data"></i>Tình trạng từng lớp</h2><span class="sp"></span><button class="btn xs ghost" id="kgRpRe"><i class="bi bi-arrow-clockwise"></i>Tải lại</button></div><div class="card-b stack">' +
+    return '<div class="card"><div class="card-h"><h2><i class="bi bi-clipboard-data"></i>Tình trạng từng lớp</h2><span class="sp"></span><div class="kg-rpx" role="group" aria-label="Xuất báo cáo"><button class="btn xs" id="kgRpPdf" title="Bản in đẹp A4 ngang — chọn Lưu dưới dạng PDF"><i class="bi bi-file-earmark-pdf"></i>PDF</button><button class="btn xs" id="kgRpCsv" title="Tải CSV (mở được bằng Excel / Google Sheets)"><i class="bi bi-filetype-csv"></i>CSV</button><button class="btn xs" id="kgRpSh" title="Tạo Google Sheet định dạng sẵn để gửi Giáo vụ"><i class="bi bi-file-earmark-spreadsheet"></i>Google Sheet</button></div><button class="btn xs ghost" id="kgRpRe"><i class="bi bi-arrow-clockwise"></i>Tải lại</button></div><div class="card-b stack">' +
         '<p class="small muted" style="margin:0;line-height:1.6">So bài gán các buổi sắp tới ở Kiến CM với topic KGS đang gắn cho đúng buổi đó. “Buổi ngoài lộ trình” là buổi KGS gắn topic chung vì bài không theo lộ trình hoặc buổi để trống.</p>' +
         '<div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn xs' + (!RpF ? ' pri' : '') + '" data-rpf="">Có bài gán · ' + (C.length - (cnt.empty || 0)) + '</button>' + orderS.map(k => '<button class="btn xs' + (RpF === k ? ' pri' : '') + '" data-rpf="' + k + '">' + esc(RP_ST[k][2]) + ' · ' + cnt[k] + '</button>').join('') + '</div>' +
         (L.length ? '<div class="tbl-wrap"><table class="tbl kg-rp"><thead><tr><th>Lớp</th><th>Bài gán</th><th>Khớp KGS</th><th>Tình trạng</th><th>Lý do · việc cần làm</th></tr></thead><tbody>' + L.map(row).join('') + '</tbody></table></div>' : '<div class="small muted">Không có lớp nào.</div>') + '</div></div>' +
@@ -12216,6 +12261,9 @@ async function setKgs(B) {
     const t = e.target.closest('button'); if (!t || t.disabled) return;
     if (t.dataset.kt) { tab = t.dataset.kt; lsSet('kgsTab', tab); return paint(); }
     if (t.id === 'kgRpRe') { Rp = null; return paint(); }
+    if (t.id === 'kgRpPdf') return rpPdf();
+    if (t.id === 'kgRpCsv') return rpCsv();
+    if (t.id === 'kgRpSh') return rpSheet(t);
     if (t.dataset.rpf !== undefined) { RpF = t.dataset.rpf; return paint(); }
     if (t.id === 'kgCopy') return !K.code ? toast('Đang tải mã — thử lại sau một giây', 'info') : copyText(K.code, 'Đã chép mã kết nối — dán vào tiện ích KGS Sync');
     if (t.id === 'kgKey') { if (K._code && !K.code) return toast('Đang tải — thử lại sau một giây', 'info'); if (K.code && !await ask('Tạo mã kết nối mới? Mã cũ hết dùng được — tiện ích trên các máy phải dán mã mới.', { ok: 'Tạo mã mới' })) return; return run(t, 'Đang tạo…', () => rpc('kgsKey', {}, { quiet: true })); }
