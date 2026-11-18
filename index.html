@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T08:40:55.664Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T09:00:03.136Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -3952,7 +3952,7 @@ body.cp-dragging, body.cp-dragging *{ cursor:grabbing !important; user-select:no
 .bd-sizing, .bd-sizing *{ cursor:col-resize !important; user-select:none }
 .bd-it{ align-items:flex-start } .bd-it > input, .bd-it > .bd-n, .bd-it > i{ margin-top:2px }
 .bd-itn{ white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; line-height:1.4 }
-.bd-u{ margin-top:2px } .bd-u.sk{ color:#B45309; font-weight:600; font-style:italic }
+.bd-u{ margin-top:2px; white-space:nowrap; line-height:16px } .bd-u.sk{ display:inline-block; padding:0 7px; border-radius:6px; background:#FEF3C7; color:#92400E; font-weight:700; font-style:normal; font-size:10.5px; line-height:18px; margin-top:1px }      /* (1.82.2) nhãn “bỏ qua” gọn — trước chữ nghiêng bị cắt nền */
 .bd-eye{ flex:none; width:26px; height:26px; margin:-3px -4px -3px 0; display:inline-grid; place-items:center; border:0; border-radius:7px; background:none; color:var(--muted); cursor:pointer; opacity:.6 }
 .bd-eye:hover, .bd-eye:focus-visible{ opacity:1; color:var(--brand-700); background:var(--brand-50) } .bd-it.lib .bd-eye{ margin-top:2px }
 /* hộp xem nội dung một bài */
@@ -5731,7 +5731,7 @@ html[data-mode="dark"] .bd-ch.x{ background:#150f34; border-color:#2c2356; color
 html[data-mode="dark"] .bd-ch.dup{ background:#331212; border-color:#5b2424; color:#e69191 }
 html[data-mode="dark"] .bd-fh{ border:2px solid var(--border) }
 html[data-mode="dark"] .bd-it.nx{ border-color:#366e4a }
-html[data-mode="dark"] .bd-u.nx{ color:#9eeabb }
+html[data-mode="dark"] .bd-u.nx{ color:#9eeabb } html[data-mode="dark"] .bd-u.sk{ background:#3b2f12; color:#fcd34d }
 html[data-mode="dark"] .cc-la.on{ color:#9eeabb; background:#174025 }
 html[data-mode="dark"] .hm-pill.red{ background:#3d1414; color:#e58080 }
 html[data-mode="dark"] .hm-ar.late{ border-color:#5b2424; background:#331212 }
@@ -6275,6 +6275,12 @@ function roleOf(id) { return (S.boot.roles || []).find(r => r.id === id) || { id
 const LS_APP = { annCache: 1, infoCache: 1 };
 function lsKey(k) { return 'ktcm.' + k + (LS_APP[k] && S.mod && S.mod !== 'tutor' ? '@' + S.mod : ''); }
 function lsGet(k, d) { try { const v = localStorage.getItem(lsKey(k)); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+/* (1.82.2) KHO LƯU LỚN (IndexedDB) — bản dữ liệu quá cỡ bộ nhớ trình duyệt (localStorage ~5 MB, VD danh sách lớp + buổi của quản lý) lưu ở đây để mở trang hiện ngay, không phải chờ máy chủ */
+const KV = { db: null };
+function kvDb() { return KV.db || (KV.db = new Promise(res => { try { const r = indexedDB.open('ktcm-kv', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => res(null); r.onblocked = () => res(null); } catch (e) { res(null); } })); }
+function kvGet(k) { return kvDb().then(db => !db ? null : new Promise(res => { try { const q = db.transaction('kv').objectStore('kv').get(lsKey(k)); q.onsuccess = () => res(q.result == null ? null : q.result); q.onerror = () => res(null); } catch (e) { res(null); } })); }
+function kvSet(k, v) { return kvDb().then(db => { if (!db) return false; try { db.transaction('kv', 'readwrite').objectStore('kv').put(v, lsKey(k)); return true; } catch (e) { return false; } }); }
+function kvDel(k) { return kvDb().then(db => { if (db) try { db.transaction('kv', 'readwrite').objectStore('kv').delete(lsKey(k)); } catch (e) {} }); }
 function lsSet(k, v) { const key = lsKey(k); let str; try { str = JSON.stringify(v); localStorage.setItem(key, str); return true; } catch (e) { if (str == null) return false; lsEvict(key, str.length); try { localStorage.setItem(key, str); return true; } catch (e2) { return false; } } }
 /** (1.80.35) bộ nhớ trình duyệt đầy → xoá bản lưu tạm (cache) cũ: của tài khoản khác trước, rồi bản lớn nhất — trước đây lưu thất bại âm thầm nên trang nào cũng phải tính lại */
 function lsEvict(keep, need) {
@@ -8586,7 +8592,7 @@ async function go(route, opt) {
     if (rec.el._onArg(arg) !== 'rebuild') { applyChrome(rec, key, navKey); return; }      // (1.81.1) _onArg trả 'rebuild' = trang con khác hẳn (Kiến Task › Trợ lý / Check-in) → dựng lại trên phần tử mới
     rec.stale = true; }
   if (!fresh && rec.el._onShow && !rec.stale) rec.el._onShow();
-  if (rec.loading) { if (rec.stale) rec.redo = 1; return; }      // (1.82) đang dựng trang (VD Kiến Task › Bảng đang tải) mà người dùng đã bấm sang trang con khác (Trợ lý) → dựng xong thì dựng lại đúng trang đang chọn — trước: bỏ qua, URL là tasks/asst mà vẫn hiện Bảng
+  if (rec.loading) { if (rec.stale || arg !== rec.arg) rec.redo = 1; return; }      // (1.82.2) cả khi trang chưa kịp gắn _onArg (VD bấm Gia sư lúc Lớp gia sư còn đang tải)      // (1.82) đang dựng trang (VD Kiến Task › Bảng đang tải) mà người dùng đã bấm sang trang con khác (Trợ lý) → dựng xong thì dựng lại đúng trang đang chọn — trước: bỏ qua, URL là tasks/asst mà vẫn hiện Bảng
   if (fresh || opt.refresh || rec.stale || rec.err) {
     if (!fresh) {   // dựng lại trên phần tử mới → không cộng dồn trình xử lý sự kiện của lần dựng trước
       const el = document.createElement('div');
@@ -8599,7 +8605,7 @@ async function go(route, opt) {
       await R.fn(arg, rec.el); rec.stale = false; rec.err = false; }
     catch (e) { rec.err = true; rec.el.innerHTML = '<div class="empty"><i class="bi bi-exclamation-octagon"></i>' + esc(e.message) + '<button class="btn sm" onclick="refreshView()">Thử lại</button></div>'; }
     finally { rec.loading = false; }
-    if (rec.redo) { rec.redo = 0; const cur = String(S.route || ''); if (cur.split('/')[0] === key && cur.split('/').slice(1).join('/') !== rec.arg) { rec.stale = true; return go(cur, { nohist: 1, replace: 1 }); } }
+    if (rec.redo) { rec.redo = 0; const cur = String(S.route || ''); if (cur.split('/')[0] === key && cur.split('/').slice(1).join('/') !== rec.arg) { if (!rec.el._onArg) rec.stale = true; return go(cur, { nohist: 1, replace: 1 }); } }      // trang có _onArg → đổi tab con tại chỗ (không tải lại)
     if (seq === NAV && isShown(rec)) applyChrome(rec, key, navKey);
   }
 }
@@ -15020,12 +15026,12 @@ function clReload(after) {
   if (cur) return cur.catch(() => {}).then(() => clReload(after));
   const t0 = Date.now();
   // gửi kèm phiên bản đang có: máy chủ chưa đổi gì → trả { same } ngay (không tải lại cả bảng, không vẽ lại)
-  const p = rpc('classList', CL.v && CL.d ? { v: CL.v } : {}, { quiet: true }).then(d => {
+  const p = rpc('classList', CL.v && CL.d ? { v: CL.v, bg: 1 } : CL.d ? { bg: 1 } : {}, { quiet: true }).then(d => {      // (1.82.2) bg: đã có dữ liệu trên màn hình → máy chủ được chạy tự xếp bài trong lượt này; lần tải đầu (chưa có gì) trả ngay
     obSettle(t0);                                   // lệnh lưu xong trước lúc bắt đầu tải → bản này đã có, thôi phủ
     setTimeout(() => { try { if (typeof clAskWarm === 'function') clAskWarm(); } catch (e) {} }, 800);      // (1.80.21) tải sẵn yêu cầu + ghi chú ngầm (tối đa 2 phút / lần)
     if (d && d.same) return 'same';
     CL.v = d.v || '';
-    lsSet(clCacheKey(), d);
+    clStore(d);
     CL.d = clOverlay(d); clBadge();
     if (typeof clChatWarm === 'function') setTimeout(clChatWarm, 1500);      // (1.74) vào web là tải sẵn tin nhắn các cuộc trao đổi gần nhất
   });
@@ -15035,7 +15041,13 @@ function clReload(after) {
   return p;
 }
 /** lưu bản đang hiện (đã gồm thay đổi vừa bấm) xuống máy → mở lại trang / tải lại app không hiện bản cũ trong chốc lát */
-function clKeep() { if (CL.d) lsSet(clCacheKey(), CL.d); }
+function clKeep() { if (CL.d) clStore(CL.d); }
+/** (1.82.2) lưu bản lớp + buổi xuống máy: localStorage; quá cỡ (quản lý nhiều lớp) → IndexedDB — trước đây lưu hỏng âm thầm nên lần nào mở trang cũng phải chờ máy chủ tải lại từ đầu */
+function clStore(d) { const k = clCacheKey(); if (lsSet(k, d)) { if (clStore.big) { clStore.big = 0; kvDel(k); } return; }
+  try { localStorage.removeItem(lsKey(k)); } catch (e) {} clStore.big = 1; clearTimeout(clStore.t); clStore.t = setTimeout(() => kvSet(k, CL.d || d), 300); }
+/** bản đã lưu: localStorage trước, không có thì IndexedDB (chờ tối đa 1,5 giây) */
+async function clCached() { const c = lsGet(clCacheKey(), null); if (c && c.classes) return c; if (typeof kvGet !== 'function') return null;
+  const v = await Promise.race([kvGet(clCacheKey()), new Promise(r => setTimeout(() => r(null), 1500))]); if (v && v.classes) { clStore.big = 1; return v; } return null; }
 /** gửi ngầm rồi tải lại dữ liệu khi hàng đợi trống (để thấy kết quả máy chủ tính: buổi kế tiếp được mở, link…) */
 function clQueue(fn, payload, opt) {
   const pr = queueRpc(fn, payload, opt);
@@ -15124,9 +15136,10 @@ function clBadge() {
 
 async function viewClasses(arg, v) {
   const tok = v._clTok = (v._clTok || 0) + 1;      // (1.77.25) lần mở mới hơn (đã bấm sang tab khác lúc đang tải) → lần mở cũ thôi, không vẽ đè
-  const cached = lsGet(clCacheKey(), null);
-  if (cached && cached.classes) { CL.d = clOverlay(cached); clReload().then(r => r !== 'same' && CL.repaint && CL.repaint()).catch(() => {}); }
-  else await clReload();
+  const cached = CL.d && CL.d.classes ? null : await clCached();      // (1.82.2) có cả bản lưu ở IndexedDB (dữ liệu lớn)
+  if (CL.d && CL.d.classes) clReload().then(r => r !== 'same' && CL.repaint && CL.repaint()).catch(() => {});
+  else if (cached && cached.classes) { CL.d = clOverlay(cached); clReload().then(r => r !== 'same' && CL.repaint && CL.repaint()).catch(() => {}); }
+  else { await clReload(); setTimeout(() => clReload(Date.now()).then(r => r !== 'same' && CL.repaint && CL.repaint()).catch(() => {}), 1500); }      // lần đầu: hiện ngay, rồi tải ngầm thêm một lượt (máy chủ chạy tự xếp bài)
   if (v._clTok !== tok) return;
   clBadge();
   const parts = String(arg || '').split('/');
