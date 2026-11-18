@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T16:56:39.759Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-18T17:53:35.509Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -22030,7 +22030,7 @@ function aiCfgView(body) {
 .rv-i.skip{ opacity:.6 } .rv-i.done > i{ color:var(--ok, #16a34a) } .rv-i.err > i{ color:var(--danger) }
 .rv-ch{ font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:6px; background:var(--surface-2); color:var(--ink-2); margin-left:6px }
 /* BỘ NÃO */
-.br-wrap{ max-width:1120px; margin:0 auto; padding:2px 0 28px }
+.br-wrap{ width:100%; max-width:1120px; margin:0 auto; padding:2px 0 28px } .br-wrap .br-wrap{ padding:0 }      /* (1.82.7) luôn rộng đủ khung — thanh tab không co theo nội dung */
 .br-as{ display:flex; gap:8px; flex-wrap:wrap; margin:0 0 12px }
 .br-ab{ display:inline-flex; align-items:center; gap:8px; padding:8px 14px 8px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface); font:inherit; font-size:13px; color:var(--ink-2); cursor:pointer }
 .br-ab[aria-pressed="true"]{ border-color:color-mix(in oklab, var(--primary) 55%, var(--border)); background:color-mix(in oklab, var(--primary) 9%, var(--surface)); color:var(--primary); font-weight:700 } .br-ab i{ font-size:15px }
@@ -22073,7 +22073,7 @@ function aiCfgView(body) {
 .br-now span{ background:linear-gradient(90deg, var(--primary) 0%, #8B5CF6 45%, var(--primary) 90%); background-size:220% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:aibS 2.4s linear infinite }
 .br-n.flow{ border-color:color-mix(in oklab, var(--primary) 60%, var(--border)); background:color-mix(in oklab, var(--primary) 8%, var(--surface)); box-shadow:0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent) }
 .br-svg path.use.out{ animation-direction:reverse }
-.br-n.sub b .as-av.xs{ width:26px; height:26px; margin:-3px 2px -3px 0 } .br-pop .ph .as-av.xs{ width:28px; height:28px } .br-n.sub{ border-style:solid; border-width:1.5px } .br-n.sub b em{ font-weight:700; color:var(--muted) } .br-n.sub.use b em{ color:var(--primary) }
+.br-n.sub b{ overflow:visible; padding:3px 0 0 3px } .br-n.sub b .as-av.xs{ width:28px; height:28px; margin:0 4px 0 0 }      /* (1.82.7) robot không bị cắt */ .br-pop .ph .as-av.xs{ width:28px; height:28px } .br-n.sub{ border-style:solid; border-width:1.5px } .br-n.sub b em{ font-weight:700; color:var(--muted) } .br-n.sub.use b em{ color:var(--primary) }
 .br-th{ max-width:760px; margin:4px auto 0 } .br-th:empty{ display:none } .br-th .tka-qm{ margin-top:14px }
 .br-sb{ display:inline-block; font-size:10.5px; font-weight:700; padding:0 6px; border-radius:6px; background:color-mix(in oklab, var(--primary) 10%, var(--surface)); color:var(--primary) }
 .br-gv{ display:flex; gap:8px; align-items:flex-start; flex-wrap:wrap; margin-top:10px } .br-gv .sel{ width:auto; flex:none } .br-gv textarea{ flex:1 1 260px; min-height:36px; resize:vertical } .br-gv .btn{ flex:none }
@@ -22421,23 +22421,36 @@ async function asbOpen(body, conv) {
   catch (e) { if (Q.conv === conv) Q.msgs = [{ err: e.message || String(e) }]; }
   if (Q.opening === conv) Q.opening = ''; asbThread(body); asbHist(body); asbFlow(body, Q.msgs.some(m => m.wait));
 }
-/** module Trợ lý (1.81.1): asst = Trợ lý chung · asst/v:<cuộc> mở lại cuộc cũ · asst/subs = bộ não các trợ lý con */
+/** module Trợ lý: asst = Trợ lý chung · asst/v:<cuộc> mở lại cuộc cũ · asst/office = Văn phòng AI · asst/subs = Các trợ lý (Xưởng agent | Bộ não)
+    (1.82.7) ba trang con DỰNG MỘT LẦN rồi giữ trong cùng khung — chuyển qua lại chỉ ẩn / hiện, không tải lại (trước: mỗi lần chuyển dựng lại + chờ máy chủ) */
 async function viewAsst(arg, v) {
-  arg = String(arg || ''); v._onArg = () => 'rebuild';
-  if (/^office/.test(arg) && typeof viewOffice === 'function') return viewOffice(v);      // (1.82.6) Văn phòng AI (OfficeView.html)
-  if (/^subs/.test(arg)) { setTitle('Các trợ lý', 'bi-diagram-3', [{ t: 'Trợ lý', r: 'asst' }], v);
-    /* (1.82.5) hai tab rõ ràng: Xưởng agent (chuỗi flow · 8 tầng · agent riêng) | Bộ não từng trợ lý — dựng một lần, chuyển tab tức thì; không chờ máy chủ mới hiện trang */
-    const man = can('settings.manage'), T = (man ? [['ag', 'bi-diagram-3', 'Xưởng agent']] : []).concat([['br', 'bi-cpu', 'Bộ não từng trợ lý']]);
-    let t0 = lsGet('asSubT', T[0][0]); if (!T.some(x => x[0] === t0)) t0 = T[0][0];
-    v.innerHTML = '<div class="br-wrap">' + (T.length > 1 ? '<div class="tka-tabs" role="tablist" aria-label="Các trợ lý">' + T.map(x => '<button type="button" role="tab" class="tka-tab" data-ast="' + x[0] + '"><i class="bi ' + x[1] + '"></i><span>' + x[2] + '</span></button>').join('') + '</div>' : '') + '<div id="asAg"></div><div id="asB"></div></div>';
-    const P = { ag: $('#asAg', v), br: $('#asB', v) }, built = {};
-    const show = t => { lsSet('asSubT', t); $$('[data-ast]', v).forEach(b => b.setAttribute('aria-selected', b.dataset.ast === t)); Object.keys(P).forEach(k => { P[k].hidden = k !== t; });
-      if (built[t]) return; built[t] = 1; if (t === 'ag') asstAgentStudio(P.ag); else asstBrainView(P.br, { tabs: ['cm'].concat(asstTkOk() ? ['task'] : []) }); };
-    const tb = $('.tka-tabs', v); if (tb) { const pick = e => { const b = e.target.closest('[data-ast]'); if (b) show(b.dataset.ast); }; tb.onpointerdown = e => { if (e.button === 0) pick(e); }; tb.onclick = pick; }
-    show(t0); return; }
-  setTitle('Trợ lý chung', 'bi-robot', [{ t: 'Trợ lý', r: 'asst' }], v); v.innerHTML = '<div id="asB"></div>'; const b = $('#asB', v);
-  const oc = /^v:/.test(arg) ? arg.slice(2) : ''; if (oc && (!ASQ.gen || ASQ.gen.conv !== oc)) { ASQ.gen = { conv: oc, opening: oc, msgs: [{ wait: 1, open: 1 }] }; setTimeout(() => asbOpen(b, oc), 0); }
-  asstBrainView(b, { k: 'gen', hub: 1 });      // (1.82.5) không chờ máy chủ: hiện bản đã lưu ngay, tải mới ngầm → bấm sang “Các trợ lý” không bị kẹt
+  const PG = { hub: ['Trợ lý chung', 'bi-robot'], office: ['Văn phòng AI', 'bi-buildings'], subs: ['Các trợ lý', 'bi-diagram-3'] }, built = {};
+  v.innerHTML = '<div data-asp="hub" hidden></div><div data-asp="office" hidden></div><div data-asp="subs" hidden></div>';
+  const box = k => v.querySelector('[data-asp="' + k + '"]');
+  const show = a => {
+    a = String(a || ''); const k = /^office/.test(a) ? 'office' : /^subs/.test(a) ? 'subs' : 'hub';
+    setTitle(PG[k][0], PG[k][1], [{ t: 'Trợ lý', r: 'asst' }], v);
+    ['hub', 'office', 'subs'].forEach(x => { box(x).hidden = x !== k; });
+    const el = box(k);
+    if (k === 'hub') { const oc = /^v:/.test(a) ? a.slice(2) : '';
+      if (!built.hub) { built.hub = 1; el.innerHTML = '<div id="asB"></div>'; asstBrainView($('#asB', el), { k: 'gen', hub: 1 }); }
+      else { const b = $('#asB', el); if (b && b._asb && ASB.d) asbPaint(b); }
+      if (oc && (!ASQ.gen || ASQ.gen.conv !== oc)) { ASQ.gen = { conv: oc, opening: oc, msgs: [{ wait: 1, open: 1 }] }; setTimeout(() => asbOpen($('#asB', el), oc), 0); }
+      return; }
+    if (k === 'office') { if (!built.office) { built.office = 1; if (typeof viewOffice === 'function') viewOffice(el); } else if (typeof officeShow === 'function') officeShow(); return; }
+    if (!built.subs) { built.subs = 1;
+      const man = can('settings.manage'), T = (man ? [['ag', 'bi-diagram-3', 'Xưởng agent']] : []).concat([['br', 'bi-cpu', 'Bộ não từng trợ lý']]);
+      el.innerHTML = '<div class="br-wrap">' + (T.length > 1 ? '<div class="tka-tabs" role="tablist" aria-label="Các trợ lý">' + T.map(x => '<button type="button" role="tab" class="tka-tab" data-ast="' + x[0] + '"><i class="bi ' + x[1] + '"></i><span>' + x[2] + '</span></button>').join('') + '</div>' : '') + '<div id="asAg"></div><div id="asBr"></div></div>';
+      const P = { ag: $('#asAg', el), br: $('#asBr', el) }, made = {};
+      const sub = t => { if (!T.some(x => x[0] === t)) t = T[0][0]; lsSet('asSubT', t); $$('[data-ast]', el).forEach(b => b.setAttribute('aria-selected', b.dataset.ast === t)); Object.keys(P).forEach(x => { P[x].hidden = x !== t; });
+        if (made[t]) return; made[t] = 1; if (t === 'ag') asstAgentStudio(P.ag); else asstBrainView(P.br, { tabs: ['cm'].concat(asstTkOk() ? ['task'] : []) }); };
+      const tb = $('.tka-tabs', el); if (tb) { const pick = e => { const b = e.target.closest('[data-ast]'); if (b) sub(b.dataset.ast); }; tb.onpointerdown = e => { if (e.button === 0) pick(e); }; tb.onclick = pick; }
+      el._sub = sub; sub(lsGet('asSubT', T[0][0])); return; }
+    const want = lsGet('asSubT', ''); if (el._sub && want) el._sub(want);
+    if ((typeof OF !== 'undefined' && OF.newAg) || (typeof AGS !== 'undefined' && AGS.reopen)) { if (typeof AGS !== 'undefined') AGS.reopen = 0; const h = $('#asAg', el); if (h) asstAgentStudio(h); }      // từ Văn phòng: mở đúng agent / tạo agent mới
+  };
+  v._onArg = a => { show(a); };
+  show(arg);
 }
 /** DẤU “TRỢ LÝ ĐANG LÀM” trên biểu tượng Trợ lý (thanh bên: Kiến CM › Trợ lý, Kiến Task › Trợ lý, module Trợ lý) — body[data-asrun] = "cm task gen" */
 const ASP = { n: null, t: 0 };
@@ -22946,255 +22959,356 @@ async function agsClick(e, host) {
 </script>
 
 <style>
-/* ═════ (1.82.6) VĂN PHÒNG AI — mỗi agent một phòng (2.5D), Trợ lý chung ở phòng điều phối, bộ não chung ở giữa; việc chạy từ phòng này sang phòng kia ═════ */
-.of{ --of-bg:#0A1022; --of-ln:#1E2B4D; max-width:1320px; margin:0 auto; padding:2px 0 24px }
+/* ═════ (1.82.7) VĂN PHÒNG AI — mỗi agent một phòng 2.5D · Trợ lý chung ở phòng điều phối · bộ não chung ở giữa
+   Luồng việc: đường cong nét đứt chạy liên tục (chấm sáng trôi theo đường) từ phòng giao → phòng nhận, phong thư qua lại hộp thư flow khi đang làm.
+   Giao diện trắng (mặc định) + tối (html[data-mode="dark"]). Thiết kế tóm tắt ở docs/van-phong-ai.md ═════ */
+.of{ width:100%; max-width:1320px; margin:0 auto; padding:2px 0 24px }
 .of-top{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px }
 .of-ask{ flex:1 1 380px; display:flex; gap:8px; align-items:center; padding:6px 6px 6px 14px; border:1px solid var(--border); border-radius:16px; background:var(--surface); box-shadow:0 8px 24px -18px color-mix(in oklab, var(--primary) 60%, transparent) }
 .of-ask:focus-within{ border-color:color-mix(in oklab, var(--primary) 55%, var(--border)) } .of-ask input{ flex:1; min-width:0; border:0; background:none; font:inherit; font-size:14px; color:var(--ink); outline:none; padding:6px 0 }
 .of-ask .btn{ flex:none } .of-clk{ text-align:right; line-height:1.15 } .of-clk small{ display:block; font-size:11.5px; color:var(--muted) } .of-clk b{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:24px; letter-spacing:.04em; color:var(--ink) }
-.of-k{ display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:10px; margin-bottom:12px }
-.of-k > div{ position:relative; padding:10px 14px 11px; border:1px solid var(--border); border-radius:14px; background:var(--surface); overflow:hidden } .of-k > div::before{ content:""; position:absolute; left:0; right:0; top:0; height:3px; background:var(--kc, var(--primary)) }
-.of-k small{ display:block; font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--kc, var(--primary)) } .of-k b{ display:block; font-size:22px; line-height:1.25; font-family:ui-monospace, SFMono-Regular, Menlo, monospace } .of-k span{ display:block; font-size:11.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-.of-ans{ margin-bottom:12px; padding:12px 14px; border:1px solid color-mix(in oklab, var(--primary) 30%, var(--border)); border-radius:14px; background:var(--surface); display:flex; gap:12px; align-items:flex-start; font-size:13.5px; line-height:1.6 } .of-ans .b{ flex:1; min-width:0 } .of-ans:empty{ display:none }
+/* thẻ số: MỘT thẻ, một màu, chia cột bằng vạch */
+.of-k{ display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); margin-bottom:12px; border:1px solid var(--border); border-radius:14px; background:var(--surface); overflow:hidden }
+.of-k > div{ padding:10px 16px 11px; border-left:1px solid var(--border); min-width:0 } .of-k > div:first-child{ border-left:0 }
+.of-k small{ display:block; font-size:11px; font-weight:600; color:var(--muted) } .of-k b{ display:flex; align-items:center; gap:7px; font-size:20px; line-height:1.3; color:var(--ink); font-variant-numeric:tabular-nums } .of-k span{ display:block; font-size:11.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .of-main{ display:grid; grid-template-columns:220px minmax(0, 1fr); gap:12px; align-items:start }
-.of-side{ border:1px solid var(--border); border-radius:16px; background:var(--surface); padding:10px 8px; display:flex; flex-direction:column; gap:2px; max-height:760px; overflow:auto }
+.of-side{ border:1px solid var(--border); border-radius:16px; background:var(--surface); padding:10px 8px; display:flex; flex-direction:column; gap:2px; max-height:820px; overflow:auto }
 .of-sh{ font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:8px 8px 4px } .of-sh:first-child{ margin-top:2px }
-.of-si{ display:flex; gap:8px; align-items:center; padding:6px 8px; border:0; border-radius:10px; background:none; font:inherit; color:inherit; text-align:left; cursor:pointer; width:100% } .of-si:hover, .of-si.on{ background:var(--surface-2) }
+.of-si{ display:flex; gap:8px; align-items:center; padding:6px 8px; border:0; border-radius:10px; background:none; font:inherit; color:inherit; text-align:left; cursor:pointer; width:100% } .of-si:hover{ background:var(--surface-2) }
 .of-si .t{ flex:1; min-width:0 } .of-si b{ display:block; font-size:12.5px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .of-si small{ display:block; font-size:11px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-.of-dot{ width:8px; height:8px; border-radius:50%; flex:none; background:#64748B } .of-dot.run{ background:#22C55E; box-shadow:0 0 0 3px color-mix(in oklab, #22C55E 25%, transparent); animation:ofBlink 1.2s ease-in-out infinite } .of-dot.idle{ background:#3B82F6 } .of-dot.off{ background:#64748B }
-.of-rule{ margin:10px 6px 4px; padding:10px 12px; border:1px solid color-mix(in oklab, #F59E0B 45%, var(--border)); border-radius:12px; font-size:12px; line-height:1.5; color:var(--ink-2) } .of-rule b{ display:block; font-size:10.5px; letter-spacing:.08em; color:#D97706; margin-bottom:3px }
-/* sân khấu */
-.of-stage{ position:relative; border-radius:18px; overflow:hidden; background:radial-gradient(ellipse at 50% 45%, #14204A 0%, var(--of-bg) 62%); border:1px solid #1B2647; box-shadow:inset 0 0 80px rgba(0,0,0,.45) }
-.of-stage::before{ content:""; position:absolute; inset:0; background-image:radial-gradient(rgba(148,163,184,.13) 1px, transparent 1.2px); background-size:22px 22px; pointer-events:none }
-.of-in{ position:absolute; left:0; top:0; transform-origin:0 0 }
-.of-in svg{ position:absolute; inset:0; overflow:visible } .of-ov{ position:absolute; inset:0; pointer-events:none } .of-ov > *{ pointer-events:auto } .of-ov .of-bub, .of-ov .of-mail, .of-ov .of-legend{ pointer-events:none } .of-ov .of-bot{ cursor:pointer }
-.of-stage.cpt .of-lb, .of-stage.cpt .of-mail, .of-stage.cpt .of-bub, .of-stage.cpt .of-brain small, .of-stage.cpt .of-brain .ch, .of-stage.cpt .of-add{ display:none } .of-stage.cpt .of-brain{ padding:4px 8px } .of-stage.cpt .of-brain b{ font-size:9px }
-.of-fl{ transition:fill-opacity .3s } .of-fl.busy{ animation:ofFloor 1.8s ease-in-out infinite } .of-fl.done{ animation:ofDone 1.2s ease-out 3 }
-.of-wl{ fill-opacity:.14 } .of-ln{ stroke:#3B5BA8; stroke-width:1.2; stroke-dasharray:3 6; opacity:.45 } .of-ln.on{ stroke:#7DD3FC; opacity:1; animation:ofDash 1s linear infinite }
-.of-mon{ fill:#1E293B } .of-mon.on{ fill:#7DD3FC; animation:ofBlink 1s ease-in-out infinite }
-.of-lb{ position:absolute; transform:translate(-50%, -100%); padding:6px 11px 6px 10px; border-radius:10px; background:rgba(10,16,34,.92); border:1px solid var(--rc); box-shadow:0 0 0 1px rgba(0,0,0,.4), 0 8px 18px -8px var(--rc); color:#E2E8F0; font:inherit; text-align:left; cursor:pointer; white-space:nowrap; max-width:220px }
-.of-lb.dn{ transform:translate(-50%, 0) } .of-lb::before{ content:""; position:absolute; left:0; top:6px; bottom:6px; width:3px; border-radius:3px; background:var(--rc) } .of-lb:hover{ background:rgba(20,30,60,.96) }
-.of-lb b{ display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; padding-left:4px } .of-lb b i{ font-size:10px; opacity:.6 } .of-lb small{ display:flex; align-items:center; gap:5px; font-size:10.5px; color:#94A3B8; padding-left:4px; overflow:hidden; text-overflow:ellipsis }
-.of-lb .of-dot{ width:6px; height:6px } .of-lb.busy small{ color:#86EFAC }
-.of-bot{ position:absolute; transform:translate(-50%, -88%) } .of-bot .as-av, .of-bot .as-bot{ box-shadow:0 10px 20px -8px rgba(0,0,0,.7) }
-.of-bub{ position:absolute; transform:translate(-50%, -100%); padding:3px 9px; border-radius:10px 10px 10px 2px; background:#F8FAFC; color:#0F172A; font-size:11px; font-weight:600; white-space:nowrap; max-width:200px; overflow:hidden; text-overflow:ellipsis; box-shadow:0 6px 16px -6px rgba(0,0,0,.6); pointer-events:none; animation:ofPop .3s ease-out }
-.of-bub .ty{ display:inline-flex; gap:2px; margin-left:4px; vertical-align:middle } .of-bub .ty i{ width:4px; height:4px; border-radius:50%; background:#64748B; animation:ofType 1s infinite } .of-bub .ty i:nth-child(2){ animation-delay:.15s } .of-bub .ty i:nth-child(3){ animation-delay:.3s }
-.of-bub.ok{ background:#DCFCE7; color:#166534 } .of-bub.err{ background:#FEE2E2; color:#991B1B }
-.of-brain{ position:absolute; transform:translate(-50%, -50%); text-align:center; color:#E2E8F0; cursor:pointer; padding:10px 16px 8px; border-radius:16px; background:rgba(10,16,34,.78); border:1px solid rgba(167,139,250,.55); box-shadow:0 0 40px -6px rgba(139,92,246,.6) }
-.of-brain b{ display:block; font-size:12.5px; letter-spacing:.14em; font-weight:800 } .of-brain small{ display:block; font-size:10.5px; color:#A5B4FC; margin-top:2px } .of-brain .ch{ display:flex; gap:4px; justify-content:center; margin-top:6px }
-.of-brain .ch span{ font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; background:rgba(139,92,246,.18); color:#C4B5FD; border:1px solid rgba(139,92,246,.4) }
-.of-mail{ position:absolute; transform:translate(-50%, -50%); padding:4px 10px; border-radius:8px; background:rgba(10,16,34,.9); border:1px solid #38BDF8; color:#BAE6FD; font-size:10.5px; font-weight:800; letter-spacing:.06em; white-space:nowrap; pointer-events:none } .of-mail.off{ border-color:#64748B; color:#94A3B8 }
-.of-add{ position:absolute; transform:translate(-50%, -50%); border:0; background:none; color:#93C5FD; font:inherit; font-size:13px; font-weight:700; cursor:pointer; padding:8px 12px; border-radius:10px } .of-add:hover{ background:rgba(59,130,246,.15) }
-.of-pk{ position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border-radius:50%; background:#FDE68A; box-shadow:0 0 0 3px rgba(253,230,138,.25), 0 0 16px 4px rgba(253,230,138,.65); pointer-events:none; z-index:5 }
-.of-pk.ml{ width:16px; height:11px; margin:-6px 0 0 -8px; border-radius:2px; background:#7DD3FC; box-shadow:0 0 12px 2px rgba(125,211,252,.6) } .of-pk.ml::after{ content:""; position:absolute; inset:0; background:linear-gradient(to bottom right, transparent 49%, rgba(10,16,34,.6) 50%, transparent 51%), linear-gradient(to bottom left, transparent 49%, rgba(10,16,34,.6) 50%, transparent 51%) }
+.of-si .as-av.xs, .of-si .as-bot.xs{ margin:3px }
+.of-dot{ width:8px; height:8px; border-radius:50%; flex:none; background:#94A3B8; display:inline-block } .of-dot.run{ background:#22C55E; box-shadow:0 0 0 3px color-mix(in oklab, #22C55E 25%, transparent); animation:ofBlink 1.2s ease-in-out infinite } .of-dot.idle{ background:#3B82F6 }
+.of-rule{ margin:10px 6px 4px; padding:10px 12px; border:1px dashed var(--border); border-radius:12px; font-size:12px; line-height:1.5; color:var(--ink-2) } .of-rule b{ display:block; font-size:10.5px; letter-spacing:.08em; color:var(--muted); margin-bottom:3px }
+/* SÂN KHẤU — bảng màu riêng cho trắng / tối */
+.of-stage{ --st1:#F4F7FD; --st2:#E6EDFA; --dot:rgba(30,58,138,.10); --flr:#FFFFFF; --flo:.75; --edge:#C7D3EA; --lb:rgba(255,255,255,.97); --lbi:#0F172A; --lbs:#64748B; --lbsh:rgba(15,23,42,.14); --bub:#FFFFFF; --bubi:#0F172A; --dock:rgba(255,255,255,.94); --cab1:#CBD5E1; --cab2:#94A3B8; --cab3:#E2E8F0; --dk1:#B7814E; --dk2:#9A6A3A; --dk3:#D9A56F; --mon:#E2E8F0; --mail:#0284C7; --ring:#6366F1;
+  position:relative; border-radius:18px; overflow:hidden; background:radial-gradient(ellipse at 50% 42%, var(--st1) 0%, var(--st2) 75%); border:1px solid var(--border) }
+html[data-mode="dark"] .of-stage{ --st1:#15204A; --st2:#0A1022; --dot:rgba(148,163,184,.13); --flr:#0F1A3A; --flo:.6; --edge:#22315E; --lb:rgba(10,16,34,.94); --lbi:#E2E8F0; --lbs:#94A3B8; --lbsh:rgba(0,0,0,.5); --bub:#F8FAFC; --bubi:#0F172A; --dock:rgba(10,16,34,.9); --cab1:#334155; --cab2:#1E293B; --cab3:#475569; --dk1:#5B3A1E; --dk2:#6E4624; --dk3:#9A6A3A; --mon:#1E293B; --mail:#38BDF8; --ring:#A78BFA; border-color:#1B2647 }
+.of-stage::before{ content:""; position:absolute; inset:0; background-image:radial-gradient(var(--dot) 1px, transparent 1.2px); background-size:22px 22px; pointer-events:none }
+.of-in{ position:absolute; left:0; top:0; transform-origin:0 0 } .of-in svg{ position:absolute; inset:0; overflow:visible }
+.of-ov{ position:absolute; inset:0; pointer-events:none } .of-ov > *{ pointer-events:auto } .of-ov .of-bub, .of-ov .of-legend{ pointer-events:none }
+.of-base{ fill:var(--flr); fill-opacity:var(--flo); stroke:var(--edge); stroke-width:1.2 }
+.of-fl.busy{ animation:ofFloor 1.8s ease-in-out infinite } .of-fl.done{ animation:ofDone 1.2s ease-out 3 }
+.of-ln{ stroke:var(--edge); stroke-width:1.2; stroke-dasharray:3 7; opacity:.9 }
+.of-fw{ fill:none; stroke-width:4.2; stroke-dasharray:14 10; stroke-linecap:round; animation:ofDash .8s linear infinite; filter:drop-shadow(0 0 4px currentColor) } .of-fw.ml{ stroke:var(--mail); stroke-width:3; stroke-dasharray:6 8; animation-duration:1.1s }
+.of-fdot{ filter:drop-shadow(0 0 5px currentColor) } .of-env{ fill:var(--mail) }
+.of-mon{ fill:var(--mon); stroke:#94A3B8; stroke-width:1 } .of-mon.on{ fill:#7DD3FC; animation:ofBlink 1s ease-in-out infinite }
+.of-dk1{ fill:var(--dk1) } .of-dk2{ fill:var(--dk2) } .of-dk3{ fill:var(--dk3) } .of-cb1{ fill:var(--cab1) } .of-cb2{ fill:var(--cab2) } .of-cb3{ fill:var(--cab3) } .of-cbl{ stroke:var(--cab2); stroke-width:1 } .of-pap{ fill:#FFFFFF; stroke:#CBD5E1; stroke-width:.6 }
+.of-lb{ position:absolute; z-index:2; transform:translate(-50%, -100%); padding:6px 11px 6px 12px; border-radius:10px; background:var(--lb); border:1px solid color-mix(in oklab, var(--rc) 55%, transparent); box-shadow:0 8px 18px -10px var(--lbsh); color:var(--lbi); font:inherit; text-align:left; cursor:pointer; white-space:nowrap; max-width:230px }
+.of-lb::before{ content:""; position:absolute; left:0; top:7px; bottom:7px; width:3px; border-radius:3px; background:var(--rc) } .of-lb.dn{ transform:translate(-50%, 0) } .of-lb:hover{ border-color:var(--rc) }
+.of-lb b{ display:block; font-size:13px; font-weight:700 } .of-lb small{ display:flex; align-items:center; gap:5px; font-size:10.5px; color:var(--lbs); overflow:hidden; text-overflow:ellipsis } .of-lb .of-dot{ width:6px; height:6px } .of-lb.busy small{ color:#16A34A } html[data-mode="dark"] .of-lb.busy small{ color:#86EFAC }
+.of-bot{ position:absolute; z-index:3; transform:translate(-50%, -88%); cursor:pointer } .of-bot .as-av, .of-bot .as-bot{ box-shadow:0 10px 20px -8px var(--lbsh) }
+.of-par{ position:absolute; right:-6px; top:-6px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:#16A34A; color:#fff; font-size:10.5px; font-weight:800; display:grid; place-items:center; box-shadow:0 0 0 2px var(--lb) }
+.of-bub{ position:absolute; z-index:6; transform:translate(-50%, -100%); padding:4px 10px; border-radius:10px 10px 10px 3px; background:var(--bub); color:var(--bubi); font-size:11.5px; font-weight:600; white-space:nowrap; max-width:240px; overflow:hidden; text-overflow:ellipsis; box-shadow:0 6px 18px -6px var(--lbsh), 0 0 0 1px color-mix(in oklab, var(--rc, #94A3B8) 45%, transparent); animation:ofPop .3s ease-out }
+.of-bub .ty{ display:inline-flex; gap:2px; margin-left:5px; vertical-align:middle } .of-bub .ty i{ width:4px; height:4px; border-radius:50%; background:#64748B; animation:ofType 1s infinite } .of-bub .ty i:nth-child(2){ animation-delay:.15s } .of-bub .ty i:nth-child(3){ animation-delay:.3s }
+.of-bub.ok{ background:#DCFCE7; color:#166534 } .of-bub.err{ background:#FEE2E2; color:#991B1B } .of-bub.more{ background:var(--lb); color:var(--lbs); font-weight:700 }
+.of-cab{ position:absolute; z-index:2; transform:translate(-50%, -50%); display:inline-flex; gap:4px; align-items:center; padding:2px 7px; border-radius:7px; border:1px solid var(--edge); background:var(--lb); color:var(--lbi); font:inherit; font-size:10.5px; font-weight:700; cursor:pointer } .of-cab:hover{ border-color:var(--primary); color:var(--primary) }
+.of-brain{ position:absolute; z-index:2; transform:translate(-50%, 0); text-align:center; color:var(--lbi); cursor:pointer; padding:6px 12px 7px; border-radius:12px; background:var(--lb); border:1px solid color-mix(in oklab, var(--ring) 45%, transparent); box-shadow:0 10px 26px -14px var(--ring); font:inherit }
+.of-brain b{ display:block; font-size:11.5px; letter-spacing:.12em; font-weight:800 } .of-brain .ch{ display:flex; gap:4px; justify-content:center; margin-top:4px } .of-brain .ch span{ font-size:10px; font-weight:700; padding:1px 6px; border-radius:6px; background:color-mix(in oklab, var(--ring) 14%, transparent); color:var(--ring) }
+.of-brain em{ display:block; font-style:normal; font-size:10px; color:var(--lbs); margin-top:3px } .of-brain:hover{ border-color:var(--ring) }
+.of-bhit{ position:absolute; z-index:2; transform:translate(-50%, -50%); width:130px; height:100px; border-radius:50%; border:0; background:none; cursor:pointer } .of-bhit:focus-visible{ outline:2px solid var(--ring) }
+.of-brn{ transform-box:fill-box; transform-origin:center; animation:ofBreath 3.2s ease-in-out infinite } .of-brn.on{ animation-duration:1.2s }
+.of-mail{ position:absolute; z-index:2; transform:translate(-50%, -50%); padding:3px 9px; border-radius:8px; background:var(--lb); border:1px solid var(--mail); color:var(--mail); font-size:10.5px; font-weight:800; letter-spacing:.05em; white-space:nowrap; pointer-events:none } .of-mail.off{ border-color:#94A3B8; color:#94A3B8 }
+.of-add{ position:absolute; z-index:2; transform:translate(-50%, -50%); border:0; background:none; color:var(--primary); font:inherit; font-size:13px; font-weight:700; cursor:pointer; padding:8px 12px; border-radius:10px } .of-add:hover{ background:color-mix(in oklab, var(--primary) 10%, transparent) }
+.of-pk{ position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border-radius:50%; background:#F59E0B; box-shadow:0 0 0 3px rgba(245,158,11,.25), 0 0 16px 4px rgba(245,158,11,.55); pointer-events:none; z-index:5 }
+.of-legend{ position:absolute; right:12px; bottom:10px; display:flex; gap:10px; font-size:10.5px; color:var(--lbs) } .of-legend span{ display:inline-flex; gap:5px; align-items:center }
+.of-stage.mid .of-lb small{ display:none } .of-stage.mid .of-lb{ padding:4px 9px 4px 10px } .of-stage.mid .of-lb b{ font-size:12px } .of-stage.mid .of-cab span{ display:none }
+.of-stage.cpt .of-lb, .of-stage.cpt .of-mail, .of-stage.cpt .of-bub, .of-stage.cpt .of-brain, .of-stage.cpt .of-add, .of-stage.cpt .of-cab, .of-stage.cpt .of-legend{ display:none }
+/* KHUNG CHAT — bong bóng như đang giao việc qua chat, nằm trong sân khấu (không đẩy văn phòng xuống) */
+.of-dock{ position:absolute; z-index:8; left:12px; bottom:12px; width:min(340px, calc(100% - 24px)); max-height:calc(100% - 24px); display:flex; flex-direction:column; border-radius:16px; background:var(--dock); border:1px solid var(--border); box-shadow:0 18px 40px -20px rgba(15,23,42,.45); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:var(--ink) }
+.of-dock.min{ width:auto } .of-dk-h{ display:flex; align-items:center; gap:8px; padding:8px 10px 8px 12px; border-bottom:1px solid var(--border); font-size:12.5px; font-weight:700 } .of-dock.min .of-dk-h{ border-bottom:0 } .of-dk-h .sp{ flex:1 } .of-dk-h .n{ font-size:11px; font-weight:600; color:var(--muted) }
+.of-dk-b{ overflow:auto; padding:10px 12px 12px; display:flex; flex-direction:column; gap:8px; max-height:250px } .of-dock.min .of-dk-b{ display:none }
+.of-m{ max-width:88%; font-size:13px; line-height:1.55 } .of-m.me{ align-self:flex-end; padding:7px 11px; border-radius:14px 14px 4px 14px; background:var(--primary); color:#fff; white-space:pre-wrap; word-break:break-word }
+.of-m.ai{ align-self:flex-start; display:flex; gap:8px; align-items:flex-start } .of-m.ai .b{ padding:8px 11px; border-radius:14px 14px 14px 4px; background:var(--surface-2); min-width:0 } .of-m.ai .b p{ margin:0 0 4px } .of-m.ai .b ul{ margin:2px 0; padding-left:18px }
+.of-m.ai .as-bot.xs{ width:30px; height:30px; flex:none } .of-m small.at{ display:block; font-size:10.5px; color:var(--muted); margin-top:3px }
+.of-st{ display:flex; flex-direction:column; gap:4px; font-size:12px } .of-st div{ display:flex; gap:7px; align-items:center; color:var(--muted) } .of-st div.now{ color:var(--ink); font-weight:600 } .of-st div.ok{ color:var(--ink-2) }
+.of-st i.sp{ width:12px; height:12px; border-radius:50%; border:2px solid color-mix(in oklab, var(--primary) 25%, transparent); border-top-color:var(--primary); animation:ofSpin .7s linear infinite; flex:none } .of-st i.dn{ width:12px; height:12px; border-radius:50%; background:var(--primary); flex:none; display:grid; place-items:center } .of-st i.dn::after{ content:""; width:4px; height:4px; border-radius:50%; background:#fff } .of-st i.wt{ width:12px; height:12px; border-radius:50%; border:2px solid var(--border); flex:none }
+.of-gv{ display:flex; flex-direction:column; gap:5px; margin-top:6px } .of-gv button{ display:flex; gap:8px; align-items:center; padding:6px 8px; border-radius:10px; border:1px solid var(--border); background:var(--surface); font:inherit; font-size:12px; color:inherit; text-align:left; cursor:pointer } .of-gv button:hover{ border-color:var(--primary) }
+.of-gv .t{ flex:1; min-width:0 } .of-gv .t b{ display:block; font-size:12px } .of-gv .t span{ display:block; color:var(--muted); font-size:11.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .of-gv .as-av.xs{ width:26px; height:26px }
+.of-pl{ font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; white-space:nowrap } .of-pl.w{ background:color-mix(in oklab, #16A34A 13%, transparent); color:#15803D } .of-pl.ok{ background:var(--surface-2); color:var(--ink-2) } .of-pl.e{ background:color-mix(in oklab, var(--danger) 12%, transparent); color:var(--danger) }
 .of-tick{ display:flex; gap:10px; align-items:center; margin-top:10px; padding:8px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface); font-size:12.5px; overflow:hidden; white-space:nowrap }
 .of-tick > b{ display:inline-flex; gap:6px; align-items:center; font-size:11px; letter-spacing:.1em; color:#16A34A; flex:none } .of-tick .ev{ overflow:hidden; text-overflow:ellipsis } .of-tick .ev em{ font-style:normal; color:var(--muted); margin-right:6px } .of-tick .ev b{ color:var(--primary) }
-.of-legend{ position:absolute; right:12px; bottom:10px; display:flex; gap:10px; font-size:10.5px; color:#94A3B8 } .of-legend span{ display:inline-flex; gap:5px; align-items:center }
-/* ngăn phòng (bấm vào phòng) */
+/* NGĂN PHÒNG / BỘ NÃO */
 .of-dr{ position:fixed; top:0; right:0; bottom:0; width:min(440px, 100%); z-index:60; background:var(--surface); border-left:1px solid var(--border); box-shadow:-24px 0 60px -30px rgba(15,23,42,.55); display:flex; flex-direction:column; animation:ofIn .22s ease-out }
 .of-dr-h{ display:flex; gap:12px; align-items:center; padding:16px 16px 12px; border-bottom:1px solid var(--border) } .of-dr-h .t{ flex:1; min-width:0 } .of-dr-h b{ display:block; font-size:16px } .of-dr-h small{ display:block; color:var(--muted); font-size:12.5px; line-height:1.45 }
-.of-dr-b{ flex:1; overflow:auto; padding:12px 16px 20px } .of-dr-s{ margin-top:16px } .of-dr-s:first-child{ margin-top:4px } .of-dr-s > h4{ display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted) } .of-dr-s > h4 .sp{ flex:1 }
-.of-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px } .of-chips span{ font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--surface-2); color:var(--ink-2) }
-.of-run{ padding:9px 12px; border:1px solid color-mix(in oklab, #22C55E 35%, var(--border)); border-radius:12px; margin-bottom:6px; font-size:13px } .of-run small{ display:block; color:var(--muted); font-size:11.5px; margin:2px 0 4px }
+.of-dr-b{ flex:1; overflow:auto; padding:12px 16px 20px } .of-dr-s{ margin-top:18px } .of-dr-s:first-child{ margin-top:4px } .of-dr-s > h4{ display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted) } .of-dr-s > h4 .sp{ flex:1 }
+.of-chips{ display:flex; flex-wrap:wrap; gap:6px } .of-chips span{ font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--surface-2); color:var(--ink-2) }
+.of-run{ padding:9px 12px; border:1px solid color-mix(in oklab, #22C55E 35%, var(--border)); border-radius:12px; margin-bottom:6px; font-size:13px } .of-run small{ display:block; color:var(--muted); font-size:11.5px; margin-top:2px }
+.of-bar{ height:6px; border-radius:6px; background:var(--surface-2); overflow:hidden; margin-top:6px } .of-bar i{ display:block; height:100%; background:var(--primary); border-radius:6px }
 .of-hi{ display:flex; gap:8px; align-items:center; padding:6px 0; border-top:1px solid var(--border); font-size:12.5px } .of-hi:first-of-type{ border-top:0 } .of-hi .t{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .of-hi .s{ font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:6px; background:var(--surface-2) } .of-hi .s.ok{ color:var(--ok, #16a34a) } .of-hi .s.e{ color:var(--danger) }
 .of-doc{ display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border:1px solid var(--border); border-radius:12px; margin-bottom:6px; font-size:13px } .of-doc > i{ color:var(--primary); margin-top:2px } .of-doc .t{ flex:1; min-width:0 } .of-doc .t a, .of-doc .t b{ font-weight:650; color:var(--ink); word-break:break-word } .of-doc .t small{ display:block; color:var(--muted); font-size:12px; line-height:1.45; margin-top:2px; white-space:pre-wrap }
-.of-docf{ display:flex; flex-direction:column; gap:6px; padding:10px; border:1px dashed var(--border); border-radius:12px } .of-docf textarea{ min-height:56px } .of-docf .r{ display:flex; gap:6px; justify-content:flex-end }
+.of-doc.off{ opacity:.55 } .of-docf{ display:flex; flex-direction:column; gap:6px; padding:10px; border:1px dashed var(--border); border-radius:12px } .of-docf textarea{ min-height:56px } .of-docf .r{ display:flex; gap:6px; justify-content:flex-end }
 .of-give textarea{ width:100%; min-height:64px } .of-give .r{ display:flex; gap:8px; align-items:center; margin-top:6px } .of-give .r small{ flex:1; color:var(--muted); font-size:11.5px; line-height:1.4 }
 .of-bk{ position:fixed; inset:0; z-index:59; background:rgba(15,23,42,.25) }
-@keyframes ofFloor{ 0%,100%{ fill-opacity:.12 } 50%{ fill-opacity:.32 } } @keyframes ofDone{ 0%{ fill-opacity:.5 } 100%{ fill-opacity:.1 } } @keyframes ofDash{ to{ stroke-dashoffset:-18 } }
+@keyframes ofFloor{ 0%,100%{ fill-opacity:.14 } 50%{ fill-opacity:.36 } } @keyframes ofDone{ 0%{ fill-opacity:.5 } 100%{ fill-opacity:.12 } } @keyframes ofDash{ to{ stroke-dashoffset:-48 } }
 @keyframes ofBlink{ 0%,100%{ opacity:.55 } 50%{ opacity:1 } } @keyframes ofType{ 0%,100%{ opacity:.25 } 50%{ opacity:1 } } @keyframes ofPop{ from{ opacity:0; transform:translate(-50%, -80%) } } @keyframes ofIn{ from{ transform:translateX(30px); opacity:0 } }
-@media (prefers-reduced-motion:reduce){ .of-fl.busy, .of-ln.on, .of-mon.on, .of-dot.run{ animation:none } }
-@media (max-width:1560px){ .of-main{ grid-template-columns:minmax(0, 1fr) } .of-side{ order:2; max-height:none; display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:2px 8px } .of-sh, .of-rule{ grid-column:1 / -1 } }      /* sân khấu chiếm trọn bề ngang, danh sách phòng xuống dưới */
-@media (max-width:1100px){ .of-k{ grid-template-columns:repeat(3, minmax(0, 1fr)) } }
-@media (max-width:560px){ .of-k{ grid-template-columns:repeat(2, minmax(0, 1fr)) } .of-clk{ display:none } .of-legend{ display:none } }
+@keyframes ofBreath{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.06) } } @keyframes ofSpin{ to{ transform:rotate(360deg) } }
+@media (prefers-reduced-motion:reduce){ .of-fl.busy, .of-fw, .of-mon.on, .of-dot.run, .of-brn{ animation:none } }
+@media (max-width:1560px){ .of-main{ grid-template-columns:minmax(0, 1fr) } .of-side{ order:2; max-height:none; display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:2px 8px } .of-sh, .of-rule{ grid-column:1 / -1 } }
+@media (max-width:1100px){ .of-k{ grid-template-columns:repeat(3, minmax(0, 1fr)) } .of-k > div:nth-child(4){ border-left:0 } .of-k > div:nth-child(n+4){ border-top:1px solid var(--border) } }
+@media (max-width:760px){ .of-dock{ position:static; width:auto; max-height:none; margin-top:10px; backdrop-filter:none; background:var(--surface) } .of-stagew{ display:flex; flex-direction:column } }
+@media (max-width:560px){ .of-k{ grid-template-columns:repeat(2, minmax(0, 1fr)) } .of-k > div:nth-child(odd){ border-left:0 } .of-k > div:nth-child(n+3){ border-top:1px solid var(--border) } .of-clk{ display:none } }
 </style>
 <script>
-/* ═════ (1.82.6) VĂN PHÒNG AI (Trợ lý › Văn phòng AI, route asst/office) — máy chủ asstOffice_ (AiAgents.gs)
-   · Phòng điều phối = Trợ lý chung (nhận việc, quyết định giao cho ai) · mỗi agent một phòng, robot riêng (asstAva) ngồi bàn
-   · Việc mới: chấm sáng chạy từ phòng điều phối (việc được giao) / từ bộ não (hỏi thẳng) tới phòng nhận · đang làm: phòng sáng nhịp, bong bóng “bước 2/3”,
-     phong thư bay giữa phòng và Hộp thư flow · xong: bong bóng “Xong” · bấm phòng → ngăn bên: việc đang làm, kết quả, TÀI LIỆU RIÊNG, giao việc trực tiếp ═════ */
-const OF = { d: null, seen: null, prev: {}, t: 0, ml: 0, fx: {}, ans: null };
+/* ═════ (1.82.7) VĂN PHÒNG AI (Trợ lý › Văn phòng AI, route asst/office) — máy chủ asstOffice_ (AiAgents.gs). Thiết kế: docs/van-phong-ai.md
+   · Phòng điều phối = Trợ lý chung (nhận việc, chọn phòng) · mỗi agent một phòng: bàn + màn hình, robot riêng (asstAva), TỦ HỒ SƠ (dữ liệu + tài liệu riêng agent xem được)
+   · LUỒNG: việc đang chạy = đường cong nét đứt chạy liên tục + chấm sáng trôi từ phòng giao (điều phối / bộ não) tới phòng nhận; phong thư qua lại HỘP THƯ FLOW
+   · SONG SONG: một phòng nhận nhiều việc cùng lúc → mỗi việc một đường, huy hiệu “×n”, bong bóng chồng
+   · KHUNG CHAT: lịch sử giao việc (máy chủ giữ — tải lại trang vẫn còn, việc vẫn chạy) · trạng thái phân tích → đã giao cho phòng nào, phòng đó đang làm / xong
+   · BỘ NÃO CHUNG ở giữa: bấm → ngăn thiết lập (ghi nhớ bật / tắt / thêm / quên, hướng dẫn, kỹ năng) ═════ */
+const OF = { d: null, seen: null, prev: {}, t: 0, fx: {}, pend: [], sig: '', dockMin: !!lsGet('ofDockMin', false) };
 const OF_TW = 300, OF_TH = 150, OF_WH = 48;
-const OF_SHORT = { hub: 'Điều phối', chat: 'Chuyên môn', task: 'Kiến Task', assign: 'Gán bài', route: 'Rà soát lộ trình', match: 'Khớp bài đã dạy', pmap: 'Đổi chương trình', reqs: 'Yêu cầu & trao đổi', grade: 'Nhận xét bài' };      // tên phòng ngắn trên sơ đồ
+const OF_SHORT = { hub: 'Điều phối', chat: 'Chuyên môn', task: 'Kiến Task', assign: 'Gán bài', route: 'Rà soát lộ trình', match: 'Khớp bài đã dạy', pmap: 'Đổi chương trình', reqs: 'Yêu cầu & trao đổi', grade: 'Nhận xét bài' };
+const OF_TOOLS = { tong: 'Tổng quan các trợ lý', task: 'Dữ liệu Kiến Task', giao: 'Giao việc cho trợ lý con', web: 'Tìm trên web' };
+const OF_VIA = { hub: 'hub', chat: 'cm', task: 'task' };
 function ofShort(a) { return OF_SHORT[a.key] || a.t; }
 function ofCol(a) { return a.key === 'hub' ? '#F59E0B' : (ASST_AV[(Number(a.av) || 0) % ASST_AV.length] || ['#3B82F6'])[0]; }
+function ofName(k) { const a = OF.d && OF.d.agents.find(x => x.key === k); return a ? a.t : k; }
+/** những gì agent xem được (tủ hồ sơ): dữ liệu cố định của việc / công cụ agent riêng + bộ não chung + tài liệu riêng */
+function ofSees(a) { const L = (/^x:/.test(a.key) ? (a.tools || []).map(t => OF_TOOLS[t]).filter(Boolean) : (typeof AG_TOOLS_RO !== 'undefined' && AG_TOOLS_RO[a.key]) || []).slice();
+  if (a.mem !== 0) L.push('Bộ não chung · ghi nhớ'); if (a.kb) L.push('Hướng dẫn nội bộ'); return L; }
 function ofCells(G) {
   const c = (G - 1) / 2, lo = G / 2 - 1, out = [];
   for (let x = 0; x < G; x++) for (let y = 0; y < G; y++) { if (x >= lo && x <= lo + 1 && y >= lo && y <= lo + 1) continue;
     const sx = (x - c) - (y - c), sy = (x - c) + (y - c), ring = Math.max(Math.abs(x - c), Math.abs(y - c)), ang = (Math.atan2(sy, sx) * 180 / Math.PI + 90 + 360) % 360; out.push({ x: x, y: y, k: ring * 1000 + ang }); }
   return out.sort((a, b) => a.k - b.k);
 }
-async function viewOffice(v) {
-  setTitle('Văn phòng AI', 'bi-buildings', [{ t: 'Trợ lý', r: 'asst' }], v);
-  v.innerHTML = '<div class="of" id="ofR"><div class="of-top"><div class="of-ask"><i class="bi bi-stars" style="color:var(--primary)"></i><input id="ofQ" placeholder="Giao việc hoặc hỏi Trợ lý chung — trợ lý tự chọn phòng nào làm…" aria-label="Giao việc cho Trợ lý chung"><button type="button" class="btn sm pri" id="ofGo"><i class="bi bi-send"></i>Giao việc</button></div><div class="of-clk"><small id="ofDay"></small><b id="ofClk">--:--:--</b></div></div>' +
-    '<div class="of-k" id="ofK"></div><div class="of-ans" id="ofA"></div><div class="of-main"><aside class="of-side" id="ofS" aria-label="Phòng ban"></aside><div><div class="of-stage" id="ofSt"><div class="of-in" id="ofIn"></div></div><div class="of-tick" id="ofT"><b><span class="of-dot run"></span>TRỰC TIẾP</b><span class="ev">Đang mở văn phòng…</span></div></div></div></div>';
-  const R = $('#ofR', v), q = $('#ofQ', v);
-  q.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); ofAsk(q.value); } }; $('#ofGo', v).onclick = () => ofAsk(q.value);
-  R.onclick = e => ofClick(e);
-  OF.d = OF.d || lsGet('ofD:' + (S.me && S.me.email || ''), null); OF.seen = null;
-  if (OF.d) ofPaint(); else $('#ofIn', v).innerHTML = '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:#CBD5E1">' + asstAva(3, 'lg', 1) + '<div style="margin-top:12px;font-size:13px">Đang mở văn phòng…</div></div>';
+/** dựng trang (một lần — chuyển tab trong module Trợ lý không dựng lại) */
+function viewOffice(host) {
+  host.innerHTML = '<div class="of" id="ofR"><div class="of-top"><div class="of-ask"><i class="bi bi-stars" style="color:var(--primary)"></i><input id="ofQ" placeholder="Giao việc hoặc hỏi Trợ lý chung — trợ lý tự chọn phòng nào làm…" aria-label="Giao việc cho Trợ lý chung"><button type="button" class="btn sm pri" id="ofGo"><i class="bi bi-send"></i>Giao việc</button></div><div class="of-clk"><small id="ofDay"></small><b id="ofClk">--:--:--</b></div></div>' +
+    '<div class="of-k" id="ofK"></div><div class="of-main"><aside class="of-side" id="ofS" aria-label="Phòng ban"></aside><div class="of-stagew"><div class="of-stage" id="ofSt"><div class="of-in" id="ofIn"></div><div class="of-ov" id="ofOv"></div><section class="of-dock" id="ofDock" aria-label="Giao việc qua chat"></section></div><div class="of-tick" id="ofT"><b><span class="of-dot run"></span>TRỰC TIẾP</b><span class="ev">Đang mở văn phòng…</span></div></div></div></div>';
+  const q = $('#ofQ', host);
+  q.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); ofAsk(q.value); } }; $('#ofGo', host).onclick = () => ofAsk(q.value);
+  $('#ofR', host).onclick = e => ofClick(e);
+  OF.d = OF.d || lsGet('ofD:' + (S.me && S.me.email || ''), null); OF.seen = null; OF.sig = '';
+  if (OF.d) ofPaint(); else $('#ofOv', host).innerHTML = '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:var(--muted)">' + asstAva(3, 'lg', 1) + '<div style="margin-top:12px;font-size:13px">Đang mở văn phòng…</div></div>';
   const tickClock = () => { const c = $('#ofClk'); if (!c) return clearInterval(OF.ck); const d = new Date(); c.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); const dd = $('#ofDay'); if (dd) dd.textContent = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][d.getDay()] + ', ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1); };
   clearInterval(OF.ck); OF.ck = setInterval(tickClock, 1000); tickClock();
-  if (!ofFit.on) { ofFit.on = 1; window.addEventListener('resize', debounce(ofFit, 120)); }
+  if (window.ResizeObserver) { if (OF.ro) OF.ro.disconnect(); OF.ro = new ResizeObserver(() => { ofFit(); const dk = $('#ofDock'), St = $('#ofSt'); if (dk && St && (innerWidth <= 760) === (dk.parentElement === St)) ofDock(); }); OF.ro.observe($('#ofSt', host)); }      // co theo khung thật (cả lúc thanh bên thu / mở, lúc trang vừa hiện)
   ofLoad();
 }
+/** quay lại tab Văn phòng (đã dựng sẵn): vẽ lại theo bề rộng hiện tại + tải mới ngay */
+function officeShow() { OF.sig = ''; ofFit(1); ofLoad(); }
 async function ofLoad() {
-  clearTimeout(OF.t); if (!$('#ofR')) return;
-  if (!document.hidden && !$('#ofR').closest('[hidden]')) try { const d = await rpc('asstOffice', {}, { quiet: true }); OF.d = d; lsSet('ofD:' + (S.me && S.me.email || ''), d); ofPaint(); } catch (e) { if (!OF.d) { const i = $('#ofIn'); if (i) i.innerHTML = '<div style="padding:40px;color:#CBD5E1">' + esc(e.message || e) + '</div>'; } }
-  if ($('#ofR')) OF.t = setTimeout(ofLoad, OF.d && OF.d.run && OF.d.run.length ? 6000 : 12000);
+  clearTimeout(OF.t); const R = $('#ofR'); if (!R) return;
+  if (!document.hidden && !R.closest('[hidden]')) try { const d = await rpc('asstOffice', {}, { quiet: true }); OF.d = d; lsSet('ofD:' + (S.me && S.me.email || ''), d); ofPaint(); } catch (e) { if (!OF.d) { const o = $('#ofOv'); if (o) o.innerHTML = '<div style="padding:40px;color:var(--muted)">' + esc(e.message || e) + '</div>'; } }
+  const busy = OF.d && ((OF.d.run || []).length || OF.pend.some(p => p.wait) || (OF.d.chat || []).some(c => /^(send|wait|proc)$/.test(c.st)));
+  if ($('#ofR')) OF.t = setTimeout(ofLoad, busy ? 4000 : 12000);
 }
-/** vẽ lại toàn bộ (dữ liệu mới) rồi chạy hiệu ứng cho việc mới / việc xong */
+/** vẽ lại theo dữ liệu mới rồi chạy hiệu ứng cho việc mới / việc xong */
 function ofPaint() {
   const D = OF.d, R = $('#ofR'); if (!D || !R) return;
   const run = D.run || [], byAg = {}; run.forEach(r => { (byAg[r.ag || 'chat'] = byAg[r.ag || 'chat'] || []).push(r); });
-  const A = D.agents.slice(), busyN = Object.keys(byAg).length, chainN = A.filter(a => a.chain > 1).length, givenToday = (D.given || []).filter(g => String(g.at).slice(0, 10) === new Date().toISOString().slice(0, 10)).length;
-  $('#ofK').innerHTML = [['#22D3EE', 'Nhân sự AI', A.length, busyN + ' đang làm · ' + (A.length - busyN) + ' rảnh'], ['#22C55E', 'Đang chạy', run.length, run.length ? run.map(r => r.kt).slice(0, 2).join(' · ') : 'văn phòng đang rảnh'],
-    ['#F59E0B', 'Hôm nay', (D.today || {}).n || 0, ((D.today || {}).ok || 0) + ' xong · ' + ((D.today || {}).act || 0) + ' việc đã làm'], ['#EC4899', 'Trợ lý chung giao', givenToday, 'việc hôm nay'],
-    ['#A78BFA', 'Chuỗi flow', chainN, chainN ? 'agent suy nghĩ nhiều bước' : 'chưa lắp chuỗi'], [D.box ? '#38BDF8' : '#EF4444', 'Hộp thư flow', D.box ? 'ON' : 'OFF', D.flows + ' flow đang bật' + (D.gem ? ' · Gemini' : '')]]
-    .map(k => '<div style="--kc:' + k[0] + '"><small>' + k[1] + '</small><b>' + esc(String(k[2])) + '</b><span>' + esc(k[3]) + '</span></div>').join('');
-  // danh sách phòng ban (bên trái)
+  const A = D.agents.slice(), busyN = Object.keys(byAg).length, chainN = A.filter(a => a.chain > 1).length, td = new Date().toISOString().slice(0, 10), givenToday = (D.given || []).filter(g => String(g.at).slice(0, 10) === td).length;
+  $('#ofK').innerHTML = [['Nhân sự AI', A.length, busyN + ' đang làm · ' + (A.length - busyN) + ' rảnh'], ['Đang chạy', run.length, run.length ? (run.length > 1 ? 'song song · ' : '') + run.map(r => ofShort({ key: r.ag || 'chat', t: ofName(r.ag || 'chat') })).filter((x, i, X) => X.indexOf(x) === i).slice(0, 3).join(', ') : 'văn phòng đang rảnh', run.length ? 'run' : ''],
+    ['Hôm nay', (D.today || {}).n || 0, ((D.today || {}).ok || 0) + ' xong · ' + ((D.today || {}).act || 0) + ' việc đã làm'], ['Trợ lý chung giao', givenToday, 'việc hôm nay' + ((D.bq || []).length ? ' · ' + D.bq.length + ' việc chia đợt' : '')],
+    ['Chuỗi flow', chainN, chainN ? 'agent suy nghĩ nhiều bước' : 'chưa lắp chuỗi'], ['Hộp thư flow', D.box ? 'Bật' : 'Tắt', D.flows + ' flow đang bật' + (D.gem ? ' · Gemini' : '')]]
+    .map(k => '<div><small>' + k[0] + '</small><b>' + (k[3] ? '<span class="of-dot run"></span>' : '') + esc(String(k[1])) + '</b><span>' + esc(k[2]) + '</span></div>').join('');
   const grp = [['Điều phối', A.filter(a => a.key === 'hub')], ['Phòng chuyên môn', A.filter(a => /^(chat|assign|route|match|pmap|grade)$/.test(a.key))], ['Phòng vận hành', A.filter(a => /^(task|reqs)$/.test(a.key))], ['Agent riêng', A.filter(a => /^x:/.test(a.key))]];
   $('#ofS').innerHTML = grp.filter(g => g[1].length || g[0] === 'Agent riêng').map(g => '<div class="of-sh">' + g[0] + '</div>' + g[1].map(a => { const b = byAg[a.key];
-    return '<button type="button" class="of-si" data-ofr="' + esc(a.key) + '"><span class="of-dot ' + (b ? 'run' : a.off ? 'off' : 'idle') + '"></span>' + asstAva(a.av, 'xs', !!b) + '<span class="t"><b>' + esc(a.t) + '</b><small>' + esc(b ? 'đang làm' + (b[0].sp ? ' · bước ' + b[0].sp : '') : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow' : 'rảnh') + '</small></span></button>'; }).join('') +
-    (g[0] === 'Agent riêng' && D.can ? '<button type="button" class="of-si" data-ofadd><span class="of-dot off"></span><span class="t"><b style="color:var(--primary)">+ Thêm phòng (agent)</b></span></button>' : '')).join('') +
-    '<div class="of-sh">Công cụ</div><div class="of-si" style="cursor:default"><span class="of-dot ' + (D.box ? 'idle' : 'off') + '"></span><span class="t"><b>Hộp thư flow</b><small>' + (D.box ? D.flows + ' flow · gửi việc / đọc thư trả lời' : 'chưa kết nối') + '</small></span></div>' +
-    '<div class="of-si" style="cursor:default"><span class="of-dot idle" style="background:#A78BFA"></span><span class="t"><b>Bộ não chung</b><small>' + D.brain.mem + ' ghi nhớ · ' + D.brain.kb + ' hướng dẫn · ' + D.brain.sk + ' kỹ năng</small></span></div>' +
+    return '<button type="button" class="of-si" data-ofr="' + esc(a.key) + '"><span class="of-dot ' + (b ? 'run' : 'idle') + '"></span>' + asstAva(a.av, 'xs', !!b) + '<span class="t"><b>' + esc(a.t) + '</b><small>' + esc(b ? (b.length > 1 ? b.length + ' việc song song' : 'đang làm' + (b[0].sp ? ' · bước ' + b[0].sp : '')) : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow' : 'rảnh') + '</small></span></button>'; }).join('') +
+    (g[0] === 'Agent riêng' && D.can ? '<button type="button" class="of-si" data-ofadd><span class="of-dot"></span><span class="t"><b style="color:var(--primary)">+ Thêm phòng (agent)</b></span></button>' : '')).join('') +
+    '<div class="of-sh">Công cụ</div><div class="of-si" style="cursor:default"><span class="of-dot ' + (D.box ? 'idle' : '') + '"></span><span class="t"><b>Hộp thư flow</b><small>' + (D.box ? D.flows + ' flow · gửi việc / đọc thư trả lời' : 'chưa kết nối') + '</small></span></div>' +
+    '<button type="button" class="of-si" data-ofbrain><span class="of-dot idle" style="background:#8B5CF6"></span><span class="t"><b>Bộ não chung</b><small>' + D.brain.mem + ' ghi nhớ · ' + D.brain.kb + ' hướng dẫn · ' + D.brain.sk + ' kỹ năng</small></span></button>' +
     '<div class="of-rule"><b>NGUYÊN TẮC</b>AI đề xuất, người duyệt: gán bài lưu nháp, tin nhắn nhóm kiểu đồng nghiệp — kết quả nào cũng qua bước kiểm của máy chủ.</div>';
-  ofStage(A, byAg);
-  ofTicker();
-  // hiệu ứng: việc mới → chấm chạy tới phòng · việc xong → bong bóng
   const ids = {}; run.forEach(r => { ids[r.id] = r; });
-  if (OF.seen) { run.forEach(r => { if (!OF.seen.has(r.id)) ofFly(r.hub ? 'hub' : '@brain', r.ag || 'chat', r); });
-    Object.keys(OF.prev).forEach(id => { if (!ids[id]) { const d = (D.done || []).find(x => x.id === id), ag = OF.prev[id]; OF.fx[ag] = { k: d && d.st === 'err' ? 'err' : 'ok', t: Date.now(), x: d ? d.t : '' }; ofStage(A, byAg); } }); }
+  if (OF.seen) Object.keys(OF.prev).forEach(id => { if (!ids[id]) { const d = (D.done || []).find(x => x.id === id); OF.fx[OF.prev[id]] = { k: d && d.st === 'err' ? 'err' : 'ok', t: Date.now(), x: d ? d.t : '' }; } });
+  ofStage(A, byAg);
+  if (OF.seen) run.forEach(r => { if (!OF.seen.has(r.id)) ofFly(r.hub ? 'hub' : '@brain', r.ag || 'chat', r); });
   OF.seen = new Set(run.map(r => r.id)); OF.prev = {}; run.forEach(r => { OF.prev[r.id] = r.ag || 'chat'; });
-  clearInterval(OF.ml); if (run.length) OF.ml = setInterval(() => { if (!$('#ofIn')) return clearInterval(OF.ml); const r = OF.d.run[Math.floor(Math.random() * OF.d.run.length)]; if (r) ofMail(r.ag || 'chat'); }, 2600);
-  const dr = $('#ofDr'); if (dr && dr.dataset.k) ofDrawer(dr.dataset.k, true);
+  OF.pend = OF.pend.filter(p => !(D.chat || []).some(c => c.id === p.id));      // máy chủ đã có lượt → bỏ bản tạm
+  ofDock(); ofTicker();
+  const dr = $('#ofDr'); if (dr && dr.dataset.k && dr.dataset.k !== '@brain') ofDrawer(dr.dataset.k, true);
 }
-/** sân khấu 2.5D: sàn + tường + bàn (SVG), nhãn / robot / bong bóng (HTML) — cùng một hệ toạ độ, co theo bề rộng */
-function ofStage(A, byAg) {
-  const In = $('#ofIn'), St = $('#ofSt'); if (!In || !St) return; const D = OF.d; OF.last = [A, byAg];
-  const slots = A.concat(D.can ? [{ key: '+add' }] : []), G = slots.length <= 12 ? 4 : 6, cells = ofCells(G), W = G * OF_TW + 200, H = G * OF_TH + 230, X0 = W / 2, Y0 = 150;
-  const sc = Math.min(1, (St.clientWidth || W) / W), Q = p => 'left:' + (p[0] * sc).toFixed(1) + 'px;top:' + (p[1] * sc).toFixed(1) + 'px';      // (1.82.6) nhãn / robot đặt theo toạ độ đã co nhưng KHÔNG co chữ
-  const P = (gx, gy) => [X0 + (gx - gy) * OF_TW / 2, Y0 + (gx + gy) * OF_TH / 2], pt = p => p[0].toFixed(1) + ',' + p[1].toFixed(1), up = (p, h) => [p[0], p[1] - h];
-  const C = P(G / 2, G / 2), svg = [], html = [], pos = {};
-  pos['@brain'] = C; pos['@mail'] = [C[0], C[1] + 84];
-  // sàn chung
-  svg.push('<polygon points="' + [P(-.15, -.15), P(G + .15, -.15), P(G + .15, G + .15), P(-.15, G + .15)].map(pt).join(' ') + '" fill="#0F1A3A" fill-opacity=".55" stroke="#22315E" stroke-width="1.2"/>');
+/** sân khấu 2.5D: SVG (sàn, tường, bàn, tủ hồ sơ, bộ não, luồng việc) + lớp nhãn không co chữ. Không đổi gì → không vẽ lại (giữ hoạt ảnh chạy liền mạch) */
+function ofStage(A, byAg, force) {
+  const In = $('#ofIn'), Ov = $('#ofOv'), St = $('#ofSt'); if (!In || !St) return; const D = OF.d; OF.last = [A, byAg];
+  const slots = A.concat(D.can ? [{ key: '+add' }] : []), G = slots.length <= 12 ? 4 : 6, cells = ofCells(G), W = G * OF_TW + 200, H = G * OF_TH + 250, X0 = W / 2, Y0 = 160;
+  const sc = Math.min(1, (St.clientWidth || W) / W), fxK = Object.keys(OF.fx).filter(k => Date.now() - OF.fx[k].t < 8000);
+  const sig = [W, sc.toFixed(3), A.map(a => a.key + a.av + a.t + a.docs.length).join(), (D.run || []).map(r => r.id + r.sp).join(), fxK.join(), D.box, D.brain.mem, D.brain.kb, D.brain.sk, document.documentElement.dataset.mode].join('|');
+  if (!force && sig === OF.sig) return; OF.sig = sig;
+  const Q = p => 'left:' + (p[0] * sc).toFixed(1) + 'px;top:' + (p[1] * sc).toFixed(1) + 'px';
+  const P = (gx, gy) => [X0 + (gx - gy) * OF_TW / 2, Y0 + (gx + gy) * OF_TH / 2], pt = p => p[0].toFixed(1) + ',' + p[1].toFixed(1), up = (p, h) => [p[0], p[1] - h], poly = (L, a) => '<polygon points="' + L.map(pt).join(' ') + '" ' + a + '/>';
+  const C = P(G / 2, G / 2), svg = [], flows = [], lbs = [], bots = [], bubs = [], pos = {};
+  pos['@brain'] = C; pos['@mail'] = [C[0], C[1] + 30 + 86 / sc];      /* hộp thư nằm dưới thẻ bộ não (thẻ không co theo sân khấu) */
+  svg.push(poly([P(-.15, -.15), P(G + .15, -.15), P(G + .15, G + .15), P(-.15, G + .15)], 'class="of-base"'));
   slots.forEach((a, i) => { const c = cells[i]; if (!c) return; const gx = c.x, gy = c.y, m = .07, ctr = P(gx + .5, gy + .5); pos[a.key] = ctr;
-    if (a.key === '+add') { svg.push('<polygon points="' + [P(gx + m, gy + m), P(gx + 1 - m, gy + m), P(gx + 1 - m, gy + 1 - m), P(gx + m, gy + 1 - m)].map(pt).join(' ') + '" fill="none" stroke="#60A5FA" stroke-opacity=".6" stroke-dasharray="6 6" stroke-width="1.4"/>');
-      html.push('<button type="button" class="of-add" data-ofadd style="' + Q(ctr) + '">+ Thêm phòng</button>'); return; }
-    const col = ofCol(a), busy = !!byAg[a.key], fx = OF.fx[a.key] && Date.now() - OF.fx[a.key].t < 8000 ? OF.fx[a.key] : null;
+    if (a.key === '+add') { svg.push(poly([P(gx + m, gy + m), P(gx + 1 - m, gy + m), P(gx + 1 - m, gy + 1 - m), P(gx + m, gy + 1 - m)], 'fill="none" stroke="#60A5FA" stroke-opacity=".7" stroke-dasharray="6 6" stroke-width="1.4"'));
+      lbs.push('<button type="button" class="of-add" data-ofadd style="' + Q(ctr) + '">+ Thêm phòng</button>'); return; }
+    const col = ofCol(a), b = byAg[a.key], busy = !!b, fx = OF.fx[a.key] && Date.now() - OF.fx[a.key].t < 8000 ? OF.fx[a.key] : null;
     const Ap = P(gx + m, gy + m), Bp = P(gx + 1 - m, gy + m), Cp = P(gx + 1 - m, gy + 1 - m), Dp = P(gx + m, gy + 1 - m);
-    svg.push('<line class="of-ln' + (busy ? ' on' : '') + '" x1="' + ctr[0] + '" y1="' + ctr[1] + '" x2="' + C[0] + '" y2="' + C[1] + '"/>');
-    svg.push('<polygon class="of-wl" points="' + [Ap, Dp, up(Dp, OF_WH), up(Ap, OF_WH)].map(pt).join(' ') + '" fill="' + col + '" stroke="' + col + '" stroke-opacity=".55"/>');
-    svg.push('<polygon class="of-wl" points="' + [Ap, Bp, up(Bp, OF_WH), up(Ap, OF_WH)].map(pt).join(' ') + '" fill="' + col + '" fill-opacity=".22" stroke="' + col + '" stroke-opacity=".7"/>');
-    svg.push('<polygon class="of-fl' + (busy ? ' busy' : fx ? ' done' : '') + '" points="' + [Ap, Bp, Cp, Dp].map(pt).join(' ') + '" fill="' + col + '" fill-opacity=".1" stroke="' + col + '" stroke-width="1.6"/>');
-    const r1 = .3; svg.push('<polygon points="' + [P(gx + r1, gy + r1), P(gx + 1 - r1, gy + r1), P(gx + 1 - r1, gy + 1 - r1), P(gx + r1, gy + 1 - r1)].map(pt).join(' ') + '" fill="none" stroke="' + col + '" stroke-opacity=".35" stroke-dasharray="4 5"/>');
+    svg.push('<line class="of-ln" x1="' + ctr[0] + '" y1="' + ctr[1] + '" x2="' + C[0] + '" y2="' + C[1] + '"/>');
+    svg.push(poly([Ap, Dp, up(Dp, OF_WH), up(Ap, OF_WH)], 'fill="' + col + '" fill-opacity=".1" stroke="' + col + '" stroke-opacity=".5"'));
+    svg.push(poly([Ap, Bp, up(Bp, OF_WH), up(Ap, OF_WH)], 'fill="' + col + '" fill-opacity=".18" stroke="' + col + '" stroke-opacity=".65"'));
+    svg.push(poly([Ap, Bp, Cp, Dp], 'class="of-fl' + (busy ? ' busy' : fx ? ' done' : '') + '" fill="' + col + '" fill-opacity=".12" stroke="' + col + '" stroke-width="1.6"'));
+    const r1 = .3; svg.push(poly([P(gx + r1, gy + r1), P(gx + 1 - r1, gy + r1), P(gx + 1 - r1, gy + 1 - r1), P(gx + r1, gy + 1 - r1)], 'fill="none" stroke="' + col + '" stroke-opacity=".35" stroke-dasharray="4 5"'));
+    // tủ hồ sơ sát tường trái + chồng giấy trên nóc (số ngăn = số thứ agent xem được)
+    const x0 = gx + m + .02, x1 = gx + m + .16, y0 = gy + .56, y1 = gy + .86, hc = 36, T = h => p => up(p, h);
+    svg.push(poly([P(x1, y0), P(x1, y1), T(hc)(P(x1, y1)), T(hc)(P(x1, y0))], 'class="of-cb1"') + poly([P(x0, y1), P(x1, y1), T(hc)(P(x1, y1)), T(hc)(P(x0, y1))], 'class="of-cb2"') + poly([P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)].map(T(hc)), 'class="of-cb3"'));
+    [.3, .55, .8].forEach(k => { const a1 = up(P(x1, y0 + .03), hc * k), a2 = up(P(x1, y1 - .03), hc * k); svg.push('<line class="of-cbl" x1="' + a1[0] + '" y1="' + a1[1] + '" x2="' + a2[0] + '" y2="' + a2[1] + '"/>'); });
+    if (a.docs.length) svg.push(poly([P(x0 + .03, y0 + .06), P(x1 - .02, y0 + .06), P(x1 - .02, y0 + .14), P(x0 + .03, y0 + .14)].map(T(hc + 4)), 'class="of-pap"'));
     // bàn làm việc + màn hình
-    const dx = .16, dy = .09, cx = gx + .42, cy = gy + .38, h = 16, t1 = up(P(cx - dx, cy - dy), h), t2 = up(P(cx + dx, cy - dy), h), t3 = up(P(cx + dx, cy + dy), h), t4 = up(P(cx - dx, cy + dy), h);
-    svg.push('<polygon points="' + [P(cx - dx, cy + dy), P(cx + dx, cy + dy), t3, t4].map(pt).join(' ') + '" fill="#5B3A1E"/><polygon points="' + [P(cx + dx, cy - dy), P(cx + dx, cy + dy), t3, t2].map(pt).join(' ') + '" fill="#6E4624"/><polygon points="' + [t1, t2, t3, t4].map(pt).join(' ') + '" fill="#9A6A3A"/>');
-    const mo = up(P(cx, cy - .02), h + 4); svg.push('<rect class="of-mon' + (busy ? ' on' : '') + '" x="' + (mo[0] - 11) + '" y="' + (mo[1] - 14) + '" width="22" height="14" rx="2" stroke="#94A3B8" stroke-width="1"/>');
-    // nhãn phòng
-    const front = gx + gy + 1 > G, top = front ? [Cp[0], Cp[1] + 10] : up(Ap, OF_WH + 10), b = byAg[a.key],      /* (1.82.6) phòng nửa trước: nhãn dưới chân phòng (không che bộ não) */ st = b ? 'đang làm' + (b.length > 1 ? ' ' + b.length + ' việc' : '') + (b[0].sp ? ' · bước ' + b[0].sp : '') : a.off ? 'đang tắt' : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow · rảnh' : 'rảnh';
-    html.push('<button type="button" class="of-lb' + (b ? ' busy' : '') + (front ? ' dn' : '') + '" data-ofr="' + esc(a.key) + '" style="--rc:' + col + ';' + Q(top) + '" title="' + esc(a.t) + '"><b>' + esc('Phòng ' + ofShort(a)) + '</b><small><span class="of-dot ' + (b ? 'run' : a.off ? 'off' : 'idle') + '"></span>' + esc(a.key === 'hub' ? 'Trợ lý chung · ' + st : st) + '</small></button>');
-    const bp = P(gx + .62, gy + .64), bq = [bp[0] * sc, bp[1] * sc]; html.push('<span class="of-bot" data-ofr="' + esc(a.key) + '" title="' + esc(a.t) + '" style="' + Q(bp) + '">' + asstAva(a.av, sc > .75 ? 'md' : 'sm', busy) + '</span>');
-    if (b) html.push('<span class="of-bub" style="left:' + (bq[0] + 22) + 'px;top:' + (bq[1] - 50) + 'px" title="' + esc(b[0].t) + '">' + esc(aiCut(b[0].t, 26)) + '<span class="ty"><i></i><i></i><i></i></span></span>');
-    else if (fx) html.push('<span class="of-bub ' + fx.k + '" style="left:' + (bq[0] + 22) + 'px;top:' + (bq[1] - 50) + 'px">' + (fx.k === 'ok' ? '✓ Xong' : '✗ Lỗi') + (fx.x ? ' · ' + esc(aiCut(fx.x, 20)) : '') + '</span>');
+    const dx = .16, dy = .09, cx = gx + .46, cy = gy + .38, h = 16, t1 = up(P(cx - dx, cy - dy), h), t2 = up(P(cx + dx, cy - dy), h), t3 = up(P(cx + dx, cy + dy), h), t4 = up(P(cx - dx, cy + dy), h);
+    svg.push(poly([P(cx - dx, cy + dy), P(cx + dx, cy + dy), t3, t4], 'class="of-dk1"') + poly([P(cx + dx, cy - dy), P(cx + dx, cy + dy), t3, t2], 'class="of-dk2"') + poly([t1, t2, t3, t4], 'class="of-dk3"'));
+    const mo = up(P(cx, cy - .02), h + 4); svg.push('<rect class="of-mon' + (busy ? ' on' : '') + '" x="' + (mo[0] - 11) + '" y="' + (mo[1] - 14) + '" width="22" height="14" rx="2"/>');
+    const nCab = ofSees(a).length + a.docs.length, cabP = up(P(x1, (y0 + y1) / 2), hc / 2);
+    lbs.push('<button type="button" class="of-cab" data-ofcab="' + esc(a.key) + '" style="' + Q(cabP) + '" title="Tủ hồ sơ: những gì agent xem được"><i class="bi bi-archive"></i><span>' + nCab + '</span></button>');
+    // nhãn phòng: nửa sau ở trên đỉnh tường, nửa trước dưới chân phòng (không che bộ não)
+    const front = gx + gy + 1 > G, top = front ? [Cp[0], Cp[1] + 10] : up(Ap, OF_WH + 10);
+    const st = b ? (b.length > 1 ? b.length + ' việc song song' : 'đang làm' + (b[0].sp ? ' · bước ' + b[0].sp : '')) : a.off ? 'đang tắt' : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow · rảnh' : 'rảnh';
+    lbs.push('<button type="button" class="of-lb' + (b ? ' busy' : '') + (front ? ' dn' : '') + '" data-ofr="' + esc(a.key) + '" style="--rc:' + col + ';' + Q(top) + '" title="' + esc(a.t) + '"><b>' + esc('Phòng ' + ofShort(a)) + '</b><small><span class="of-dot ' + (b ? 'run' : 'idle') + '"></span>' + esc(a.key === 'hub' ? 'Trợ lý chung · ' + st : st) + '</small></button>');
+    const bp = P(gx + .64, gy + .64), bq = [bp[0] * sc, bp[1] * sc];
+    bots.push('<span class="of-bot" data-ofr="' + esc(a.key) + '" title="' + esc(a.t) + '" style="' + Q(bp) + '">' + asstAva(a.av, sc > .75 ? 'md' : 'sm', busy) + (b && b.length > 1 ? '<span class="of-par">×' + b.length + '</span>' : '') + '</span>');
+    if (b) { b.slice(0, 2).forEach((r, j) => bubs.push('<span class="of-bub" style="--rc:' + col + ';left:' + (bq[0] + 26) + 'px;top:' + (bq[1] - 52 - j * 28) + 'px" title="' + esc(r.t) + '">' + esc(aiCut(r.t, 30)) + (r.sp ? ' · B' + r.sp : '') + '<span class="ty"><i></i><i></i><i></i></span></span>'));
+      if (b.length > 2) bubs.push('<span class="of-bub more" style="left:' + (bq[0] + 26) + 'px;top:' + (bq[1] - 108) + 'px">+' + (b.length - 2) + ' việc nữa</span>'); }
+    else if (fx) bubs.push('<span class="of-bub ' + fx.k + '" style="left:' + (bq[0] + 26) + 'px;top:' + (bq[1] - 52) + 'px">' + (fx.k === 'ok' ? '✓ Xong' : '✗ Lỗi') + (fx.x ? ' · ' + esc(aiCut(fx.x, 22)) : '') + '</span>');
   });
-  // bộ não chung ở giữa
-  svg.unshift('<defs><radialGradient id="ofBr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#8B5CF6" stop-opacity=".55"/><stop offset=".6" stop-color="#6366F1" stop-opacity=".18"/><stop offset="1" stop-color="#6366F1" stop-opacity="0"/></radialGradient></defs>');
-  svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * .95 + '" ry="' + OF_TH * .95 + '" fill="url(#ofBr)"/>');
-  [.55, .75].forEach((k, i) => svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * k + '" ry="' + OF_TH * k + '" fill="none" stroke="' + (i ? '#22D3EE' : '#A78BFA') + '" stroke-opacity=".55" stroke-width="1.3" stroke-dasharray="' + (i ? '2 9' : '10 6') + '"><animate attributeName="stroke-dashoffset" from="0" to="' + (i ? 44 : -64) + '" dur="' + (i ? 3 : 5) + 's" repeatCount="indefinite"/></ellipse>'));
-  html.push('<div class="of-brain" data-ofbrain style="' + Q([C[0], C[1] - 8]) + '"><b>BỘ NÃO CHUNG</b><small>mọi agent đọc trước khi làm</small><div class="ch"><span>' + D.brain.mem + ' ghi nhớ</span><span>' + D.brain.kb + ' hướng dẫn</span><span>' + D.brain.sk + ' kỹ năng</span></div></div>');
-  html.push('<div class="of-mail' + (D.box ? '' : ' off') + '" style="' + Q(pos['@mail']) + '"><i class="bi bi-envelope-paper"></i> HỘP THƯ FLOW · ' + (D.box ? D.flows + ' FLOW' : 'CHƯA NỐI') + '</div>');
-  html.push('<div class="of-legend"><span><span class="of-dot run"></span>đang làm</span><span><span class="of-dot idle"></span>rảnh</span><span><span class="of-pk" style="position:static;margin:0;width:8px;height:8px"></span>việc đang giao</span></div>');
-  In.style.width = W + 'px'; In.style.height = H + 'px'; In.dataset.w = W; In.dataset.h = H; OF.pos = pos;
-  In.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" aria-hidden="true">' + svg.join('') + '</svg>';
-  let Ov = $('#ofOv'); if (!Ov) { Ov = document.createElement('div'); Ov.id = 'ofOv'; Ov.className = 'of-ov'; St.appendChild(Ov); } Ov.innerHTML = html.join(''); St.classList.toggle('cpt', sc < .5);      /* màn hẹp: ẩn nhãn, bấm robot để mở phòng */
-  In.style.transform = 'scale(' + sc + ')'; St.style.height = Math.round(H * sc) + 'px'; OF.sc = sc; OF.W = W;
+  // LUỒNG VIỆC chạy liên tục: mỗi việc đang chạy một đường cong (phòng giao → phòng nhận) + đường thư tới hộp thư flow
+  (D.run || []).forEach((r, i) => { const to = r.ag || 'chat', b = pos[to]; if (!b) return; const from = r.hub ? 'hub' : '@brain', a = pos[from] || C, col = ofCol((D.agents.find(x => x.key === to) || { key: to, av: 0 })), k = (byAg[to] || []).indexOf(r);
+    if (from !== to && Math.hypot(b[0] - a[0], b[1] - a[1]) > 20) { const mx = (a[0] + b[0]) / 2 + (k % 2 ? 1 : -1) * k * 22, my = (a[1] + b[1]) / 2 - Math.max(60, Math.hypot(b[0] - a[0], b[1] - a[1]) * .28) - k * 16, id = 'ofP' + i;
+      flows.push('<path id="' + id + '" class="of-fw" style="color:' + col + '" stroke="' + col + '" d="M' + pt(a) + ' Q' + mx.toFixed(1) + ',' + my.toFixed(1) + ' ' + pt(b) + '"/>');
+      [0, .9, 1.8].forEach(d0 => flows.push('<circle class="of-fdot" r="8" fill="' + col + '" style="color:' + col + '"><animateMotion dur="2.7s" begin="' + d0 + 's" repeatCount="indefinite"><mpath href="#' + id + '"/></animateMotion></circle>')); }
+    const M = pos['@mail'], id2 = 'ofM' + i, cx2 = (b[0] + M[0]) / 2 + (b[0] < M[0] ? -1 : 1) * 30, cy2 = (b[1] + M[1]) / 2 + 50;
+    flows.push('<path id="' + id2 + '" class="of-fw ml" d="M' + pt(b) + ' Q' + cx2.toFixed(1) + ',' + cy2.toFixed(1) + ' ' + pt(M) + '"/>');
+    flows.push('<rect class="of-env" x="-10" y="-7" width="20" height="14" rx="3"><animateMotion dur="2.2s" repeatCount="indefinite" begin="' + (i * .4).toFixed(1) + 's"><mpath href="#' + id2 + '"/></animateMotion></rect><rect class="of-env" x="-10" y="-7" width="20" height="14" rx="3" opacity=".75"><animateMotion dur="2.2s" repeatCount="indefinite" begin="' + (1.1 + i * .4).toFixed(1) + 's" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#' + id2 + '"/></animateMotion></rect>'); });
+  // BỘ NÃO CHUNG: biểu tượng não phát sáng (bấm để thiết lập)
+  const hubBusy = !!byAg.hub;
+  svg.unshift('<defs><radialGradient id="ofBr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#8B5CF6" stop-opacity=".45"/><stop offset=".65" stop-color="#6366F1" stop-opacity=".12"/><stop offset="1" stop-color="#6366F1" stop-opacity="0"/></radialGradient>' +
+    '<linearGradient id="ofBL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C084FC"/><stop offset="1" stop-color="#7C3AED"/></linearGradient><linearGradient id="ofBR2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#67E8F9"/><stop offset="1" stop-color="#2563EB"/></linearGradient>' +
+    '<filter id="ofGl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter></defs>');
+  svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * .92 + '" ry="' + OF_TH * .92 + '" fill="url(#ofBr)"/>');
+  [.6, .8].forEach((k, i) => svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * k + '" ry="' + OF_TH * k + '" fill="none" stroke="var(--ring)" stroke-opacity=".5" stroke-width="1.3" stroke-dasharray="' + (i ? '2 9' : '10 6') + '"><animate attributeName="stroke-dashoffset" from="0" to="' + (i ? 44 : -64) + '" dur="' + (i ? 3 : 5) + 's" repeatCount="indefinite"/></ellipse>'));
+  const lobe = 'M-2,-30 C-14,-38 -34,-34 -38,-20 C-50,-16 -52,0 -44,8 C-50,18 -40,32 -26,30 C-20,38 -6,38 -2,30 Z', fold = 'M-14,-24 C-22,-18 -18,-10 -26,-6 M-38,-6 C-30,-2 -30,8 -22,10 M-30,22 C-24,16 -16,20 -12,12 M-10,-8 C-16,0 -8,6 -14,14';
+  svg.push('<g transform="translate(' + C[0] + ',' + (C[1] - 34) + ') scale(1.45)"><g class="of-brn' + (hubBusy ? ' on' : '') + '"><g filter="url(#ofGl)" opacity=".75"><path d="' + lobe + '" fill="#8B5CF6"/><path d="' + lobe + '" transform="scale(-1,1)" fill="#22D3EE"/></g>' +
+    '<path d="' + lobe + '" fill="url(#ofBL)" stroke="#F5F3FF" stroke-opacity=".7" stroke-width="1.2"/><path d="' + lobe + '" transform="scale(-1,1)" fill="url(#ofBR2)" stroke="#ECFEFF" stroke-opacity=".7" stroke-width="1.2"/>' +
+    '<path d="' + fold + '" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" stroke-linecap="round"/><path d="' + fold + '" transform="scale(-1,1)" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" stroke-linecap="round"/></g></g>');
+  if (hubBusy) { const hb = pos.hub; if (hb) flows.push('<path class="of-fw" style="color:#8B5CF6" stroke="#8B5CF6" d="M' + pt(hb) + ' Q' + ((hb[0] + C[0]) / 2 - 40).toFixed(1) + ',' + ((hb[1] + C[1]) / 2).toFixed(1) + ' ' + pt([C[0], C[1] - 34]) + '"/>'); }
+  lbs.push('<button type="button" class="of-bhit" data-ofbrain aria-label="Thiết lập bộ não chung" style="' + Q([C[0], C[1] - 34]) + '"></button>');
+  lbs.push('<button type="button" class="of-brain" data-ofbrain style="' + Q([C[0], C[1] + 30]) + '"><b>BỘ NÃO CHUNG</b><div class="ch"><span>' + D.brain.mem + ' ghi nhớ</span><span>' + D.brain.kb + ' hướng dẫn</span><span>' + D.brain.sk + ' kỹ năng</span></div><em>bấm để thiết lập</em></button>');
+  lbs.push('<div class="of-mail' + (D.box ? '' : ' off') + '" style="' + Q(pos['@mail']) + '"><i class="bi bi-envelope-paper"></i> HỘP THƯ FLOW · ' + (D.box ? D.flows + ' FLOW' : 'CHƯA NỐI') + '</div>');
+  lbs.push('<div class="of-legend"><span><span class="of-dot run"></span>đang làm</span><span><span class="of-dot idle"></span>rảnh</span><span><svg width="26" height="8" aria-hidden="true"><path d="M1 4 H25" stroke="#F59E0B" stroke-width="2" stroke-dasharray="5 3"/></svg>luồng việc</span><span><i class="bi bi-envelope-fill" style="color:var(--mail)"></i>thư flow</span></div>');
+  In.style.width = W + 'px'; In.style.height = H + 'px'; OF.pos = pos; OF.W = W; OF.H = H; OF.sc = sc;
+  In.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" aria-hidden="true">' + svg.join('') + flows.join('') + '</svg>';
+  Ov.innerHTML = lbs.join('') + bots.join('') + bubs.join('');      // thứ tự lớp: nhãn < robot < bong bóng — chữ bong bóng không bị nhãn che
+  In.style.transform = 'scale(' + sc + ')'; St.style.height = Math.round(H * sc) + 'px';
+  St.classList.toggle('cpt', sc < .38); St.classList.toggle('mid', sc >= .38 && sc < .6);
 }
-function ofFit() { if ($('#ofSt') && OF.last && OF.W && Math.abs(Math.min(1, $('#ofSt').clientWidth / OF.W) - (OF.sc || 0)) > .005) ofStage(OF.last[0], OF.last[1]); }
-/** chấm sáng chạy theo đường: phòng giao → bộ não → phòng nhận */
-function ofFly(from, to, r) {
-  const In = $('#ofIn'); if (!In || !OF.pos || !OF.pos[to]) return; const a = OF.pos[from] || OF.pos['@brain'], c = OF.pos['@brain'], b = OF.pos[to], pts = from === '@brain' ? [a, b] : [a, c, b];
+function ofFit(force) { const St = $('#ofSt'); if (!St || !OF.last || !OF.W || St.closest('[hidden]')) return; if (force || Math.abs(Math.min(1, St.clientWidth / OF.W) - (OF.sc || 0)) > .004) ofStage(OF.last[0], OF.last[1], 1); }
+/** chấm sáng một lần (việc vừa giao): phòng giao → bộ não → phòng nhận */
+function ofFly(from, to) {
+  const In = $('#ofIn'); if (!In || !OF.pos || !OF.pos[to]) return; const a = OF.pos[from] || OF.pos['@brain'], c = OF.pos['@brain'], b = OF.pos[to], pts = from === '@brain' || from === to ? [a, b] : [a, c, b];
   const el = document.createElement('span'); el.className = 'of-pk'; In.appendChild(el);
   const segs = []; let tot = 0; for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push(l); tot += l; }
-  const dur = 900 + tot * 1.6, t0 = performance.now();
+  const dur = 900 + tot * 1.4, t0 = performance.now();
   const step = now => { let k = Math.min(1, (now - t0) / dur), d = k * tot, i = 0; while (i < segs.length - 1 && d > segs[i]) { d -= segs[i]; i++; } const f = segs[i] ? d / segs[i] : 1;
     el.style.left = (pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f) + 'px'; el.style.top = (pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f) + 'px'; if (k < 1 && el.isConnected) requestAnimationFrame(step); else el.remove(); };
   requestAnimationFrame(step);
-  if (r) ofEvent((from === 'hub' ? '<b>Trợ lý chung</b> giao cho ' : 'Giao cho ') + '<b>' + esc(ofName(to)) + '</b>: ' + esc(aiCut(r.t, 80)));
 }
-/** phong thư bay giữa phòng đang làm và hộp thư flow (mỗi bước chuỗi là một thư) */
-function ofMail(ag) { const In = $('#ofIn'); if (!In || !OF.pos || !OF.pos[ag]) return; const out = Math.random() < .5, a = out ? OF.pos[ag] : OF.pos['@mail'], b = out ? OF.pos['@mail'] : OF.pos[ag];
-  const el = document.createElement('span'); el.className = 'of-pk ml'; In.appendChild(el); const t0 = performance.now(), dur = 1400;
-  const step = now => { const k = Math.min(1, (now - t0) / dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; el.style.left = (a[0] + (b[0] - a[0]) * e) + 'px'; el.style.top = (a[1] + (b[1] - a[1]) * e - Math.sin(k * Math.PI) * 40) + 'px'; if (k < 1 && el.isConnected) requestAnimationFrame(step); else el.remove(); };
-  requestAnimationFrame(step); }
-function ofName(k) { const a = OF.d && OF.d.agents.find(x => x.key === k); return a ? a.t : k; }
-function ofEvent(h) { OF.ev = [{ at: new Date(), h: h }].concat(OF.ev || []).slice(0, 20); ofTicker(); }
 function ofTicker() {
   const T = $('#ofT .ev'); if (!T || !OF.d) return; const D = OF.d, p = d => pad(new Date(d).getHours()) + ':' + pad(new Date(d).getMinutes());
-  const L = (OF.ev || []).map(e => ({ at: e.at, h: e.h })).concat((D.run || []).map(r => ({ at: r.at, h: '<b>' + esc(ofName(r.ag || 'chat')) + '</b> đang làm' + (r.sp ? ' (bước ' + r.sp + ')' : '') + ': ' + esc(aiCut(r.t, 70)) })),
-    (D.done || []).slice(0, 3).map(r => ({ at: r.at, h: '<b>' + esc(ofName(r.ag || 'chat')) + '</b> ' + (r.st === 'err' ? 'gặp lỗi' : 'xong') + ': ' + esc(aiCut(r.t, 70)) }))).sort((a, b) => new Date(b.at) - new Date(a.at));
+  const L = (D.run || []).map(r => ({ at: r.at, h: (r.hub ? '<b>Trợ lý chung</b> giao → ' : '') + '<b>' + esc(ofName(r.ag || 'chat')) + '</b> đang làm' + (r.sp ? ' (bước ' + r.sp + ')' : '') + ': ' + esc(aiCut(r.t, 70)) }))
+    .concat((D.done || []).slice(0, 3).map(r => ({ at: r.at, h: '<b>' + esc(ofName(r.ag || 'chat')) + '</b> ' + (r.st === 'err' ? 'gặp lỗi' : 'xong') + ': ' + esc(aiCut(r.t, 70)) }))).sort((a, b) => new Date(b.at) - new Date(a.at));
   T.innerHTML = L.length ? L.slice(0, 3).map(e => '<em>' + p(e.at) + '</em>' + e.h).join('<span style="margin:0 12px;color:var(--border)">•</span>') : '<em>' + p(new Date()) + '</em>Văn phòng đang rảnh — giao việc ở ô trên, Trợ lý chung sẽ chọn phòng làm.';
 }
-/** giao việc / hỏi Trợ lý chung ở ô trên cùng — trợ lý quyết định phòng nào làm (việc giao hiện thành chấm sáng chạy từ phòng điều phối) */
+/* ── KHUNG CHAT GIAO VIỆC (lịch sử từ máy chủ + lượt đang gửi) ── */
+const OF_STEPS = ['Đọc câu giao việc', 'Đọc bộ não chung & việc của các phòng', 'Chọn phòng phù hợp', 'Gửi thư flow cho phòng nhận'];
+function ofDock() {
+  const el = $('#ofDock'); if (!el || !OF.d) return; const C = (OF.d.chat || []).concat(OF.pend), n = C.length;
+  { const St = $('#ofSt'), narrow = innerWidth <= 760; if (St) { if (narrow && el.parentElement === St) St.after(el); else if (!narrow && el.parentElement !== St) St.appendChild(el); } }      // màn hẹp: khung chat nằm dưới sơ đồ (không đè phòng)
+  const okS = s => /^(ok|applied|partial|empty)$/.test(s), wS = s => /^(send|wait|proc)$/.test(s);
+  if (!n) { el.innerHTML = '<div class="of-dk-h"><i class="bi bi-chat-dots"></i>Giao việc qua chat<span class="sp"></span><span class="n">gõ ở ô trên cùng</span></div>'; el.classList.add('min'); return; }
+  el.classList.toggle('min', OF.dockMin);
+  const steps = t0 => { const s = Math.floor((Date.now() - new Date(t0).getTime()) / 6000), k = Math.min(OF_STEPS.length - 1, Math.max(0, s));
+    return '<div class="of-st">' + OF_STEPS.map((x, i) => '<div class="' + (i < k ? 'ok' : i === k ? 'now' : '') + '"><i class="' + (i < k ? 'dn' : i === k ? 'sp' : 'wt') + '"></i>' + (i === k ? 'Trợ lý chung: ' + x.toLowerCase() + '…' : x) + '</div>').join('') + '</div>'; };
+  const gv = G => G.length ? '<div class="of-gv">' + G.map(g => { const a = OF.d.agents.find(x => x.key === g.ag) || { key: g.ag, av: 0, t: g.toT || ofName(g.ag) }, w = wS(g.st) || !g.st, run = (OF.d.run || []).find(r => r.id === g.id);
+    return '<button type="button" data-ofr="' + esc(a.key) + '">' + asstAva(a.av, 'xs', w) + '<span class="t"><b>Đã giao cho ' + esc(a.t) + '</b><span title="' + esc(g.t) + '">' + esc(g.t) + '</span></span><span class="of-pl ' + (g.st === 'err' ? 'e' : w ? 'w' : 'ok') + '">' + (g.st === 'err' ? 'lỗi' : w ? 'đang làm' + (run && run.sp ? ' · B' + run.sp : '') : 'xong') + '</span></button>'; }).join('') + '</div>' : '';
+  const keep = $('.of-dk-b', el), atBot = !keep || keep.scrollHeight - keep.scrollTop - keep.clientHeight < 40;
+  el.innerHTML = '<div class="of-dk-h"><i class="bi bi-chat-dots"></i>Giao việc với Trợ lý chung<span class="n">' + n + ' lượt gần đây</span><span class="sp"></span><button type="button" class="ibtn sm" data-ofdk aria-label="' + (OF.dockMin ? 'Mở khung chat' : 'Thu nhỏ khung chat') + '"><i class="bi bi-' + (OF.dockMin ? 'chevron-up' : 'dash-lg') + '"></i></button></div>' +
+    '<div class="of-dk-b">' + C.map(c => '<div class="of-m me">' + esc(c.q) + '</div><div class="of-m ai">' + asstBot('xs', wS(c.st) || !!c.wait) + '<div class="b">' +
+      (c.wait || wS(c.st) ? steps(c.t0 || c.at) : c.st === 'err' || c.err ? '<span class="muted">' + esc(c.err || 'Chưa trả lời được') + '</span>' : (c.reply ? aiMd(c.reply, {}) : '') ) + gv(c.gives || []) +
+      '<small class="at">' + esc(asbAgo(c.at || c.t0)) + (okS(c.st) && c.ms ? ' · ' + Math.max(1, Math.round(c.ms / 1000)) + ' giây' : '') + '</small></div></div>').join('') + '</div>';
+  const b = $('.of-dk-b', el); if (b && atBot) b.scrollTop = b.scrollHeight;
+}
+/** giao việc / hỏi Trợ lý chung ở ô trên — bong bóng hiện ngay ở khung chat; trợ lý quyết định phòng nào làm */
 async function ofAsk(text) {
-  text = String(text || '').trim(); const q = $('#ofQ'); if (!text) return q && q.focus(); if (OF.ans && OF.ans.wait) return toast('Trợ lý chung đang xử lý việc trước…', 'info');
-  if (q) q.value = ''; const W = OF.ans = { q: text, wait: 1, t0: new Date().toISOString() }; ofAns(); ofFly('@brain', 'hub', { t: text });
-  const got = o => { delete W.wait; if (o.status === 'ok') { W.text = o.text; W.refs = o.refs; } else W.err = o.err || 'Trợ lý chung chưa trả lời được'; if (OF.ans === W) ofAns(); ofLoad(); };
-  try { const r = await rpc('aiChat', { mode: 'hub', text: text }, { quiet: true }); W.conv = r.conv; if (AI_WAIT.test(r.status)) aiWatch(r.id, got); else got(r); setTimeout(ofLoad, 1200); }
-  catch (e) { delete W.wait; W.err = e.message || String(e); ofAns(); }
+  text = String(text || '').trim(); const q = $('#ofQ'); if (!text) return q && q.focus(); if (OF.pend.some(p => p.wait)) return toast('Trợ lý chung đang nhận việc trước…', 'info');
+  if (q) q.value = ''; const W = { q: text, wait: 1, t0: new Date().toISOString(), st: 'send', gives: [] }; OF.pend.push(W); OF.dockMin = false; lsSet('ofDockMin', false); ofDock(); ofFly('@brain', 'hub');
+  try { const r = await rpc('aiChat', { mode: 'hub', text: text }, { quiet: true }); W.id = r.id; W.wait = 0; W.st = r.status; setTimeout(ofLoad, 900); }
+  catch (e) { W.wait = 0; W.st = 'err'; W.err = e.message || String(e); ofDock(); }
+  clearTimeout(OF.t); OF.t = setTimeout(ofLoad, 1500);
 }
-function ofAns() { const el = $('#ofA'), W = OF.ans; if (!el) return; if (!W) { el.innerHTML = ''; return; }
-  el.innerHTML = asstBot('xs', !!W.wait) + '<div class="b"><div class="small muted" style="margin-bottom:4px">Bạn giao: <b style="color:var(--ink)">' + esc(aiCut(W.q, 140)) + '</b></div>' + (W.wait ? aiThink('chat', W.t0) : W.err ? '<span class="muted">' + esc(W.err) + '</span>' : aiMd(W.text || '', W.refs || {})) + '</div>' +
-    (W.wait ? '' : '<button type="button" class="ibtn sm" data-ofax aria-label="Đóng"><i class="bi bi-x-lg"></i></button>'); }
 function ofClick(e) {
-  if (e.target.closest('[data-ofax]')) { OF.ans = null; return ofAns(); }
+  if (e.target.closest('[data-ofdk]')) { OF.dockMin = !OF.dockMin; lsSet('ofDockMin', OF.dockMin); return ofDock(); }
+  const cb = e.target.closest('[data-ofcab]'); if (cb) return ofDrawer(cb.dataset.ofcab, false, 'cab');
   const r = e.target.closest('[data-ofr]'); if (r) return ofDrawer(r.dataset.ofr);
-  if (e.target.closest('[data-ofadd]')) { if (typeof AGS !== 'undefined') AGS.sel = 'hub'; lsSet('asSubT', 'ag'); OF.newAg = 1; return go('asst/subs'); }
-  if (e.target.closest('[data-ofbrain]')) return go('asst/subs');
+  if (e.target.closest('[data-ofadd]')) { lsSet('asSubT', 'ag'); OF.newAg = 1; return go('asst/subs'); }
+  if (e.target.closest('[data-ofbrain]')) return ofBrain();
 }
-/* ── NGĂN PHÒNG ── */
-const OF_VIA = { hub: 'hub', chat: 'cm', task: 'task' };
+/* ── NGĂN BÊN ── */
 function ofDrawerClose() { const d = $('#ofDr'), b = $('#ofBk'); if (d) d.remove(); if (b) b.remove(); document.removeEventListener('keydown', ofEsc); }
 function ofEsc(e) { if (e.key === 'Escape') ofDrawerClose(); }
-function ofDrawer(k, refresh) {
+function ofShell(k, label) { let dr = $('#ofDr'); if (!dr) { const bk = document.createElement('div'); bk.className = 'of-bk'; bk.id = 'ofBk'; bk.onclick = ofDrawerClose; document.body.appendChild(bk); dr = document.createElement('aside'); dr.className = 'of-dr'; dr.id = 'ofDr'; dr.setAttribute('role', 'dialog'); document.body.appendChild(dr); document.addEventListener('keydown', ofEsc); }
+  dr.dataset.k = k; dr.setAttribute('aria-label', label); return dr; }
+function ofDrawer(k, refresh, focus) {
   const D = OF.d, a = D && D.agents.find(x => x.key === k); if (!a) return;
-  let dr = $('#ofDr'); const keep = dr && refresh ? { g: ($('#ofGx', dr) || {}).value || '', s: $('.of-dr-b', dr) ? $('.of-dr-b', dr).scrollTop : 0, f: dr.querySelector('.of-docf') ? 1 : 0 } : null;
-  if (refresh && (!dr || dr.dataset.k !== k)) return; if (refresh && document.activeElement && dr.contains(document.activeElement) && /TEXTAREA|INPUT/.test(document.activeElement.tagName)) return;      // đang gõ → không vẽ lại
-  if (!dr) { const bk = document.createElement('div'); bk.className = 'of-bk'; bk.id = 'ofBk'; bk.onclick = ofDrawerClose; document.body.appendChild(bk); dr = document.createElement('aside'); dr.className = 'of-dr'; dr.id = 'ofDr'; dr.setAttribute('role', 'dialog'); dr.setAttribute('aria-label', 'Phòng ' + a.t); document.body.appendChild(dr); document.addEventListener('keydown', ofEsc); }
-  dr.dataset.k = k;
+  let dr = $('#ofDr'); if (refresh && (!dr || dr.dataset.k !== k)) return; if (refresh && document.activeElement && dr.contains(document.activeElement) && /TEXTAREA|INPUT/.test(document.activeElement.tagName)) return;      // đang gõ → không vẽ lại
+  const keep = dr && refresh ? { g: ($('#ofGx', dr) || {}).value || '', s: $('.of-dr-b', dr) ? $('.of-dr-b', dr).scrollTop : 0, f: dr.querySelector('.of-docf') ? 1 : 0 } : null;
+  dr = ofShell(k, 'Phòng ' + a.t);
   const runs = (D.run || []).filter(r => (r.ag || 'chat') === k), done = (D.done || []).filter(r => (r.ag || 'chat') === k), via = OF_VIA[k] || (/^x:/.test(k) ? k : 'cm'), job = !OF_VIA[k] && !/^x:/.test(k);
-  const okS = s => /^(ok|applied|partial|empty)$/.test(s);
+  const okS = s => /^(ok|applied|partial|empty)$/.test(s), bq = k === 'assign' ? (D.bq || []) : [];
   dr.innerHTML = '<div class="of-dr-h">' + asstAva(a.av, 'md', runs.length > 0) + '<div class="t"><b>' + esc(k === 'hub' ? 'Phòng điều phối · ' + a.t : 'Phòng ' + a.t) + '</b><small>' + esc(a.d || '') + '</small></div><button type="button" class="ibtn sm" data-ofx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
-    '<div class="of-dr-b"><div class="of-chips" style="margin-top:0"><span>' + (runs.length ? '● đang làm ' + runs.length + ' việc' : a.off ? 'đang tắt' : 'rảnh') + '</span><span>' + (a.chain > 1 ? a.chain + ' bước flow' : 'một flow') + '</span><span>Hôm nay ' + a.today.n + ' lượt · ' + a.today.ok + ' xong' + (a.today.err ? ' · ' + a.today.err + ' lỗi' : '') + '</span>' + (a.sys ? '<span>có chỉ dẫn riêng</span>' : '') + (a.guard ? '<span>có rào chắn</span>' : '') + '</div>' +
-      (runs.length ? '<div class="of-dr-s"><h4>Đang làm</h4>' + runs.map(r => '<div class="of-run"><b>' + esc(r.t) + '</b><small>' + esc(r.kt) + (r.sp ? ' · bước ' + r.sp + ' của chuỗi flow' : '') + (r.hub ? ' · Trợ lý chung giao' : '') + ' · ' + esc(r.who) + ' · ' + esc(asbAgo(r.at)) + '</small>' + aiThink(r.k === 'chat' ? (r.m === 'task' ? 'task' : 'chat') : r.k, r.at) + '</div>').join('') + '</div>' : '') +
-      '<div class="of-dr-s of-give"><h4>Giao việc cho phòng này</h4><textarea class="ta" id="ofGx" placeholder="' + esc(k === 'hub' ? 'VD “rà soát các bé lệch KGS rồi báo mình”, Trợ lý chung tự chia việc' : job ? 'VD “gán bài tuần tới cho bé Hồng Nhật” — đi qua Trợ lý chuyên môn' : 'Việc cần làm…') + '"></textarea><div class="r"><small>' + (job ? 'Việc của phòng này chạy qua Trợ lý chuyên môn (cần dữ liệu lớp / buổi).' : 'Kết quả hiện ở Trợ lý chung › Kết quả việc đã giao, báo chuông khi xong.') + '</small><button type="button" class="btn sm pri" data-ofg="' + esc(via) + '"><i class="bi bi-send"></i>Giao</button></div></div>' +
-      '<div class="of-dr-s"><h4>Tài liệu riêng của phòng<span class="sp"></span>' + (D.can ? '<button type="button" class="btn xs" data-ofdn><i class="bi bi-plus-lg"></i>Thêm</button>' : '') + '</h4>' +
+    '<div class="of-dr-b"><div class="of-dr-s"><div class="of-chips"><span>' + (runs.length ? (runs.length > 1 ? runs.length + ' việc song song' : 'đang làm 1 việc') : a.off ? 'đang tắt' : 'rảnh') + '</span><span>' + (a.chain > 1 ? a.chain + ' bước flow' : 'một flow') + '</span><span>Hôm nay ' + a.today.n + ' lượt · ' + a.today.ok + ' xong' + (a.today.err ? ' · ' + a.today.err + ' lỗi' : '') + '</span>' + (a.sys ? '<span>có chỉ dẫn riêng</span>' : '') + (a.guard ? '<span>có rào chắn</span>' : '') + '</div></div>' +
+      (runs.length ? '<div class="of-dr-s"><h4>Đang làm' + (runs.length > 1 ? ' song song' : '') + '</h4>' + runs.map(r => '<div class="of-run"><b>' + esc(r.t) + '</b><small>' + esc(r.kt) + (r.sp ? ' · bước ' + r.sp + ' của chuỗi flow' : '') + (r.hub ? ' · Trợ lý chung giao' : '') + ' · ' + esc(r.who) + ' · ' + esc(asbAgo(r.at)) + '</small>' + (r.sp ? '<div class="of-bar"><i style="width:' + Math.round(100 * (Number(r.sp.split('/')[0]) - .5) / Number(r.sp.split('/')[1])) + '%"></i></div>' : '') + '</div>').join('') + '</div>' : '') +
+      (bq.length ? '<div class="of-dr-s"><h4>Việc dài chia đợt</h4>' + bq.map(j => '<div class="of-run"><b>' + esc(j.t || 'Gán bài') + '</b><small>Đợt ' + Math.min(j.i + 1, j.n) + '/' + j.n + ' · ' + j.be + ' bé · ' + j.days + ' ngày tới · mỗi phút máy chủ gửi tiếp một đợt, tắt trang vẫn chạy</small><div class="of-bar"><i style="width:' + Math.round(100 * j.i / Math.max(1, j.n)) + '%"></i></div></div>').join('') + '</div>' : '') +
+      '<div class="of-dr-s of-give"><h4>Giao việc cho phòng này</h4><textarea class="ta" id="ofGx" placeholder="' + esc(k === 'hub' ? 'VD “rà soát các bé lệch KGS rồi báo mình” — Trợ lý chung tự chia việc' : job ? 'VD “gán bài tuần tới cho bé Hồng Nhật” — đi qua Trợ lý chuyên môn' : 'Việc cần làm…') + '"></textarea><div class="r"><small>' + (job ? 'Việc của phòng này chạy qua Trợ lý chuyên môn (cần dữ liệu lớp / buổi).' : 'Giao nhiều việc liền nhau được — các phòng làm song song, tắt trang vẫn chạy.') + '</small><button type="button" class="btn sm pri" data-ofg="' + esc(via) + '"><i class="bi bi-send"></i>Giao</button></div></div>' +
+      '<div class="of-dr-s" id="ofCab"><h4><i class="bi bi-archive"></i> Tủ hồ sơ của phòng<span class="sp"></span>' + (D.can ? '<button type="button" class="btn xs" data-ofdn><i class="bi bi-plus-lg"></i>Thêm tài liệu</button>' : '') + '</h4>' +
+        '<div class="small muted" style="margin-bottom:6px">Agent xem được:</div><div class="of-chips" style="margin-bottom:10px">' + ofSees(a).map(x => '<span>' + esc(x) + '</span>').join('') + '</div>' +
         (a.docs.length ? a.docs.map((d, i) => '<div class="of-doc"><i class="bi bi-' + (/docs\.google|drive\.google/.test(d.url) ? 'file-earmark-text' : d.url ? 'link-45deg' : 'sticky') + '"></i><div class="t">' + (d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">' + esc(d.t || d.url) + '</a>' : '<b>' + esc(d.t || 'Ghi chú') + '</b>') + (d.b ? '<small>' + esc(aiCut(d.b, 300)) + '</small>' : '') + '</div>' + (D.can ? '<button type="button" class="ibtn sm" data-ofdx="' + i + '" aria-label="Xoá tài liệu"><i class="bi bi-trash"></i></button>' : '') + '</div>').join('')
           : '<div class="small muted" style="line-height:1.5">Chưa có tài liệu riêng. Thêm bảng giá, quy trình, mẫu nhận xét… (link Google Docs đọc thẳng nội dung) — agent đọc trước mỗi lần làm.</div>') +
         (keep && keep.f ? ofDocForm() : '') + '</div>' +
       '<div class="of-dr-s"><h4>Kết quả gần đây</h4>' + (done.length ? done.map(r => '<div class="of-hi"><span class="s ' + (okS(r.st) ? 'ok' : r.st === 'err' ? 'e' : '') + '">' + (okS(r.st) ? 'xong' : r.st === 'err' ? 'lỗi' : r.st) + '</span><span class="t" title="' + esc(r.err || r.t) + '">' + esc(r.t) + '</span><small class="muted">' + esc(asbAgo(r.at)) + '</small></div>').join('') : '<div class="small muted">Chưa có việc nào gần đây.</div>') + '</div>' +
       (D.can ? '<div class="of-dr-s"><button type="button" class="btn sm" data-ofst style="width:100%;justify-content:center"><i class="bi bi-diagram-3"></i>Sửa agent ở Xưởng agent (chuỗi flow · chỉ dẫn · rào chắn)</button></div>' : '') + '</div>';
   if (keep) { const g = $('#ofGx', dr); if (g) g.value = keep.g; $('.of-dr-b', dr).scrollTop = keep.s; }
+  if (focus === 'cab') { const c = $('#ofCab', dr); if (c) c.scrollIntoView({ block: 'start' }); }
   dr.onclick = ev => ofDrClick(ev, a, dr);
 }
 function ofDocForm() { return '<div class="of-docf"><input class="inp" id="ofDt" placeholder="Tên tài liệu — VD Quy trình gán bài lớp 1–5" maxlength="80"><input class="inp" id="ofDu" placeholder="Link (Google Docs / Drive / web) — tuỳ chọn"><textarea class="ta" id="ofDb" placeholder="Ghi chú / nội dung ngắn — tuỳ chọn"></textarea><div class="r"><button type="button" class="btn xs ghost" data-ofdc>Huỷ</button><button type="button" class="btn xs pri" data-ofds><i class="bi bi-check2"></i>Lưu tài liệu</button></div></div>'; }
 async function ofDrClick(ev, a, dr) {
   if (ev.target.closest('[data-ofx]')) return ofDrawerClose();
-  if (ev.target.closest('[data-ofst]')) { ofDrawerClose(); if (typeof AGS !== 'undefined') AGS.sel = /^x:/.test(a.key) ? a.key.slice(2) : a.key; lsSet('asSubT', 'ag'); return go('asst/subs'); }
-  if (ev.target.closest('[data-ofdn]')) { if (!dr.querySelector('.of-docf')) { ev.target.closest('.of-dr-s').insertAdjacentHTML('beforeend', ofDocForm()); $('#ofDt', dr).focus(); } return; }
+  if (ev.target.closest('[data-ofst]')) { ofDrawerClose(); if (typeof AGS !== 'undefined') AGS.sel = /^x:/.test(a.key) ? a.key.slice(2) : a.key; AGS.reopen = 1; lsSet('asSubT', 'ag'); return go('asst/subs'); }
+  if (ev.target.closest('[data-ofdn]')) { if (!dr.querySelector('.of-docf')) { $('#ofCab', dr).insertAdjacentHTML('beforeend', ofDocForm()); $('#ofDt', dr).focus(); } return; }
   if (ev.target.closest('[data-ofdc]')) { const f = dr.querySelector('.of-docf'); if (f) f.remove(); return; }
-  const save = async docs => { try { const r = await rpc('aiAgentDocSave', { key: a.key, docs: docs }); a.docs = r.docs; toast('Đã lưu tài liệu của phòng', 'ok'); ofDrawer(a.key); } catch (er) { fail(er); } };
+  const save = async docs => { try { const r = await rpc('aiAgentDocSave', { key: a.key, docs: docs }); a.docs = r.docs; OF.sig = ''; toast('Đã lưu tài liệu của phòng', 'ok'); ofDrawer(a.key, false, 'cab'); ofStage(OF.last[0], OF.last[1], 1); } catch (er) { fail(er); } };
   if (ev.target.closest('[data-ofds]')) { const t = $('#ofDt', dr).value.trim(), u = $('#ofDu', dr).value.trim(), b = $('#ofDb', dr).value.trim(); if (!t && !u && !b) return toast('Nhập tên, link hoặc ghi chú', 'warn');
     if (u && !/^https:\/\//.test(u)) return toast('Link phải bắt đầu bằng https://', 'warn'); return save(a.docs.concat([{ t: t, url: u, b: b }])); }
-  const dx = ev.target.closest('[data-ofdx]'); if (dx) { if (!(await ask('Xoá tài liệu này khỏi phòng?', { ok: 'Xoá', danger: 1 }))) return; return save(a.docs.filter((d, i) => i !== Number(dx.dataset.ofdx))); }
-  const g = ev.target.closest('[data-ofg]'); if (g) { const ta = $('#ofGx', dr), text = ta.value.trim(); if (text.length < 3) return ta.focus(); const to = g.dataset.ofg; g.disabled = true;
-    try { if (to === 'hub') { ofDrawerClose(); return ofAsk(text); }
-      const body = !OF_VIA[a.key] && !/^x:/.test(a.key) ? '[' + a.t + '] ' + text : text, r = await rpc('asstGive', { to: to, text: body }); ta.value = '';
-      ofFly('hub', to === 'cm' ? 'chat' : to, null); toast('Đã giao cho phòng ' + a.t + ' — xong sẽ báo chuông', 'ok', 5000); setTimeout(ofLoad, 1000); }
+  const dx = ev.target.closest('[data-ofdx]'); if (dx) { if (!(await ask('Xoá tài liệu này khỏi tủ hồ sơ?', { ok: 'Xoá', danger: 1 }))) return; return save(a.docs.filter((d, i) => i !== Number(dx.dataset.ofdx))); }
+  const g = ev.target.closest('[data-ofg]'); if (g) { const ta = $('#ofGx', dr), text = ta.value.trim(); if (text.length < 3) return ta.focus(); const to = g.dataset.ofg;
+    if (to === 'hub') { ofDrawerClose(); return ofAsk(text); }
+    g.disabled = true; try { const body = !OF_VIA[a.key] && !/^x:/.test(a.key) ? '[' + a.t + '] ' + text : text; await rpc('asstGive', { to: to, text: body }); ta.value = ''; ofFly('hub', to === 'cm' ? 'chat' : to);
+      toast('Đã giao cho phòng ' + a.t + ' — có thể giao tiếp việc khác, các phòng làm song song', 'ok', 5000); clearTimeout(OF.t); OF.t = setTimeout(ofLoad, 900); }
     catch (er) { fail(er); } finally { g.disabled = false; } }
+}
+/* ── BỘ NÃO CHUNG: thiết lập ghi nhớ (bật / tắt / thêm / quên) · hướng dẫn · kỹ năng ── */
+async function ofBrain(B) {
+  const dr = ofShell('@brain', 'Bộ não chung');
+  if (!B) { dr.innerHTML = '<div class="of-dr-h"><span class="as-av md" style="--av:#8B5CF6"><i class="bi bi-cpu" style="font-size:26px;color:#8B5CF6"></i></span><div class="t"><b>Bộ não chung</b><small>Đang mở…</small></div><button type="button" class="ibtn sm" data-ofx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div><div class="of-dr-b">' + miniLoader('Đang đọc bộ não…') + '</div>';
+    dr.onclick = ev => { if (ev.target.closest('[data-ofx]')) ofDrawerClose(); };
+    try { B = await rpc('asstBrain', {}, { quiet: true }); } catch (e) { dr.querySelector('.of-dr-b').innerHTML = '<div class="small muted">' + esc(e.message || e) + '</div>'; return; } }
+  if (!$('#ofDr') || $('#ofDr').dataset.k !== '@brain') return;
+  const mem = B.mem || [];
+  dr.innerHTML = '<div class="of-dr-h"><span class="as-av md" style="--av:#8B5CF6"><i class="bi bi-cpu" style="font-size:26px;color:#8B5CF6"></i></span><div class="t"><b>Bộ não chung</b><small>Mọi phòng đọc trước khi làm: ghi nhớ, hướng dẫn nội bộ, kỹ năng. Bật / tắt từng ghi nhớ là áp dụng ngay.</small></div><button type="button" class="ibtn sm" data-ofx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
+    '<div class="of-dr-b">' + (B.memOk ? '<div class="of-dr-s of-give"><h4>Dạy trợ lý một điều cần nhớ</h4><textarea class="ta" id="ofMx" placeholder="VD “Bé lớp 2 mỗi buổi tối đa 1 topic”, “Nhắc check-in kiểu đồng nghiệp, không trang trọng”"></textarea><div class="r"><small>Áp dụng cho mọi phòng (trừ khi câu hỏi nói khác).</small><button type="button" class="btn sm pri" data-ofmadd><i class="bi bi-plus-lg"></i>Ghi nhớ</button></div></div>' : '') +
+      '<div class="of-dr-s"><h4>Ghi nhớ<span class="sp"></span>' + mem.filter(m => !m.off).length + '/' + mem.length + ' đang bật</h4>' + (mem.length ? mem.map(m => '<div class="of-doc' + (m.off ? ' off' : '') + '"><i class="bi bi-lightbulb"></i><div class="t"><b>' + esc(m.t) + '</b><small>' + esc(m.cid ? 'Về bé ' + (m.be || '') : m.as === 'task' ? 'Chỉ Trợ lý Kiến Task' : 'Mọi phòng') + ' · ' + esc(m.by || 'Quản lý') + ' · ' + esc(asbAgo(m.at)) + '</small></div>' +
+        (B.memOk ? '<label class="sw" title="Bật / tắt"><input type="checkbox" data-ofmon="' + esc(m.id) + '"' + (m.off ? '' : ' checked') + ' aria-label="Bật ghi nhớ"><span></span></label><button type="button" class="ibtn sm" data-ofmdel="' + esc(m.id) + '" aria-label="Quên"><i class="bi bi-trash"></i></button>' : '') + '</div>').join('') : '<div class="small muted">Chưa có ghi nhớ nào.</div>') + '</div>' +
+      '<div class="of-dr-s"><h4>Hướng dẫn nội bộ<span class="sp"></span>' + (B.kb || []).length + '</h4>' + ((B.kb || []).length ? B.kb.map(x => '<div class="of-doc"><i class="bi bi-journal-richtext"></i><div class="t"><b>' + esc(x.t) + '</b><small>' + esc(x.aud === 'man' ? 'Cho quản lý' : x.aud === 'tutor' ? 'Cho gia sư' : 'Mọi người') + '</small></div></div>').join('') : '<div class="small muted">Chưa có.</div>') + '</div>' +
+      '<div class="of-dr-s"><h4>Kỹ năng<span class="sp"></span>' + (B.skills || []).length + '</h4>' + ((B.skills || []).length ? '<div class="of-chips">' + B.skills.map(x => '<span title="' + esc(x.desc || '') + '">/' + esc(x.slug) + '</span>').join('') + '</div>' : '<div class="small muted">Chưa có.</div>') + '</div>' +
+      '<div class="of-dr-s"><button type="button" class="btn sm" data-ofkb style="width:100%;justify-content:center"><i class="bi bi-sliders"></i>Sửa hướng dẫn & kỹ năng (Trợ lý AI › Cài đặt)</button></div></div>';
+  dr.onclick = async ev => {
+    if (ev.target.closest('[data-ofx]')) return ofDrawerClose(); if (ev.target.closest('[data-ofkb]')) { ofDrawerClose(); return go('ai/cfg'); }
+    const set = async (p, msg) => { try { const r = await rpc('asstMemSet', p); toast(msg, 'ok'); ofBrain(r); OF.d.brain.mem = (r.mem || []).filter(m => !m.off).length; OF.sig = ''; ofStage(OF.last[0], OF.last[1], 1); } catch (er) { fail(er); } };
+    if (ev.target.closest('[data-ofmadd]')) { const t = $('#ofMx', dr).value.trim(); if (t.length < 3) return $('#ofMx', dr).focus(); return set({ t: t }, 'Đã ghi nhớ — mọi phòng sẽ áp dụng'); }
+    const d = ev.target.closest('[data-ofmdel]'); if (d) { if (!(await ask('Quên ghi nhớ này?', { ok: 'Quên', danger: 1 }))) return; return set({ id: d.dataset.ofmdel, del: 1 }, 'Đã quên'); }
+  };
+  dr.onchange = ev => { const c = ev.target.closest('[data-ofmon]'); if (c) rpc('asstMemSet', { id: c.dataset.ofmon, off: c.checked ? 0 : 1 }).then(r => { ofBrain(r); toast(c.checked ? 'Đã bật ghi nhớ' : 'Đã tắt ghi nhớ', 'ok'); }, fail); };
 }
 </script>
 
