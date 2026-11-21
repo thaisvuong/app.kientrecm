@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-21T01:27:46.176Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-21T02:33:36.170Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -23617,6 +23617,11 @@ html[data-mode="dark"] .cr-rf.qua, .of[data-oflook="pho"] .cr-rf.qua{ fill:#3B14
 .cr-sign{ position:absolute; z-index:5; left:12px; top:12px; display:flex; gap:9px; align-items:center; padding:7px 12px; border-radius:12px; background:var(--lb); color:var(--lbi); border:1px solid var(--edge); box-shadow:0 6px 16px -10px var(--lbsh); max-width:calc(100% - 24px) }
 .cr-sign > i{ font-size:18px; color:var(--primary) } .cr-sign b{ display:block; font-size:13px } .cr-sign small{ display:block; font-size:11px; color:var(--lbs) } .cr-sign em{ font-style:normal; font-weight:700 } .cr-sign em.dang{ color:#16A34A } .cr-sign em.qua{ color:#DC2626 }
 .of-zi.sp.t .as-av{ width:clamp(34px, 8cqw, 58px); height:clamp(34px, 8cqw, 58px) } .of-zi.sp.s .as-av{ width:clamp(24px, 5.6cqw, 40px); height:clamp(24px, 5.6cqw, 40px) }
+/* (1.82.31) thanh Lớp học đứng yên khi vào cơ sở: chế độ + ô tìm dồn phải, đường dẫn bên trái dài ra không đẩy chúng · số tầng cạnh tường trái khu */
+.of-sch-bar .of-rp-days{ margin-left:auto } .of-sch-bar .of-crumb{ min-width:0; flex:0 1 auto } .of-sch-bar .of-crumb b{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px }
+.cr-ic.q{ pointer-events:auto; cursor:pointer } .cr-ic.q:hover .as-av{ filter:brightness(1.06) drop-shadow(0 0 0 2px var(--primary)) } .cr-vpq{ cursor:pointer } .cr-vpq:hover{ filter:brightness(1.05) } .cr-tag.qn{ font-size:10px; padding:1px 6px } .cr-tag.qn em{ margin-left:4px }
+.cr-pw{ pointer-events:none } .cr-pw ellipse, .cr-pw circle{ stroke:#fff; stroke-width:.8 } .cr-pw.t ellipse{ fill:var(--primary) } .cr-pw.s ellipse{ fill:#EA8A0C } .cr-pw circle{ fill:#F5C9A4 } .cr-pw.soon{ opacity:.55 } .cr-pw.late ellipse{ fill:#DC2626 }
+.cr-fln{ font:800 11px/1 var(--font, system-ui); fill:var(--lbi, #475569); paint-order:stroke; stroke:var(--surface, #fff); stroke-width:3px; pointer-events:none }
 @media (prefers-reduced-motion:reduce){ .cr-wn.on, .cr-chalk, .cr-glow, .of-lb.in.cr-lb .of-dot.dang{ animation:none } }
 .cr-donut{ position:absolute; z-index:6; right:12px; top:10px; width:min(340px, 44%); padding:2px 4px; border-radius:16px; background:var(--lb); border:1px solid var(--edge); box-shadow:0 10px 26px -18px var(--lbsh); pointer-events:auto }
 .cr-donut svg{ display:block; width:100%; height:auto } .cr-donut .bg{ fill:none; stroke:color-mix(in oklab, var(--edge) 60%, transparent); stroke-width:19 } .cr-donut .seg{ fill:none; stroke-width:19; transition:stroke-width .15s } .cr-donut .seg:hover{ stroke-width:23 }
@@ -24878,6 +24883,9 @@ function ofMiniHtml(j, A) {
 function ofFlag(p, h) { return '<g class="cr-nob"><line x1="' + p[0].toFixed(1) + '" y1="' + p[1].toFixed(1) + '" x2="' + p[0].toFixed(1) + '" y2="' + (p[1] - h).toFixed(1) + '"/><path d="M' + p[0].toFixed(1) + ' ' + (p[1] - h).toFixed(1) + ' l' + (h * .62).toFixed(1) + ' ' + (h * .2).toFixed(1) + ' l-' + (h * .62).toFixed(1) + ' ' + (h * .2).toFixed(1) + ' Z"/></g>'; }
 /** phòng có buổi HÔM NAY chưa có bài (chưa xong) */
 function ofNob(t) { return t.kids.some(r => r.ses.some(q => q.nob && q.st !== 'xong')); }
+/** (1.82.31) SỐ TẦNG của một nơi học có n phòng — dùng chung cho khuôn viên và bên trong cơ sở (không lệch nhau): mặt bằng gần VUÔNG,
+    số phòng / tầng ≈ 1,9 × số tầng (một dãy phòng sâu 1 + hành lang 0,9) → hình thoi cân, lấp khung ngang thay vì một dải bậc thang dài · tối đa 8 tầng */
+function ofFloors(n) { return n <= 3 ? 1 : Math.min(8, Math.ceil(n / Math.ceil(Math.sqrt(n * 1.9)))); }
 /** KHUÔN VIÊN: sàn chung + lối đi; mỗi nơi học một KHU 2,4 × 2,4 ô — nhiều phòng thì khu cao nhiều TẦNG (thấy quy mô), tối đa 9 phòng hiện trên tầng trên cùng ·
     tên khu ở GÓC TRÊN · Văn phòng quản lý ô phía trước nhất (bấm → popup gia sư chờ bài) · ô thừa = sân trường · mini agent đi từ văn phòng tới lớp */
 function ofCampus(M) {
@@ -24908,8 +24916,26 @@ function ofCampus(M) {
         [[P(a, gy, Z), P(a, gy, Z + 12)], [P(gx, b, Z), P(gx, b, Z + 12)]].forEach(L => s.push('<line class="cr-fence" x1="' + L[0][0].toFixed(1) + '" y1="' + L[0][1].toFixed(1) + '" x2="' + L[1][0].toFixed(1) + '" y2="' + L[1][1].toFixed(1) + '"/>')); }
       s.push('<path class="cr-fence" d="M' + ofPt(P(gx, y1, Z + 9)) + ' L' + ofPt(P(gx, gy, Z + 9)) + ' L' + ofPt(P(x1, gy, Z + 9)) + '"/>'); return Z + 12; }
     return Z; };
+  /** (1.82.31) khu NHIỀU TẦNG xếp BẬC THANG: chia khu thành fl dải (sau → trước), dải sau cao hơn một tầng → thấy rõ từng tầng và mọi phòng trên đó (không che nhau) ·
+      mỗi dải: mặt trước (cửa sổ các tầng dưới) + mặt phải + sàn + tường trái, tường sau có đèn ở dải cao nhất · số tầng T1… cạnh tường trái — trả về độ cao đỉnh tường sau */
+  const FZT = 18, terr = (gx, gy, kind, att, fl, s) => { const x1 = gx + BW, d = BW / fl, FH = kind === 'sch' ? 40 : 30;
+    for (let j = 0; j < fl; j++) { const yA = gy + j * d, yB = yA + d, Z = SL + (fl - 1 - j) * FZT, nf = fl - j;
+      s.push(ofPoly([P(gx, yB, 0), P(x1, yB, 0), P(x1, yB, Z), P(gx, yB, Z)], 'cr-sl1') + ofPoly([P(x1, yA, 0), P(x1, yB, 0), P(x1, yB, Z), P(x1, yA, Z)], 'cr-sl2'));
+      for (let f = 1; f < nf; f++) { const z = SL + (f - 1) * FZT + 5;      // cửa sổ các tầng bên dưới (mặt trước + mặt phải)
+        for (let u = 0; u < 6; u++) { const a = gx + .14 + u * (BW - .2) / 6; s.push(ofPoly([P(a, yB, z), P(a + .24, yB, z), P(a + .24, yB, z + 8), P(a, yB, z + 8)], 'cr-wn')); }
+        for (let u = 0; u < 2; u++) { const b = yA + .12 + u * (d - .2) / 2; s.push(ofPoly([P(x1, b, z), P(x1, b + .2, z), P(x1, b + .2, z + 8), P(x1, b, z + 8)], 'cr-wn')); } }
+      s.push(ofPoly([P(gx, yA, Z), P(x1, yA, Z), P(x1, yB, Z), P(gx, yB, Z)], 'cr-top ' + kind));
+      s.push(ofPoly([P(gx, yA, Z), P(gx, yB, Z), P(gx, yB, Z + FH), P(gx, yA, Z + FH)], 'of-w1 cr-fa'));      // tường trái của tầng
+      for (let u = 0; u < 2; u++) { const b = yA + .12 + u * (d - .2) / 2, z = Z + FH - 15; s.push(ofPoly([P(gx, b, z), P(gx, b + .2, z), P(gx, b + .2, z + 8), P(gx, b, z + 8)], 'cr-wn' + (att > j * 2 + u ? ' on' : ''))); }
+      const tg = P(gx, yA + d / 2, Z + FH / 2); s.push('<text class="cr-fln" x="' + (tg[0] - 7).toFixed(1) + '" y="' + (tg[1] + 4).toFixed(1) + '" text-anchor="end">T' + nf + '</text>');
+      if (!j) { s.push(ofPoly([P(gx, gy, Z), P(x1, gy, Z), P(x1, gy, Z + FH), P(gx, gy, Z + FH)], 'of-w2 cr-fa'));      // tường sau ở tầng cao nhất: đèn theo số lớp đang học
+        for (let u = 0; u < 5; u++) { const a = gx + .2 + u * (BW - .3) / 5, z = Z + FH - 15; s.push(ofPoly([P(a, gy, z), P(a + .24, gy, z), P(a + .24, gy, z + 8), P(a, gy, z + 8)], 'cr-wn' + (att > u ? ' on' : ''))); }
+        if (kind === 'sch') { const f = P(gx, gy, Z + FH), c = P(gx + BW / 2, gy, Z + FH - 14);
+          s.push('<line class="cr-pole" x1="' + f[0].toFixed(1) + '" y1="' + f[1].toFixed(1) + '" x2="' + f[0].toFixed(1) + '" y2="' + (f[1] - 46).toFixed(1) + '"/><path class="cr-flag" d="M' + f[0].toFixed(1) + ' ' + (f[1] - 46).toFixed(1) + ' l26 7 l-26 7 Z"/>' +
+            '<ellipse class="cr-clk" cx="' + c[0].toFixed(1) + '" cy="' + (c[1] - 8).toFixed(1) + '" rx="7" ry="8"/><line class="cr-hand" x1="' + c[0].toFixed(1) + '" y1="' + (c[1] - 8).toFixed(1) + '" x2="' + (c[0] + 3).toFixed(1) + '" y2="' + (c[1] - 12).toFixed(1) + '"/>'); } } }
+    return SL + (fl - 1) * FZT + FH; };
   /** phòng nhỏ trong khu: tường thấp, sàn theo trạng thái (không học hôm nay = tắt đèn), bảng sáng khi đang học, bàn học giữa phòng, cờ đỏ khi thiếu bài */
-  const mini = (rx, ry, rw, t, ctr, Z) => { const st = t.st, Q = (u, v, z) => P(rx + u * rw, ry + v * rw, Z + (z || 0)), f = Math.min(1.7, Math.max(1, rw / .6)), WH = 15 * f, o = [];
+  const mini = (rx, ry, rw, t, ctr, Z) => { const st = t.st, Q = (u, v, z) => P(rx + u * rw, ry + v * rw, Z + (z || 0)), f = Math.min(1.7, Math.max(.6, rw / .6)), WH = 15 * f, o = [];
     o.push(ofPoly([Q(0, 0), Q(0, 1), Q(0, 1, WH), Q(0, 0, WH)], 'of-w1 cr-w ' + st) + ofPoly([Q(0, 0), Q(1, 0), Q(1, 0, WH), Q(0, 0, WH)], 'of-w2 cr-w ' + st));
     o.push(ofPoly([Q(0, 0), Q(1, 0), Q(1, 1), Q(0, 1)], 'of-flr cr-rf ' + st + (st === 'dang' ? ' busy' : '') + (all && st === 'none' ? ' off' : '')));
     o.push(ofPoly([Q(.22, 0, 4 * f), Q(.72, 0, 4 * f), Q(.72, 0, 12 * f), Q(.22, 0, 12 * f)], 'cr-board' + (st === 'dang' ? ' on' : st === 'qua' ? ' late' : '')));
@@ -24918,15 +24944,24 @@ function ofCampus(M) {
     const tip = t.tn + ' · ' + t.kids.length + ' bé' + (st !== 'none' ? ' · ' + OF_SST[st][0] : ' · hôm nay không học') + (ofNob(t) ? ' · CHƯA CÓ BÀI hôm nay' : '');
     return '<g class="cr-mr ' + st + '" data-ofsrm="' + esc(t.tem) + '" data-ofsc="' + esc(ctr) + '"><title>' + esc(tip) + '</title>' + o.join('') + '</g>'; };
   const icon = (p, html, cls, tt, z) => hh.push('<span class="cr-ic ' + (cls || '') + '" style="' + ofCrPos(p, z || 100) + '"' + (tt ? ' title="' + esc(tt) + '"' : '') + '>' + html + '</span>');
-  M.forEach((c, ci) => { const [gx, gy] = lots[ci], kind = ofPlaceKind(c), T = c.tut.slice().sort((a, b) => OF_KST.indexOf(a.st) - OF_KST.indexOf(b.st) || a.tn.localeCompare(b.tn, 'vi')), sh = T.slice(0, 9), s = [];
-    const fl = kind === 'ctr' || kind === 'sch' ? Math.max(1, Math.min(4, Math.ceil(c.tut.length / 9))) : 1, Z = SL + (fl - 1) * FZ;
-    const top = pad(gx, gy, kind, Math.min(5, c.tut.filter(t => t.st === 'dang').length), fl, s); BP[c.nm] = [gx + BW / 2, gy + BW / 2, Z];
-    const nc = sh.length <= 1 ? 1 : sh.length <= 4 ? 2 : 3, cl = (BW - 2 * PD) / nc;      // ít phòng → phòng to hơn, lấp kín khu
-    sh.forEach((t, k) => { const i = k % nc, j = Math.floor(k / nc), rx = gx + PD + i * cl + .06, ry = gy + PD + j * cl + .06, rw = cl - .12; s.push(mini(rx, ry, rw, t, c.nm, Z));
+  M.forEach((c, ci) => { const [gx, gy] = lots[ci], kind = ofPlaceKind(c), T = c.tut.slice().sort((a, b) => OF_KST.indexOf(a.st) - OF_KST.indexOf(b.st) || a.tn.localeCompare(b.tn, 'vi')), s = [];
+    const fl = kind === 'ctr' || kind === 'sch' ? ofFloors(T.length) : 1, sh = fl > 1 ? T : T.slice(0, 9), att = Math.min(5, c.tut.filter(t => t.st === 'dang').length);
+    const top = fl > 1 ? terr(gx, gy, kind, att, fl, s) : pad(gx, gy, kind, att, 1, s), cells = []; BP[c.nm] = [gx + BW / 2, gy + BW / 2, SL + (fl - 1) * FZT];
+    if (fl > 1) { const d = BW / fl, rpf = Math.ceil(sh.length / fl), Wd = BW - 2 * PD;      // (1.82.31) mỗi tầng một dải: phòng xếp lưới vuông nhất có thể · tầng 1 (trước, thấp nhất) là các phòng đang / sắp học
+      for (let f = 0; f < fl; f++) { const j = fl - 1 - f, yA = gy + j * d + (j ? .07 : PD), yB = gy + (j + 1) * d - .07, Dd = yB - yA, R = sh.slice(f * rpf, f * rpf + rpf); if (!R.length) continue;
+        let B = [1, R.length, 0]; for (let nr = 1; nr <= 3; nr++) { const nc = Math.ceil(R.length / nr), sz = Math.min(Wd / nc, Dd / nr); if (sz > B[2]) B = [nr, nc, sz]; }
+        const nc = B[1], sz = B[2], x0 = gx + PD + (Wd - nc * sz) / 2, y0 = yA + (Dd - B[0] * sz) / 2;
+        R.forEach((t, k) => cells.push({ t: t, rx: x0 + (k % nc) * sz + sz * .06, ry: y0 + Math.floor(k / nc) * sz + sz * .06, rw: sz * .88, Z: SL + f * FZT, pw: 1 })); } }
+    else { const nc = sh.length <= 1 ? 1 : sh.length <= 4 ? 2 : 3, cl = (BW - 2 * PD) / nc;      // ít phòng → phòng to hơn, lấp kín khu
+      sh.forEach((t, k) => cells.push({ t: t, rx: gx + PD + (k % nc) * cl + .06, ry: gy + PD + Math.floor(k / nc) * cl + .06, rw: cl - .12, Z: SL })); }
+    cells.sort((a, b) => b.Z - a.Z || (a.rx + a.ry) - (b.rx + b.ry)).forEach(({ t, rx, ry, rw, Z, pw: tiny }) => { s.push(mini(rx, ry, rw, t, c.nm, Z));
       RP[t.tem + '|' + c.nm] = [rx + .55 * rw, ry + .86 * rw, Z];
       if (/^(dang|qua|sap)$/.test(t.st)) { const tp = P(rx + .2 * rw, ry + .54 * rw, Z), kp = P(rx + .86 * rw, ry + .5 * rw, Z), cls = t.st === 'qua' ? 'late' : t.st === 'sap' ? 'soon' : '';      // hai đầu bàn học · sắp học: đã vào chỗ, mờ hơn
+        const kd = t.kids.find(r => r.ses.some(q => q.st === t.st));
+        if (tiny) { const h = Math.min(15, Math.max(9, rw * TW * .26)), pw = (p, k) => '<g class="cr-pw ' + k + ' ' + cls + '"><ellipse cx="' + p[0].toFixed(1) + '" cy="' + (p[1] - h * .32).toFixed(1) + '" rx="' + (h * .3).toFixed(1) + '" ry="' + (h * .34).toFixed(1) + '"/><circle cx="' + p[0].toFixed(1) + '" cy="' + (p[1] - h * .84).toFixed(1) + '" r="' + (h * .22).toFixed(1) + '"/></g>';      // (1.82.31) khu nhiều tầng (phòng nhỏ): người tí hon vẽ trong sơ đồ — nằm gọn trong phòng, phóng to thì to theo
+          s.push(pw(P(rx + .3 * rw, ry + .5 * rw, Z), 't') + (kd ? pw(P(rx + .78 * rw, ry + .5 * rw, Z), 's') : '')); return; }
         icon(tp, ofHuAva('t', 'xs', t.tem, t.st === 'dang'), cls, t.tn + ' · ' + OF_SST[t.st][0]);
-        const kd = t.kids.find(r => r.ses.some(q => q.st === t.st)); if (kd) icon(kp, ofHuAva('s', 'xxs', kd.cid, t.st === 'dang'), 'kid ' + cls, kd.be + ' · ' + OF_SST[t.st][0]); } });
+        if (kd) icon(kp, ofHuAva('s', 'xxs', kd.cid, t.st === 'dang'), 'kid ' + cls, kd.be + ' · ' + OF_SST[t.st][0]); } });
     items.push({ d: gx + gy, s: '<g class="cr-blk" data-ofsct="' + esc(c.nm) + '">' + s.join('') + '</g>' });
     const lb = P(gx, gy, top + 4), more = c.tut.length - sh.length, nf = c.tut.filter(ofNob).length;      // tên khu ở GÓC TRÊN
     hh.push('<button type="button" class="of-lb in cr-lb cr-pl top" data-ofsct="' + esc(c.nm) + '" style="' + ofCrPos(lb, 400) + '" title="Vào ' + esc(c.nm) + '"><b><i class="bi ' + OF_PK[kind][1] + '"></i>' + esc(aiCut(c.nm, 26)) + '</b><small>' + (OF_PK[kind][0] !== c.nm ? OF_PK[kind][0] + ' · ' : '') + (fl > 1 ? fl + ' tầng · ' : '') + c.tut.length + ' phòng · ' + c.nk + ' bé' +
@@ -24941,7 +24976,7 @@ function ofCampus(M) {
     items.push({ d: ox + oy, s: '<g class="cr-blk off" data-ofslob="1">' + s.join('') + '</g>' });
     icon(Q(1.2, .3), typeof asstAva === 'function' ? asstAva(0, 'xs', wait.length > 0) : '', 'bot', 'Trợ lý điều độ — giao bài cho gia sư');
     wait.slice(0, 5).forEach((t, i) => icon(Q(.3 + i * .44, 1.3), ofHuAva('t', 'xs', t.tem), 'wait', t.tn + ' · chờ lấy bài'));
-    hh.push('<button type="button" class="of-lb in cr-lb cr-pl top off" data-ofslob="1" style="' + ofCrPos(P(ox, oy, top + 4), 400) + '" title="Gia sư chờ lấy bài — bấm để xem"><b><i class="bi bi-briefcase"></i>Văn phòng quản lý</b><small>' + (wait.length ? '<em class="qua">' + wait.length + ' gia sư chờ lấy bài</em>' : 'không ai phải chờ bài') + '</small></button>'); }
+    hh.push('<button type="button" class="of-lb in cr-lb cr-pl top off" data-ofslob="1" style="' + ofCrPos(P(ox, oy, top + 4), 400) + '" title="Bấm để mở Văn phòng quản lý"><b><i class="bi bi-briefcase"></i>Văn phòng quản lý</b><small>' + (wait.length ? '<em class="qua">' + wait.length + ' gia sư chờ lấy bài</em>' : 'không ai phải chờ bài') + '</small></button>'); }
   free.forEach(([gx, gy], fi) => { const c = P(gx + BW / 2, gy + BW / 2, 0);      // ô thừa: sân trường (cột cờ ở ô đầu)
     items.push({ d: gx + gy, s: ofPoly([P(gx + .2, gy + .2), P(gx + BW - .2, gy + .2), P(gx + BW - .2, gy + BW - .2), P(gx + .2, gy + BW - .2)], 'of-plaza') +
       (fi === 0 ? '<line class="cr-pole" x1="' + c[0].toFixed(1) + '" y1="' + c[1].toFixed(1) + '" x2="' + c[0].toFixed(1) + '" y2="' + (c[1] - 70).toFixed(1) + '"/><path class="cr-flag" d="M' + c[0].toFixed(1) + ' ' + (c[1] - 70).toFixed(1) + ' l30 8 l-30 8 Z"/>' : '') });
@@ -24961,7 +24996,8 @@ function ofCampus(M) {
 function ofBuilding(c, F) {
   const T = c.tut.filter(t => F.m === 'all' || t.kids.some(r => r.ses.length)).sort((a, b) => OF_KST.indexOf(a.st) - OF_KST.indexOf(b.st) || a.tn.localeCompare(b.tn, 'vi'));
   if (!T.length) return '<div class="of-cv of-stage cr e"><div class="of-dk-e" style="padding:40px"><i class="bi ' + OF_PK[ofPlaceKind(c)][1] + '" style="font-size:30px"></i><b>' + (F.m === 'today' ? esc(c.nm) + ' hôm nay không có buổi học' : 'Chưa có phòng học') + '</b>' + (F.m === 'today' ? '<span>Bấm “Tất cả phòng” để xem mọi phòng.</span>' : '') + '</div></div>';
-  const kind = ofPlaceKind(c), n = T.length, PR = n <= 3 ? n : n <= 8 ? 4 : n <= 15 ? 5 : 6, RW = Math.ceil(n / PR), RD = 1, HL = .9, WH = 36, TW = 260, TH = 130, m = .035, all = F.m === 'all';
+  const kind = ofPlaceKind(c), n = T.length, RD = 1, HL = .9, RW = ofFloors(n), PR = Math.ceil(n / RW),      // (1.82.31) nhiều phòng / tầng, ít tầng: mặt bằng gần VUÔNG (số phòng / dãy ≈ 1,9 × số tầng) → hình thoi cân, lấp đầy khung ngang thay vì một dải bậc thang dài
+    WH = 36, TW = 260, TH = 130, m = .035, all = F.m === 'all';
   const ZF = RW > 1 ? 66 : 0, GX = PR, GY = RW * (RD + HL), X0 = (GY + .4) * TW / 2 + 90, Y0 = WH + 110 + (RW - 1) * ZF;      // nhiều dãy → mỗi dãy một TẦNG, tầng trên lùi sau + nâng cao (bậc thang) nên không che nhau
   const P0 = (gx, gy, z) => [X0 + (gx - gy) * TW / 2, Y0 + (gx + gy) * TH / 2 - (z || 0)], W = Math.round(X0 + (GX + .4) * TW / 2 + 90), H = Math.round(Y0 + (GX + GY) * TH / 2 + 70);
   const sv = [], hh = [], RP = {}, icon = (p, html, cls, tt, z) => hh.push('<span class="cr-ic ' + (cls || '') + '" style="' + ofCrPos(p, z || 100) + '"' + (tt ? ' title="' + esc(tt) + '"' : '') + '>' + html + '</span>');
@@ -24972,7 +25008,7 @@ function ofBuilding(c, F) {
     if (j && ZF) for (let i = 5; i >= 0; i--) sv.push(ofIsoBox(P, -.28, -.06, y0 + RD - (i + 1) * RD / 6, y0 + RD - i * RD / 6, 0, (i + 1) * ZF / 6, 'cr-st'));      // cầu thang lên tầng trên (mép trái)
     sv.push(ofPoly([P(-.2, y0 + RD + .1), P(GX + .2, y0 + RD + .1), P(GX + .2, y0 + RD + HL - .1), P(-.2, y0 + RD + HL - .1)], 'cr-walk') + '<path class="of-walkl" d="M' + ofPt(P(-.1, y0 + RD + HL / 2)) + ' L' + ofPt(P(GX + .1, y0 + RD + HL / 2)) + '"/>');
     const nd = R.filter(t => t.st === 'dang').length, nq = R.filter(t => t.st === 'qua').length;
-    hh.push('<span class="cr-tag row" style="' + ofCrPos(P(-.24, y0 + RD + HL / 2), 300) + '"><b>' + (RW > 1 ? 'Tầng ' + (RW - j) : 'Dãy phòng') + '</b>' + R.length + ' phòng' + (nd ? '<em class="dang">' + nd + ' đang học</em>' : '') + (nq ? '<em class="qua">' + nq + ' quá giờ</em>' : '') + '</span>');
+    hh.push('<span class="cr-tag row" style="' + ofCrPos(P(-.24, y0 + RD + HL / 2), 300) + '"><b>' + (RW > 1 ? (all ? 'Tầng ' : 'Dãy ') + (RW - j) : 'Dãy phòng') + '</b>' + R.length + ' phòng' + (nd ? '<em class="dang">' + nd + ' đang học</em>' : '') + (nq ? '<em class="qua">' + nq + ' quá giờ</em>' : '') + '</span>');
     R.forEach((t, k) => { const x = k, st = t.st, on = st === 'dang', off = all && st === 'none', Q = (u, v, z) => P(x + u, y0 + v * RD, z), o = [], B = (u0, u1, v0, v1, h, cl) => ofIsoBox(P, x + u0, x + u1, y0 + v0, y0 + v1, 0, h, cl), nob = ofNob(t);
       RP[t.tem] = { P: P, x: x, y0: y0, zf: zf };
       o.push(ofPoly([Q(m, m), Q(m, 1 - m), Q(m, 1 - m, WH), Q(m, m, WH)], 'of-w1 cr-w ' + st) + ofPoly([Q(m, m), Q(1 - m, m), Q(1 - m, m, WH), Q(m, m, WH)], 'of-w2 cr-w ' + st));
@@ -25003,8 +25039,48 @@ function ofBuilding(c, F) {
   ofMiniJobs().forEach(j => { if ((j.room.ctr || 'Chưa ghi nơi học') !== c.nm) return; const r = RP[j.room.tem]; if (!r) return; const hy = r.y0 + RD + HL / 2;
     hh.push(ofMiniHtml(j, [P0(-.3, GY + .1, 0), r.P(-.1, hy, 0), r.P(r.x + .5, hy, 0), r.P(r.x + .5, r.y0 + .9, 0)])); });
   const C = c.ct, nf = c.tut.filter(ofNob).length;
-  const sign = '<div class="cr-sign"><i class="bi ' + OF_PK[kind][1] + '"></i><span><b>' + esc(c.nm) + '</b><small>' + (OF_PK[kind][0] !== c.nm ? OF_PK[kind][0] + ' · ' : '') + (RW > 1 ? RW + ' tầng · ' : '') + n + ' phòng · ' + c.nk + ' bé' + (C.dang ? ' · <em class="dang">' + C.dang + ' đang học</em>' : '') + (C.qua ? ' · <em class="qua">' + C.qua + ' quá giờ</em>' : '') + (nf ? ' · <em class="qua"><i class="bi bi-flag-fill"></i> ' + nf + ' phòng chưa có bài</em>' : '') + '</small></span></div>';
+  const sign = '<div class="cr-sign"><i class="bi ' + OF_PK[kind][1] + '"></i><span><b>' + esc(c.nm) + '</b><small>' + (OF_PK[kind][0] !== c.nm ? OF_PK[kind][0] + ' · ' : '') + (ofFloors(c.tut.length) > 1 ? ofFloors(c.tut.length) + ' tầng · ' : '') + n + ' phòng · ' + c.nk + ' bé' + (C.dang ? ' · <em class="dang">' + C.dang + ' đang học</em>' : '') + (C.qua ? ' · <em class="qua">' + C.qua + ' quá giờ</em>' : '') + (nf ? ' · <em class="qua"><i class="bi bi-flag-fill"></i> ' + nf + ' phòng chưa có bài</em>' : '') + '</small></span></div>';
   return '<div class="of-cv of-stage cr bld" id="ofCv" data-w="' + W + '" data-h="' + H + '"><div class="of-cvin" style="width:' + W + 'px;height:' + H + 'px"><svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' + sv.join('') + '</svg>' + hh.join('') + '</div>' + sign + '</div>';      // biển khu đặt SAU lớp co giãn (ofCvFit co phần tử con .of-cvin)
+}
+/** (1.82.32) gia sư có buổi HÔM NAY chưa có bài (dùng chung: cảnh Văn phòng quản lý + popup) — sớm nhất trước */
+function ofVpWait(M) {
+  const W = []; M.forEach(c => c.tut.forEach(t => { if (!ofNob(t)) return; const it = []; t.kids.forEach(r => r.ses.forEach(q => { if (q.nob && q.st !== 'xong') it.push({ cid: r.cid, be: r.be, d: OF.sch.today, gio: q.gio }); })); W.push({ t: t, ctr: c.nm, it: it }); }));
+  return W.sort((a, b) => String(a.it[0] && a.it[0].gio).localeCompare(String(b.it[0] && b.it[0].gio)));
+}
+/** (1.82.32) VĂN PHÒNG QUẢN LÝ — cảnh chi tiết (bấm khối Văn phòng quản lý ở khuôn viên): sàn vàng như Tủ báo cáo · tủ hồ sơ bài + bảng việc hôm nay trên tường sau ·
+    QUẦY GIAO BÀI với trợ lý điều độ ngồi sau quầy (bấm quầy → popup danh sách + AI gán) · gia sư chờ bài XẾP HÀNG trước quầy theo giờ học (bấm người → phòng học của gia sư) ·
+    mini agent đang đi giao bài / chờ duyệt đứng ở cửa ra khuôn viên (có kết quả → bấm xem & duyệt) */
+function ofVpScene(M) {
+  const W = ofVpWait(M), TW = 260, TH = 130, WH = 60, GX = 7, GY = 4.6, X0 = (GY + .4) * TW / 2 + 90, Y0 = WH + 120;
+  const P = (gx, gy, z) => [X0 + (gx - gy) * TW / 2, Y0 + (gx + gy) * TH / 2 - (z || 0)], Wd = Math.round(X0 + (GX + .4) * TW / 2 + 90), H = Math.round(Y0 + (GX + GY) * TH / 2 + 70);
+  const sv = [], hh = [], icon = (p, html, cls, tt, z, at) => hh.push('<span class="cr-ic ' + (cls || '') + '" style="' + ofCrPos(p, z || 100) + '"' + (tt ? ' title="' + esc(tt) + '"' : '') + (at || '') + '>' + html + '</span>');
+  const tag = (p, html, cls) => hh.push('<span class="cr-tag ' + (cls || '') + '" style="' + ofCrPos(p, 300) + '">' + html + '</span>'), busy = W.length > 0;
+  sv.push(ofPoly([P(-.3, -.3), P(GX + .3, -.3), P(GX + .3, GY + .3), P(-.3, GY + .3)], 'of-base'));
+  sv.push(ofPoly([P(0, 0), P(GX, 0), P(GX, GY), P(0, GY)], 'cr-top off'));
+  sv.push(ofPoly([P(0, 0), P(0, GY), P(0, GY, WH), P(0, 0, WH)], 'of-w1 cr-fa rep') + ofPoly([P(0, 0), P(GX, 0), P(GX, 0, WH), P(0, 0, WH)], 'of-w2 cr-fa rep'));
+  for (let i = 0; i < 2; i++) sv.push(ofPoly([P(0, 1.2 + i * 1.6, 22), P(0, 2.2 + i * 1.6, 22), P(0, 2.2 + i * 1.6, 46), P(0, 1.2 + i * 1.6, 46)], 'cr-win on'));      // cửa sổ tường trái
+  for (let i = 0; i < 3; i++) sv.push(ofIsoBox(P, .25 + i * .62, .8 + i * .62, .08, .42, 0, 50, 'of-rc'));      // tủ hồ sơ bài (góc sau trái)
+  sv.push(ofPoly([P(2.6, 0, 18), P(5.4, 0, 18), P(5.4, 0, 50), P(2.6, 0, 50)], 'cr-board' + (busy ? ' late' : ' on')) + ofPoly([P(2.6, 0, 15), P(5.4, 0, 15), P(5.4, 0, 18), P(2.6, 0, 18)], 'cr-ledge'));
+  tag(P(4, 0, 52), '<b>Hôm nay</b>' + (busy ? '<em class="qua">' + W.reduce((a, w) => a + w.it.length, 0) + ' buổi chưa có bài</em>' : '<em class="dang">mọi buổi đã có bài</em>'), 'top');
+  sv.push(ofIsoBox(P, 5.9, 6.8, .1, .55, 0, 30, 'cr-shelf'));      // kệ giáo trình góc sau phải
+  /* quầy giao bài + giấy tờ + trợ lý điều độ sau quầy */
+  sv.push('<g class="cr-vpq" data-ofvpl="1" role="button"><title>Quầy giao bài — bấm để xem danh sách & AI gán</title>' + ofIsoBox(P, 1.3, 5, 1.45, 1.85, 0, 24, 'of-dk') +
+    [1.6, 2.3, 3, 3.7, 4.4].map((x, i) => ofPoly([P(x, 1.52, 24.5 + (i % 2)), P(x + .42, 1.52, 24.5 + (i % 2)), P(x + .42, 1.78, 24.5 + (i % 2)), P(x, 1.78, 24.5 + (i % 2))], 'of-pap')).join('') + '</g>');
+  sv.push(ofIsoBox(P, 2.95, 3.35, .85, 1.15, 0, 10, 'cr-ch'));
+  icon(P(3.15, 1.05), typeof asstAva === 'function' ? asstAva(0, 'sm', busy) : '', 'bot q', 'Trợ lý điều độ — bấm để xem danh sách & AI gán', 110, ' data-ofvpl="1"');
+  hh.push('<button type="button" class="of-lb in cr-lb top off" data-ofvpl="1" style="' + ofCrPos(P(5.25, 1.65, 26), 400) + '"><b><i class="bi bi-magic"></i>Quầy giao bài</b><small>' + (busy ? W.length + ' gia sư chờ · bấm để AI gán' : 'không ai chờ') + '</small></button>');
+  /* hàng chờ: HAI HÀNG thẳng đi ra từ quầy (mỗi hàng 6 người), sớm nhất đứng đầu sát quầy · tên + giờ bên phải mỗi người */
+  const N = 12; W.slice(0, N).forEach((w, k) => { const x = k % 2 ? 4 : 2.2, y = 2.25 + Math.floor(k / 2) * .42, p = P(x, y), g = w.it[0] ? w.it[0].gio : '';
+    icon(p, ofHuAva('t', 'sm', w.t.tem), 'q wait', w.t.tn + ' · ' + w.ctr + ' · ' + w.it.map(x2 => x2.gio + ' ' + x2.be).join(' · ') + ' — bấm mở phòng học', 120, ' data-oftut="' + esc(w.t.tem) + '"');
+    tag(P(x + .36, y + .06), '<b>' + esc(aiCut(w.t.tn.split(' ').slice(-2).join(' '), 12)) + '</b>' + (g ? '<em class="qua">' + esc(g) + '</em>' : ''), 'qn'); });
+  if (W.length > N) tag(P(1, 4.4), '<b>+' + (W.length - N) + '</b> gia sư nữa · bấm quầy để xem hết');
+  if (!busy) tag(P(3.2, 3), '<i class="bi bi-check2-circle"></i> Không ai phải chờ bài', 'gate');
+  /* cửa ra khuôn viên + mini agent đang đi giao bài / chờ duyệt */
+  sv.push(ofPoly([P(GX, 3.3), P(GX, 4.3), P(GX + .3, 4.3), P(GX + .3, 3.3)], 'cr-walk'));
+  tag(P(GX + .15, 3.8), '<i class="bi bi-signpost-2"></i>Ra khuôn viên', 'gate');
+  ofMiniJobs().filter(j => j.s !== 'back').slice(0, 4).forEach((j, i) => { const p = P(6.2 - (i % 2) * .5, 2.3 + Math.floor(i / 2) * .9); hh.push(ofMiniHtml(j, [p, p, p, p, p])); });
+  const sign = '<div class="cr-sign"><i class="bi bi-briefcase"></i><span><b>Văn phòng quản lý</b><small>' + (busy ? '<em class="qua">' + W.length + ' gia sư chờ lấy bài</em>' : 'Không gia sư nào phải chờ bài') + ' · bấm quầy để AI gán</small></span></div>';
+  return '<div class="of-cv of-stage cr bld vp" id="ofCv" data-w="' + Wd + '" data-h="' + H + '"><div class="of-cvin" style="width:' + Wd + 'px;height:' + H + 'px"><svg width="' + Wd + '" height="' + H + '" viewBox="0 0 ' + Wd + ' ' + H + '" aria-hidden="true">' + sv.join('') + '</svg>' + hh.join('') + '</div>' + sign + '</div>';
 }
 /** (1.82.30) THỐNG KÊ BUỔI HÔM NAY dạng biểu đồ tròn (donut): mỗi trạng thái một cung, đường dẫn ra nhãn hai bên (tên · số buổi · %), tổng ở giữa */
 const OF_DN = [['dang', 'Đang học', '#16A34A'], ['sap', 'Sắp học', 'var(--primary)'], ['xong', 'Đã học', '#94A3B8'], ['qua', 'Quá giờ', '#DC2626']];
@@ -25024,23 +25100,25 @@ function ofSchDonut(C) {
 function ofSchPaint() {
   const V = $('#ofSchV'); if (!V) return; const D = OF.sch, F = OF.scF = OF.scF || { m: 'today', s: '', ct: '' };
   if (!D) { V.innerHTML = '<div class="of-lob-e">' + (OF.scErr ? '<div class="small muted">' + esc(OF.scErr) + '</div>' : miniLoader('Đang mở khuôn viên…')) + '</div>'; return; }
-  const M = ofSchModel(), c = F.ct ? M.find(x => x.nm === F.ct) : null; if (F.ct && !c) F.ct = '';
+  const M = ofSchModel(), vp = F.ct === '@vp', c = F.ct && !vp ? M.find(x => x.nm === F.ct) : null; if (F.ct && !c && !vp) F.ct = '';      // (1.82.32) '@vp' = cảnh chi tiết Văn phòng quản lý
   const s = (F.s || '').toLowerCase(), hits = s ? D.rooms.filter(r => (r.be + ' ' + r.tn + ' ' + r.code).toLowerCase().indexOf(s) >= 0).slice(0, 8) : [];
   const C = c ? c.ct : D.cnt;
-  V.innerHTML = '<div class="of-lob-bar of-sch-bar"><nav class="of-crumb" aria-label="Vị trí"><button type="button" data-ofsct=""' + (c ? '' : ' aria-current="page"') + '><i class="bi bi-map"></i>Khuôn viên</button>' + (c ? '<i class="bi bi-chevron-right"></i><b><i class="bi ' + OF_PK[ofPlaceKind(c)][1] + '"></i> ' + esc(c.nm) + '</b>' : '') + '</nav>' +
+  V.innerHTML = '<div class="of-lob-bar of-sch-bar"><nav class="of-crumb" aria-label="Vị trí"><button type="button" data-ofsct=""' + (c ? '' : ' aria-current="page"') + '><i class="bi bi-map"></i>Khuôn viên</button>' + (c ? '<i class="bi bi-chevron-right"></i><b><i class="bi ' + OF_PK[ofPlaceKind(c)][1] + '"></i> ' + esc(c.nm) + '</b>' : vp ? '<i class="bi bi-chevron-right"></i><b><i class="bi bi-briefcase"></i> Văn phòng quản lý</b>' : '') + '</nav>' +
       '<div class="of-rp-days" role="tablist"><button type="button" data-ofsm="today"' + (F.m === 'today' ? ' class="on"' : '') + '>Học hôm nay</button><button type="button" data-ofsm="all"' + (F.m === 'all' ? ' class="on"' : '') + '>Tất cả phòng</button></div>' +
       '<div class="of-schq"><input class="inp sm" id="ofSchQ" type="search" placeholder="Tìm gia sư / bé / mã lớp…" value="' + esc(F.s || '') + '" autocomplete="off">' + (hits.length ? '<div class="of-schh">' + hits.map(r => '<button type="button" data-ofsgo="' + esc(r.ctr + '|' + r.tem + '|' + r.cid) + '">' + ofHuAva('s', 'xxs', r.cid) + '<span><b>' + esc(r.be) + '</b><small>' + esc(r.tn + ' · ' + r.ctr) + '</small></span><em class="' + ofKst(r) + '">' + esc(r.ses[0] ? r.ses[0].gio : '') + '</em></button>').join('') + '</div>' : s ? '<div class="of-schh"><div class="small muted" style="padding:8px">Không thấy</div></div>' : '') + '</div>' +
       '</div>' +
-    (c ? ofBuilding(c, F) : M.length ? ofCampus(M) : '<div class="of-cv of-stage cr e"><div class="of-dk-e" style="padding:40px"><b>Chưa có lớp nào đang học</b></div></div>');      // (1.82.30) chỉ còn sơ đồ 2D kiểu Văn phòng AI (bỏ bản 3D chibi)
-  { const cv = $('#ofCv', V); if (cv && (c || M.length)) cv.insertAdjacentHTML('beforeend', ofSchDonut(C)); }      // (1.82.30) biểu đồ tròn thay dải chip trạng thái
+    (vp ? ofVpScene(M) : c ? ofBuilding(c, F) : M.length ? ofCampus(M) : '<div class="of-cv of-stage cr e"><div class="of-dk-e" style="padding:40px"><b>Chưa có lớp nào đang học</b></div></div>');      // (1.82.30) chỉ còn sơ đồ 2D kiểu Văn phòng AI (bỏ bản 3D chibi)
+  { const cv = $('#ofCv', V); if (cv && (c || vp || M.length)) cv.insertAdjacentHTML('beforeend', ofSchDonut(C)); }      // (1.82.30) biểu đồ tròn thay dải chip trạng thái
   { const zk = F.ct + '|' + F.m; if (OF.cvzK !== zk) { OF.cvzK = zk; OF.cvz = { z: 1, x: 0, y: 0 }; } }      // đổi khu / chế độ → về vừa khung; dữ liệu mới về → giữ nguyên độ phóng
   ofCvBind(); ofCvFit(); OF.miSig = ofMiniSig();
   const q = $('#ofSchQ', V); if (q) { q.oninput = debounce(e => { F.s = e.target.value.trim(); const p = e.target.selectionStart; ofSchPaint(); const n = $('#ofSchQ'); if (n) { n.focus(); n.setSelectionRange(p, p); } }, 250); }
-  clearTimeout(OF.trPt); OF.trPt = setTimeout(() => ofTrPrefetch((c ? c.tut : M.reduce((a, x) => a.concat(x.tut.filter(t => t.st === 'dang' || t.st === 'qua')), [])).map(t => t.tem).filter(Boolean)), 400);      // tải sẵn phòng gia sư → bấm là mở ngay
+  clearTimeout(OF.trPt); OF.trPt = setTimeout(() => ofTrPrefetch((vp ? ofVpWait(M).map(w => w.t) : c ? c.tut : M.reduce((a, x) => a.concat(x.tut.filter(t => t.st === 'dang' || t.st === 'qua')), [])).map(t => t.tem).filter(Boolean)), 400);      // tải sẵn phòng gia sư → bấm là mở ngay
   V.onpointerover = e => { const r = e.target.closest('[data-ofsrm],[data-ofst]'); if (r) ofTrPrefetch([r.dataset.ofsrm || r.dataset.ofst]); };
   V.onclick = e => { const m = e.target.closest('[data-ofsm]'); if (m) { F.m = m.dataset.ofsm; return ofSchPaint(); }
     const rs = e.target.closest('[data-ofres]'); if (rs) return ofResult(rs.dataset.ofres, rs.dataset.ofag);      // (1.82.30) mini agent có kết quả → mở báo cáo để duyệt
-    if (e.target.closest('[data-ofslob]')) return ofVpql();      // (1.82.30) Văn phòng quản lý → POPUP gia sư chờ lấy bài (không chuyển sang Sảnh gia sư)
+    if (e.target.closest('[data-ofvpl]')) return ofVpql();      // (1.82.32) quầy giao bài / trợ lý điều độ trong cảnh chi tiết → popup danh sách + AI gán
+    const tu = e.target.closest('[data-oftut]'); if (tu) return ofTutRoom(tu.dataset.oftut);      // (1.82.32) người xếp hàng → phòng học của gia sư
+    if (e.target.closest('[data-ofslob]')) { F.ct = '@vp'; return ofSchPaint(); }      // (1.82.32) khối / biển Văn phòng quản lý ở khuôn viên → mở CẢNH CHI TIẾT (quầy, hàng chờ, mini agent)
     const g = e.target.closest('[data-ofsgo]'); if (g) { const [cn, tem, cid] = g.dataset.ofsgo.split('|'); F.ct = cn; F.s = ''; ofSchPaint(); return ofSchZoom(tem, cn, cid); }
     const r = e.target.closest('[data-ofsrm]'); if (r) return ofSchZoom(r.dataset.ofsrm, r.dataset.ofsc || F.ct, '', r);      // (1.82.30) bấm phòng nhỏ ngay ở khuôn viên cũng vào lớp
     const ct = e.target.closest('[data-ofsct]'); if (ct) { F.ct = ct.dataset.ofsct; return ofSchPaint(); } };
@@ -25050,8 +25128,7 @@ function ofMiniSig() { return OF.sch && OF.d ? ofMiniJobs().map(j => j.id + j.s)
 function ofSchMiniSync() { if (OF.view !== 'school' || OF.zk || !OF.sch || !OF.d) return; if ((OF.d.done || []).some(r => r.cid) && typeof ofPrefetch === 'function') ofPrefetch(); const g = ofMiniSig(); if (g !== OF.miSig) ofSchPaint(); }
 /** (1.82.30) VĂN PHÒNG QUẢN LÝ (bấm ở khuôn viên): popup các gia sư có buổi HÔM NAY chưa có bài — AI gán từng người · mở phòng học · sang Sảnh gia sư nếu cần */
 function ofVpql() {
-  const M = ofSchModel(), W = []; M.forEach(c => c.tut.forEach(t => { if (!ofNob(t)) return; const it = []; t.kids.forEach(r => r.ses.forEach(q => { if (q.nob && q.st !== 'xong') it.push({ cid: r.cid, be: r.be, d: OF.sch.today, gio: q.gio }); })); W.push({ t: t, ctr: c.nm, it: it }); }));
-  W.sort((a, b) => String(a.it[0] && a.it[0].gio).localeCompare(String(b.it[0] && b.it[0].gio)));
+  const W = ofVpWait(ofSchModel());
   const P = ofPopShell('@vpql'); P.el.innerHTML = '<div class="of-pop-h">' + (typeof asstAva === 'function' ? asstAva(0, 'sm', W.length > 0) : '') + '<div class="t"><b>Văn phòng quản lý</b><small>' + (W.length ? W.length + ' gia sư chờ lấy bài cho buổi hôm nay' : 'Không gia sư nào phải chờ bài hôm nay') + '</small></div><button type="button" class="ibtn sm" data-ofpx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
     '<div class="of-pop-b">' + (W.length ? '<div class="of-vq">' + W.map((w, i) => '<div class="of-vqr"><button type="button" class="t" data-oftut="' + esc(w.t.tem) + '" title="Mở phòng học của ' + esc(w.t.tn) + '">' + ofHuAva('t', 'xs', w.t.tem) + '<span><b>' + esc(w.t.tn) + '</b><small>' + esc(w.ctr) + ' · ' + w.it.map(x => x.gio + ' ' + x.be).join(' · ') + '</small></span></button>' +
       '<button type="button" class="btn xs pri" data-ofvqa="' + i + '"><i class="bi bi-magic"></i>AI gán ' + w.it.length + ' buổi</button></div>').join('') + '</div>' : '<div class="of-dk-e" style="padding:24px"><i class="bi bi-check2-circle" style="font-size:26px;color:#16A34A"></i><b>Mọi buổi hôm nay đã có bài</b></div>') + '</div>' +
