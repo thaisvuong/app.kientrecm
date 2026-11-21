@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-21T16:20:00.868Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-21T16:28:47.364Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -3984,6 +3984,8 @@ body.cp-dragging, body.cp-dragging *{ cursor:grabbing !important; user-select:no
 .lp-f:hover{ background:var(--surface) } .lp-f.on{ background:var(--surface); border-color:var(--brand-400) }
 .lp-f span{ min-width:0; display:flex; flex-direction:column } .lp-f b{ font-size:12.5px; font-weight:650; line-height:1.4; overflow-wrap:anywhere } .lp-f small{ font-size:11px; color:var(--muted) }
 .lp-v{ min-height:0; display:flex; flex-direction:column; background:var(--surface) } .lp-vb{ display:flex; justify-content:flex-end; padding:6px 10px; border-bottom:1px solid var(--border) }
+.lp-vb{ align-items:center; gap:8px } .lp-vb .sp{ flex:1 } .lp-zm{ display:flex; align-items:center; gap:2px } .lp-zm[hidden]{ display:none } .lp-zm b{ min-width:74px; text-align:center; font-size:12px; font-weight:700; color:var(--ink-2); font-variant-numeric:tabular-nums } .lp-zm .btn{ margin-left:4px }      /* (1.82.38) phóng to / thu nhỏ khung xem bài */
+.lp-pg .pages{ margin:0 auto }
 .lp-pg{ flex:1; min-height:0; overflow:auto; background:var(--surface-2); display:flex; flex-direction:column } .lp-pg iframe{ flex:1; width:100%; min-height:60vh; border:0; background:#fff }
 .lp-ld{ margin:auto; display:flex; gap:8px; align-items:center; color:var(--muted); font-size:13px } .lp-img{ display:block; max-width:min(100%, 900px); margin:12px auto 0; box-shadow:0 4px 18px -8px rgba(0,0,0,.3); background:#fff }
 @media (max-width:900px){
@@ -10095,7 +10097,7 @@ async function filePrefetchPump() {
 
 /* ══════════ BỘ VẼ PDF ══════════ */
 function PdfView(host, opt) {
-  const P = { host: host, pdf: null, pages: [], zoom: lsGet('zoom', 0), base: 1, obs: null, cur: 1, gen: 0, onPage: opt.onPage || function () {} };
+  const ZK = opt.zkey || 'zoom', P = { host: host, pdf: null, pages: [], zoom: lsGet(ZK, 0), base: 1, obs: null, cur: 1, gen: 0, onPage: opt.onPage || function () {} };
   const wrap = document.createElement('div'); wrap.className = 'pages'; host.appendChild(wrap);
 
   P.open = async (b64) => {
@@ -10165,7 +10167,7 @@ function PdfView(host, opt) {
   P.setZoom = z => {
     const p = P.pages[P.cur - 1]; if (!p) return;
     const off = (host.scrollTop - p.el.offsetTop) / Math.max(1, p.el.offsetHeight);
-    P.zoom = z; lsSet('zoom', z); P.gen++;
+    P.zoom = z; lsSet(ZK, z); P.gen++;
     P.pages.forEach(x => { P.size(x); x.drawn = 0; });
     host.scrollTop = p.el.offsetTop + off * p.el.offsetHeight;
     P.pages.forEach(x => { const r = x.el.getBoundingClientRect(), hr = host.getBoundingClientRect(); if (r.bottom > hr.top - 600 && r.top < hr.bottom + 600) P.draw(x); });
@@ -10196,7 +10198,7 @@ function PdfView(host, opt) {
     const end = () => { if (!g) return; const q = g; g = null; wrap.style.transform = ''; wrap.style.willChange = ''; wrap.style.transformOrigin = '';
       if (Math.abs(q.k - 1) < 0.02) return;
       let z = q.s0 * q.k; if (Math.abs(z - P.base) / P.base < 0.04) z = 0;
-      P.zoom = z; lsSet('zoom', z); P.gen++;
+      P.zoom = z; lsSet(ZK, z); P.gen++;
       const f = P.scale() / q.s0;
       P.pages.forEach(x => { P.size(x); x.drawn = 0; });
       host.scrollLeft = Math.max(0, q.sx * f - q.mx); host.scrollTop = Math.max(0, q.sy * f - q.my);
@@ -19507,20 +19509,34 @@ function clLessonPeek(id) {
   const paint = () => {
     L.innerHTML = F.length ? F.map(f => '<button type="button" class="lp-f' + (f.id === cur ? ' on' : '') + '" data-lpf="' + esc(f.id) + '">' + ficon(f.type) + '<span><b>' + esc(clFName(f.name)) + '</b><small>' + esc([f.kind ? kindOf(f.kind).k : '', f.size ? fmtSize(f.size) : ''].filter(Boolean).join(' · ')) + '</small></span></button>').join('')
       : '<div class="lk-empty sm"><i class="bi bi-folder2"></i><span>Thư mục này chưa có tệp nào trong thư viện (topic chưa có tài liệu)</span></div>';
-    V.innerHTML = cur ? '<div class="lp-vb"><a class="btn xs ghost" target="_blank" rel="noopener" href="' + driveUrl(cur) + '"><i class="bi bi-box-arrow-up-right"></i>Mở trên Drive</a></div><div class="lp-pg" id="lpPg"><div class="lp-ld"><span class="spin"></span>Đang mở tệp…</div></div>'
+    const sz = (IX.byId[cur] || {}).size;
+    V.innerHTML = cur ? '<div class="lp-vb"><div class="lp-zm" role="group" aria-label="Phóng to / thu nhỏ" hidden><button type="button" class="ibtn sm" data-lpz="-1" title="Thu nhỏ (Ctrl / ⌘ + lăn chuột)" aria-label="Thu nhỏ"><i class="bi bi-dash-lg"></i></button><b id="lpZl">Vừa khung</b><button type="button" class="ibtn sm" data-lpz="1" title="Phóng to" aria-label="Phóng to"><i class="bi bi-plus-lg"></i></button><button type="button" class="btn xs ghost" data-lpz="0" title="Vừa bề rộng khung"><i class="bi bi-arrows-angle-contract"></i>Vừa khung</button></div><span class="sp"></span><a class="btn xs ghost" target="_blank" rel="noopener" href="' + driveUrl(cur) + '"><i class="bi bi-box-arrow-up-right"></i>Mở trên Drive</a></div><div class="lp-pg" id="lpPg"><div class="lp-ld"><span class="spin"></span>' + (typeof fcGet === 'function' && fcGet(cur) ? 'Đang vẽ trang…' : 'Đang tải tệp' + (sz ? ' (' + fmtSize(sz) + ')' : '') + '…') + '</div></div>'
       : '<div class="lk-empty"><i class="bi bi-eye-slash"></i><span>Không có tệp để xem</span></div>';
     if (cur) show(cur);
   };
   /* bộ xem PDF của app (tải qua máy chủ — không cần quyền Drive) · tệp khác: ảnh trang đầu · cuối cùng mới dùng trình xem Drive */
   const show = async id => { const pg = m.$('#lpPg'), f = IX.byId[id] || {}, still = () => cur === id && pg.isConnected;
-    try { if (f.type === 'pdf' && typeof fileData === 'function' && typeof PdfView === 'function') { const d = await fileData(id, true); if (!still()) return; if (d && d.type === 'pdf') { pg.innerHTML = ''; await PdfView(pg, {}).open(d.b64); return; } } }
+    try { if (f.type === 'pdf' && typeof fileData === 'function' && typeof PdfView === 'function') { const d = await fileData(id, true); if (!still()) return; if (d && d.type === 'pdf') { pg.innerHTML = ''; if (PV) PV.destroy(); PV = PdfView(pg, { zkey: 'zoomPeek', onZoom: zl }); await PV.open(d.b64); zl(); const zb = m.$('.lp-zm'); if (zb) zb.hidden = false; pre(); return; } } }
     catch (e) { console.warn('lessonPeek pdf', e); if (!still()) return; }
     try { const r = await rpc('filePeek', { id: id, w: 1100 }, { quiet: true }); if (!still()) return; if (r && r.url) { pg.innerHTML = '<img class="lp-img" alt="Trang đầu" src="' + esc(r.url) + '"><div class="small muted" style="text-align:center;margin:8px 0">Trang đầu — bấm “Mở trên Drive” để xem đủ</div>'; return; } }
     catch (e) { console.warn('lessonPeek', e); }
     if (still()) pg.innerHTML = '<iframe src="https://drive.google.com/file/d/' + encodeURIComponent(id) + '/preview" title="Xem trước" allow="autoplay" loading="lazy"></iframe>'; };
   L.onclick = e => { const b = e.target.closest('[data-lpf]'); if (!b || b.dataset.lpf === cur) return; cur = b.dataset.lpf; paint(); };
+  /* (1.82.38) PHÓNG TO / THU NHỎ trong khung xem bài: − / + (bước 20 %), Vừa khung, Ctrl / ⌘ + lăn chuột; mặc định VỪA BỀ RỘNG khung (trước: dùng chung mức phóng của trình xem chính → mở ra quá to, không thu nhỏ được) */
+  let PV = null; const zl = () => { const e = m.$('#lpZl'); if (e && PV) e.textContent = PV.zoom ? Math.round(PV.scale() / PV.base * 100) + '%' : 'Vừa khung'; };
+  const zoomBy = k => { if (!PV || !PV.pages.length) return; const s0 = PV.scale(), z = k ? Math.max(.25 * PV.base, Math.min(4 * PV.base, s0 * k)) : 0; PV.setZoom(z && Math.abs(z - PV.base) / PV.base < .04 ? 0 : z); zl(); };
+  V.onclick = e => { const b = e.target.closest('[data-lpz]'); if (!b) return; const v = +b.dataset.lpz; zoomBy(v ? (v > 0 ? 1.2 : 1 / 1.2) : 0); };
+  V.addEventListener('wheel', e => { if (!(e.ctrlKey || e.metaKey) || !e.target.closest('#lpPg')) return; e.preventDefault(); zoomBy(e.deltaY < 0 ? 1.1 : 1 / 1.1); }, { passive: false });
+  /* (1.82.38) TẢI NHANH: mở bài là tải sẵn (ngầm, lần lượt) các tệp PDF khác trong thư mục → bấm sang tệp khác là hiện ngay */
+  const pre = () => { if (typeof fileData !== 'function') return; F.filter(f => f.id !== cur && f.type === 'pdf' && !(typeof fcGet === 'function' && fcGet(f.id)) && (f.size || 0) < 15e6).slice(0, 6).reduce((pr, f) => pr.then(() => m.$('#lpV') ? fileData(f.id, true).catch(() => {}) : null), Promise.resolve()); };
+  { const ob = new MutationObserver(() => { if (!V.isConnected) { ob.disconnect(); if (PV) PV.destroy(); } }); ob.observe(document.body, { childList: true }); }      // đóng hộp → bỏ bộ xem (gỡ lắng nghe đổi cỡ)
   paint(); return m;
 }
+/** (1.82.38) TẢI SẴN tệp PDF đầu tiên của bài khi rê chuột / chạm vào nút xem bài → bấm là hiện gần như ngay */
+function clLessonPre(id) { if (!id || typeof fileData !== 'function' || !IX || !IX.byId) return; clLessonPre.s = clLessonPre.s || {}; if (clLessonPre.s[id]) return; clLessonPre.s[id] = 1;
+  const d = IX.dirs && IX.dirs[id], F = d ? filesIn(id) : [IX.byId[id]].filter(Boolean), f = F.filter(x => x && x.type === 'pdf' && (x.size || 0) < 15e6).sort((a, b) => natCmp(String(a.path || '') + '/' + a.name, String(b.path || '') + '/' + b.name))[0];
+  if (f && !(typeof fcGet === 'function' && fcGet(f.id))) fileData(f.id, true).catch(() => {}); }
+document.addEventListener('pointerover', e => { const v = e.target.closest && e.target.closest('[data-view]'); if (v) clLessonPre(v.dataset.view); }, { passive: true });
 /* (1.82) THANH KÉO ĐỔI ĐỘ RỘNG hai cột (Bảng gán bài): kéo / phím ← → / bấm đúp (rộng ↔ gọn), nhớ trên máy. Điện thoại (≤ 900px) xếp dọc, không có thanh kéo */
 function clSplit(lay, sp, key, def) {
   if (!lay || !sp) return;
