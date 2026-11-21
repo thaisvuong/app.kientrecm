@@ -2725,7 +2725,7 @@ html{ touch-action:manipulation; -webkit-tap-highlight-color:transparent }
   .bn-i{ flex:1; min-width:0; position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; border:0; background:transparent; border-radius:26px;
     color:var(--muted); text-decoration:none; font:700 10.5px/1.1 var(--font-sans); cursor:pointer; padding:0 2px }
   .bn-i > i{ font-size:20px; line-height:1 } .bn-i > i.on{ display:none }
-  .bn-i span{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100% }
+  .bn-i span{ max-width:100% }
   .bn-i[aria-current]{ color:var(--ink); background:rgba(118,118,128,.14) } .bn-i[aria-current] > i.on{ color:var(--brand-700) }
   .bn-i[aria-current] > i:not(.on){ display:none } .bn-i[aria-current] > i.on{ display:block }
   #bnMore[aria-current] > i{ display:block }
@@ -4139,7 +4139,7 @@ h1, h2, h3, h4{ color:var(--ink) }
   .tabbar{ border:1px solid var(--border); box-shadow:var(--sh-3); height:60px; padding:4px; gap:2px; border-radius:18px; background:rgba(255,255,255,.94) }
   /* tab dưới: biểu tượng + nhãn ngắn một dòng, có khoảng cách rõ */
   .bn-i{ gap:4px; padding:0 2px; border-radius:14px; font:600 10px/1.2 var(--font-sans); letter-spacing:0; min-width:0 } .bn-i > i{ font-size:19px; line-height:1 }
-  .bn-i span{ display:block; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .bn-i span{ display:block; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:clip }      /* (1.82.37) một dòng, KHÔNG “…”: nhãn ngắn + bnFit co chữ / bỏ từ cho vừa */
   .bn-i[aria-current]{ color:var(--primary); background:var(--lightprimary) } .bn-i[aria-current] > i.on{ color:var(--primary) }
   /* đầu trang: tên trang dài thì cắt bằng …, các nút bên phải giữ nguyên chỗ và chỉ còn biểu tượng */
   .tb{ overflow:hidden; gap:8px } .tb-title{ flex:1 1 0; min-width:0 } .tb-t1{ display:block; font-size:18px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
@@ -5929,7 +5929,7 @@ async function printPass() {
 function stampPrint(cv, pass) {
   const g = cv.getContext('2d'), fs = Math.max(10, Math.round(cv.width / 95)), txt = 'Bản in ' + pass.n + '/' + pass.max + ' · ' + V.L.name + ' · ' + pass.at + ' · không sao chép, phát tán';
   g.save(); g.font = fs + 'px ui-sans-serif, system-ui, -apple-system, Helvetica, Arial, sans-serif'; g.textBaseline = 'bottom';
-  const t = g.measureText(txt).width > cv.width * 0.94 ? txt.slice(0, Math.floor(txt.length * cv.width * 0.94 / g.measureText(txt).width) - 1) + '…' : txt;
+  const t = g.measureText(txt).width > cv.width * 0.94 ? (w => { let t = txt; while (t.indexOf(' ') > 0 && g.measureText(t).width > w) t = t.slice(0, t.lastIndexOf(' ')); return g.measureText(t).width > w ? t.slice(0, Math.floor(t.length * w / g.measureText(t).width)) : t; })(cv.width * 0.94) : txt;      // (1.82.37) bỏ từ cuối, không “…”
   const w = g.measureText(t).width, x = (cv.width - w) / 2, y = cv.height - Math.round(fs * 0.6);
   g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(x - fs * 0.4, y - fs * 1.25, w + fs * 0.8, fs * 1.45);
   g.fillStyle = 'rgba(70,80,95,.9)'; g.fillText(t, x, y); g.restore();
