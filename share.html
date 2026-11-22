@@ -5404,6 +5404,269 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 <div id="toasts" aria-live="polite"></div>
 <div class="no-print-msg">Tài liệu này không cho phép in.</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+/* ══════════ HIỆU ỨNG CHỜ TẢI TÀI LIỆU — loadFx(text, { k, sm }) ══════════
+   (1.82.50) bản đầu · (1.82.51) vẽ lại chân thật hơn: căn phòng có tường / sàn, đồ vật có khối (tủ kim loại, gỗ, giấy gập góc),
+   KHÔNG có người nhận (link còn gửi cho phụ huynh) — điểm đến là màn hình / điện thoại / cuốn sách mở / hộp thư / khay duyệt.
+   5 cảnh ngẫu nhiên (không lặp cảnh vừa xem): tu tủ hồ sơ · dr tìm trên Drive · ke kệ tài liệu · in máy in → phong bì → hộp thư · bc băng chuyền đóng dấu duyệt.
+   Chỉ SVG + CSS (transform / opacity) — không tải ảnh, không chạy JS theo khung hình, nên không làm chậm việc tải tệp.
+   Mỗi lần gọi có id riêng cho gradient / clipPath (nhiều hiệu ứng cùng trang không giẫm nhau). Tên lớp tiền tố lx- để không dính CSS chung. */
+.lfx{ --lp:var(--brand-600, #2563EB); --lk:var(--ink, #0F172A); --lm:var(--muted, #64748B); --lb:var(--border, #E2E8F0);
+  --wl1:#F7F9FC; --wl2:#E6EBF2; --fl1:#D8DFE8; --fl2:#C3CCD8; --skt:#BAC4D1;
+  --m1:#F4F6F9; --m2:#C2CBD7; --mo:#97A3B4; --mk:#6B7787;
+  --w1:#C8915F; --w2:#97643D; --w3:#71482A; --wb:#5A3820;
+  --r1:#FFFFFF; --r2:#D3DBE6; --ro:#A3AFC0; --rv:#0E1A30; --re:#5EEAD4;
+  --pp:#FFFFFF; --ppl:#CBD5E1; --ppo:#AEB9C8; --ppf:#E2E8F0;
+  --dv:#1E2433; --dv2:#3A4253; --scr:#EEF2F7; --sk:#CBD5E1;
+  --ui:#FFFFFF; --ui2:#F1F4F8; --tx:#8C99AB; --tx2:#CDD5E0; --hit:#E8F0FE;
+  --ok:#16A34A; --fd:#E9C46A; --fd2:#D9A93F; --pot:#C2410C; --lf:#16A34A; --lf2:#15803D;
+  --ev:#F3E3C3; --ev2:#E9D3A6; --ev3:#DDC28D; --evo:#B9975B; --mb:#DC2626; --mb2:#991B1B;
+  display:flex; flex-direction:column; align-items:center; gap:7px; width:min(340px, 92%); margin:auto; padding:6px 0; color:var(--lm); text-align:center; user-select:none; -webkit-user-select:none }
+.lfx.sm{ width:min(290px, 90%) } .lp-ld.fx{ display:block; width:100%; padding:16px 0 }
+html[data-mode="dark"] .lfx{ --wl1:#1C2334; --wl2:#151B29; --fl1:#121827; --fl2:#0D121D; --skt:#2A3448;
+  --m1:#5A667D; --m2:#2F384A; --mo:#1B2230; --mk:#9AA6B8;
+  --w1:#8F613D; --w2:#6A4428; --w3:#4A2F1B; --wb:#2D1C10;
+  --r1:#EEF2F7; --r2:#A6B3C6; --ro:#59667A; --rv:#0A1222;
+  --pp:#E8ECF2; --ppl:#9AA6B8; --ppo:#6B778A; --ppf:#C5CDD8;
+  --dv:#0A0F1A; --dv2:#252D3D; --scr:#1F2A3C; --sk:#3A475C;
+  --ui:#1E293B; --ui2:#273449; --tx:#6B7A90; --tx2:#3F4C61; --hit:#1E3A6B;
+  --fd:#C9A653; --fd2:#A8843A; --pot:#9A3412; --lf:#15803D; --lf2:#166534;
+  --ev:#CDBB97; --ev2:#BCA77E; --ev3:#AD9468; --evo:#7E6740; --mb:#B91C1C; --mb2:#7F1D1D }
+.lfx svg{ width:100%; height:auto; display:block; overflow:hidden; border-radius:14px; box-shadow:0 0 0 1px var(--lb), 0 6px 18px -10px rgba(15,23,42,.35) }
+.lfx text{ font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif }
+.lfx .lx-sc{ animation:lfxFade 4.4s ease-in-out infinite }
+@keyframes lfxFade{ 0%{ opacity:0 } 5%, 94%{ opacity:1 } 100%{ opacity:0 } }
+/* chú thích 3 chặng + thanh chạy + dòng trạng thái (.ld-t — Share.html vẫn ghi vào được) */
+.lfx .lx-cap{ position:relative; height:19px; width:100%; font-size:13.5px; font-weight:700; color:var(--lk); letter-spacing:-.005em }
+.lfx .lx-cap span{ position:absolute; inset:0; opacity:0; white-space:nowrap; animation:lfxC 4.4s infinite }
+.lfx .lx-cap span:nth-child(2){ animation-name:lfxC2 } .lfx .lx-cap span:nth-child(3){ animation-name:lfxC3 }
+@keyframes lfxC{ 0%, 3%{ opacity:0; transform:translateY(4px) } 8%, 30%{ opacity:1; transform:none } 34%, 100%{ opacity:0 } }
+@keyframes lfxC2{ 0%, 33%{ opacity:0; transform:translateY(4px) } 38%, 62%{ opacity:1; transform:none } 66%, 100%{ opacity:0 } }
+@keyframes lfxC3{ 0%, 65%{ opacity:0; transform:translateY(4px) } 70%, 94%{ opacity:1; transform:none } 99%, 100%{ opacity:0 } }
+.lfx .ld-t{ font-size:11.5px; color:var(--lm); font-weight:500 }
+.lfx .lx-bar{ width:52%; height:3px; border-radius:3px; background:var(--lb); overflow:hidden } .lfx .lx-bar i{ display:block; width:40%; height:100%; border-radius:3px; background:var(--lp); animation:lfxBar 1.4s ease-in-out infinite }
+@keyframes lfxBar{ 0%{ transform:translateX(-100%) } 100%{ transform:translateX(250%) } }
+/* màu gradient (đổi theo sáng / tối) */
+.lfx .lx-s-wl1{ stop-color:var(--wl1) } .lfx .lx-s-wl2{ stop-color:var(--wl2) } .lfx .lx-s-fl1{ stop-color:var(--fl1) } .lfx .lx-s-fl2{ stop-color:var(--fl2) }
+.lfx .lx-s-m1{ stop-color:var(--m1) } .lfx .lx-s-m2{ stop-color:var(--m2) } .lfx .lx-s-w1{ stop-color:var(--w1) } .lfx .lx-s-w2{ stop-color:var(--w2) } .lfx .lx-s-r1{ stop-color:var(--r1) } .lfx .lx-s-r2{ stop-color:var(--r2) }
+.lfx .lx-s-sh1{ stop-color:#0B1220; stop-opacity:.28 } .lfx .lx-s-sh2{ stop-color:#0B1220; stop-opacity:0 } .lfx .lx-s-gl1{ stop-color:#FDE68A; stop-opacity:.55 } .lfx .lx-s-gl2{ stop-color:#FDE68A; stop-opacity:0 }
+.lfx .lx-s-gs1{ stop-color:#fff; stop-opacity:.75 } .lfx .lx-s-gs2{ stop-color:#fff; stop-opacity:.08 }
+/* hình dùng chung */
+.lfx .lx-skt{ fill:var(--skt) } .lfx .lx-o{ stroke:var(--mo); stroke-width:.8 } .lfx .lx-ow{ stroke:var(--w3); stroke-width:.8 }
+.lfx .lx-hl{ fill:#fff; opacity:.55 } html[data-mode="dark"] .lfx .lx-hl{ opacity:.14 } .lfx .lx-kick{ fill:var(--mk) } .lfx .lx-hdl{ fill:var(--mk) }
+.lfx .lx-wd2{ fill:var(--w2) } .lfx .lx-wdb{ fill:var(--wb) } .lfx .lx-dv{ stroke:var(--tx2); stroke-width:.5 }
+.lfx .lx-pp{ fill:var(--pp); stroke:var(--ppo); stroke-width:.7 } .lfx .lx-ppf{ fill:var(--ppf); stroke:var(--ppo); stroke-width:.7; stroke-linejoin:round } .lfx .lx-ln{ fill:var(--ppl) }
+.lfx .lx-dev{ fill:var(--dv) } .lfx .lx-dev2{ fill:var(--dv2) } .lfx .lx-scr{ fill:var(--scr) } .lfx .lx-sk{ fill:var(--sk); animation:lfxSh 1s ease-in-out infinite alternate } @keyframes lfxSh{ from{ opacity:.45 } to{ opacity:1 } }
+.lfx .lx-ok{ fill:var(--ok); stroke:#fff; stroke-width:1.6 } .lfx .lx-okm{ fill:none; stroke:#fff; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round }
+.lfx .lx-pop{ transform-box:fill-box; transform-origin:50% 50% }
+.lfx .lx-ck{ animation:lfxP86 4.4s ease-out infinite }
+@keyframes lfxP86{ 0%, 85%{ transform:scale(0); opacity:0 } 90%{ transform:scale(1.2); opacity:1 } 94%, 100%{ transform:scale(1); opacity:1 } }
+@keyframes lfxP80{ 0%, 79%{ transform:scale(0); opacity:0 } 84%{ transform:scale(1.2); opacity:1 } 88%, 100%{ transform:scale(1); opacity:1 } }
+.lfx .lx-end{ opacity:0; transform-box:fill-box; transform-origin:50% 50%; animation:lfxE84 4.4s ease-out infinite }
+@keyframes lfxE84{ 0%, 82%{ opacity:0; transform:scale(.86) } 87%, 100%{ opacity:1; transform:none } }
+@keyframes lfxE78{ 0%, 76%{ opacity:0; transform:scale(.86) } 81%, 100%{ opacity:1; transform:none } }
+.lfx .lx-skel{ animation:lfxS84 4.4s infinite } @keyframes lfxS84{ 0%, 82%{ opacity:1 } 86%, 100%{ opacity:0 } } @keyframes lfxS78{ 0%, 76%{ opacity:1 } 80%, 100%{ opacity:0 } }
+.lfx .lx-led{ fill:#22C55E; animation:lfxBlink .9s steps(2) infinite } @keyframes lfxBlink{ 50%{ opacity:.25 } }
+@keyframes lfxSpin{ to{ transform:rotate(360deg) } }
+/* robot nhân viên (cùng kiểu robot của Văn phòng AI) */
+.lfx .lx-rb-o{ stroke:var(--ro); stroke-width:.8 } .lfx .lx-rb-v{ fill:var(--rv) } .lfx .lx-rb-e{ fill:var(--re) } .lfx .lx-rb-p{ fill:var(--lp) } .lfx .lx-rb-n{ fill:var(--ro) }
+.lfx .lx-rb-d{ fill:#F59E0B } .lfx .lx-rb-a{ stroke:var(--ro); stroke-width:1.6; stroke-linecap:round } .lfx .lx-rb-gl{ fill:#fff; opacity:.35 }
+.lfx .lx-rb-arm{ fill:none; stroke:var(--ro); stroke-width:3.4; stroke-linecap:round } .lfx .lx-rb-hd{ fill:var(--r2); stroke:var(--ro); stroke-width:.7 } .lfx .lx-rb-j{ fill:var(--lp); opacity:.35 }
+.lfx .lx-hov{ animation:lfxHov 1.2s ease-in-out infinite alternate } @keyframes lfxHov{ from{ transform:translateY(0) } to{ transform:translateY(-2.2px) } }
+.lfx .lx-eye{ transform-box:fill-box; transform-origin:50% 50%; animation:lfxEye 3.4s infinite } @keyframes lfxEye{ 0%, 46%, 52%, 100%{ transform:none } 49%{ transform:scaleY(.12) } }
+.lfx .lx-blk{ animation:lfxBlink 1.4s steps(2) infinite }
+
+/* 1 · TỦ HỒ SƠ (Bộ phận chuyên môn) → màn hình */
+.k-tu .lx-lbl{ fill:#FBF7EC; stroke:var(--mo); stroke-width:.5 } .k-tu .lx-lbt{ font-size:4.6px; font-weight:800; fill:#475569; letter-spacing:.02em }
+.k-tu .lx-dsh{ fill:#0B1220; opacity:0 } .k-tu .lx-fdb{ fill:var(--fd2) } .k-tu .lx-fdf{ fill:var(--fd) } .k-tu .lx-tb1{ fill:#60A5FA } .k-tu .lx-tb2{ fill:#F472B6 }
+.k-tu .lx-b1{ fill:#1E3A8A } .k-tu .lx-b2{ fill:#9F1239 } .k-tu .lx-b3{ fill:#166534 } .k-tu .lx-b4{ fill:#B45309 } .k-tu .lx-bsl{ fill:#fff; opacity:.85 } .k-tu .lx-bsh{ fill:#0B1220; opacity:.35 }
+.k-tu .lx-pot{ fill:var(--pot) } .k-tu .lx-pot2{ fill:color-mix(in oklab, var(--pot) 80%, #000) } .k-tu .lx-lf{ fill:var(--lf) } .k-tu .lx-lf2{ fill:var(--lf2) }
+.k-tu .lx-ck0{ fill:var(--dv2) } .k-tu .lx-ck1{ fill:#fff } .k-tu .lx-ckt{ fill:#334155 } .k-tu .lx-ckh{ stroke:#0F172A; stroke-width:1.5; stroke-linecap:round } .k-tu .lx-ckh2{ stroke:#DC2626; stroke-width:.9; stroke-linecap:round } .k-tu .lx-ckc{ fill:#0F172A }
+.k-tu .lx-ckm{ animation:lfxSpin 4.4s linear infinite } .k-tu .lx-mug{ fill:#fff; stroke:var(--mo); stroke-width:.7 } .k-tu .lx-mugh{ fill:none; stroke:var(--mo); stroke-width:1.6 }
+.k-tu .lx-bot{ animation:lfxTuBot 4.4s ease-in-out infinite }
+@keyframes lfxTuBot{ 0%, 6%{ transform:translateX(0) } 20%, 46%{ transform:translateX(-38px) } 74%, 100%{ transform:translateX(42px) } }
+.k-tu .lx-dro{ transform-box:fill-box; transform-origin:50% 50%; animation:lfxTuDr 4.4s ease-in-out infinite }
+@keyframes lfxTuDr{ 0%, 18%{ transform:none } 24%, 44%{ transform:translateY(2.5px) scale(1.04) } 52%, 100%{ transform:none } }
+.k-tu .lx-tabs, .k-tu .lx-dsh{ animation:lfxTuTb 4.4s ease-in-out infinite }
+@keyframes lfxTuTb{ 0%, 19%{ opacity:0; transform:translateY(4px) } 25%, 44%{ opacity:1; transform:none } 50%, 100%{ opacity:0; transform:translateY(4px) } }
+.k-tu .lx-dsh{ animation-name:lfxTuSh } @keyframes lfxTuSh{ 0%, 19%{ opacity:0 } 25%, 44%{ opacity:.45 } 50%, 100%{ opacity:0 } }
+.k-tu .lx-fo{ animation:lfxTuF1 4.4s ease-in-out infinite }
+@keyframes lfxTuF1{ 0%, 26%{ transform:none; opacity:1 } 34%{ transform:translateY(-26px); opacity:1 } 35%, 100%{ transform:translateY(-26px); opacity:0 } }
+.k-tu .lx-fo2{ opacity:0; transform-box:fill-box; transform-origin:50% 50%; animation:lfxTuF2 4.4s ease-in-out infinite }
+@keyframes lfxTuF2{ 0%, 34%{ opacity:0; transform:translateY(-26px) } 35%{ opacity:1; transform:translateY(-26px) } 42%, 46%{ opacity:1; transform:translate(49px, 22px) } 74%{ opacity:1; transform:translate(129px, 22px) } 84%, 100%{ opacity:0; transform:translate(196px, -18px) scale(.4) } }
+
+/* 2 · TÌM TRÊN DRIVE → điện thoại */
+.k-dr .lx-ui{ fill:var(--ui) } .k-dr .lx-ui2{ fill:var(--ui2) } .k-dr .lx-srch{ fill:var(--ui); stroke:var(--tx2); stroke-width:.7 } .k-dr .lx-cov{ fill:var(--ui) } .k-dr .lx-sgl{ fill:none; stroke:var(--tx); stroke-width:.9 }
+.k-dr .lx-sq{ font-size:5.6px; font-weight:600; fill:var(--lk) } .k-dr .lx-fn{ font-size:5.2px; font-weight:700; fill:var(--lk) } .k-dr .lx-av{ fill:#F59E0B } .k-dr .lx-new{ fill:var(--ui); stroke:var(--tx2); stroke-width:.7 }
+.k-dr .lx-tx{ fill:var(--tx) } .k-dr .lx-tx2{ fill:var(--tx2) } .k-dr .lx-g1{ stroke:#1FA463; stroke-width:2.2; stroke-linecap:round } .k-dr .lx-g2{ stroke:#FFC107; stroke-width:2.2; stroke-linecap:round } .k-dr .lx-g3{ stroke:#4285F4; stroke-width:2.2; stroke-linecap:round }
+.k-dr .lx-fi-pdf{ fill:#E5484D } .k-dr .lx-fi-doc{ fill:#3B82F6 } .k-dr .lx-fi-sh{ fill:#22A55A } .k-dr .lx-fi-sl{ fill:#F5A623 } .k-dr .lx-cup{ fill:var(--dv2) } .k-dr .lx-pen1{ stroke:#2563EB; stroke-width:1.6; stroke-linecap:round } .k-dr .lx-pen2{ stroke:#DC2626; stroke-width:1.6; stroke-linecap:round }
+.k-dr .lx-cov{ animation:lfxDrT 4.4s steps(16) infinite } @keyframes lfxDrT{ 0%, 3%{ transform:none } 17%, 100%{ transform:translateX(92px) } }
+.k-dr .lx-hit{ fill:var(--hit); stroke:var(--lp); stroke-width:.9; opacity:0; animation:lfxDrH 4.4s infinite } @keyframes lfxDrH{ 0%, 38%{ opacity:0 } 42%, 100%{ opacity:1 } }
+.k-dr .lx-dim{ animation:lfxDrDim 4.4s infinite } @keyframes lfxDrDim{ 0%, 38%{ opacity:1 } 44%, 100%{ opacity:.38 } }
+.k-dr .lx-mgr{ fill:none; stroke:var(--lk); stroke-width:2.4 } .k-dr .lx-mgh{ stroke:var(--lk); stroke-width:4; stroke-linecap:round } .k-dr .lx-mgs{ fill:none; stroke:#fff; stroke-width:1.2; stroke-linecap:round; opacity:.9 }
+.k-dr .lx-mg{ animation:lfxDrMg 4.4s ease-in-out infinite }
+@keyframes lfxDrMg{ 0%, 14%{ transform:translate(0, 0); opacity:1 } 20%{ transform:translate(-50px, 25.5px) } 25%{ transform:translate(-24px, 38.5px) } 31%{ transform:translate(-46px, 64.5px) } 38%, 52%{ transform:translate(-40px, 51.5px); opacity:1 } 58%, 100%{ transform:translate(-40px, 51.5px); opacity:0 } }
+.k-dr .lx-fly{ opacity:0; transform-box:fill-box; transform-origin:50% 50%; animation:lfxDrF 4.4s ease-in-out infinite }
+@keyframes lfxDrF{ 0%, 50%{ opacity:0; transform:scale(.7) } 54%{ opacity:1; transform:translate(4px, -6px) scale(1.15) } 64%{ opacity:1; transform:translate(96px, -44px) rotate(-10deg) scale(1.15) } 74%{ opacity:1; transform:translate(182px, -6px) rotate(6deg) scale(.9) } 78%, 100%{ opacity:0; transform:translate(191px, 2px) scale(.4) } }
+.k-dr .lx-trl{ fill:none; stroke:var(--lp); stroke-width:1.1; stroke-dasharray:2.5 3.5; stroke-linecap:round; opacity:0; animation:lfxDrTr 4.4s linear infinite }
+@keyframes lfxDrTr{ 0%, 53%{ opacity:0; stroke-dashoffset:0 } 58%, 72%{ opacity:.7 } 78%, 100%{ opacity:0; stroke-dashoffset:-48 } }
+.k-dr .lx-end{ animation-name:lfxE78 } .k-dr .lx-skel{ animation-name:lfxS78 } .k-dr .lx-ck{ animation-name:lfxP80 }
+
+/* 3 · KỆ TÀI LIỆU → cuốn sách mở dưới đèn bàn */
+.k-ke .lx-c0{ fill:#1E3A5F } .k-ke .lx-c1{ fill:#7F1D1D } .k-ke .lx-c2{ fill:#14532D } .k-ke .lx-c3{ fill:#B45309 } .k-ke .lx-c4{ fill:#115E59 } .k-ke .lx-c5{ fill:#581C87 } .k-ke .lx-c6{ fill:#D6C59F } .k-ke .lx-c7{ fill:#334155 }
+.k-ke .lx-bkb{ fill:#E3B94F; opacity:.9 } .k-ke .lx-bkl{ fill:#F8F1DF; opacity:.9 } .k-ke .lx-frm{ fill:var(--w2) } .k-ke .lx-frm2{ fill:#BFDBFE } .k-ke .lx-mtn{ fill:#4ADE80 } .k-ke .lx-mtn2{ fill:#16A34A } .k-ke .lx-sun{ fill:#FBBF24 }
+.k-ke .lx-lmp{ fill:#1F2937 } .k-ke .lx-lma{ fill:none; stroke:#374151; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round } .k-ke .lx-bulb{ fill:#FEF3C7 }
+.k-ke .lx-cvr{ fill:#B45309 } .k-ke .lx-pg{ fill:var(--pp); stroke:var(--ppo); stroke-width:.6 } .k-ke .lx-pgl{ fill:none; stroke:var(--ppl); stroke-width:.9; stroke-linecap:round }
+.k-ke .lx-lb{ animation:lfxLamp 2.2s ease-in-out infinite alternate } @keyframes lfxLamp{ from{ opacity:.7 } to{ opacity:1 } }
+.k-ke .lx-bot{ animation:lfxKeBot 4.4s ease-in-out infinite }
+@keyframes lfxKeBot{ 0%, 6%{ transform:translateX(0) } 22%, 42%{ transform:translateX(-40px) } 64%, 100%{ transform:translateX(-2px) } }
+.k-ke .lx-tg{ transform-box:fill-box; transform-origin:50% 50%; animation:lfxKeB 4.4s ease-in-out infinite }
+@keyframes lfxKeB{ 0%, 22%{ transform:none; opacity:1 } 28%{ transform:translate(0, -14px) } 34%, 42%{ transform:translate(44.7px, 25px) } 64%{ transform:translate(82.7px, 25px) } 70%{ opacity:1; transform:translate(144.7px, 16px) rotate(-90deg) scale(.9) } 72%, 100%{ opacity:0; transform:translate(144.7px, 16px) rotate(-90deg) scale(.9) } }
+.k-ke .lx-opn{ opacity:0; transform-box:fill-box; transform-origin:50% 100%; animation:lfxKeO 4.4s ease-out infinite } @keyframes lfxKeO{ 0%, 69%{ opacity:0; transform:scale(.6) } 74%, 100%{ opacity:1; transform:none } }
+.k-ke .lx-flip{ animation:lfxKeP 4.4s ease-in-out infinite } @keyframes lfxKeP{ 0%, 74%{ transform:none } 79%{ transform:scaleX(-1) } 79.5%{ transform:none } 84%{ transform:scaleX(-1) } 84.5%, 100%{ transform:none } }
+
+/* 4 · MÁY IN → PHONG BÌ → HỘP THƯ */
+.k-in .lx-pnl{ fill:#1F2937 } .k-in .lx-pns{ fill:#38BDF8; opacity:.85 } .k-in .lx-slot{ fill:#111827 } .k-in .lx-cork{ fill:#C8A27A } .k-in .lx-n1{ fill:#FDE68A } .k-in .lx-n2{ fill:#BFDBFE } .k-in .lx-n3{ fill:#FBCFE8 } .k-in .lx-pin{ fill:#DC2626 }
+.k-in .lx-ev{ fill:var(--ev); stroke:var(--evo); stroke-width:.7 } .k-in .lx-evi{ fill:var(--ev3) } .k-in .lx-ev2{ fill:var(--ev2); stroke:var(--evo); stroke-width:.7; stroke-linejoin:round } .k-in .lx-ev3{ fill:var(--ev3); stroke:var(--evo); stroke-width:.7; stroke-linejoin:round }
+.k-in .lx-sl{ fill:#B91C1C; stroke:#7F1D1D; stroke-width:.8 } .k-in .lx-slm{ fill:none; stroke:#FEE2E2; stroke-width:1.3; stroke-linecap:round; stroke-linejoin:round }
+.k-in .lx-mbx{ fill:var(--mb); stroke:var(--mb2); stroke-width:.8 } .k-in .lx-mbl{ fill:none; stroke:var(--mb2); stroke-width:.8 } .k-in .lx-mbh{ fill:#fff; opacity:.22 } .k-in .lx-post{ fill:var(--w2); stroke:var(--w3); stroke-width:.6 }
+.k-in .lx-fpole{ fill:#6B7280 } .k-in .lx-fflag{ fill:#F59E0B }
+.k-in .lx-ppo{ animation:lfxInP 4.4s linear infinite } @keyframes lfxInP{ 0%, 4%{ transform:none; opacity:1 } 30%, 32.5%{ transform:translateY(40px); opacity:1 } 33%, 100%{ transform:translateY(40px); opacity:0 } }
+.k-in .lx-pps{ opacity:0; transform-box:fill-box; transform-origin:50% 50%; animation:lfxInS 4.4s ease-in-out infinite }
+@keyframes lfxInS{ 0%, 32.5%{ opacity:0; transform:none } 33%{ opacity:1; transform:none } 42%{ opacity:1; transform:translate(99px, -34px) scale(.55) } 48%{ opacity:1; transform:translate(99px, -8px) scale(.55) } 49%, 100%{ opacity:0; transform:translate(99px, -8px) scale(.55) } }
+.k-in .lx-flap{ animation:lfxInF 4.4s ease-in-out infinite } @keyframes lfxInF{ 0%, 49%{ transform:scaleY(-1) } 56%, 100%{ transform:none } }
+.k-in .lx-seal{ animation:lfxInSe 4.4s ease-out infinite } @keyframes lfxInSe{ 0%, 56%{ transform:scale(0); opacity:0 } 60%{ transform:scale(1.25); opacity:1 } 63%, 100%{ transform:scale(1); opacity:1 } }
+.k-in .lx-env{ transform-box:fill-box; transform-origin:50% 50%; animation:lfxInE 4.4s ease-in-out infinite }
+@keyframes lfxInE{ 0%, 62%{ transform:none; opacity:1 } 70%{ transform:translate(40px, -40px) rotate(-8deg) scale(.85) } 78%{ opacity:1; transform:translate(92px, -28px) scale(.35) } 80%, 100%{ opacity:0; transform:translate(92px, -28px) scale(.35) } }
+.k-in .lx-flag{ animation:lfxInFl 4.4s ease-out infinite } @keyframes lfxInFl{ 0%, 78%{ transform:rotate(90deg) } 84%, 100%{ transform:none } }
+
+/* 5 · BĂNG CHUYỀN — rà, đóng dấu ĐÃ DUYỆT, vào khay */
+.k-bc .lx-belt{ fill:#2B3445 } .k-bc .lx-bslat{ stroke:#56627A; stroke-width:3.4; stroke-dasharray:2 6; animation:lfxSlat .5677s linear infinite } @keyframes lfxSlat{ to{ stroke-dashoffset:-8 } }
+.k-bc .lx-rol{ fill:var(--m2); stroke:var(--mo); stroke-width:.8 } .k-bc .lx-rs{ stroke:var(--mk); stroke-width:1.2; stroke-linecap:round } .k-bc .lx-rr{ animation:lfxSpin 2.2s linear infinite }
+.k-bc .lx-scl{ fill:#7DD3FC } .k-bc .lx-beam{ fill:#38BDF8; opacity:.16 } .k-bc .lx-scnl{ fill:#38BDF8; opacity:.75; animation:lfxScan 1.1s ease-in-out infinite alternate } @keyframes lfxScan{ to{ transform:translateY(32px) } }
+.k-bc .lx-pis{ fill:var(--mk) } .k-bc .lx-stmp{ fill:#7F1D1D } .k-bc .lx-stpad{ fill:#16A34A }
+.k-bc .lx-mkr{ fill:none; stroke:#16A34A; stroke-width:1 } .k-bc .lx-mkt{ font-size:3.7px; font-weight:800; fill:#16A34A }
+.k-bc .lx-sgn{ font-size:6.4px; font-weight:800; fill:#fff; letter-spacing:.06em } .k-bc .lx-sgb{ fill:#16A34A }
+.k-bc .lx-docs{ animation:lfxBcD 4.4s linear infinite } @keyframes lfxBcD{ to{ transform:translateX(62px) } }
+.k-bc .lx-stp{ animation:lfxBcS 4.4s ease-in-out infinite } @keyframes lfxBcS{ 0%, 33%{ transform:none } 38.5%, 42%{ transform:translateY(18px) } 48%, 100%{ transform:none } }
+.k-bc .lx-mka{ opacity:0; animation:lfxBcM 4.4s infinite } @keyframes lfxBcM{ 0%, 39.5%{ opacity:0 } 40.5%, 100%{ opacity:1 } }
+.k-bc .lx-drop{ opacity:0; transform-box:fill-box; transform-origin:50% 50%; animation:lfxBcDr 4.4s ease-in infinite }
+@keyframes lfxBcDr{ 0%, 76%{ opacity:0; transform:none } 78%{ opacity:1; transform:none } 88%{ opacity:1; transform:translate(26px, 30px) rotate(84deg) scale(.55) } 90%, 100%{ opacity:0; transform:translate(26px, 30px) rotate(84deg) scale(.55) } }
+
+@media (prefers-reduced-motion:reduce){ .lfx *, .lfx .lx-sc{ animation:none !important } .lfx .lx-cap span:first-child{ opacity:1 } .lfx .lx-end, .lfx .lx-opn, .lfx .lx-hit{ opacity:1 } .lfx .lx-skel, .lfx .lx-fly, .lfx .lx-pps, .lfx .lx-fo2, .lfx .lx-drop{ opacity:0 } }
+@media (max-width:480px){ .lfx .lx-cap{ font-size:12.5px } }
+</style>
+<script>
+/* HIỆU ỨNG CHỜ TẢI — trả về HTML (đặt vào chỗ “đang tải”; nội dung thật về thì thay đè, hiệu ứng tự mất).
+   o.k: ép một cảnh ('tu'|'dr'|'ke'|'in'|'bc'); o.sm: bản nhỏ. Không nêu người nhận — link tạm còn gửi cho phụ huynh. */
+const LFX_K = ['tu', 'dr', 'ke', 'in', 'bc'];
+let LFX_N = 0;
+function loadFx(text, o) {
+  o = o || {}; let k = o.k && LFX_K.indexOf(o.k) >= 0 ? o.k : '';
+  if (!k) { let last = ''; try { last = sessionStorage.getItem('lfxK') || ''; } catch (e) {} const P0 = LFX_K.filter(x => x !== last); k = P0[Math.floor(Math.random() * P0.length)]; try { sessionStorage.setItem('lfxK', k); } catch (e) {} }
+  const u = 'lfx' + (++LFX_N) + Math.random().toString(36).slice(2, 6), U = s => 'url(#' + u + s + ')', F = s => ' fill="' + U(s) + '"';
+  const e2 = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]), n1 = v => +(+v).toFixed(1);
+  const R = (c, x, y, w, h, rx, ex) => '<rect class="' + c + '" x="' + n1(x) + '" y="' + n1(y) + '" width="' + n1(w) + '" height="' + n1(h) + '"' + (rx ? ' rx="' + rx + '"' : '') + (ex || '') + '/>';
+  const P = (c, d, ex) => '<path class="' + c + '" d="' + d + '"' + (ex || '') + '/>';
+  const C = (c, x, y, r, ex) => '<circle class="' + c + '" cx="' + x + '" cy="' + y + '" r="' + r + '"' + (ex || '') + '/>';
+  const L = (c, x1, y1, x2, y2) => '<line class="' + c + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/>';
+  const G = (c, s) => '<g class="' + c + '">' + s + '</g>', T = (x, y, s) => '<g transform="translate(' + x + ' ' + y + ')">' + s + '</g>';
+  const Tx = (x, y, c, s, ex) => '<text class="' + c + '" x="' + x + '" y="' + y + '"' + (ex || '') + '>' + s + '</text>';
+  const st = a => a.map(([of, c]) => '<stop offset="' + of + '" class="lx-s-' + c + '"/>').join('');
+  const lg = (id, x2, y2, a) => '<linearGradient id="' + u + id + '" x1="0" y1="0" x2="' + x2 + '" y2="' + y2 + '">' + st(a) + '</linearGradient>';
+  const cp = (id, x, y, w, h) => '<clipPath id="' + u + id + '"><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/></clipPath>';
+  const defs = '<defs>' + lg('wl', 0, 1, [[0, 'wl1'], [1, 'wl2']]) + lg('fl', 0, 1, [[0, 'fl1'], [1, 'fl2']]) + lg('mt', 1, 0, [[0, 'm2'], [.3, 'm1'], [.65, 'm1'], [1, 'm2']]) + lg('mv', 0, 1, [[0, 'm1'], [1, 'm2']]) +
+    lg('wd', 0, 1, [[0, 'w1'], [1, 'w2']]) + lg('rb', 0, 1, [[0, 'r1'], [1, 'r2']]) + lg('gl', 0, 1, [[0, 'gl1'], [1, 'gl2']]) + lg('gs', 1, 1, [[0, 'gs1'], [1, 'gs2']]) +
+    '<radialGradient id="' + u + 'sh">' + st([[0, 'sh1'], [1, 'sh2']]) + '</radialGradient>' + cp('q', 57, 17, 92, 8) + cp('p', 0, 86.5, 320, 64) + cp('b', 14, 0, 226, 100) + '</defs>';
+  const room = fl => '<rect width="320" height="150"' + F('wl') + '/><rect y="116" width="320" height="34"' + F(fl || 'fl') + '/>' + R('lx-skt', 0, 114.5, 320, 2);
+  const bot = x => T(x, 128, '<ellipse cx="0" cy="1" rx="17" ry="3.6"' + F('sh') + '/>' + G('lx-hov',
+    '<ellipse class="lx-rb-j" cx="0" cy="-5.5" rx="6.5" ry="1.8"/>' + P('lx-rb-arm', 'M-11 -27 q-7 3 -6 10') + P('lx-rb-arm', 'M11 -27 q7 3 6 10') + C('lx-rb-hd', -17, -16, 2.6) + C('lx-rb-hd', 17, -16, 2.6) +
+    P('lx-rb-o', 'M-11 -31 h22 a3 3 0 0 1 3 3 l-2 13 a5 5 0 0 1 -5 4.5 h-14 a5 5 0 0 1 -5 -4.5 l-2 -13 a3 3 0 0 1 3 -3z', F('rb')) +
+    R('lx-rb-p', -6, -26, 12, 7, 2) + C('lx-rb-d lx-blk', -2.5, -22.5, 1.2) + C('lx-rb-e', 2.5, -22.5, 1.2) + R('lx-rb-n', -3, -35, 6, 5, 1.5) + L('lx-rb-a', 0, -55, 0, -60) + C('lx-rb-d lx-blk', 0, -61.5, 2.4) +
+    R('lx-rb-p', -17.5, -48, 3.5, 9, 1.6) + R('lx-rb-p', 14, -48, 3.5, 9, 1.6) + R('lx-rb-o', -15, -56, 30, 22, 9, F('rb')) + R('lx-rb-v', -11, -51, 22, 12.5, 6) +
+    G('lx-eye', R('lx-rb-e', -6.6, -48, 3.4, 6.4, 1.7) + R('lx-rb-e', 3.2, -48, 3.4, 6.4, 1.7)) + P('lx-rb-gl', 'M-8 -49.6 h5 l-3.2 4.2 h-3.6z')));
+  const docPg = (x, y, w, h) => R('lx-pp', x, y, w, h, 1.5) + R('lx-rb-p', x + 3, y + 3, w * .45, Math.max(2, h * .08), 1) + [.3, .42, .54, .66, .78].map((t, i) => R('lx-ln', x + 3, y + h * t, (w - 6) * [1, .9, .96, .62, .84][i], Math.max(1.2, h * .045), .6)).join('');
+  const sheet = (x, y, w, h) => P('lx-pp', 'M' + x + ' ' + y + ' h' + (w - 6) + ' l6 6 v' + (h - 6) + ' h-' + w + 'z') + P('lx-ppf', 'M' + (x + w - 6) + ' ' + y + ' v6 h6z') + R('lx-rb-p', x + 3, y + 4, w * .4, 2.2, 1) +
+    [10, 14, 18, 22, 26, 30, 34].filter(d => d < h - 3).map((d, i) => R('lx-ln', x + 3, y + d, (w - 6) * [1, .85, .95, .6, .9, .75, .8][i], 1.4, .7)).join('');
+  const skel = (x, y, w) => G('lx-skel', R('lx-sk', x, y, w * .6, 3, 1.5) + [7, 12, 17, 22].map((d, i) => R('lx-sk', x, y + d, w * [1, .85, .92, .5][i], 2.4, 1.2)).join(''));
+  const ck = (x, y) => G('lx-ck lx-pop', C('lx-ok', x, y, 8.5) + P('lx-okm', 'M' + (x - 3.6) + ' ' + y + ' l2.6 2.8 l5 -5.4'));
+  let D;
+  if (k === 'tu') {      // tủ hồ sơ kim loại 3 ngăn · robot của Bộ phận chuyên môn rút đúng bìa hồ sơ → đưa lên màn hình
+    const drawer = (y, t) => R('lx-o', 25, y, 62, 26, 2.5, F('mv')) + R('lx-hl', 27, y + 1.2, 58, 1.1, .55) + R('lx-lbl', 45, y + 5, 22, 7.5, 1) + Tx(56, y + 10.4, 'lx-lbt', t, ' text-anchor="middle"') + R('lx-hdl', 45, y + 16, 22, 4.4, 2.2) + R('lx-hl', 47, y + 16.6, 18, 1, .5);
+    const folder = (x, y) => R('lx-fdb', x + 2, y, 9, 4, 1) + R('lx-fdb', x, y + 3, 22, 17, 1.5) + R('lx-pp', x + 2, y + 1.5, 18, 10, .8) + R('lx-fdf', x, y + 6.5, 22, 13.5, 1.5);
+    D = [['Bộ phận chuyên môn mở tủ hồ sơ…', 'Lấy đúng tài liệu…', 'Đưa lên màn hình…'], room() +
+      T(160, 38, C('lx-ck0', 0, 0, 11) + C('lx-ck1', 0, 0, 9) + [0, 90, 180, 270].map(a => '<rect class="lx-ckt" x="-.6" y="-8" width="1.2" height="2.2" transform="rotate(' + a + ')"/>').join('') + L('lx-ckh', 0, 0, 3.6, -2.6) + G('lx-ckm', L('lx-ckh2', 0, 0, 0, -6.8)) + C('lx-ckc', 0, 0, 1.2)) +
+      R('lx-b1', 24, 12, 7, 19, 1) + R('lx-b2', 31.5, 14, 7, 17, 1) + R('lx-b3', 39, 11, 7, 20, 1) + [24, 31.5, 39].map((x, i) => R('lx-bsl', x + 1.5, [15, 17, 14][i], 4, 6, .6) + C('lx-bsh', x + 3.5, 26, 1.1)).join('') +
+      '<g transform="rotate(16 53 31)">' + R('lx-b4', 46, 13, 7, 18, 1) + R('lx-bsl', 47.5, 16, 4, 6, .6) + C('lx-bsh', 49.5, 26, 1.1) + '</g>' +
+      P('lx-lf', 'M77.5 21 C73 15 69.5 12.5 70.5 8 C75 10 77 15 77.5 21Z') + P('lx-lf2', 'M77.5 21 C80 14 84 11 87.5 11 C86.5 15.5 82 19 77.5 21Z') + P('lx-lf', 'M77.5 21 C77 13 78 8.5 80.5 5 C82.5 9 80.5 15 77.5 21Z') + P('lx-pot', 'M70.5 23 h14 l-1.6 8 h-10.8z') + R('lx-pot2', 69.5, 21, 16, 3, 1) +
+      '<ellipse cx="56" cy="129" rx="40" ry="3.5"' + F('sh') + '/>' + R('lx-o', 20, 34, 72, 94, 3, F('mt')) + R('lx-o', 18, 31, 76, 5, 2, F('mv')) + R('lx-kick', 22, 124, 68, 4.5, 1) +
+      drawer(40, 'LỚP 3') + drawer(96, 'LỚP 5') + R('lx-dsh', 25, 65.5, 62, 4, 1) + G('lx-fo', folder(52, 70)) +
+      G('lx-tabs', R('lx-fdb', 28, 61, 9, 8, 1) + R('lx-tb1', 39, 62, 9, 7, 1) + R('lx-tb2', 76, 61.5, 9, 7.5, 1)) + G('lx-dro', drawer(68, 'LỚP 4')) +
+      '<ellipse cx="254" cy="130" rx="58" ry="3.5"' + F('sh') + '/>' + R('lx-ow', 194, 98, 120, 5, 1.5, F('wd')) + R('lx-wd2', 200, 103, 4, 26) + R('lx-wd2', 304, 103, 4, 26) + R('lx-ow', 206, 103, 38, 11, 1, F('wd')) + R('lx-hdl', 220, 107.5, 10, 2, 1) +
+      P('lx-mug', 'M298 87 h10 v9 a2 2 0 0 1 -2 2 h-6 a2 2 0 0 1 -2 -2z') + P('lx-mugh', 'M308 89.5 a3.2 3.2 0 0 1 0 6.4') + R('lx-rb-p', 298, 90, 10, 2) +
+      R('lx-dev', 226, 40, 68, 48, 4) + R('lx-scr', 230, 44, 60, 38, 1.5) + R('lx-dev2', 256, 88, 8, 7) + R('lx-dev', 246, 95, 28, 3, 1.5) + skel(236, 50, 48) + G('lx-end', docPg(241, 46, 38, 34)) +
+      G('lx-bot', bot(150)) + G('lx-fo2', folder(52, 70)) + ck(294, 41)];
+  } else if (k === 'dr') {      // laptop mở Drive: gõ tìm, kính lúp rà từng dòng, đúng tệp sáng lên → bay sang điện thoại
+    const ty = ['pdf', 'doc', 'pdf', 'sh', 'sl'];
+    D = [['Tìm trên Drive…', 'Thấy đúng tệp rồi!', 'Đang gửi tài liệu…'], room('wd') +
+      '<ellipse cx="110" cy="123" rx="104" ry="3"' + F('sh') + '/>' + P('lx-o', 'M8 112 h204 l-6 8.5 a3 3 0 0 1 -2.6 1.5 h-187 a3 3 0 0 1 -2.6 -1.5z', F('mt')) + R('lx-kick', 94, 112, 32, 2.6, 1.3) +
+      R('lx-dev', 20, 8, 180, 104, 7) + R('lx-ui', 25, 13, 170, 95, 2.5) + R('lx-ui2', 25, 13, 170, 16, 2.5) +
+      L('lx-g1', 31, 25.5, 35, 18.5) + L('lx-g2', 35, 18.5, 39, 25.5) + L('lx-g3', 31, 25.5, 39, 25.5) +
+      R('lx-srch', 46, 16.5, 104, 9, 4.5) + C('lx-sgl', 52, 21, 2) + L('lx-sgl', 53.4, 22.4, 55, 24) + '<g clip-path="' + U('q') + '">' + Tx(58, 23.1, 'lx-sq', 'Topic 12 · Toán 4') + R('lx-cov', 57, 17.5, 92, 7) + '</g>' + C('lx-av', 186, 21, 4.2) +
+      R('lx-new', 29, 33, 22, 8, 4) + [47, 55, 63, 71].map(y => C('lx-tx2', 32, y, 1.6) + R('lx-tx2', 36, y - 1, 14, 2, 1)).join('') +
+      R('lx-tx2', 76, 34, 16, 2, 1) + R('lx-tx2', 152, 34, 14, 2, 1) + L('lx-dv', 60, 39.5, 191, 39.5) +
+      ty.map((t, i) => { const y = 41 + i * 13; return (i === 2 ? R('lx-hit', 61, y + .5, 129, 12, 2.5) + R('lx-fi-pdf', 65, y + 3, 6, 7.5, 1) + Tx(76, y + 7.6, 'lx-fn', 'Topic 12 · Toán 4.pdf') + R('lx-tx', 152, y + 5, 22, 2.2, 1.1)
+        : G('lx-dim', R('lx-fi-' + t, 65, y + 3, 6, 7.5, 1) + R('lx-tx', 76, y + 4, [52, 40, 0, 34, 46][i], 2.6, 1.3) + R('lx-tx2', 76, y + 8, [24, 30, 0, 26, 22][i], 1.8, .9) + R('lx-tx2', 152, y + 5, 22, 2.2, 1.1))) + L('lx-dv', 60, y + 13, 191, y + 13); }).join('') +
+      G('lx-mg', T(150, 22, L('lx-mgh', 6.4, 6.4, 13, 13) + '<circle r="9"' + F('gs') + '/>' + C('lx-mgr', 0, 0, 9) + P('lx-mgs', 'M-5.5 -3.5 a6.5 6.5 0 0 1 4.6 -3.6'))) +
+      R('lx-cup', 216, 100, 12, 16, 2) + L('lx-pen1', 219, 100, 217, 88) + L('lx-pen2', 224, 100, 227, 89) +
+      '<ellipse cx="259" cy="121" rx="22" ry="2.6"' + F('sh') + '/>' + P('lx-o', 'M244 116 h30 l3 5 h-36z', F('mv')) + R('lx-dev', 236, 34, 46, 84, 8) + R('lx-scr', 240, 42, 38, 68, 3.5) + R('lx-dev2', 252, 37.5, 14, 2, 1) +
+      skel(245, 50, 28) + G('lx-end', docPg(243, 46, 32, 44)) + P('lx-trl', 'M76 66 C120 10 210 18 252 70') +
+      G('lx-fly', P('lx-pp', 'M62 66 h8 l4 4 v11 h-12z') + R('lx-fi-pdf', 62, 76, 9, 4, .6)) + ck(282, 36)];
+  } else if (k === 'ke') {      // kệ gỗ nhiều gáy sách thật · robot rút đúng cuốn → đặt lên bàn dưới đèn, sách mở, lật trang
+    const rows = [[19, 55], [59, 91], [95, 126]], W = [7, 9, 6, 8, 10, 7, 8, 6, 9, 7, 8, 6];
+    let books = '';
+    rows.forEach(([top, b], r) => { let x = 21; for (let i = 0; ; i++) { const w = W[(i + r * 3) % W.length]; if (x + w > 113) break; const h = b - top - 3 - ((i * 5 + r * 3) % 7), c = (i * 3 + r * 5) % 8;
+      if (!(r === 1 && i === 8)) books += R('lx-c' + c, x, b - h, w, h, .8) + R('lx-bkb', x + .8, b - h + 3, w - 1.6, 1.2) + R('lx-bkb', x + .8, b - 4.5, w - 1.6, 1.2) + (w >= 8 ? R('lx-bkl', x + 1.6, b - h + 7, w - 3.2, 5, .5) : '');
+      x += w + .6; } });
+    const pgL = 'M0 -3 C-8 -6 -18 -6 -26 -3 V5 C-18 2 -8 2 0 5Z', pgR = 'M0 -3 C8 -6 18 -6 26 -3 V5 C18 2 8 2 0 5Z', pl = s => [0, 3, 6].map(d => '<path class="lx-pgl" d="M' + (s * 4) + ' ' + (-1 + d * .6) + ' C' + (s * 10) + ' ' + (-3 + d) + ' ' + (s * 16) + ' ' + (-3 + d) + ' ' + (s * 22) + ' ' + (-1.5 + d) + '"/>').join('');
+    D = [['Tìm trên kệ tài liệu…', 'Lấy đúng cuốn cần mở…', 'Mở trang đầu tiên…'], room() +
+      R('lx-frm', 146, 18, 34, 26, 1.5) + R('lx-frm2', 149.5, 21.5, 27, 19) + P('lx-mtn2', 'M149.5 40.5 l8 -9 l5 5 l4 -4 l10 8z') + P('lx-mtn', 'M156 40.5 l7 -6 l6 6z') + C('lx-sun', 171, 26, 2.4) +
+      '<ellipse cx="67" cy="130" rx="56" ry="3.4"' + F('sh') + '/>' + R('lx-ow', 14, 14, 106, 116, 2, F('wd')) + R('lx-wdb', 19, 19, 96, 107) + [55, 91, 126].map(s => R('lx-wd2', 19, s, 96, 4)).join('') + books +
+      '<ellipse cx="248" cy="130" rx="62" ry="3.4"' + F('sh') + '/>' + R('lx-ow', 188, 100, 122, 5, 1.5, F('wd')) + R('lx-wd2', 194, 105, 4, 24) + R('lx-wd2', 300, 105, 4, 24) +
+      P('lx-lb', 'M261.7 55.5 L274.5 68.3 L266 100 L204 100Z', F('gl')) + '<ellipse class="lx-lmp" cx="292" cy="99" rx="9" ry="2.4"/>' + P('lx-lma', 'M292 98 L298 74 L278 52') + P('lx-lmp', 'M275.9 49.9 L280.1 54.1 L274.5 68.3 L261.7 55.5Z') + C('lx-bulb', 268.5, 62.5, 2.6) +
+      G('lx-opn', T(236, 95, P('lx-cvr', 'M-28 -1 V7 C-18 4 -8 4 0 7 C8 4 18 4 28 7 V-1Z') + P('lx-pg', pgL) + pl(-1) + P('lx-pg', pgR) + pl(1) + G('lx-flip', P('lx-pg', pgR) + pl(1)))) +
+      G('lx-bot', bot(176)) + G('lx-tg', R('lx-c3', 86.8, 65, 9, 26, .8) + R('lx-bkb', 87.6, 68, 7.4, 1.2) + R('lx-bkb', 87.6, 86.5, 7.4, 1.2) + R('lx-bkl', 88.4, 72, 5.8, 5, .5)) + ck(266, 78)];
+  } else if (k === 'in') {      // máy in in từng dòng · cho vào phong bì, gập nắp, niêm sáp · bay vào hộp thư, cờ dựng lên
+    D = [['In bản tài liệu…', 'Cho vào phong bì, niêm phong…', 'Đang gửi đi…'], room() +
+      R('lx-cork', 150, 20, 46, 28, 2, ' stroke="#8B6B4A" stroke-width="1.6"') + '<g transform="rotate(-6 160 32)">' + R('lx-n1', 155, 25, 13, 12) + '</g>' + '<g transform="rotate(5 180 33)">' + R('lx-n2', 173, 26, 15, 11) + '</g>' + R('lx-n3', 164, 37, 12, 8) + C('lx-pin', 161, 26, 1.3) + C('lx-pin', 180, 27, 1.3) + C('lx-pin', 170, 38, 1.3) +
+      '<ellipse cx="82" cy="130" rx="56" ry="3.4"' + F('sh') + '/>' + R('lx-o', 30, 100, 104, 29, 2, F('mt')) + L('lx-dv', 82, 104, 82, 126) + R('lx-hdl', 74, 112, 5, 2, 1) + R('lx-hdl', 85, 112, 5, 2, 1) +
+      P('lx-o', 'M50 62 L56 34 H108 L114 62Z', F('mv')) + P('lx-pp', 'M58 60 L62 40 H102 L106 60Z') +
+      R('lx-o', 26, 58, 112, 42, 7, F('mv')) + R('lx-hl', 30, 60, 104, 1.4, .7) + R('lx-pnl', 106, 65, 26, 12, 2.5) + R('lx-pns', 109, 67.5, 12, 7, 1) + C('lx-led', 126.5, 71, 1.8) + R('lx-rb-p', 32, 66, 18, 2.4, 1.2) +
+      R('lx-slot', 40, 84, 84, 4.5, 2.2) + P('lx-o', 'M38 97 h88 l4 4 h-96z', F('mv')) +
+      '<g clip-path="' + U('p') + '">' + G('lx-ppo', docPg(50, 46, 64, 40)) + '</g>' +
+      '<ellipse cx="181" cy="130" rx="38" ry="3"' + F('sh') + '/>' + R('lx-ow', 146, 114, 70, 4, 1.5, F('wd')) + R('lx-wd2', 150, 118, 3.5, 11) + R('lx-wd2', 208, 118, 3.5, 11) +
+      R('lx-post', 270, 88, 6, 41) + '<ellipse cx="273" cy="130" rx="14" ry="2.4"' + F('sh') + '/>' + P('lx-mbx', 'M250 92 V68 a23 13 0 0 1 46 0 V92Z') + P('lx-mbh', 'M254 88 V69 a19 10 0 0 1 10 -8 a20 11 0 0 0 -6 8 V88Z') + P('lx-mbl', 'M255 90 V69 a18 9.5 0 0 1 36 0 V90') + R('lx-slot', 261, 71, 24, 3, 1.5) +
+      T(297, 86, G('lx-flag', R('lx-fpole', -1, -18, 2, 18) + R('lx-fflag', 1, -18, 8, 6, 1))) +
+      G('lx-env', R('lx-ev', 158, 86, 46, 28, 1.5) + P('lx-evi', 'M158 86 L181 101 L204 86Z') + G('lx-pps', docPg(50, 86, 64, 40)) + P('lx-ev2', 'M158 114 V90 L181 103 L204 90 V114Z') +
+        T(181, 86, G('lx-flap', P('lx-ev3', 'M-23 0 L0 16 L23 0Z'))) + G('lx-seal lx-pop', C('lx-sl', 181, 101, 4.6) + P('lx-slm', 'M178.8 101 l1.6 1.7 l3 -3.3'))) + ck(305, 52)];
+  } else {      // băng chuyền: rà quét, búa dấu ĐÃ DUYỆT, tài liệu rơi vào khay
+    const docs = [-60, 2, 64, 126, 188].map(x => sheet(x, 62, 26, 30) + (x >= 126 ? G(x === 126 ? 'lx-mka' : '', '<g transform="rotate(-12 ' + (x + 13) + ' 80)">' + R('lx-mkr', x + 1.5, 75.6, 23, 7.6, 1.5) + Tx(x + 13, 80.8, 'lx-mkt', 'ĐÃ DUYỆT', ' text-anchor="middle"') + '</g>') : '')).join('');
+    const roll = x => T(x, 101.5, C('lx-rol', 0, 0, 5) + G('lx-rr', L('lx-rs', -3.5, 0, 3.5, 0) + L('lx-rs', 0, -3.5, 0, 3.5)));
+    D = [['Kiểm từng tài liệu…', 'Đóng dấu đã duyệt…', 'Sẵn sàng để mở…'], room() +
+      R('lx-sgb', 248, 22, 48, 16, 3) + Tx(272, 32.6, 'lx-sgn', 'KIỂM DUYỆT', ' text-anchor="middle"') +
+      '<ellipse cx="126" cy="130" rx="116" ry="3.4"' + F('sh') + '/>' + [24, 123, 222].map(x => R('lx-o', x, 104, 6, 25, 0, F('mt')) + R('lx-kick', x - 2, 127, 10, 2.5, 1)).join('') +
+      R('lx-o', 12, 96, 228, 11, 5.5, F('mv')) + R('lx-belt', 14, 92, 224, 6, 3) + L('lx-bslat', 18, 95, 234, 95) + roll(18) + roll(234) +
+      '<g clip-path="' + U('b') + '">' + G('lx-docs', docs) + '</g>' +
+      R('lx-o', 78, 0, 4, 46, 0, F('mt')) + R('lx-o', 56, 44, 48, 14, 4, F('mv')) + R('lx-scl', 62, 55, 36, 2, 1) + P('lx-beam', 'M63 57 h34 v35 h-34z') + R('lx-scnl', 63, 58, 34, 1.6) +
+      R('lx-o', 160, 0, 8, 20, 0, F('mt')) + R('lx-o', 150, 16, 28, 12, 3, F('mv')) + C('lx-led', 174, 22, 1.6) + G('lx-stp', R('lx-pis', 161, 26, 6, 10) + R('lx-stmp', 152, 35, 24, 7, 1.5) + R('lx-stpad', 153.5, 41, 21, 2.2, 1)) +
+      '<ellipse cx="270" cy="129" rx="30" ry="2.6"' + F('sh') + '/>' + R('lx-pp', 252, 105.6, 36, 2.2, .6) + R('lx-pp', 251, 103.4, 37, 2.2, .6) + G('lx-end', R('lx-pp', 252.5, 101.2, 36, 2.2, .6)) + P('lx-o', 'M244 108 h52 l-4 20 h-44z', F('mv')) + R('lx-hl', 247, 109.5, 46, 1.1, .5) +
+      G('lx-drop', sheet(240, 62, 26, 30)) + ck(300, 96)];
+  }
+  return '<div class="lfx k-' + k + (o.sm ? ' sm' : '') + '" role="status" aria-live="polite"><svg viewBox="0 0 320 150" aria-hidden="true">' + defs + '<g class="lx-sc">' + D[1] + '</g></svg><div class="lx-cap">' + D[0].map(c => '<span>' + e2(c) + '</span>').join('') + '</div><div class="lx-bar"><i></i></div>' + (text ? '<div class="ld-t">' + e2(text) + '</div>' : '') + '</div>';
+}
+</script>
+
+<script>(function () { const L = document.getElementById('load'); if (L && typeof loadFx === 'function') L.innerHTML = loadFx('Đang mở tài liệu…'); })();      /* (1.82.50) hiệu ứng chờ ngẫu nhiên */</script>
 <script>
 /* ══════════════════════════════════════════════════════════════
    SỐ TRANG TRÊN BẢN GHÉP — dùng chung cho trình thiết kế (Link tạm), trang xem, bản in và PDF tải về.
