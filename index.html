@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-21T16:28:47.364Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-22T00:47:34.558Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -15154,7 +15154,7 @@ function clOverlay(d) {
   P('classLinkCfg').forEach(p => { if (C[p.id] && (p.at || 0) > lkAll) C[p.id].linkcfg = p.cfg || null; });
   if (d.manage) P('classStart').forEach(p => { const c = C[p.id]; if (c) { c.done = clStartMerge(c.done, p); c.started = 1; } });
   P('sessionAdd').forEach(p => { if (p.newId && !X[p.newId] && C[p.classId]) { const x = { id: p.newId, classId: p.classId, no: 0, date: p.date, time: p.time || '', status: '', note: '', released: false, gate: 'wait', folders: [], extra: [], auto: false, fill: C[p.classId].manual ? 0 : 1 }; d.sessions.push(x); X[x.id] = x; } });   // buổi vừa thêm, chưa lưu xong — máy chủ đang tự xếp bài
-  P('sessionTaught').forEach(p => { const x = X[p.id]; if (x) { x.status = p.undo ? 'approved' : 'taught'; if (!p.undo) x.taughtAt = x.taughtAt || new Date().toISOString();
+  P('sessionTaught').forEach(p => { const x = X[p.id]; if (x) { x.status = p.undo ? ((x.folders || []).length || (x.extra || []).length ? 'approved' : '') : 'taught'; if (!p.undo) x.taughtAt = x.taughtAt || new Date().toISOString();
     if (!p.undo && p.rate) x.rate = p.rate;
     if (!p.undo && (p.taught || p.more)) { const T = p.taught || x.folders || [], M = p.more || []; x.folders = (x.folders || []).filter(f => T.indexOf(f) >= 0 || M.indexOf(f) >= 0).concat(M.filter(f => (x.folders || []).indexOf(f) < 0));      // buổi chỉ còn đúng bài đã dạy; bài dạy thêm rời khỏi buổi khác
       if (M.length) d.sessions.forEach(y => { if (y !== x && y.classId === x.classId && y.status !== 'taught' && y.folders) y.folders = y.folders.filter(f => M.indexOf(f) < 0); }); } } });
@@ -19267,6 +19267,10 @@ function clNextSlot(c, after) {
 function clApply(c, list, opt) {
   opt = opt || {};
   const D = CL.d, before = [], added = [];
+  /* (1.82.39) “ĐÃ DẠY” ĐI THEO TOPIC: xác nhận Đã dạy là xác nhận NỘI DUNG đã dạy → buổi đã dạy mà topic của nó được CHUYỂN sang buổi khác của lớp
+     thì trạng thái Đã dạy (kèm lúc dạy) chuyển theo topic, buổi cũ thôi là đã dạy. Chỉ ĐỔI bài (topic không nằm ở buổi nào khác — vd Đổi bài theo KGS) → giữ Đã dạy. */
+  const tkey = f => (f || []).slice().sort().join(','), T0 = [];
+  list.forEach(o => { const x = D.sessions.find(s => s.id === o.id); if (x && x.status === 'taught' && (x.folders || []).length) T0.push({ x: x, key: tkey(x.folders), at: x.taughtAt }); });
   list.forEach(o => {
     if (o.add && !D.sessions.some(s => s.id === o.id)) {
       added.push(o.id);
@@ -19282,6 +19286,16 @@ function clApply(c, list, opt) {
     clQueue('sessionContent', Object.assign({ id: x.id, folders: t.folders, pick: t.pick, extra: t.extra, approve: approve, lnote: t.lnote, hold: hold, tags: t.tags || [] }, nl ? { nolink: 1 } : {}),
       { key: 'content:' + x.id, label: (opt.label || 'Nội dung buổi') + ' · ' + clName(c) + ' ' + clDay(x.date, D.today).dm });
   });
+  let nMv = 0;
+  T0.forEach(t => { const x = t.x; if (x.status !== 'taught' || tkey(x.folders) === t.key) return; const F0 = t.key.split(',');
+    if (F0.some(f => (x.folders || []).includes(f))) return;      // topic vẫn còn ở buổi này (chỉ thêm / bớt bài khác) → giữ
+    const tg = D.sessions.filter(y => y.classId === x.classId && y !== x && y.status !== 'taught' && y.status !== 'off' && F0.every(f => (y.folders || []).includes(f))).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0)[0];
+    if (!tg) return;      // topic không chuyển tới buổi nào → chỉ là đổi bài, giữ Đã dạy
+    x.status = (x.folders || []).length || (x.extra || []).length ? 'approved' : ''; x.taughtAt = '';
+    clQueue('sessionTaught', { id: x.id, undo: 1 }, { key: 'taught:' + x.id, label: 'Topic chuyển đi — bỏ Đã dạy · ' + clName(c) + ' ' + clDay(x.date, D.today).dm });
+    tg.status = 'taught'; tg.taughtAt = t.at || new Date().toISOString();
+    clQueue('sessionTaught', { id: tg.id, at: t.at || '' }, { key: 'taught:' + tg.id, label: 'Đã dạy đi theo topic · ' + clName(c) + ' ' + clDay(tg.date, D.today).dm }); nMv++; });
+  if (nMv && !opt.quiet) toast('“Đã dạy” đi theo topic: ' + nMv + ' buổi đổi trạng thái theo bài đã chuyển', 'info', 5000);
   CL._fl = null; clKeep(); clBadge();
   if (added.length && c.kgs && !opt.quiet) toast(added.length + ' buổi dư — lớp lấy lịch từ Kiến Gia Sư nhưng KGS chưa có buổi này. Gia sư chưa thấy; KGS thêm buổi thì bài tự vào đúng thứ tự', 'info', 7000);
   // hoàn tác: trả nội dung cũ (buổi vừa thêm để trống — hệ thống tự xếp lại, không xoá để khỏi chặn lịch tạo buổi)
@@ -23791,6 +23805,9 @@ html[data-mode="dark"] .cr-rf.off, .of[data-oflook="pho"] .cr-rf.off{ fill:#0206
 .cr-mty{ position:absolute; left:8px; top:-36px; display:inline-flex; gap:2px; padding:3px 6px; border-radius:8px; background:var(--lb); box-shadow:0 2px 8px -4px var(--lbsh) } .cr-mty i{ width:4px; height:4px; border-radius:50%; background:#64748B; animation:ofType 1s infinite } .cr-mty i:nth-child(2){ animation-delay:.15s } .cr-mty i:nth-child(3){ animation-delay:.3s }
 .cr-zm{ position:absolute; z-index:6; right:10px; bottom:10px; display:inline-flex; align-items:center; gap:2px; padding:3px; border-radius:12px; background:var(--lb); border:1px solid var(--edge); box-shadow:0 8px 20px -14px var(--lbsh) }
 .cr-zm button{ width:28px; height:28px; border:0; border-radius:8px; background:none; color:var(--lbi); cursor:pointer; display:grid; place-items:center } .cr-zm button:hover{ background:color-mix(in oklab, var(--primary) 12%, transparent); color:var(--primary) } .cr-zm b{ min-width:40px; text-align:center; font-size:11px; color:var(--lbs) }
+/* (1.82.39) thanh Áp dụng DÍNH ĐÁY khung popup — danh sách dài (22 mục) không phải cuộn tìm nút xác nhận */
+.of-pop .of-act{ position:sticky; bottom:-14px; z-index:3; margin:10px -4px 0; padding:10px 4px; background:linear-gradient(to bottom, transparent, var(--surface) 22%); }
+.of-it .t em.ok{ color:#15803D; font-style:normal; font-weight:700 }
 /* (1.82.36) popup kết quả: lý do lỗi, mục đã bỏ, nút Sửa bài, dòng giải thích Áp dụng / Bỏ mục */
 .of-it .t small.of-ierr{ color:var(--danger) } .of-it.sk .t{ opacity:.6 } .of-ib{ display:flex; flex-direction:column; gap:4px; flex:none; align-self:flex-start } .of-bad.ed{ color:var(--primary) } .of-bad.ed:hover{ color:var(--primary); border-color:var(--primary); background:color-mix(in oklab, var(--primary) 7%, var(--surface)) }
 .of-act .sp{ flex:1 } .of-ahint{ margin-top:8px; font-size:11.5px; line-height:1.5; color:var(--muted) } .of-ahint b{ color:var(--ink-2); font-weight:700 }
@@ -24388,6 +24405,9 @@ function ofItem(x, i) {
     '<span class="of-les">' + ((x.cur || []).length ? '<s>' + nm(x.cur) + '</s><i class="bi bi-arrow-right"></i>' : '') + '<b>' + nm(x.les) + '</b>' + (x.review ? ' <em>ôn lại</em>' : '') + '</span>' +
     (x.why ? '<small>' + esc(x.why) + '</small>' : '') + (x.note ? '<small><i class="bi bi-chat-left-text"></i> Dặn gia sư: ' + esc(x.note) + '</small>' : '') + (x.move ? '<small>Chuyển từ buổi khác: ' + esc(x.move) + '</small>' : '');
   if (x.t === 'ask') return '<b>Hỏi gia sư ' + esc(x.gs || '') + '</b> · ' + esc(x.be || '') + '<small>' + esc(x.msg || '') + '</small>' + ((x.topics || []).length ? '<small>Topic cần xác nhận: ' + nm(x.topics) + '</small>' : '');
+  if (!x.t && x.sid && Array.isArray(x.bai)) { const cu = (x.cu || []).map(z => esc(typeof z === 'object' ? (z.n || z.id) : (typeof clDirName === 'function' ? clDirName(z) : z))).join(' + ');      // (1.82.39) KHỚP BÀI: buổi · bài đang gán → bài theo KGS
+    return '<b>Buổi ' + esc(dm(x.d)) + '</b>' + (x.be ? ' · ' + esc(x.be) : '') + (x.giu ? ' · <em class="ok">khớp, giữ nguyên</em>' : !x.bai.length ? ' · <em>AI chưa rõ bài</em>' : '') +
+      (!x.giu && x.bai.length ? '<span class="of-les">' + (cu ? '<s>' + cu + '</s><i class="bi bi-arrow-right"></i>' : '<em>chưa có bài</em><i class="bi bi-arrow-right"></i>') + '<b>' + nm(x.bai) + '</b></span>' : '') + (x.ly ? '<small>' + esc(x.ly) + '</small>' : '') + (x.kgs ? '<small><i class="bi bi-journal-text"></i> KGS: ' + esc(x.kgs) + '</small>' : ''); }
   const lab = [x.be, x.ngay || x.date || dm(x.d), x.text || x.why || x.ly || x.msg || x.reply || x.t].filter(Boolean).join(' · ');
   return esc(lab || ('Mục ' + (i + 1))) + (x.reply && x.reply !== lab ? '<small>' + esc(x.reply) + '</small>' : '');
 }
@@ -24399,7 +24419,7 @@ async function ofPopShow(id, k, dataP, q, back) {
   if (!bk) { bk = document.createElement('div'); bk.id = 'ofPbk'; bk.className = 'of-pbk'; bk.onclick = ofPopClose; document.body.appendChild(bk); }
   if (!el) { el = document.createElement('section'); el.id = 'ofPop'; el.className = 'of-pop'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); document.body.appendChild(el); document.addEventListener('keydown', ofPopEsc); }
   el.dataset.id = id; OF.popBack = back || null;
-  const a = (OF.d && OF.d.agents.find(x => x.key === k)) || { av: 0, t: 'Kết quả' }, qi = q ? q.indexOf(id) : -1;
+  const a = (OF.d && OF.d.agents.find(x => x.key === k)) || { av: 0, t: OF_SHORT[(OF.rc && OF.rc[id] && OF.rc[id].kind) || k] || 'Trợ lý AI' }, qi = q ? q.indexOf(id) : -1;      // (1.82.39) trước: “Kết quả · Kết quả”
   const head = sub => '<div class="of-pop-h">' + (back ? '<button type="button" class="ibtn sm" data-ofpback title="Quay lại kết quả chính" aria-label="Quay lại"><i class="bi bi-arrow-left"></i></button>' : '') + asstAva(a.av, 'sm') + '<div class="t"><b>Kết quả · ' + esc(a.nick || a.t) + '</b><small>' + sub + '</small></div>' +
     (qi >= 0 && q.length > 1 ? '<span class="of-pnav"><button type="button" class="ibtn sm" data-ofpq="' + (qi - 1) + '"' + (qi ? '' : ' disabled') + ' aria-label="Báo cáo trước"><i class="bi bi-chevron-left"></i></button><small>' + (qi + 1) + '/' + q.length + '</small><button type="button" class="ibtn sm" data-ofpq="' + (qi + 1) + '"' + (qi < q.length - 1 ? '' : ' disabled') + ' aria-label="Báo cáo sau"><i class="bi bi-chevron-right"></i></button></span>' : '') +
     '<button type="button" class="ibtn sm" data-ofpx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>';
@@ -24413,22 +24433,24 @@ async function ofPopShow(id, k, dataP, q, back) {
   const canRev = !!((OF.d && OF.d.can) || (OF.rp0 && OF.rp0.can)), canAp = !!(OF.d && OF.d.can), rv = o.rev || null;
   const go2 = /^(assign|route|match|pmap)$/.test(o.kind) && o.classId ? 'classes/c/' + o.classId : '';
   const body = o.text != null ? aiMd(o.text || '', o.refs || {}) : o.grade ? '<p><b>' + esc(o.grade.score) + '/10</b> — ' + esc(o.grade.summary || '') + '</p>' : rj ? '<p>' + esc(rj.summary || rj.nhanXet || '') + '</p>' : o.reply ? aiMd(String(o.reply), {}) : '<span class="muted">' + esc(o.err || 'Không có nội dung') + '</span>';
+  const isM = o.kind === 'match', mN = isM ? { ok: items.filter(x => x.giu).length, lech: items.filter(x => !x.giu && (x.bai || []).length).length, unk: items.filter(x => !x.giu && !(x.bai || []).length).length } : null;
+  const body2 = isM && !String(body).replace(/<[^>]+>/g, '').trim() ? '<p>Đối chiếu ' + items.length + ' buổi đã qua với nội dung gia sư ghi bên KGS: <b>' + mN.ok + ' khớp</b> · <b style="color:var(--danger)">' + mN.lech + ' lệch</b> (AI đề xuất bài đúng) · ' + mN.unk + ' chưa rõ.</p>' : body;
   const sub = (st === 'err' ? 'Lỗi' : 'Xong') + (o.ms ? ' sau ' + Math.max(1, Math.round(o.ms / 1000)) + ' giây' : '') + (o.at ? ' · ' + asbAgo(o.at) : '');
   const isAs = o.kind === 'assign' || k === 'assign', lesT = isAs ? 'Gán bài' : (a.nick || OF_SHORT[k] || a.t);
   el.innerHTML = head(esc(sub)) + '<div class="of-pop-b">' +
     (o.prompt ? '<div class="of-dr-s"><h4>Việc được giao</h4><div class="of-m me" style="max-width:100%">' + esc(o.prompt) + '</div></div>' : '') +
-    '<div class="of-dr-s"><h4>Trả lời</h4><div class="of-res">' + body + '</div></div>' +
+    '<div class="of-dr-s"><h4>Trả lời</h4><div class="of-res">' + body2 + '</div></div>' +
     (A0.summary && !(rj && rj.summary) ? '<div class="of-dr-s"><h4>Tóm tắt</h4><div class="of-res">' + aiMd(String(A0.summary), {}) + '</div></div>' : '') +
     (A0.fb ? '<div class="of-dr-s"><h4>Phân tích nhận xét KGS</h4><div class="of-res">' + aiMd(String(A0.fb), {}) + '</div></div>' : '') +
     (auto.length ? '<div class="of-dr-s"><h4>Việc phòng đã chạy<span class="sp"></span>' + auto.filter(x => x.ok).length + '/' + auto.length + '</h4>' + auto.map(x => '<div class="of-hi"><span class="s ' + (x.ok ? 'ok' : 'e') + '">' + (x.ok ? 'đã chạy' : 'lỗi') + '</span><span class="t" style="white-space:normal">' + esc(x.msg || '') + '</span>' +
         (x.spawn ? '<button type="button" class="tka-lk" data-ofsub="' + esc(x.spawn) + '">xem kết quả</button>' : '') + '</div>').join('') + '</div>' : '') +
     (items.length ? '<div class="of-dr-s"><h4>Việc đề xuất / đã làm<span class="sp"></span>' + items.filter(x => x.st === 'done').length + '/' + items.length + ' đã làm</h4>' + items.slice(0, 80).map((x, i) => { const dn = x.st === 'done';
-        const sk = x.st === 'skip', er = x.st === 'err';      // (1.82.36) lỗi → ghi RÕ lý do · đã bỏ → ai bỏ · gán bài → nút Sửa bài (đổi / xoá bài của buổi như ở Kiến CM)
-        return '<label class="of-hi of-ap of-it' + (sk ? ' sk' : '') + '"><input type="checkbox" data-ofpk="' + i + '"' + (dn || sk ? ' disabled' : ' checked') + ' aria-label="Chọn mục ' + (i + 1) + '"><span class="s ' + (dn ? 'ok' : er ? 'e' : '') + '">' + (dn ? 'đã làm' : er ? 'lỗi' : sk ? 'đã bỏ' : 'đề xuất') + '</span><span class="t">' + ofItem(x, i) +
+        const sk = x.st === 'skip', er = x.st === 'err', nop = isM && !dn && (x.giu || !(x.bai || []).length);      // (1.82.39) khớp bài: mục khớp / chưa rõ không cần làm gì      // (1.82.36) lỗi → ghi RÕ lý do · đã bỏ → ai bỏ · gán bài → nút Sửa bài (đổi / xoá bài của buổi như ở Kiến CM)
+        return '<label class="of-hi of-ap of-it' + (sk ? ' sk' : '') + '"><input type="checkbox" data-ofpk="' + i + '"' + (dn || sk || nop ? ' disabled' : ' checked') + ' aria-label="Chọn mục ' + (i + 1) + '"><span class="s ' + (dn || (nop && x.giu) ? 'ok' : er || (isM && !nop && !dn) ? 'e' : '') + '">' + (dn ? (isM ? 'đã đổi' : 'đã làm') : er ? 'lỗi' : sk ? 'đã bỏ' : isM ? (x.giu ? 'khớp' : !(x.bai || []).length ? 'chưa rõ' : 'lệch') : 'đề xuất') + '</span><span class="t">' + ofItem(x, i) +
           (er && (x.err || x.why) ? '<small class="of-ierr"><i class="bi bi-exclamation-circle"></i> Chưa áp dụng được: ' + esc(x.err || x.why) + '</small>' : '') + (sk && (x.skip || x.why) ? '<small><i class="bi bi-slash-circle"></i> ' + esc(x.skip || x.why) + '</small>' : '') + '</span>' +
           '<span class="of-ib">' + (canRev && x.t === 'assign' ? '<button type="button" class="of-bad" data-ofbad="' + i + '" title="Đánh dấu mục này sai — ghi vào nhận xét">Sai</button>' : '') + (canAp && x.t === 'assign' && x.sid ? '<button type="button" class="of-bad ed" data-ofed="' + esc(x.sid) + '" title="Mở hộp chọn bài của buổi này — đổi hoặc xoá bài đã gán">Sửa bài</button>' : '') + '</span></label>'; }).join('') +
-      (items.some(x => x.st !== 'done' && x.st !== 'skip') && canAp ? '<div class="of-act"><button type="button" class="btn sm ghost" data-ofap="skip" title="Đánh dấu các mục đã chọn là KHÔNG làm — không đổi gì trên buổi học"><i class="bi bi-slash-circle"></i>Bỏ mục đã chọn</button><span class="sp"></span>' + (o.kind === 'assign' ? '<button type="button" class="btn sm" data-ofap="draft"><i class="bi bi-check2"></i>Áp dụng (nháp)</button><button type="button" class="btn sm pri" data-ofap="approve"><i class="bi bi-check2-all"></i>Áp dụng & duyệt</button>' : '<button type="button" class="btn sm pri" data-ofap="draft"><i class="bi bi-check2"></i>Áp dụng mục đã chọn</button>') + '</div>' +
-        '<div class="of-ahint">' + (o.kind === 'assign' ? '<b>Áp dụng (nháp)</b>: ghi bài vào buổi, buổi chờ duyệt ở Buổi học · <b>Áp dụng & duyệt</b>: ghi bài và duyệt luôn (gia sư thấy ngay) · ' : '<b>Áp dụng</b>: làm các mục đã đánh dấu · ') + '<b>Bỏ mục</b>: mục đã chọn thành “đã bỏ”, không đổi gì · bỏ dấu ✓ ở mục không muốn đụng tới. Bài đã gán muốn đổi / xoá: bấm <b>Sửa bài</b> ở mục đó.</div>' : '') + '</div>' : '') +
+      (items.some(x => x.st !== 'done' && x.st !== 'skip' && !(isM && (x.giu || !(x.bai || []).length))) && canAp ? '<div class="of-act"><button type="button" class="btn sm ghost" data-ofap="skip" title="Đánh dấu các mục đã chọn là KHÔNG làm — không đổi gì trên buổi học"><i class="bi bi-slash-circle"></i>Bỏ mục đã chọn</button><span class="sp"></span>' + (o.kind === 'assign' ? '<button type="button" class="btn sm" data-ofap="draft"><i class="bi bi-check2"></i>Áp dụng (nháp)</button><button type="button" class="btn sm pri" data-ofap="approve"><i class="bi bi-check2-all"></i>Áp dụng & duyệt</button>' : isM ? '<button type="button" class="btn sm pri" data-ofap="approve"><i class="bi bi-arrow-left-right"></i>Đổi bài theo KGS (mục đã chọn)</button>' : '<button type="button" class="btn sm pri" data-ofap="draft"><i class="bi bi-check2"></i>Áp dụng mục đã chọn</button>') + '</div>' +
+        '<div class="of-ahint">' + (isM ? '<b>Đổi bài theo KGS</b>: buổi đã qua đổi sang bài gia sư thực dạy (ghi bên KGS) và duyệt luôn — giống nút <b>Đổi bài</b> ở dấu “Lệch nội dung KGS” trên trang bé › Buổi học (xác nhận từng buổi ở đó cũng được) · ' : o.kind === 'assign' ? '<b>Áp dụng (nháp)</b>: ghi bài vào buổi, buổi chờ duyệt ở Buổi học · <b>Áp dụng & duyệt</b>: ghi bài và duyệt luôn (gia sư thấy ngay) · ' : '<b>Áp dụng</b>: làm các mục đã đánh dấu · ') + '<b>Bỏ mục</b>: mục đã chọn thành “đã bỏ”, không đổi gì · bỏ dấu ✓ ở mục không muốn đụng tới. Bài đã gán muốn đổi / xoá: bấm <b>Sửa bài</b> ở mục đó.</div>' : '') + '</div>' : '') +
     (warn.length ? '<div class="of-dr-s"><h4>Lưu ý từ máy chủ kiểm<span class="sp"></span>' + warn.length + '</h4><ul class="of-warn">' + warn.slice(0, 30).map(w => '<li>' + esc(w) + '</li>').join('') + '</ul></div>' : '') +
     (o.conv ? '<div class="of-dr-s of-give"><h4>Hỏi tiếp / giao thêm</h4><textarea class="ta" id="ofFu" placeholder="VD “làm tiếp cho các bé còn lại”, “giải thích vì sao chọn bài này”"></textarea><div class="r"><small>Tiếp tục đúng cuộc này — trả lời hiện ngay bên dưới.</small><button type="button" class="btn sm pri" data-offu><i class="bi bi-send"></i>Gửi</button></div><div id="ofFuA"></div></div>' : '') +
     '<div class="of-dr-s small muted">Lịch sử việc AI ' + esc(ofKeepT(OF.d && OF.d.keep)) + '.' + (go2 && typeof routeUrl === 'function' ? ' · <a class="tka-lk" href="' + esc(routeUrl(go2)) + '" target="_blank" rel="noopener">mở trang bé ở tab mới <i class="bi bi-box-arrow-up-right"></i></a>' : '') + '</div></div>' +
