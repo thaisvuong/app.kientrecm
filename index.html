@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-22T04:09:05.211Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-22T07:15:41.032Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -23930,6 +23930,234 @@ html[data-mode="dark"] .of-tt.trong{ background:#3B1414; color:#FCA5A5 } html[da
 .of-zi.board i.tt{ font-style:normal; font-size:.78em; padding:0 5px; border-radius:6px; margin-left:3px } .of-zi.board i.tt.trong{ background:#7F1D1D; color:#FECACA } .of-zi.board i.tt.nhap{ background:#78350F; color:#FDE68A } .of-zi.board i.tt.duyet{ background:#14532D; color:#BBF7D0 } .of-zi.board i.tt.tu{ background:#1E3A8A; color:#BFDBFE }
 #ofArrB:disabled, [data-ofcfg]:disabled{ opacity:.45; cursor:not-allowed; filter:grayscale(.4) }
 @media (prefers-reduced-motion:reduce){ .cr-mini{ animation-duration:.01s } .cr-nob path, .cr-mbub, .cr-mty i{ animation:none; opacity:1 } }
+/* ═════ (1.82.46) THANG CUỐN — chạy LIÊN TỤC suốt các tầng ở Sảnh gia sư: mép trái đi lên, mép phải đi xuống.
+   Dải nền + bậc trượt (nét đứt chạy) + hai tay vịn; người bước lên là đi luôn, không chờ cabin. Dùng cho CẢ BA phong cách ═════ */
+/* (1.82.48) THANG CUỐN CHÂN THỰC: bậc kim loại có rãnh + viền vàng · cổ bậc tối · vách kính trên gờ inox · tay vịn đen có vệt sáng chạy ·
+   thân giàn + dải đèn theo chiều (lên xanh dương / xuống xanh ngọc) · chiếu nghỉ là sàn dày có nắp sàn + răng lược vàng · cột thép xuống nền */
+.cr-esc{ --esa:var(--primary) } .cr-esc.dn{ --esa:#0F766E }
+.cr-stt{ fill:#D3DAE4; stroke:#9AA6B6; stroke-width:.5 } .cr-str{ fill:#8C99AB; stroke:#7A8799; stroke-width:.4 }      /* mặt bậc · cổ bậc */
+.cr-stg{ fill:none; stroke:rgba(71,85,105,.32); stroke-width:.6 } .cr-sty{ fill:none; stroke:#F5C518; stroke-width:1.3; stroke-linecap:butt }      /* rãnh · viền vàng */
+.cr-escb{ fill:#AEB9C8 } .cr-escd{ fill:#EEF2F7; stroke:#A7B3C3; stroke-width:.6 }      /* vách trong phía sau · gờ inox */
+.cr-esck{ fill:#C3CCD8; stroke:#94A3B8; stroke-width:.8 } .cr-escks{ fill:none; stroke:var(--esa); stroke-width:2; stroke-linecap:round; opacity:.85 }      /* thân giàn · dải đèn */
+.cr-escg{ fill:rgba(191,219,254,.34); stroke:rgba(96,165,250,.6); stroke-width:.8 }      /* vách kính */
+.cr-escr{ fill:none; stroke:#1F2937; stroke-width:4.2; stroke-linecap:round; stroke-linejoin:round }      /* tay vịn */
+.cr-escrm{ fill:none; stroke:rgba(255,255,255,.6); stroke-width:1.3; stroke-linecap:round; stroke-dasharray:3 15; animation:crRail .19s linear infinite } .cr-escrm.dn{ animation-direction:reverse }
+.cr-escl1{ fill:var(--edge) } .cr-escl2{ fill:color-mix(in oklab, var(--edge) 78%, #000 10%) } .cr-escl3{ fill:var(--flr); fill-opacity:1; stroke:var(--edge); stroke-width:1.2 }      /* chiếu nghỉ */
+.cr-stop{ stroke-width:.8 } .cr-comb{ fill:none; stroke:#F5C518; stroke-width:2.2; stroke-linecap:butt }      /* nắp sàn · răng lược */
+.cr-ecol1{ fill:#94A3B8 } .cr-ecol2{ fill:#7C8BA1 } .cr-ecol3{ fill:#CBD5E1 } .cr-ecb{ fill:#94A3B8; opacity:.7 }      /* cột thép · đế cột */
+.cr-escpad{ fill:var(--flr); fill-opacity:var(--flo) } .cr-escpe{ fill:none; stroke:var(--edge); stroke-width:1.2 }      /* nền dưới chân thang */
+.cr-escm{ animation-name:crStep; animation-timing-function:linear; animation-iteration-count:infinite } .cr-escm.dn{ animation-direction:reverse }
+.cr-escw{ fill:var(--flr); fill-opacity:1; stroke:var(--edge); stroke-width:1.2 } .cr-escwe{ fill:var(--cab2) } .cr-escwr{ fill:none; stroke:var(--cab2); stroke-width:2; stroke-linecap:round }      /* cầu nối hành lang → thang cuốn */
+@keyframes crStep{ to{ transform:translate(var(--sx), var(--sy)) } } @keyframes crEscV{ to{ background-position:0 -8px } } @keyframes crRail{ to{ stroke-dashoffset:-18 } }
+:is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-stt{ fill:#3B4A66; stroke:#55678C } :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-str{ fill:#1B2740; stroke:#2A3958 }
+:is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-stg{ stroke:rgba(148,163,184,.25) } :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-sty, :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-comb{ stroke:#EAB308 }
+:is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-escb{ fill:#24324E } :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-escd{ fill:#53647F; stroke:#3A4A66 }
+:is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-esck{ fill:#2E3C58; stroke:#43557A } :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-esc{ --esa:#60A5FA } :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-esc.dn{ --esa:#2DD4BF }
+:is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-escg{ fill:rgba(56,189,248,.13); stroke:rgba(125,211,252,.38) } :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-escr{ stroke:#05080F } :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-escrm{ stroke:rgba(226,232,240,.45) }
+:is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-ecol1{ fill:#334155 } :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-ecol2{ fill:#1E293B } :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-ecol3{ fill:#475569 } :is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-ecb{ fill:#334155 }
+:is(html[data-mode="dark"], .of[data-oflook="pho"]) .cr-stop:not(.me){ fill:#475569; stroke:#5A6E96 }
+html[data-mode="dark"] .cr-escw, .of[data-oflook="pho"] .cr-escw{ stroke:#43557A } html[data-mode="dark"] .cr-escwe, .of[data-oflook="pho"] .cr-escwe{ fill:#1B2740 } html[data-mode="dark"] .cr-escwr, .of[data-oflook="pho"] .cr-escwr{ stroke:#5A6E96 }
+.cr-walker.ride{ z-index:890 } .cr-walker.ride > .as-av{ animation:none }
+.lift-cam .cam-shaft{ background:repeating-linear-gradient(180deg, rgba(148,163,184,.3) 0 2px, transparent 2px 8px); animation:crEscV 1.1s linear infinite }
+.lift-cam .cam-shaft.r{ animation-direction:reverse }
+.lift-cam .cam-pax{ position:absolute; left:10px; width:28px; height:22px; border-radius:6px; display:grid; place-items:center; background:rgba(148,163,184,.22); box-shadow:0 0 0 1.5px #64748B; transition-property:top; transition-timing-function:linear }
+.lift-cam .cam-pax.r{ left:auto; right:10px; box-shadow:0 0 0 1.5px #0F766E }
+.lift-cam .cam-pax .pa{ display:flex; align-items:center } .lift-cam .cam-pax .pa .as-av{ width:18px; height:18px }
+@media (prefers-reduced-motion:reduce){ .cr-escm, .cr-escrm, .lift-cam .cam-shaft{ animation:none } .lift-cam .cam-pax, .cr-walker.ride{ transition:none } }
+/* ═════ (1.82.45) PHONG CÁCH “NÉT MỰC” — bản thiết kế thứ ba cho Văn phòng AI · Lớp học · Sảnh gia sư (Cài đặt văn phòng › Phong cách)
+   Minh hoạ isometric nét mực: viền mực than quanh mọi khối · nền giấy kem có lưới isometric · ít màu trầm ấm ·
+   ba tông mặt, gần như không đổ bóng · nhãn viên thuốc chữ đơn cách · mũi tên đầu đặc. Thiết kế: docs/phong-cach-net-muc.md
+   Gắn bằng html[data-oflook="net"] (ofLookApply) nên trùm cả hộp phóng to #ofZm, popup #ofPop, bảng #ofDr ngoài #ofR.
+   Khối này đặt CUỐI bảng kiểu để thắng các khối html[data-mode="dark"] — Nét mực luôn giấy sáng ═════ */
+html[data-oflook="net"]{ --nk:#2B2A27; --nk2:rgba(43,42,39,.5); --npap:#F6F1E7; --npap2:#EFE7D8; --ngrid:rgba(124,104,74,.16); --nlb:#FBF8F2;
+  --nst1:#E2D9C8; --nst2:#CFC5B2; --nst3:#F1EBDF; --nwd1:#D3B58C; --nwd2:#B99567; --nwd3:#E8D3B4; --nter1:#D8A98A; --nter2:#BE8C6B; --nter3:#E8C7AC;
+  --nacc:#B9B0EE; --nacc2:#8D83C9; --nacc3:#D7D2F5; --nok:#A9CBA0; --nok2:#7FA876; --nwarn:#E8A77F; --nsun:#E9C46A; --nsun2:#C9A227; --nsun3:#F5E3BB;
+  --nbad:#D46A5E; --nbad2:#C25A4E; --nbad3:#F0CFC9; --npink:#E3BCCB; --nbrd:#5E7D6A; --nmono:ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace }
+/* ── 1. biến màu sân khấu / khuôn viên / cảnh phóng to ── */
+html[data-oflook="net"] .of-stage, html[data-oflook="net"] .of-cv, html[data-oflook="net"] .of-zm-sc, html[data-oflook="net"] .of-zs{
+  --st1:#F6F1E7; --st2:#EFE7D8; --dot:transparent; --flr:#FBF8F2; --flo:1; --edge:#D9D0BD;
+  --lb:#FBF8F2; --lbi:#2B2A27; --lbs:#6F6757; --lbsh:rgba(43,42,39,.14); --bub:#FBF8F2; --bubi:#2B2A27; --dock:#FBF8F2;
+  --cab1:var(--nst1); --cab2:var(--nst2); --cab3:var(--nst3); --dk1:var(--nwd1); --dk2:var(--nwd2); --dk3:var(--nwd3);
+  --mon:#CFC8F2; --mail:var(--nacc2); --ring:var(--nsun2) }
+/* ── 2. nền giấy kem + lưới isometric (bỏ nền chấm tròn, bỏ nền chuyển sắc) ── */
+html[data-oflook="net"] .of-stage, html[data-oflook="net"] .of-cv.cr, html[data-oflook="net"] .of-schv .of-cv.cr, html[data-oflook="net"] .of-zm-sc{
+  background-color:#F6F1E7; background-image:repeating-linear-gradient(30deg, var(--ngrid) 0 1px, transparent 1px 26px), repeating-linear-gradient(-30deg, var(--ngrid) 0 1px, transparent 1px 26px); border-color:var(--nk) }
+html[data-oflook="net"] .of-stage::before{ display:none }
+html[data-oflook="net"] .of-zm{ box-shadow:0 0 0 1.5px var(--nk) }
+/* ── 3. viền mực chung cho SVG sơ đồ (trừ bóng, quầng đèn, lưới, mây, chữ) ── */
+html[data-oflook="net"] :is(.of-in, .of-cvin, .of-zs) > svg :is(polygon, path, rect, ellipse, circle, line){
+  stroke:var(--nk); stroke-width:1.5; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke }
+html[data-oflook="net"] :is(.of-in, .of-cvin, .of-zs) > svg :is(.of-plaza, .of-slot, .cr-hit, .of-zcode, .of-zring, .of-zdot, .of-zmer, .cr-chalk, .cr-glow, .of-zsteam, .of-zled, .of-fdot, .of-comet, .of-zlight, .of-zlight *, .of-zcloud, .of-zcloud *){ stroke:none }
+html[data-oflook="net"] :is(.of-in, .of-cvin, .of-zs) > svg :is(.of-zg, .cr-tile){ stroke:var(--ngrid); stroke-opacity:1; stroke-width:1 }
+html[data-oflook="net"] :is(.of-in, .of-cvin, .of-zs) > svg :is(.of-zshd, .of-zsh, .of-zshb, .of-zao, .of-zao2){ display:none }
+html[data-oflook="net"] :is(.of-in, .of-cvin, .of-zs) > svg :is(.of-pap, .of-zleaf, .of-zenv1, .of-zenv2, .of-zenv3, .of-zpap1, .of-zpap2, .of-zpap3, .of-zsheet1, .of-zsheet2, .of-zsheet3, .of-zbook, .cr-book, .of-zk01, .of-zk02, .of-zk03, .of-zk11, .of-zk12, .of-zk13, .of-zk21, .of-zk22, .of-zk23, .of-zk31, .of-zk32, .of-zk33){ stroke-width:.9 }
+html[data-oflook="net"] .of-zlight{ opacity:.16 }
+/* ── 4. mũi tên / dây nối nét mực, đầu đặc (marker ofNetArw ở defs của ofStage) ── */
+html[data-oflook="net"] .of-fw{ stroke:var(--nk); stroke-opacity:.5; stroke-width:2.4; filter:none; marker-end:url(#ofNetArw) }
+html[data-oflook="net"] .of-fw.ml{ stroke:var(--nacc2); stroke-opacity:.85 }
+html[data-oflook="net"] .of-ln{ stroke:var(--nk2); stroke-opacity:.55 } html[data-oflook="net"] .of-walkl{ stroke:var(--nk2) }
+html[data-oflook="net"] .of-fdot, html[data-oflook="net"] .of-comet, html[data-oflook="net"] .of-plane{ filter:none }
+html[data-oflook="net"] .cr-rail{ stroke:var(--nk); stroke-width:2.4 } html[data-oflook="net"] .cr-rail.dn{ stroke:var(--nk); stroke-opacity:.45 }
+/* ── 5. ba tông mặt — khối đá / kim loại nhạt (1 trước-trái · 2 phải · 3 trên) ── */
+html[data-oflook="net"] :is(.cr-ch1, .cr-prn1, .cr-wd1, .cr-tray1, .of-ztray1, .of-zsill1, .of-zrack1, .of-zholo1, .of-zchair1, .of-sr .w1, .cr-sofa1){ fill:var(--nst1) }
+html[data-oflook="net"] :is(.cr-ch2, .cr-prn2, .cr-wd2, .cr-tray2, .of-ztray2, .of-zsill2, .of-zrack2, .of-zholo2, .of-zchair2, .of-sr .w2, .cr-sofa2, .of-zst, .of-zkb, .cr-ledge, .of-zskt, .cr-skt, .of-zled){ fill:var(--nst2) }
+html[data-oflook="net"] :is(.cr-ch3, .cr-prn3, .cr-wd3, .cr-tray3, .of-ztray3, .of-zsill3, .of-zrack3, .of-zholo3, .of-zchair3, .of-sr .fl, .cr-sofa3, .cr-stop, .cr-stop.dn){ fill:var(--nst3) }
+/* gỗ nhạt */
+html[data-oflook="net"] :is(.of-zleg1, .of-zshelf1, .of-zstand1, .of-zshelf, .of-sr .tb){ fill:var(--nwd1) }
+html[data-oflook="net"] :is(.of-zleg2, .of-zshelf2, .of-zstand2, .of-zhdl, .cr-hdl, .of-zledge, .of-sr .tb2){ fill:var(--nwd2) }
+html[data-oflook="net"] :is(.of-zleg3, .of-zshelf3, .of-zstand3, .of-zcur, .of-sr .tb3, .cr-cork){ fill:var(--nwd3) }
+html[data-oflook="net"] .of-zrod{ stroke:var(--nwd2) } html[data-oflook="net"] .cr-cork{ stroke:var(--nk) } html[data-oflook="net"] .of-zsoil{ fill:#6B5844 }
+html[data-oflook="net"] .cr-fence{ stroke:var(--nwd2) } html[data-oflook="net"] :is(.cr-drw, .of-zdrw){ stroke:var(--nk2); stroke-opacity:.6 }
+/* chậu đất nung */
+html[data-oflook="net"] :is(.of-zpot1, .of-zpotr1){ fill:var(--nter1) } html[data-oflook="net"] :is(.of-zpot2, .of-zpotr2){ fill:var(--nter2) } html[data-oflook="net"] :is(.of-zpot3, .of-zpotr3){ fill:var(--nter3) }
+/* giấy · bảng trắng · phong thư */
+html[data-oflook="net"] :is(.of-pap, .of-zwb, .of-zclk, .cr-clk, .of-zframe, .of-kb, .of-zsheetb, .of-zenv1, .of-zenv2, .of-zenv3, .of-zpap1, .of-zpap2, .of-zpap3, .of-zsheet1, .of-zsheet2, .of-zsheet3, .bd-fl, .of-zpst, .of-zcloud ellipse){ fill:#FBF8F2 }
+html[data-oflook="net"] .of-zpst{ stroke:var(--nk) } html[data-oflook="net"] .of-zpstt text{ fill:var(--nk) } html[data-oflook="net"] .of-kbl{ stroke:var(--nk2) }
+html[data-oflook="net"] .bd-fl.dang{ fill:#EDF3E8 } html[data-oflook="net"] .bd-fl.qua{ fill:var(--nbad3) } html[data-oflook="net"] .bd-ch{ fill:var(--nst2) }
+html[data-oflook="net"] .bd-kid{ fill:var(--nsun); stroke:var(--nk) } html[data-oflook="net"] .bd-kid.qua{ fill:var(--nbad3); stroke:var(--nk) }
+/* màn hình · cửa sổ · kính */
+html[data-oflook="net"] .of-zmon{ fill:#3A3A40 } html[data-oflook="net"] .of-zscr{ fill:#CFC8F2 } html[data-oflook="net"] .of-zscr.on{ fill:var(--nacc) }
+html[data-oflook="net"] .of-mon.on{ fill:var(--nacc) } html[data-oflook="net"] .of-zscore{ fill:#3A3A40; stroke:var(--nk) } html[data-oflook="net"] .of-zscore.bad{ stroke:var(--nbad2) }
+html[data-oflook="net"] :is(.of-zwin, .cr-win, .cr-wn, .of-sr .win, .of-zlens){ fill:#DAD5F0 } html[data-oflook="net"] :is(.cr-win.on, .cr-wn.on, .of-sr .lt){ fill:var(--nsun); filter:none }
+html[data-oflook="net"] :is(.of-zwl, .of-zwfr, .cr-wfr){ stroke:var(--nk) } html[data-oflook="net"] .of-zwfo{ stroke:var(--nacc2) }
+html[data-oflook="net"] .of-glass{ fill:rgba(185,176,238,.22); stroke:var(--nk); stroke-opacity:1 }
+html[data-oflook="net"] .of-zglobe{ fill:var(--nok); stroke:var(--nk) } html[data-oflook="net"] .of-zmer{ stroke:var(--nok2) }
+html[data-oflook="net"] :is(.cr-hand, .of-zhand, .cr-pole, .of-zpole){ stroke:var(--nk) }
+/* nhấn pastel dịu — giữ Ý NGHĨA mức gấp (đỏ · cam · vàng · xanh), chỉ đổi tông */
+html[data-oflook="net"] :is(.of-zbook.b0, .cr-book.b0, .of-zk01, .of-zk02, .of-zk03, .of-hc1){ fill:var(--nacc) }
+html[data-oflook="net"] :is(.of-zbook.b1, .cr-book.b1, .of-zk11, .of-zk12, .of-zk13, .of-zfold1, .of-zfold2, .of-zfold3, .of-rc1){ fill:var(--nsun) }
+html[data-oflook="net"] :is(.of-zbook.b2, .cr-book.b2, .of-zk21, .of-zk22, .of-zk23, .of-zleaf, .cb-t.dang){ fill:var(--nok) }
+html[data-oflook="net"] :is(.of-zbook.b3, .cr-book.b3, .of-zk31, .of-zk32, .of-zk33, .of-zfoldx1, .of-zfoldx2, .of-zfoldx3, .cr-pin, .cr-flag){ fill:var(--nbad) }
+html[data-oflook="net"] .of-zbarc.c0{ fill:var(--nacc3) } html[data-oflook="net"] .of-zbarc.c1{ fill:#C4BDF0 } html[data-oflook="net"] .of-zbarc.c2{ fill:var(--nacc) } html[data-oflook="net"] .of-zbarc.c3{ fill:var(--nacc2) }
+html[data-oflook="net"] .of-znote.n0{ fill:var(--nsun) } html[data-oflook="net"] .of-znote.n1{ fill:var(--npink) } html[data-oflook="net"] .of-znote.n2{ fill:var(--nok) }
+html[data-oflook="net"] .cr-note.n0{ fill:var(--nsun3) } html[data-oflook="net"] .cr-note.n1{ fill:#DAD5F0 } html[data-oflook="net"] .cr-note.n2{ fill:#F0DCE4 }
+html[data-oflook="net"] .of-kn{ fill:var(--nsun3) } html[data-oflook="net"] .of-kn.late{ fill:var(--nbad3) } html[data-oflook="net"] .of-zmug{ fill:var(--nwarn) }
+html[data-oflook="net"] .of-zsign.b1{ fill:var(--nok2) } html[data-oflook="net"] .of-zsign.b2{ fill:var(--nacc2) } html[data-oflook="net"] .of-zled.on{ fill:var(--nok2) }
+html[data-oflook="net"] :is(.of-zred, .of-zpen){ stroke:var(--nbad2) } html[data-oflook="net"] .of-zpen2{ stroke:var(--nacc2) }
+html[data-oflook="net"] .of-zring{ stroke:var(--nacc2) } html[data-oflook="net"] .of-zring.r2{ stroke:var(--nsun2) } html[data-oflook="net"] .of-zdot{ fill:var(--nacc2) } html[data-oflook="net"] .of-zcode{ stroke:var(--nacc) }
+html[data-oflook="net"] .of-rc2{ fill:var(--nsun2) } html[data-oflook="net"] .of-rc3{ fill:var(--nsun3) } html[data-oflook="net"] .of-hc2{ fill:var(--nacc2) } html[data-oflook="net"] .of-hc3{ fill:var(--nacc3) }
+html[data-oflook="net"] :is(.of-w1.rep, .of-w2.rep){ fill:var(--nsun3) } html[data-oflook="net"] .of-flr.rep{ fill:#FBF6E6 }
+html[data-oflook="net"] :is(.of-w1.hs, .of-w2.hs){ fill:#DAD5F0 } html[data-oflook="net"] .of-flr.hs{ fill:#F2F0FB }
+html[data-oflook="net"] :is(.of-w1.me, .of-w2.me){ fill:var(--nsun) } html[data-oflook="net"] .of-flr.me{ fill:#FBF6E6 }
+html[data-oflook="net"] .cb-t{ fill:#EDF3E8 } html[data-oflook="net"] .cb-t.h{ fill:var(--nsun3) } html[data-oflook="net"] .cb-t.qua{ fill:var(--nbad3) } html[data-oflook="net"] .cb-t.none{ fill:var(--nst2) }
+html[data-oflook="net"] :is(.of-zrug, .of-zrug2){ fill:#EFE3CE } html[data-oflook="net"] .cr-vrug{ fill:var(--nst3); stroke:var(--nk) } html[data-oflook="net"] .cr-vrug.b{ fill:var(--nsun3); stroke:var(--nk) }
+html[data-oflook="net"] :is(.cr-walk, .of-walk){ fill:#EFE7D8; stroke:var(--nk2) } html[data-oflook="net"] .cr-walk.lv-me{ fill:var(--nsun3) }
+html[data-oflook="net"] .cr-fa.rep{ fill:var(--nsun); fill-opacity:.3; stroke:var(--nk); stroke-opacity:.8 }
+html[data-oflook="net"] .cr-wb{ fill:#DAD5F0 } html[data-oflook="net"] .cr-tap{ fill:var(--nacc2) } html[data-oflook="net"] .cr-mag{ fill:var(--nacc2) }
+html[data-oflook="net"] .of-hu.gs{ --av:var(--nacc2) } html[data-oflook="net"] .of-hu.hs{ --av:#D99A6C }
+html[data-oflook="net"] .cr-rf.qua{ fill:var(--nbad3) } html[data-oflook="net"] .cr-rf.xong{ fill:#EDF3E8 } html[data-oflook="net"] .cr-rf.off{ fill:var(--nst2); fill-opacity:.5 }
+html[data-oflook="net"] .cr-meflr{ fill:#F2F0FB; stroke:var(--nk) } html[data-oflook="net"] .cr-mag{ fill:var(--nacc2) }
+html[data-oflook="net"] .cr-nob line{ stroke:var(--nbad2) } html[data-oflook="net"] .cr-nob path{ fill:var(--nbad) }
+/* bảng phấn: xanh rêu dịu, khung gỗ viền mực */
+html[data-oflook="net"] .of-zboard{ fill:var(--nbrd) } html[data-oflook="net"] .of-zboard.on{ fill:#6B8C77 }
+html[data-oflook="net"] .cr-board{ fill:#6B7A74 } html[data-oflook="net"] .cr-board.on{ fill:var(--nbrd) } html[data-oflook="net"] .cr-board.late{ fill:var(--nbad2) }
+html[data-oflook="net"] .cr-chalk{ stroke:#F4F1E6 } html[data-oflook="net"] .cr-glow{ fill:var(--nsun); opacity:.14 }
+html[data-oflook="net"] .of-sr .bd{ fill:#6B7A74 } html[data-oflook="net"] .of-sr .bd.on{ fill:var(--nbrd) } html[data-oflook="net"] .of-sr .bl{ stroke:#F4F1E6 } html[data-oflook="net"] .of-sr.dang .fl{ fill:#EDF3E8 }
+html[data-oflook="net"] .cr-r.off .cr-board{ fill:var(--nst2) } html[data-oflook="net"] .cr-r.off .cr-win{ fill:var(--nst2) }
+/* tường · sàn phòng ở sơ đồ Văn phòng: giấy kem ba tông, viền mực (bản gốc dùng var(--primary) rất nhạt) */
+html[data-oflook="net"] .of-w1{ fill:#EFE7D8; fill-opacity:.8; stroke-opacity:1 } html[data-oflook="net"] .of-w2{ fill:#E3D9C6; fill-opacity:.9; stroke-opacity:1 }
+html[data-oflook="net"] .of-w1.hub, html[data-oflook="net"] .of-w2.hub{ fill-opacity:1 }
+html[data-oflook="net"] .of-flr{ fill:#FBF8F2; fill-opacity:1; stroke-opacity:1 } html[data-oflook="net"] .of-flr.busy{ fill:#C9C2EE } html[data-oflook="net"] .of-flr.done{ fill:var(--nok) }
+html[data-oflook="net"] .of-base{ fill:#FBF8F2; fill-opacity:1; stroke:var(--nk) } html[data-oflook="net"] .of-rug{ stroke:var(--nk2); stroke-opacity:.3 }
+html[data-oflook="net"] .of-rail{ stroke:var(--nk2); stroke-opacity:.45 } html[data-oflook="net"] .of-comet{ stroke:var(--nacc2); color:var(--nacc2) } html[data-oflook="net"] .of-ping{ stroke:var(--nacc2) }
+html[data-oflook="net"] .of-mon{ fill:#CFC8F2 } html[data-oflook="net"] .of-stp{ fill:#FBF8F2 } html[data-oflook="net"] :is(.of-sf, .of-post, .of-slab2){ fill:var(--nst2) } html[data-oflook="net"] :is(.of-sr-x, .of-slab3){ fill:var(--nst1) }
+/* ── 6. phòng gia sư phóng to (.of-zs.sch) — các lớp ghi màu riêng ở bản gốc ── */
+html[data-oflook="net"] .of-zs.sch .of-dk1{ fill:var(--nwd1) } html[data-oflook="net"] .of-zs.sch .of-dk2{ fill:var(--nwd2) } html[data-oflook="net"] .of-zs.sch .of-dk3{ fill:var(--nwd3) }
+html[data-oflook="net"] .of-zs.sch .of-zchair1{ fill:var(--nst1) } html[data-oflook="net"] .of-zs.sch .of-zchair2{ fill:var(--nst2) } html[data-oflook="net"] .of-zs.sch .of-zchair3{ fill:var(--nst3) }
+html[data-oflook="net"] .of-zs.sch .of-zshelf, html[data-oflook="net"] .of-zs.sch .of-zshelf1{ fill:var(--nwd1) } html[data-oflook="net"] .of-zs.sch .of-zshelf2{ fill:var(--nwd2) } html[data-oflook="net"] .of-zs.sch .of-zshelf3{ fill:var(--nwd3) }
+html[data-oflook="net"] .of-zs.sch .of-zleg1{ fill:var(--nwd1) } html[data-oflook="net"] .of-zs.sch .of-zleg2{ fill:var(--nwd2) } html[data-oflook="net"] .of-zs.sch .of-zleg3{ fill:var(--nwd3) }
+html[data-oflook="net"] .of-zs.sch :is(.of-zpot1, .of-zpotr1){ fill:var(--nter1) } html[data-oflook="net"] .of-zs.sch :is(.of-zpot2, .of-zpotr2){ fill:var(--nter2) } html[data-oflook="net"] .of-zs.sch :is(.of-zpot3, .of-zpotr3){ fill:var(--nter3) }
+html[data-oflook="net"] .of-zs.sch .of-zbook.b0{ fill:var(--nacc) } html[data-oflook="net"] .of-zs.sch .of-zbook.b1{ fill:var(--nsun) } html[data-oflook="net"] .of-zs.sch .of-zbook.b2{ fill:var(--nok) } html[data-oflook="net"] .of-zs.sch .of-zbook.b3{ fill:var(--nbad) }
+html[data-oflook="net"] .of-zs.sch .of-zboard{ fill:var(--nbrd) } html[data-oflook="net"] .of-zs.sch .of-zboard.on{ fill:#6B8C77 }
+html[data-oflook="net"] .of-zs.sch .of-zleaf{ fill:var(--nok) } html[data-oflook="net"] .of-zs.sch .of-zcur{ fill:#DAD5F0 } html[data-oflook="net"] .of-zs.sch .of-zrug{ fill:#EFE3CE }
+html[data-oflook="net"] .of-zf{ fill:#FBF8F2; stroke:var(--nk); stroke-opacity:1 } html[data-oflook="net"] .of-zf.busy{ fill:#F3F1FB }
+/* ── 7. nhãn viên thuốc: nền kem, viền mực, bo tròn, bỏ bóng mờ ── */
+html[data-oflook="net"] :is(.of-lb, .of-bub, .of-cab, .of-brain, .of-mail, .of-floor, .of-rpbox, .cr-tag, .cr-sign, .cr-hud, .cr-donut, .cr-zm, .of-zi.zb, .of-zi.dkt, .of-zi.doc, .of-zi.pile, .cr-mbub, .of-tbub, .of-legend, .of-zi.score){
+  background:var(--nlb); color:var(--nk); border-color:var(--nk); box-shadow:0 0 0 1px var(--nk) }
+html[data-oflook="net"] :is(.of-cab, .of-mail, .of-floor, .cr-tag, .of-zi.pile, .lq-u, .lq-cur, .lqc){ border-radius:999px }
+html[data-oflook="net"] :is(.of-lb, .of-bub, .of-brain, .cr-sign, .cr-hud, .cr-donut, .cr-zm, .of-zi.zb, .of-zi.dkt, .of-zi.doc, .of-rpbox, .cr-mbub, .of-zi.score){ border-radius:14px }
+html[data-oflook="net"] .of-lb::before{ background:var(--nk2) } html[data-oflook="net"] .of-lb:hover{ border-color:var(--nk) }
+html[data-oflook="net"] :is(.of-lb b, .of-lb small, .cr-sign b, .cr-sign small, .cr-tag b, .of-bub, .of-rpbox, .cr-mbub){ color:var(--nk) }
+html[data-oflook="net"] .of-lb.busy small, html[data-oflook="net"] .cr-sign em.dang, html[data-oflook="net"] .cr-tag em.dang, html[data-oflook="net"] .of-lb.in.cr-lb em.sap{ color:var(--nok2) }
+html[data-oflook="net"] :is(.cr-sign em.qua, .cr-tag em.qua, .of-lb.in.cr-lb em.qua, .of-lb.in.cr-lb em.nob, .of-lb.in.cr-lb i.nob){ color:var(--nbad2) }
+html[data-oflook="net"] :is(.cr-sign > i, .cr-tag.gate i, .cr-hud .hud-h > i, .of-lb.sp i){ color:var(--nacc2) }
+html[data-oflook="net"] .of-bub.ok{ background:#EDF3E8; color:var(--nk) } html[data-oflook="net"] .of-bub.err{ background:var(--nbad3); color:var(--nk) }
+html[data-oflook="net"] .of-brain .ch span{ background:var(--nsun3); color:var(--nk) } html[data-oflook="net"] .of-brain em{ color:var(--nk2) }
+html[data-oflook="net"] .of-mail.off{ border-color:var(--nk2); color:var(--nk2) } html[data-oflook="net"] .of-rpbox em{ background:var(--nsun3); color:var(--nk) }
+html[data-oflook="net"] .of-lb.in.cr-lb[class*="lq-"]{ box-shadow:0 0 0 2px var(--lqc) }
+html[data-oflook="net"] .lq-do{ --lqc:var(--nbad) } html[data-oflook="net"] .lq-cam{ --lqc:var(--nwarn) } html[data-oflook="net"] .lq-vang{ --lqc:var(--nsun2) } html[data-oflook="net"] .lq-xanh{ --lqc:var(--nok2) }
+html[data-oflook="net"] .of-lb.in.cr-lb.lq-do{ animation:none }
+html[data-oflook="net"] .lq-u{ color:var(--nk); box-shadow:0 0 0 1.5px var(--nk); font-weight:700 }
+html[data-oflook="net"] .lq-u.do{ background:var(--nbad) } html[data-oflook="net"] .lq-u.cam{ background:var(--nwarn) } html[data-oflook="net"] .lq-u.vang{ background:var(--nsun) } html[data-oflook="net"] .lq-u.xanh{ background:var(--nok) } html[data-oflook="net"] .lq-u.late{ background:var(--nbad2) }
+html[data-oflook="net"] .lq-cur{ background:var(--nacc); color:var(--nk); box-shadow:0 0 0 1.5px var(--nk) }
+html[data-oflook="net"] .lqc{ background:var(--nst3); color:var(--nk); box-shadow:0 0 0 1px var(--nk2) }
+html[data-oflook="net"] .lqc.do{ background:var(--nbad3) } html[data-oflook="net"] .lqc.cam{ background:#F7E2D2 } html[data-oflook="net"] .lqc.vang{ background:var(--nsun3) } html[data-oflook="net"] .lqc.xanh{ background:#E2EEDD }
+html[data-oflook="net"] .lqc.do, html[data-oflook="net"] .lqc.cam, html[data-oflook="net"] .lqc.vang, html[data-oflook="net"] .lqc.xanh{ color:var(--nk) }
+html[data-oflook="net"] .cr-ic.lq-p small{ background:var(--nlb); color:var(--nk); box-shadow:0 0 0 1px var(--nk) }
+html[data-oflook="net"] .cr-ic.lq-p.ok::after{ background:var(--nok2); color:var(--nlb) } html[data-oflook="net"] .cr-ic.late::after{ background:var(--nbad2); color:var(--nlb); box-shadow:0 0 0 1.5px var(--nlb); animation:none }
+html[data-oflook="net"] .of-par{ background:var(--nok2); color:var(--nlb) } html[data-oflook="net"] .of-fold{ background:var(--nsun); color:var(--nk) }
+html[data-oflook="net"] .of-mood{ background:var(--nlb); box-shadow:0 0 0 1.5px var(--nk) } html[data-oflook="net"] .of-mood.ok{ color:var(--nok2) } html[data-oflook="net"] .of-mood.bad{ color:var(--nbad2) }
+html[data-oflook="net"] .of-pk{ background:var(--nsun2); box-shadow:0 0 0 2px var(--nlb) }
+/* chữ đơn cách cho nội dung kỹ thuật (giờ · mã · tầng · %) — chỉ phần ngắn, không dùng cho tên người */
+html[data-oflook="net"] :is(.of-floor, .of-mail, .cr-zm, .lq-u, .lq-cur, .of-zi.dkt i, .cr-donut .cn, .cr-donut .ct, .cr-hud .hud-t, .lift-cam .cam-k, .of-zi.pile){ font-family:var(--nmono); letter-spacing:-.01em }
+/* ── 8. ảnh đại diện: vòng viền mực, nền kem, bỏ vòng nét đứt ── */
+html[data-oflook="net"] :is(.of-stage, .of-zm, .cr-hud, .lift-cam, .cr-walker) :is(.as-av, .as-bot){ box-shadow:0 0 0 1.5px var(--nk); background:var(--nlb) }
+html[data-oflook="net"] :is(.of-stage, .of-zm, .cr-hud, .cr-walker) :is(.as-av, .as-bot)::before{ display:none }
+html[data-oflook="net"] .cr-ic.lq-p.cur > .as-av{ box-shadow:0 0 0 2.5px var(--nacc2) }
+html[data-oflook="net"] .cr-ic.late .as-av{ box-shadow:0 0 0 2px var(--nbad2) } html[data-oflook="net"] .cr-ic.wait .as-av{ box-shadow:0 0 0 2px var(--nsun2) }
+html[data-oflook="net"] .of-hu .tie{ fill:var(--nsun) } html[data-oflook="net"] .of-hu .gl{ stroke:var(--nk) }
+/* NGƯỜI vẽ theo nét mực: viền mực quanh tóc · da · áo · cổ áo, da kem, tóc than, mắt chấm mực — dùng cho ảnh đại diện (.of-hu) và người đứng trong sơ đồ (.cr-pw) */
+html[data-oflook="net"] :is(.of-stage, .of-zm, .cr-hud, .lift-cam, .cr-walker, .of-lb) .of-hu svg :is(.sh, .hu-hr, .hu-sk, .hu-col, .tie, .hu-ti, .strap, .hu-st){ stroke:var(--nk); stroke-width:1.8; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke }
+html[data-oflook="net"] :is(.of-in, .of-cvin, .of-zs) > svg :is(.hu-bd, .hu-hr, .hu-sk, .hu-col, .hu-ti, .hu-st){ stroke:var(--nk); stroke-width:1.5; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke }
+html[data-oflook="net"] :is(.of-in, .of-cvin, .of-zs) > svg :is(.hu-eye, .cr-pws){ stroke:none }
+html[data-oflook="net"] .hu-sk{ fill:#F2DEC6 } html[data-oflook="net"] .hu-hr{ fill:#4A4038 } html[data-oflook="net"] .hu-col{ fill:#FBF8F2 }
+html[data-oflook="net"] .hu-eye{ fill:var(--nk) } html[data-oflook="net"] .hu-mo{ stroke:var(--nk); stroke-opacity:.8 } html[data-oflook="net"] .hu-st{ stroke:var(--nwd2) } html[data-oflook="net"] .hu-ti{ fill:var(--nsun) }
+html[data-oflook="net"] .cr-pw.t .hu-bd{ fill:var(--nacc2) } html[data-oflook="net"] .cr-pw.s .hu-bd{ fill:#D99A6C } html[data-oflook="net"] .cr-pw.late .hu-bd{ fill:var(--nbad) }
+html[data-oflook="net"] .cr-pws{ fill:none }
+/* ── 9. thang máy duyệt bài + camera: “màn hình” khung mực trên giấy ── */
+html[data-oflook="net"] .lift-cam{ background:var(--nlb); color:var(--nk); box-shadow:inset 0 0 0 1.5px var(--nk) }
+html[data-oflook="net"] .lift-cam .cam-h{ background:var(--nst3); border-bottom:1px solid var(--nk) }
+html[data-oflook="net"] .lift-cam .cam-v{ background:repeating-linear-gradient(0deg, var(--ngrid) 0 1px, transparent 1px 24px), #F6F1E7; box-shadow:inset 0 0 0 1px var(--nk) }
+html[data-oflook="net"] .lift-cam .cam-f{ border-bottom:1px solid var(--nk2); color:var(--nk) }
+html[data-oflook="net"] .lift-cam .cam-f.me{ background:var(--nacc); color:var(--nk) }
+html[data-oflook="net"] .lift-cam .cam-f.lv-do{ background:var(--nbad3) } html[data-oflook="net"] .lift-cam .cam-f.lv-cam{ background:#F7E2D2 } html[data-oflook="net"] .lift-cam .cam-f.lv-vang{ background:var(--nsun3) } html[data-oflook="net"] .lift-cam .cam-f.lv-xanh{ background:#E2EEDD }
+html[data-oflook="net"] .lift-cam .cam-shaft{ border-left-color:var(--nk); border-right-color:var(--nk); background:repeating-linear-gradient(90deg, transparent 0 7px, var(--ngrid) 7px 8px) }
+html[data-oflook="net"] .lift-cam .cam-cab, html[data-oflook="net"] .lift-cam .cam-cab.r{ background:var(--nlb); box-shadow:0 0 0 1.5px var(--nk) }
+html[data-oflook="net"] .lift-cam .cam-cab .dr{ background:var(--nst2) } html[data-oflook="net"] .lift-cam .cam-cab .dr.l{ border-right-color:var(--nk) }
+html[data-oflook="net"] .lift-cam .cam-t{ color:var(--nk) } html[data-oflook="net"] .lift-cam .cam-t.ok{ color:var(--nok2) }
+html[data-oflook="net"] .lift-cam .cam-k{ color:var(--nacc2) } html[data-oflook="net"] .lift-cam .cam-k.dn{ color:var(--nok2) }
+html[data-oflook="net"] .cr-lift{ background:var(--nlb); border-color:var(--nk); box-shadow:none } html[data-oflook="net"] .cr-lift > i{ color:var(--nk) }
+html[data-oflook="net"] .cr-lift.dn{ border-color:var(--nk) } html[data-oflook="net"] .cr-lift.dn > i{ color:var(--nok2) } html[data-oflook="net"] .cr-lift.up > i{ color:var(--nacc2) }
+html[data-oflook="net"] .cr-lift.full{ border-color:var(--nk) }
+/* ── 10. biểu đồ tròn buổi hôm nay: cung màu dịu, viền mực ── */
+html[data-oflook="net"] .cr-donut{ --dn-dang:#7FA876; --dn-sap:#8D83C9; --dn-xong:#A9A292; --dn-qua:#C25A4E }
+html[data-oflook="net"] .cr-donut .bg{ stroke:var(--nst2) } html[data-oflook="net"] .cr-donut .lt{ fill:var(--nk) } html[data-oflook="net"] .cr-donut .lv{ fill:var(--nk2) }
+html[data-oflook="net"] .cr-donut .ct{ fill:var(--nk2) } html[data-oflook="net"] .cr-donut .cn{ fill:var(--nk) }
+html[data-oflook="net"] .cr-zm button{ color:var(--nk) }
+/* chấm trạng thái + chú giải trong sơ đồ: tông dịu, giữ ý nghĩa */
+html[data-oflook="net"] :is(.of-stage, .of-cv) .of-dot{ background:var(--nst2) }
+html[data-oflook="net"] :is(.of-stage, .of-cv) .of-dot.run{ background:var(--nok2); box-shadow:0 0 0 3px rgba(169,203,160,.4) }
+html[data-oflook="net"] :is(.of-stage, .of-cv) .of-dot.idle{ background:var(--nacc2) }
+html[data-oflook="net"] :is(.of-stage, .of-cv) :is(.of-dot.dang, .of-lb.in.cr-lb .of-dot.dang){ background:var(--nok2); box-shadow:0 0 0 3px rgba(169,203,160,.4) }
+html[data-oflook="net"] :is(.of-stage, .of-cv) .of-lb.in.cr-lb .of-dot.qua{ background:var(--nbad2) }
+html[data-oflook="net"] :is(.of-stage, .of-cv) .of-lb.in.cr-lb .of-dot.sap{ background:var(--nacc2) }
+html[data-oflook="net"] :is(.of-stage, .of-cv) .of-lb.in.cr-lb .of-dot.xong{ background:var(--nok) }
+html[data-oflook="net"] :is(.of-stage, .of-cv) .of-lb.in.cr-lb .of-dot.none{ background:var(--nst2) }
+html[data-oflook="net"] .of-legend{ color:var(--nk2) }
+/* thang cuốn ở Sảnh: dải giấy, bậc đá, tay vịn mực */
+html[data-oflook="net"] .of-cvin > svg .cr-stt{ fill:var(--nst3); stroke:var(--nk2); stroke-width:.7 } html[data-oflook="net"] .of-cvin > svg .cr-str{ fill:var(--nst2); stroke:var(--nk2); stroke-width:.7 }
+html[data-oflook="net"] .of-cvin > svg .cr-stg{ stroke:var(--nk2); stroke-width:.5; stroke-opacity:.5 } html[data-oflook="net"] .of-cvin > svg :is(.cr-sty, .cr-comb){ stroke:var(--nsun2); stroke-width:1.4 }
+html[data-oflook="net"] .of-cvin > svg .cr-escb{ fill:var(--nst1) } html[data-oflook="net"] .of-cvin > svg .cr-escd{ fill:var(--nst3) } html[data-oflook="net"] .of-cvin > svg .cr-esck{ fill:var(--nst2) }
+html[data-oflook="net"] .of-cvin > svg .cr-esc{ --esa:var(--nacc2) } html[data-oflook="net"] .of-cvin > svg .cr-esc.dn{ --esa:var(--nok2) } html[data-oflook="net"] .of-cvin > svg .cr-escks{ stroke:var(--esa); stroke-width:2.4 }
+html[data-oflook="net"] .of-cvin > svg .cr-escg{ fill:rgba(215,210,245,.35); stroke:var(--nk2); stroke-width:1 }
+html[data-oflook="net"] .of-cvin > svg .cr-escr{ stroke:var(--nk); stroke-width:3.4 } html[data-oflook="net"] .of-cvin > svg .cr-escrm{ stroke:#FBF8F2; stroke-width:1.2 }
+html[data-oflook="net"] .of-cvin > svg .cr-escl1{ fill:var(--nst2) } html[data-oflook="net"] .of-cvin > svg .cr-escl2{ fill:var(--nst1) } html[data-oflook="net"] .of-cvin > svg .cr-escl3{ fill:#FBF8F2 }
+html[data-oflook="net"] .of-cvin > svg :is(.cr-ecol1, .cr-ecb){ fill:var(--nst2) } html[data-oflook="net"] .of-cvin > svg .cr-ecol2{ fill:var(--nst1) } html[data-oflook="net"] .of-cvin > svg .cr-ecol3{ fill:var(--nst3) }
+html[data-oflook="net"] .of-cvin > svg .cr-escpad{ fill:#FBF8F2; stroke:none } html[data-oflook="net"] .of-cvin > svg .cr-escpe{ stroke:var(--nk) }
+html[data-oflook="net"] .of-cvin > svg .cr-escw{ fill:#FBF8F2 } html[data-oflook="net"] .of-cvin > svg .cr-escwe{ fill:var(--nst2) } html[data-oflook="net"] .of-cvin > svg .cr-escwr{ stroke:var(--nk) }
+html[data-oflook="net"] .lift-cam .cam-shaft{ background:repeating-linear-gradient(180deg, rgba(43,42,39,.22) 0 2px, transparent 2px 8px) }
+html[data-oflook="net"] .lift-cam .cam-pax, html[data-oflook="net"] .lift-cam .cam-pax.r{ background:var(--nst3); box-shadow:0 0 0 1.5px var(--nk) }
+
 </style>
 <script>
 /* ═════ (1.82.7) VĂN PHÒNG AI (Trợ lý › Văn phòng AI, route asst/office) — máy chủ asstOffice_ (AiAgents.gs). Thiết kế: docs/van-phong-ai.md
@@ -24034,7 +24262,7 @@ function ofPaint() {
    · Việc xong: MÁY BAY GIẤY bay từ phòng vào Tủ báo cáo · bật “Agent đi lại”: việc về một bé → robot đi (cả cầu thang) tới tủ Hồ sơ học sinh,
      xong mang báo cáo tới Tủ báo cáo rồi về bàn. Cài đặt lưu theo người dùng trên máy (ofCfg) */
 const OF_ZU = 150, OF_UPK = ['hub', 'chat', 'task', 'audit'], OF_WALKK = { chat: 1, assign: 1, route: 1, match: 1, pmap: 1, grade: 1 };
-function ofCfg() { const o = lsGet('ofCfg', null) || {}; return { walk: o.walk ? 1 : 0, lb: o.lb === 'hover' ? 'hover' : 'on', idle: o.idle === 0 ? 0 : 1, anim: o.anim === 0 ? 0 : 1, lob: /^(all|off)$/.test(o.lob) ? o.lob : 'urg', look: o.look === 'pho' ? 'pho' : 'sang' }; }      // (1.82.22) look: phong cách — sang (ban ngày) · pho (thành phố đêm)      // (1.82.16) lob: gia sư xếp hàng — urg (vàng trở lên) · all · off      // (1.82.15) bỏ “nhân bản” (luôn mini trợ lý) · tên phòng hiện / khi rê chuột · rảnh lâu đi dạo · hoạt cảnh mở báo cáo
+function ofCfg() { const o = lsGet('ofCfg', null) || {}; return { walk: o.walk ? 1 : 0, lb: o.lb === 'hover' ? 'hover' : 'on', idle: o.idle === 0 ? 0 : 1, anim: o.anim === 0 ? 0 : 1, lob: /^(all|off)$/.test(o.lob) ? o.lob : 'urg', look: /^(pho|net)$/.test(o.look) ? o.look : 'sang' }; }      // (1.82.22) look: phong cách — sang (ban ngày) · pho (thành phố đêm)      // (1.82.16) lob: gia sư xếp hàng — urg (vàng trở lên) · all · off      // (1.82.15) bỏ “nhân bản” (luôn mini trợ lý) · tên phòng hiện / khi rê chuột · rảnh lâu đi dạo · hoạt cảnh mở báo cáo
 /** (1.82.27) BỐ CỤC PHÒNG dùng chung cho bản 2D và bản 3D — cùng một lưới, cùng một chỗ ngồi */
 function ofLayCalc(A, byAg) {
   const cf = ofCfg(), LY = ofLay(), arr = !!OF.arr, byK = {}; A.forEach(a => { byK[a.key] = a; }); byK['@rep'] = { key: '@rep', t: 'Tủ báo cáo' }; byK['@hs'] = { key: '@hs', t: 'Hồ sơ học sinh' }; byK['@me'] = { key: '@me', t: 'Văn phòng của bạn' };      // (1.82.15) văn phòng của bạn
@@ -24201,7 +24429,7 @@ function ofStage(A, byAg, force) {
     if (!drawn[to]) flows.push('<circle class="of-ping" cx="' + RB[to].c[0] + '" cy="' + RB[to].c[1] + '" r="14"><animate attributeName="r" values="10;40" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".6;0" dur="2s" repeatCount="indefinite"/></circle>');
     drawn[key] = drawn[to] = 1; });
   // quầng sáng + vòng chạy quanh trung tâm
-  svg.unshift('<defs><radialGradient id="ofBr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="' + (tree ? '#BBF7D0' : '#FDE68A') + '" stop-opacity=".55"/><stop offset=".65" stop-color="' + (tree ? '#DCFCE7' : '#FEF3C7') + '" stop-opacity=".18"/><stop offset="1" stop-color="#FEF3C7" stop-opacity="0"/></radialGradient>' +
+  svg.unshift('<defs><marker id="ofNetArw" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="4.4" markerHeight="4.4" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#2B2A27"/></marker><radialGradient id="ofBr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="' + (tree ? '#BBF7D0' : '#FDE68A') + '" stop-opacity=".55"/><stop offset=".65" stop-color="' + (tree ? '#DCFCE7' : '#FEF3C7') + '" stop-opacity=".18"/><stop offset="1" stop-color="#FEF3C7" stop-opacity="0"/></radialGradient>' +
     '<linearGradient id="ofBL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FEF9C3"/><stop offset="1" stop-color="#FCD34D"/></linearGradient><linearGradient id="ofBR2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FEF3C7"/><stop offset="1" stop-color="#FBBF24"/></linearGradient>' +
         '<filter id="ofGl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter></defs>');
   svg.push('<ellipse cx="' + C[0] + '" cy="' + C[1] + '" rx="' + OF_TW * .92 + '" ry="' + OF_TH * .92 + '" fill="url(#ofBr)"/>');
@@ -24325,7 +24553,7 @@ function ofSettings(btn) {
       row('Rảnh lâu tự đi dạo', '', sw('idle', c.idle, 'Rảnh lâu tự đi dạo')) +
       row('Hoạt cảnh mở báo cáo', 'agent mang tài liệu tới bạn', sw('anim', c.anim, 'Hoạt cảnh mở báo cáo')) +
       row('Gia sư xếp hàng', 'sảnh trước tầng 1', seg('lob', c.lob, [['urg', 'Gấp'], ['all', 'Mọi người'], ['off', 'Ẩn']])) : '') +
-      row('Phong cách', 'màu sơ đồ Văn phòng & Lớp học', seg('look', c.look, [['sang', 'Ban ngày'], ['pho', 'Ban đêm']])) +
+      row('Phong cách', 'màu sơ đồ Văn phòng & Lớp học · Nét mực luôn giấy sáng', seg('look', c.look, [['sang', 'Ban ngày'], ['pho', 'Ban đêm'], ['net', 'Nét mực']])) +
       (can && ov ? '<div class="of-cfsep">Bố cục · áp dụng cho mọi người</div>' + row('Dãy trái tầng 2', '', seg('wing', LY.wing || 'auto', [['auto', 'Tự động'], ['on', 'Hiện'], ['off', 'Ẩn']])) +
         '<button type="button" class="btn sm" data-ofcfarr style="width:100%;justify-content:center"><i class="bi bi-grid-1x2"></i>Sắp xếp · ẩn / hiện phòng</button>' : '') +
       '<small class="muted">Cách hiển thị lưu trên máy này. Dây luồng việc luôn hiện.</small>'; };
@@ -24338,7 +24566,8 @@ function ofSettings(btn) {
   el.onchange = ev => { const c = ev.target.closest('[data-ofsw]'); if (c) { ofCfgSet(c.dataset.ofsw, c.checked ? 1 : 0); paint(); } };
   setTimeout(() => document.addEventListener('mousedown', function h(e) { if (!el.isConnected) return document.removeEventListener('mousedown', h); if (!el.contains(e.target) && !e.target.closest('[data-ofcfg]')) { el.remove(); document.removeEventListener('mousedown', h); } }), 0);
 }
-function ofLookApply() { const R = $('#ofR'); if (R) R.dataset.oflook = ofCfg().look; }
+function ofLookApply() { const k = ofCfg().look, R = $('#ofR'); if (R) R.dataset.oflook = k;
+  if (k === 'net') document.documentElement.dataset.oflook = k; else delete document.documentElement.dataset.oflook; }      /* (1.82.45) Nét mực: gắn cả cho <html> — hộp phóng to #ofZm, popup #ofPop, bảng #ofDr nằm ngoài #ofR */
 function ofCfgSet(k, v) { const o = ofCfg(); o[k] = v; lsSet('ofCfg', o); if (k === 'look') { ofLookApply(); if (OF.view === 'school') ofSchPaint(); } if (!o.walk) OF.away = {}; OF.sig = ''; if (OF.d) ofPaint(); }
 /** bật / tắt chế độ Sắp xếp phòng (nút trên đầu + nút trong Cài đặt) */
 function ofArrToggle() { if (OF.zk) ofZoomClose(); OF.arr = !OF.arr; const b = $('#ofArrB'); if (b) { b.classList.toggle('pri', OF.arr); b.querySelector('span').textContent = OF.arr ? 'Xong sắp xếp' : 'Sắp xếp phòng'; } OF.sig = ''; ofPaint(); if (OF.arr) toast('Kéo nút ✥ của phòng thả vào ô khác để đổi chỗ (lên / xuống tầng được) · nút mắt để ẩn / hiện', 'info', 6000); }
@@ -25216,25 +25445,25 @@ function ofPawn(p, h, kind, seed, cls) {
   const sc = h / 52, x = p[0] - 32 * sc, y = p[1] - 64 * sc, late = /late/.test(cls || ''), body = late ? '#DC2626' : t ? 'var(--primary)' : '#EA8A0C';
   return '<g class="cr-pw ' + (t ? 't ' : 's ') + (cls || '') + '"><ellipse class="cr-pws" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" rx="' + (h * .36).toFixed(1) + '" ry="' + (h * .11).toFixed(1) + '"/>' +
     '<g transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + sc.toFixed(3) + ')">' +
-    (long ? '<path d="M19 26 C17.5 37 19 44 22 48 L42 48 C45 44 46.5 37 45 26 Z" fill="' + hair + '"/>' : '') +
-    '<path d="M10 64 C10 50 19.5 43.5 32 43.5 C44.5 43.5 54 50 54 64 Z" fill="' + body + '" stroke="rgba(15,23,42,.28)" stroke-width="1.6"/>' +
-    (t ? '<path d="M26.4 44 L32 51.5 L37.6 44 Z" fill="#fff"/><path d="M32 51.5 L30.2 55.5 L32 62 L33.8 55.5 Z" fill="#B91C1C"/>' : '<path d="M19.5 47.5 L22.5 64 M44.5 47.5 L41.5 64" stroke="#9A3412" stroke-width="3.2" stroke-linecap="round" fill="none"/>') +
-    '<rect x="28" y="35" width="8" height="9.5" rx="3" fill="' + skin + '"/><circle cx="32" cy="27" r="11.5" fill="' + skin + '" stroke="rgba(120,72,40,.35)" stroke-width="1"/>' +
-    '<path d="M20.4 27 C19.8 17.4 25 13.6 32 13.6 C39.4 13.6 44.6 17.8 43.8 27 C41 22.4 36.6 20.6 31.2 21.2 C26.6 21.8 23 23.6 20.4 27 Z" fill="' + hair + '"/>' +
-    '<circle cx="27.6" cy="28.4" r="1.7" fill="#1F2937"/><circle cx="36.4" cy="28.4" r="1.7" fill="#1F2937"/><path d="M28.8 33.2 Q32 35.6 35.2 33.2" fill="none" stroke="#9A3412" stroke-width="1.5" stroke-linecap="round"/></g></g>';
+    (long ? '<path class="hu-hr" d="M19 26 C17.5 37 19 44 22 48 L42 48 C45 44 46.5 37 45 26 Z" fill="' + hair + '"/>' : '') +
+    '<path class="hu-bd" d="M10 64 C10 50 19.5 43.5 32 43.5 C44.5 43.5 54 50 54 64 Z" fill="' + body + '" stroke="rgba(15,23,42,.28)" stroke-width="1.6"/>' +
+    (t ? '<path class="hu-col" d="M26.4 44 L32 51.5 L37.6 44 Z" fill="#fff"/><path class="hu-ti" d="M32 51.5 L30.2 55.5 L32 62 L33.8 55.5 Z" fill="#B91C1C"/>' : '<path class="hu-st" d="M19.5 47.5 L22.5 64 M44.5 47.5 L41.5 64" stroke="#9A3412" stroke-width="3.2" stroke-linecap="round" fill="none"/>') +
+    '<rect class="hu-sk" x="28" y="35" width="8" height="9.5" rx="3" fill="' + skin + '"/><circle class="hu-sk" cx="32" cy="27" r="11.5" fill="' + skin + '" stroke="rgba(120,72,40,.35)" stroke-width="1"/>' +
+    '<path class="hu-hr" d="M20.4 27 C19.8 17.4 25 13.6 32 13.6 C39.4 13.6 44.6 17.8 43.8 27 C41 22.4 36.6 20.6 31.2 21.2 C26.6 21.8 23 23.6 20.4 27 Z" fill="' + hair + '"/>' +
+    '<circle class="hu-eye" cx="27.6" cy="28.4" r="1.7" fill="#1F2937"/><circle class="hu-eye" cx="36.4" cy="28.4" r="1.7" fill="#1F2937"/><path class="hu-mo" d="M28.8 33.2 Q32 35.6 35.2 33.2" fill="none" stroke="#9A3412" stroke-width="1.5" stroke-linecap="round"/></g></g>';
 }
 function ofHuAva(kind, sz, seed, busy) {
   let h = 0; String(seed || kind).split('').forEach(c => { h = (h * 31 + c.charCodeAt(0)) >>> 0; });
   const t = kind === 't', g = t ? ofSex(seed) : '', hair = OF_HAIR[h % OF_HAIR.length], skin = OF_SKIN[(h >>> 3) % OF_SKIN.length], long = g === 'f' ? 1 : g === 'm' ? 0 : (h >>> 5) % 2, gl = t && (h >>> 7) % 3 === 0;
   return '<span class="as-av of-hu ' + (t ? 'gs ' : 'hs ') + (sz || 'xs') + (busy ? ' busy' : '') + '" aria-hidden="true"><svg viewBox="0 0 64 64">' +
-    (long ? '<path d="M19 26 C17.5 37 19 44 22 48 L42 48 C45 44 46.5 37 45 26 Z" fill="' + hair + '"/>' : '') +
+    (long ? '<path class="hu-hr" d="M19 26 C17.5 37 19 44 22 48 L42 48 C45 44 46.5 37 45 26 Z" fill="' + hair + '"/>' : '') +
     '<path class="sh" d="M10 64 C10 50 19.5 43.5 32 43.5 C44.5 43.5 54 50 54 64 Z"/>' +
-    (t ? '<path d="M26.4 44 L32 51.5 L37.6 44 Z" fill="#fff"/><path class="tie" d="M32 51.5 L30.2 55.5 L32 62 L33.8 55.5 Z"/>' : '<path class="strap" d="M19.5 47.5 L22.5 64 M44.5 47.5 L41.5 64"/>') +
-    '<rect x="28" y="35" width="8" height="9.5" rx="3" fill="' + skin + '"/><circle cx="32" cy="27" r="11.5" fill="' + skin + '"/>' +
-    '<path d="M20.4 27 C19.8 17.4 25 13.6 32 13.6 C39.4 13.6 44.6 17.8 43.8 27 C41 22.4 36.6 20.6 31.2 21.2 C26.6 21.8 23 23.6 20.4 27 Z" fill="' + hair + '"/>' +
-    '<circle cx="27.6" cy="28.4" r="1.5" fill="#1F2937"/><circle cx="36.4" cy="28.4" r="1.5" fill="#1F2937"/>' +
+    (t ? '<path class="hu-col" d="M26.4 44 L32 51.5 L37.6 44 Z" fill="#fff"/><path class="tie" d="M32 51.5 L30.2 55.5 L32 62 L33.8 55.5 Z"/>' : '<path class="strap" d="M19.5 47.5 L22.5 64 M44.5 47.5 L41.5 64"/>') +
+    '<rect class="hu-sk" x="28" y="35" width="8" height="9.5" rx="3" fill="' + skin + '"/><circle class="hu-sk" cx="32" cy="27" r="11.5" fill="' + skin + '"/>' +
+    '<path class="hu-hr" d="M20.4 27 C19.8 17.4 25 13.6 32 13.6 C39.4 13.6 44.6 17.8 43.8 27 C41 22.4 36.6 20.6 31.2 21.2 C26.6 21.8 23 23.6 20.4 27 Z" fill="' + hair + '"/>' +
+    '<circle class="hu-eye" cx="27.6" cy="28.4" r="1.5" fill="#1F2937"/><circle class="hu-eye" cx="36.4" cy="28.4" r="1.5" fill="#1F2937"/>' +
     (gl ? '<circle class="gl" cx="27.6" cy="28.4" r="3.6"/><circle class="gl" cx="36.4" cy="28.4" r="3.6"/><path class="gl" d="M31.2 28.2 h1.6"/>' : '') +
-    '<path d="M28.8 33.2 Q32 35.6 35.2 33.2" fill="none" stroke="#9A3412" stroke-width="1.4" stroke-linecap="round"/>' +
+    '<path class="hu-mo" d="M28.8 33.2 Q32 35.6 35.2 33.2" fill="none" stroke="#9A3412" stroke-width="1.4" stroke-linecap="round"/>' +
     '</svg><i class="bi ' + (t ? 'bi-easel2-fill' : 'bi-backpack2-fill') + ' as-av-b"></i></span>';
 }
 /** khối hộp isometric (mặt trái · mặt phải · mặt trên) — dùng chung cho bàn, ghế, kệ, tủ */
@@ -25511,7 +25740,7 @@ function ofVpScene(M) {      // (1.82.36) chi tiết hơn: sàn lát gạch, th�
   return '<div class="of-cv of-stage cr bld vp" id="ofCv" data-w="' + Wd + '" data-h="' + H + '"><div class="of-cvin" style="width:' + Wd + 'px;height:' + H + 'px"><svg width="' + Wd + '" height="' + H + '" viewBox="0 0 ' + Wd + ' ' + H + '" aria-hidden="true">' + sv.join('') + '</svg>' + hh.join('') + '</div>' + sign + '</div>';
 }
 /** (1.82.30) THỐNG KÊ BUỔI HÔM NAY dạng biểu đồ tròn (donut): mỗi trạng thái một cung, đường dẫn ra nhãn hai bên (tên · số buổi · %), tổng ở giữa */
-const OF_DN = [['dang', 'Đang học', '#16A34A'], ['sap', 'Sắp học', 'var(--primary)'], ['xong', 'Đã học', '#94A3B8'], ['qua', 'Quá giờ', '#DC2626']];
+const OF_DN = [['dang', 'Đang học', 'var(--dn-dang, #16A34A)'], ['sap', 'Sắp học', 'var(--dn-sap, var(--primary))'], ['xong', 'Đã học', 'var(--dn-xong, #94A3B8)'], ['qua', 'Quá giờ', 'var(--dn-qua, #DC2626)']];
 function ofSchDonut(C) {
   const S = OF_DN.map(d => ({ k: d[0], t: d[1], c: d[2], v: +(C && C[d[0]]) || 0 })).filter(x => x.v), tot = S.reduce((a, x) => a + x.v, 0), cx = 170, cy = 86, r = 46, sw = 19, o = [], L = { l: [], r: [] };
   if (!tot) return '<div class="cr-donut e" aria-label="Hôm nay không có buổi học"><b>0</b><small>buổi hôm nay</small></div>';
@@ -25799,19 +26028,93 @@ function ofLiftTop(P, y0, RD, HL, GX, sv, hh, fl) {
     hh.push('<span class="cr-ic lq-p' + (cur ? ' cur' : '') + (p.h < 0 ? ' lqlate' : '') + '" data-oftut="' + esc(p.em) + '" style="' + ofCrPos(pt, 160) + '" title="' + esc(p.n + ' · ' + p.cnt + ' buổi nháp chờ duyệt · ' + ofLeft(p.h)) + '">' + ofHuAva('t', 'sm', p.em) + ofLvBadge(p) + '<small>' + esc(p.n.split(' ').slice(-2).join(' ')) + '</small>' + (cur ? '<b class="lq-cur">Đang duyệt</b>' : '') + '</span>'); });
   if (!Q.length) hh.push('<span class="cr-tag gate" style="' + ofCrPos(P(D0 - .6, yc), 300) + '"><i class="bi bi-check2-circle"></i> Không ai chờ duyệt bài</span>');
 }
-/** (1.82.44) HAI THANG MÁY: thang LÊN chạy chéo theo cầu thang mép TRÁI, thang XUỐNG mép PHẢI — mỗi tầng một điểm dừng · lưu toạ độ cửa phòng, hai đầu hành lang cho người đi bộ */
+/** (1.82.48) HAI THANG CUỐN: thang LÊN mép TRÁI, thang XUỐNG mép PHẢI — mỗi tầng một điểm dừng · lưu toạ độ cửa phòng, hai đầu hành lang cho người đi bộ */
 function ofLiftRail(P0, ROWS, RD, HL, ZF, RW, RP, sv, hh, GX) {
   const yc = j => j * (RD + HL) + RD + HL / 2, zf = j => (RW - 1 - j) * ZF, XL = -.62, XR = GX + .62;
   const stL = ROWS.map((r, j) => P0(XL, yc(j), zf(j))), stR = ROWS.map((r, j) => P0(XR, yc(j), zf(j))), cL = ROWS.map((r, j) => P0(-.2, yc(j), zf(j))), cR = ROWS.map((r, j) => P0(GX + .2, yc(j), zf(j)));
-  const rail = (st, cls) => { const b = st[st.length - 1], t = st[0]; sv.push('<path class="cr-rail ' + cls + '" d="M' + ofPt([b[0] - 6, b[1]]) + ' L' + ofPt([t[0] - 6, t[1]]) + ' M' + ofPt([b[0] + 6, b[1] + 3]) + ' L' + ofPt([t[0] + 6, t[1] + 3]) + '"/>');
-    st.forEach((p, j) => sv.push('<ellipse class="cr-stop ' + cls + (ROWS[j].me ? ' me' : '') + '" cx="' + p[0].toFixed(1) + '" cy="' + (p[1] + 2).toFixed(1) + '" rx="22" ry="8"/>')); };
-  rail(stL, 'up'); rail(stR, 'dn');
-  hh.push('<span class="cr-tag gate lift-l up" style="' + ofCrPos([stL[stL.length - 1][0], stL[stL.length - 1][1] + 26], 300) + '"><i class="bi bi-caret-up-fill"></i>Thang lên</span><span class="cr-tag gate lift-l dn" style="' + ofCrPos([stR[stR.length - 1][0], stR[stR.length - 1][1] + 26], 300) + '"><i class="bi bi-caret-down-fill"></i>Thang xuống</span>');
+  /* (1.82.48) THANG CUỐN CHÂN THỰC — dựng như thang cuốn thật trong trung tâm thương mại, đứng trên KẾT CẤU THẬT (không lơ lửng):
+     · mỗi tầng một CHIẾU NGHỈ là tấm sàn dày (.cr-escl1/2/3) có tấm nắp sàn kim loại (.cr-stop) + răng lược vàng (.cr-comb) ở mép bước lên / bước ra,
+       đỡ bởi CỘT THÉP xuống tận nền (.cr-ecol) — nền kéo dài sang hai bên toà nhà (.cr-escpad)
+     · mỗi nhịp: đoạn PHẲNG đầu dưới → đoạn NGHIÊNG → đoạn PHẲNG đầu trên (như thang thật, bậc chạy phẳng ra rồi mới nâng lên),
+       thân giàn (.cr-esck) dày bên dưới có dải đèn theo chiều (.cr-escks), giữa nhịp có cột đỡ + dầm đầu cột
+     · bậc: mặt bậc có rãnh (.cr-stg) + viền vàng sau & hai bên (.cr-sty), cổ bậc tối hơn (.cr-str)
+     · hai bên: vách kính (.cr-escg) trên gờ inox (.cr-escd), tay vịn đen (.cr-escr) uốn tròn ở hai đầu, có vệt sáng chạy theo (.cr-escrm)
+     CHẠY LIÊN TỤC: nhóm bậc trượt đúng MỘT bậc rồi lặp — vùng cắt đặt ở nhóm NGOÀI đứng yên (trước đây vùng cắt trượt theo bậc nên trông như giật).
+     Tốc độ bậc = tốc độ người đứng trên thang (OF_ESC_V) nên người đi cùng bậc. Lớp nền dưới chân thang vẽ TRƯỚC toà nhà; cột thang trái chỉ vẽ phần lộ ra trên mép toà nhà */
+  const N = ROWS.length, HW = .15, LP = .3, FL = .16, DT = 16, HB = 24, f1 = v => v.toFixed(1), fp = q => f1(q[0]) + ' ' + f1(q[1]);
+  const pts = A => A.map(q => f1(q[0]) + ',' + f1(q[1])).join(' '), pg = (A, c) => '<polygon class="' + c + '" points="' + pts(A) + '"/>';
+  const sq = A => 'M' + A.map(fp).join('L') + 'Z', ln = (a, b) => 'M' + fp(a) + 'L' + fp(b), under = [];
+  const hull = A => { const p = A.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]), x = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), h = [];
+    [p, p.slice().reverse()].forEach(L => { const s = []; L.forEach(q => { while (s.length > 1 && x(s[s.length - 2], s[s.length - 1], q) <= 0) s.pop(); s.push(q); }); s.pop(); h.push.apply(h, s); }); return h; };
+  /* cột thép (x, g) cao h: thang bên trái nằm SAU toà nhà → chỉ vẽ phần cột lộ ra trên mép toà nhà theo hướng nhìn (phần dưới khuất sau khối tầng) */
+  const KZ = P0(1, 1, 0)[1] - P0(0, 0, 0)[1], GYB = RW * (RD + HL), tierZ = g => { if (g < -.3 || g > GYB + .1) return 0; const j = Math.max(0, Math.min(RW - 1, Math.floor(g / (RD + HL)))), y0 = j * (RD + HL);
+    return zf(j) + (j && ZF && g >= y0 && g < y0 + RD ? Math.min(6, Math.ceil((y0 + RD - g) / (RD / 6))) * ZF / 6 : 0); };      // khối tầng + cầu thang bộ mép trái
+  const col = (x, g, h, out) => { const t0 = -.3 - (x + .022), z0 = t0 > 0 ? Math.max(0, tierZ(g + .022 + t0) - KZ * t0) : 0; if (h - z0 < 6) return false;
+    return !!out.push((z0 ? '' : pg([P0(x - .05, g, 0), P0(x, g - .05, 0), P0(x + .05, g, 0), P0(x, g + .05, 0)], 'cr-ecb')) + ofIsoBox(P0, x - .022, x + .022, g - .022, g + .022, z0, h - z0, 'cr-ecol')); };
+  const sym = (c, cls) => {
+    const back = cls === 'up', lo = sv, path = [];
+    /* nền dưới chân thang: nối liền với nền toà nhà */
+    const gA = yc(0) - LP - .12, gB = yc(N - 1) + LP + .12, xa = back ? c - HW - .16 : GX + .25, xb = back ? -.25 : c + HW + .16;
+    under.push(pg([P0(xa, gA, 0), P0(xb, gA, 0), P0(xb, gB, 0), P0(xa, gB, 0)], 'cr-escpad') + '<path class="cr-escpe" d="' + (back ? ln(P0(-.3, gA, 0), P0(xa, gA, 0)) + 'L' + fp(P0(xa, gB, 0)) + 'L' + fp(P0(-.3, gB, 0)) : ln(P0(GX + .3, gA, 0), P0(xb, gA, 0)) + 'L' + fp(P0(xb, gB, 0)) + 'L' + fp(P0(GX + .3, gB, 0))) + '"/>');
+    /* chiếu nghỉ từng tầng (xa → gần): sàn dày + cột + tấm nắp sàn + răng lược */
+    ROWS.forEach((r, j) => { const z = zf(j), y0 = yc(j) - LP, y1 = yc(j) + LP;
+      if (z > 0) { col(c - HW - .03, y1 - .06, z - DT, lo); col(c + HW + .03, y1 - .06, z - DT, lo); }
+      sv.push(z > 0 ? ofIsoBox(P0, c - HW - .07, c + HW + .07, y0, y1, z - DT, DT, 'cr-escl') : pg([P0(c - HW - .07, y0, 0), P0(c + HW + .07, y0, 0), P0(c + HW + .07, y1, 0), P0(c - HW - .07, y1, 0)], 'cr-escl3'));
+      const plate = (ga, gb, ge) => pg([P0(c - HW, ga, z), P0(c + HW, ga, z), P0(c + HW, gb, z), P0(c - HW, gb, z)], 'cr-stop ' + cls + (r.me ? ' me' : '')) + '<path class="cr-comb" d="' + ln(P0(c - HW, ge, z), P0(c + HW, ge, z)) + '"/>';
+      if (j < N - 1) sv.push(plate(y1 - .12, y1, y1));      // mép trước: nhịp từ tầng dưới lên tới đây
+      if (j > 0) sv.push(plate(y0, y0 + .12, y0)); });      // mép sau: nhịp đi tiếp lên tầng trên
+    /* các nhịp (xa → gần): nhịp k nối tầng k+1 (thấp) lên tầng k (cao) */
+    for (let k = 0; k < N - 1; k++) {
+      const j = k + 1, yL = yc(j) - LP, yS = yL - FL, yH = yc(k) + LP, yE = yH + FL, zB = zf(j), zT = zf(k);
+      const n = Math.max(6, Math.round((yS - yE) / .1)), dS = (yS - yE) / n, hS = (zT - zB) / n, P = P0;
+      const tp = [[yL, zB], [yS, zB], [yE, zT], [yH, zT]], gp = [[yL + .06, zB], [yS, zB], [yE, zT], [yH - .06, zT]];
+      const band = (x, L, d0, d1) => L.map(q => P(x, q[0], q[1] + d0)).concat(L.slice().reverse().map(q => P(x, q[0], q[1] + d1)));
+      const strip = (x0, x1, d) => tp.map(q => P(x0, q[0], q[1] + d)).concat(tp.slice().reverse().map(q => P(x1, q[0], q[1] + d)));
+      const rail = x => 'M' + fp(P(x, yL + .15, zB + 8)) + 'Q' + fp(P(x, yL + .15, zB + HB)) + ' ' + fp(P(x, yL + .07, zB + HB)) + 'L' + fp(P(x, yS, zB + HB)) + 'L' + fp(P(x, yE, zT + HB)) + 'L' + fp(P(x, yH - .07, zT + HB)) + 'Q' + fp(P(x, yH - .15, zT + HB)) + ' ' + fp(P(x, yH - .15, zT + 8));
+      const side = x => pg(band(x, gp, 4, HB - 2), 'cr-escg') + '<path class="cr-escr" d="' + rail(x) + '"/><path class="cr-escrm ' + cls + '" d="' + rail(x) + '"/>';
+      /* cột giữa nhịp + dầm đầu cột (đỡ thân giàn) */
+      const gm = (yS + yE) / 2, zm = (zB + zT) / 2 - DT - 2;
+      if (zm > 10 && col(c, gm, zm - 5, lo)) { lo.push(ofIsoBox(P0, c - HW - .05, c + HW + .05, gm - .03, gm + .03, zm - 5, 5, 'cr-ecol')); }
+      const o = [];
+      o.push(pg(band(c - HW, tp, 0, 4), 'cr-escb') + pg(strip(c - HW - .05, c - HW, 4), 'cr-escd') + side(c - HW - .025));      // vách sau
+      /* bậc: mặt + cổ + rãnh + viền vàng · đoạn phẳng hai đầu chỉ có mặt bậc */
+      const tread = (g0, g1, z) => ({ t: sq([P(c - HW, g0, z), P(c + HW, g0, z), P(c + HW, g1, z), P(c - HW, g1, z)]),
+        g: ln(P(c - HW / 3, g0, z), P(c - HW / 3, g1, z)) + ln(P(c + HW / 3, g0, z), P(c + HW / 3, g1, z)),
+        y: ln(P(c - HW + .012, g1 + .008, z), P(c + HW - .012, g1 + .008, z)) + ln(P(c - HW + .012, g0, z), P(c - HW + .012, g1, z)) + ln(P(c + HW - .012, g0, z), P(c + HW - .012, g1, z)) });
+      const grp = (id, clip, v, T, R, G, Y) => '<clipPath id="' + id + '"><polygon points="' + pts(clip) + '"/></clipPath><g clip-path="url(#' + id + ')"><g class="cr-escm ' + cls + '" style="--sx:' + v[0].toFixed(2) + 'px;--sy:' + v[1].toFixed(2) + 'px;animation-duration:' + per + 's">' +
+        (R ? '<path class="cr-str" d="' + R + '"/>' : '') + '<path class="cr-stt" d="' + T + '"/><path class="cr-stg" d="' + G + '"/><path class="cr-sty" d="' + Y + '"/></g></g>';
+      const o0 = P(c, yS, zB), vI = [P(c, yS - dS, zB + hS)[0] - o0[0], P(c, yS - dS, zB + hS)[1] - o0[1]], vF = [P(c, yS - dS, zB)[0] - o0[0], P(c, yS - dS, zB)[1] - o0[1]], per = (Math.hypot(vI[0], vI[1]) / OF_ESC_V).toFixed(3);
+      const flat = (gS, s, z, gEnd) => { let T = '', G = '', Y = ''; const M = Math.ceil(FL / dS) + 1;
+        for (let m = -1; m <= M + 1; m++) { const g0 = gS + s * m * dS, q = tread(g0, g0 - dS, z); T += q.t; G += q.g; Y += q.y; }
+        return [T, G, Y, [P(c - HW, gEnd, z), P(c + HW, gEnd, z), P(c + HW, gS, z), P(c - HW, gS, z)]]; };
+      const fb = flat(yS, 1, zB, yL), ft = flat(yE, -1, zT, yH);
+      let T = '', R = '', G = '', Y = '';
+      for (let i = -1; i <= n; i++) { const g0 = yS - i * dS, z0 = zB + i * hS, q = tread(g0, g0 - dS, z0 + hS); T += q.t; G += q.g; Y += q.y;
+        R += sq([P(c - HW, g0, z0), P(c + HW, g0, z0), P(c + HW, g0, z0 + hS), P(c - HW, g0, z0 + hS)]); }
+      const cI = hull([-HW, HW].reduce((a, x) => a.concat([P(c + x, yS, zB - 1), P(c + x, yS, zB + hS + 1), P(c + x, yE, zT - hS - 1), P(c + x, yE, zT + .5)]), []));
+      const id = 'ofEsc' + cls + k;
+      o.push(grp(id + 'b', fb[3], vF, fb[0], '', fb[1], fb[2]) + grp(id + 'i', cI, vI, T, R, G, Y) + grp(id + 't', ft[3], vF, ft[0], '', ft[1], ft[2]));
+      /* thân giàn phía trước + dải đèn + gờ inox + vách kính trước */
+      o.push(pg(tp.map(q => P(c + HW + .05, q[0], q[1] + 4)).concat(tp.slice().reverse().map(q => P(c + HW + .05, q[0], Math.max(0, q[1] - DT)))), 'cr-esck') +
+        '<path class="cr-escks ' + cls + '" d="M' + tp.map(q => fp(P(c + HW + .05, q[0], q[1] - 3))).join('L') + '"/>' + pg(strip(c + HW, c + HW + .05, 4), 'cr-escd') + side(c + HW + .025));
+      sv.push('<g class="cr-esc ' + cls + '">' + o.join('') + '</g>');
+      path.push([P(c, yS, zB), P(c, yE, zT)]);      // điểm vào / ra đoạn nghiêng — người đứng trên bậc đi đúng mặt thang
+    }
+    /* đường người đi: chiếu nghỉ dưới cùng → lên dần, mỗi tầng 3 điểm (chiếu nghỉ · đầu dốc · cuối dốc) */
+    const out = []; for (let j = N - 1; j >= 0; j--) { out.push(P0(c, yc(j), zf(j))); if (j > 0) out.push(path[j - 1][0], path[j - 1][1]); }
+    return out; };
+  /* (1.82.48) CẦU NỐI: từ đầu hành lang mỗi tầng bắc ra chiếu nghỉ thang cuốn — mặt cầu + cạnh dày + hai lan can, đúng cao độ tầng */
+  const walk = (x0, x1, cls) => ROWS.forEach((r, j) => { const z = zf(j), y0 = yc(j) - .3, y1 = yc(j) + .3;
+    const a = P0(x0, y0, z), b = P0(x1, y0, z), c = P0(x1, y1, z), d = P0(x0, y1, z);
+    sv.push('<polygon class="cr-escw ' + cls + '" points="' + pts([a, b, c, d]) + '"/>' +
+      '<polygon class="cr-escwe ' + cls + '" points="' + pts([[d[0], d[1]], [c[0], c[1]], [c[0], c[1] + 5], [d[0], d[1] + 5]]) + '"/>' +
+      '<path class="cr-escwr ' + cls + '" d="M' + ofPt([a[0], a[1] - 11]) + ' L' + ofPt([b[0], b[1] - 11]) + ' M' + ofPt([d[0], d[1] - 11]) + ' L' + ofPt([c[0], c[1] - 11]) + '"/>'); });
+  walk(XL, -.18, 'up'); walk(GX + .18, XR, 'dn');
+  const escL = sym(XL, 'up'), escR = sym(XR, 'dn'), eAt = j => (N - 1 - j) * 3;      // đường người đi (dưới → trên) · vị trí chiếu nghỉ tầng j trong đường
+  sv.splice(1, 0, under.join(''));      // nền dưới chân thang: ngay sau nền toà nhà, trước các tầng
+  hh.push('<span class="cr-tag gate lift-l up" style="' + ofCrPos([stL[stL.length - 1][0], stL[stL.length - 1][1] + 26], 300) + '"><i class="bi bi-caret-up-fill"></i>Thang cuốn lên</span><span class="cr-tag gate lift-l dn" style="' + ofCrPos([stR[stR.length - 1][0], stR[stR.length - 1][1] + 26], 300) + '"><i class="bi bi-caret-down-fill"></i>Thang cuốn xuống</span>');
   const idx = {}, door = {}; ROWS.forEach((r, j) => r.R.forEach(t => { idx[t.tem] = j; const q = RP[t.tem]; if (q) door[t.tem] = q.P(q.x + .5, q.y0 + RD + .2); }));
-  OF.liftSt = { stL: stL, stR: stR, cL: cL, cR: cR, idx: idx, door: door, top: stL[0], fl: ROWS.map((r, j) => ({ me: !!r.me, lv: r.lv, n: RW - j })) };
-  const S = OF.lift || {}, a = S.carL || stL[0], b = S.carR || stR[0];
-  hh.push('<span class="cr-lift up" id="ofLift" style="left:' + a[0].toFixed(1) + 'px;top:' + a[1].toFixed(1) + 'px"><i class="bi bi-caret-up-fill"></i><span class="pa"></span></span>' +
-    '<span class="cr-lift dn" id="ofLift2" style="left:' + b[0].toFixed(1) + 'px;top:' + b[1].toFixed(1) + 'px"><i class="bi bi-caret-down-fill"></i><span class="pa"></span></span>');
+  OF.liftSt = { stL: stL, stR: stR, cL: cL, cR: cR, escL: escL, escR: escR, eAt: eAt, idx: idx, door: door, top: stL[0], fl: ROWS.map((r, j) => ({ me: !!r.me, lv: r.lv, n: RW - j })) };
 }
 /** bảng điều khiển trò chơi (góc phải sơ đồ): người đang duyệt + nút Duyệt hết · điểm */
 function ofLiftHud() {
@@ -25825,7 +26128,7 @@ function ofLiftHud() {
   h.innerHTML = '<div class="hud-m"><div class="hud-h"><i class="bi bi-controller"></i><b>Duyệt bài</b><span class="sp"></span><span class="sc" title="Đã duyệt hôm nay"><i class="bi bi-trophy-fill"></i>' + S.n + '</span>' + (S.run > 1 ? '<span class="sc run" title="Duyệt liên tiếp"><i class="bi bi-fire"></i>×' + S.run + '</span>' : '') + '<span class="sc q" title="Còn chờ duyệt"><i class="bi bi-people-fill"></i>' + Q.length + '</span><button type="button" class="ibtn sm hud-t" data-ofhudmin title="' + (mini ? 'Mở bảng duyệt' : 'Thu gọn bảng duyệt') + '" aria-label="' + (mini ? 'Mở bảng duyệt' : 'Thu gọn bảng duyệt') + '"><i class="bi bi-chevron-' + (mini ? 'down' : 'up') + '"></i></button></div>' +
     (p ? '<div class="hud-c">' + ofHuAva('t', 'sm', p.em) + '<div class="t"><b>' + esc(p.n) + '</b>' + ofLvBadge(p, 1) + '</div></div><ul class="hud-l">' + p.its.slice(0, 4).map(i => '<li><span>' + esc(i.be || '') + '</span><small>' + esc(ofDm(i.d) + (i.gio ? ' ' + i.gio : '')) + '</small></li>').join('') + (p.cnt > 4 ? '<li class="more">+' + (p.cnt - 4) + ' buổi nữa</li>' : '') + '</ul>' +
       '<div class="hud-a"><button type="button" class="btn sm ghost" data-oftut="' + esc(p.em) + '"><i class="bi bi-door-open"></i>Xem phòng</button>' + (man ? '<button type="button" class="btn sm pri" data-oflok="' + esc(p.em) + '"><i class="bi bi-check2-all"></i>Duyệt hết ' + p.cnt + ' buổi</button>' : '') + '</div>'
-      : '<div class="hud-e"><i class="bi bi-stars"></i><b>Không còn ai chờ duyệt</b><small>Gia sư có bài nháp mới sẽ đi thang máy lên đây.</small></div>') + '</div>' + ofLiftCam(p);
+      : '<div class="hud-e"><i class="bi bi-stars"></i><b>Không còn ai chờ duyệt</b><small>Gia sư có bài nháp mới sẽ đi thang cuốn lên đây.</small></div>') + '</div>' + ofLiftCam(p);
 }
 addEventListener('resize', () => { clearTimeout(OF.hudRz); OF.hudRz = setTimeout(() => { if (OF.view === 'lobby' && $('#ofLobV #ofCv.hall') && !OF.liftAnim) { ofLiftHud(); ofCvFit(); } }, 220); });      // (1.82.43) đổi cỡ màn hình → chọn lại chỗ đặt bảng
 /* (1.82.42) CAMERA THANG MÁY — màn hình nhỏ quay cận cảnh hành trình: mặt cắt trục thang, mỗi tầng một dải màu mức gấp (trên cùng Phòng duyệt),
@@ -25833,12 +26136,12 @@ addEventListener('resize', () => { clearTimeout(OF.hudRz); OF.hudRz = setTimeout
 const OF_CAM_FH = 24;
 function ofLiftCam(p) {      // (1.82.44) hai trục: ▲ Lên (trái) · ▼ Xuống (phải)
   const St = OF.liftSt; if (!St || !St.fl) return ''; const S = OF.lift || {}, FL = St.fl, lvT = { do: 'Đỏ', cam: 'Cam', vang: 'Vàng', xanh: 'Xanh' };
-  const cab = (id, j, cls) => '<div class="cam-cab ' + cls + '" id="' + id + '" style="top:' + ((j || 0) * OF_CAM_FH) + 'px"><span class="dr l"></span><span class="dr r"></span><span class="pa"></span></div>';
-  return '<div class="lift-cam" role="img" aria-label="Camera thang máy"><div class="cam-h"><i class="bi bi-camera-video-fill"></i><b>Camera thang máy</b><span class="sp"></span><span class="cam-k"><i class="bi bi-caret-up-fill"></i>Lên</span><span class="cam-k dn"><i class="bi bi-caret-down-fill"></i>Xuống</span><span class="rec"><i></i>REC</span></div>' +
+  const cab = (id, j, cls) => '<div class="cam-pax ' + cls + '" id="' + id + '" style="top:' + ((j || 0) * OF_CAM_FH) + 'px"><span class="pa"></span></div>';
+  return '<div class="lift-cam" role="img" aria-label="Camera thang cuốn"><div class="cam-h"><i class="bi bi-camera-video-fill"></i><b>Camera thang cuốn</b><span class="sp"></span><span class="cam-k"><i class="bi bi-caret-up-fill"></i>Lên</span><span class="cam-k dn"><i class="bi bi-caret-down-fill"></i>Xuống</span><span class="rec"><i></i>REC</span></div>' +
     '<div class="cam-v" style="height:' + (FL.length * OF_CAM_FH) + 'px">' + FL.map((f, j) => '<div class="cam-f ' + (f.me ? 'me' : 'lv-' + (f.lv || 'no')) + '" style="top:' + (j * OF_CAM_FH) + 'px"><span>' + (f.me ? '<i class="bi bi-person-check-fill"></i> Phòng duyệt' : 'T' + f.n + (f.lv ? ' · ' + lvT[f.lv] : '')) + '</span>' +
       (f.me && p ? '<em class="cam-desk">' + ofHuAva('t', 'xxs', p.em) + '<i class="bi bi-arrow-right-short"></i>' + (typeof ofMeAva === 'function' ? ofMeAva('xxs', 0) : '') + '</em>' : '') + '</div>').join('') +
     '<div class="cam-shaft l"></div><div class="cam-shaft r"></div>' + cab('ofCab', S.camL, 'l') + cab('ofCab2', S.camR, 'r') + '</div>' +
-    '<div class="cam-t" id="ofCamT">' + esc(S.camT || (p ? 'Đang duyệt: ' + p.n : 'Thang máy chờ ở Phòng duyệt')) + '</div></div>';
+    '<div class="cam-t" id="ofCamT">' + esc(S.camT || (p ? 'Đang duyệt: ' + p.n : 'Thang cuốn đang chạy — chưa có ai lên')) + '</div></div>';
 }
 /** cabin trong camera (w = 'L' lên · 'R' xuống) chạy tới tầng j, mở cửa khi tới */
 function ofCamGo(w, j, ms, txt, pa, cb) {
@@ -25854,7 +26157,20 @@ function ofMv(el, pts, v, cb) {
   let i = 0; const step = () => { if (!el || !el.isConnected || i >= pts.length) return cb && cb(); const q = pts[i++], x0 = parseFloat(el.style.left), y0 = parseFloat(el.style.top), ms = Math.max(160, Math.hypot(q[0] - x0, q[1] - y0) / v * 1000);
     el.classList.toggle('flip', q[0] < x0); el.style.transitionDuration = ms + 'ms'; el.style.left = q[0].toFixed(1) + 'px'; el.style.top = q[1].toFixed(1) + 'px'; setTimeout(step, ms + 30); }; requestAnimationFrame(step);
 }
-function ofCarGo(car, pt, ms, key, cb) { if (!car) return setTimeout(cb, ms); car.style.transitionDuration = ms + 'ms'; car.style.left = pt[0].toFixed(1) + 'px'; car.style.top = pt[1].toFixed(1) + 'px'; if (OF.lift) OF.lift[key] = pt; setTimeout(cb, ms + 60); }
+/** (1.82.47) chiều dài đường gấp khúc (px) · thời gian trượt trên thang cuốn: đều tốc độ OF_ESC_V */
+function ofPathLen(P) { let L = 0; for (let i = 1; i < P.length; i++) L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); return L; }
+const OF_ESC_V = 95;      // (1.82.48) tốc độ thang cuốn (px sơ đồ / giây) — bậc chạy và người đứng trên bậc cùng một tốc độ
+function ofEscMs(P) { return Math.max(700, Math.min(9000, Math.round(ofPathLen(P) / OF_ESC_V * 1000))); }
+/** (1.82.46) người đứng yên, THANG CUỐN đưa đi QUA TỪNG TẦNG (mỗi chiếu nghỉ một nhịp) rồi bước ra ĐÚNG TẦNG của mình — không vung chân, không chờ cabin */
+function ofRide(el, pts, ms, cb) { const fin = () => { if (el && el.isConnected) el.classList.remove('ride'); cb && cb(); };
+  if (!el || !el.isConnected || !pts || pts.length < 2) return setTimeout(fin, ms || 0);
+  const L = ofPathLen(pts) || 1; el.classList.add('ride');
+  el.style.transitionDuration = '0ms'; el.style.left = pts[0][0].toFixed(1) + 'px'; el.style.top = pts[0][1].toFixed(1) + 'px';
+  let i = 1; const step = () => { if (!el.isConnected) return fin(); const a = pts[i - 1], q = pts[i++];
+    const t = Math.max(70, Math.round(ms * Math.hypot(q[0] - a[0], q[1] - a[1]) / L));      // tốc độ đều: đoạn mặt bậc dài thì lâu, cổ bậc ngắn thì nhanh
+    el.classList.toggle('flip', q[0] < a[0]); el.style.transitionDuration = t + 'ms'; el.style.left = q[0].toFixed(1) + 'px'; el.style.top = q[1].toFixed(1) + 'px';
+    setTimeout(i < pts.length ? step : fin, t + 16); };
+  requestAnimationFrame(() => requestAnimationFrame(step)); }
 function ofLiftBeg() { OF.liftAnim = (OF.liftAnim || 0) + 1; OF.liftAnimAt = Date.now(); }
 function ofLiftEnd() { OF.liftAnim = Math.max(0, (OF.liftAnim || 0) - 1); if (!OF.liftAnim) ofLobPaint(); }
 /** duyệt hết buổi nháp của gia sư đứng đầu (lưu ngầm) → ✓ → người đó ĐI sang thang XUỐNG (phải), xuống tầng mình, đi VỀ PHÒNG · cùng lúc thang LÊN đón người tiếp theo */
@@ -25867,38 +26183,30 @@ function ofLiftOk(em, btn) {
   toast('Đã duyệt ' + ids.length + ' buổi của ' + p.n + (S.run > 1 ? ' · chuỗi ×' + S.run : ''), 'ok', 2500);
   const who = p.n.split(' ').slice(-2).join(' '); ofCamSay('✓ Đã duyệt ' + who + (S.run > 1 ? ' · chuỗi ×' + S.run : ''), 1);
   clearTimeout(OF.liftT); OF.liftT = setTimeout(() => { if (typeof ofLobLoad === 'function') ofLobLoad(true); }, 12000);      // máy chủ cập nhật hàng chờ sau vài giây
-  const St = OF.liftSt, el = $('#ofLobV .lq-p.cur'), j = St && St.idx[em], car = $('#ofLift2');
-  setTimeout(ofLiftFetch, OF_RM() ? 0 : 700);      // thang lên đón người tiếp theo
+  const St = OF.liftSt, el = $('#ofLobV .lq-p.cur'), j = St && St.idx[em];
+  setTimeout(ofLiftFetch, OF_RM() ? 0 : 700);      // người tiếp theo ra thang cuốn lên
   if (!el || !St || j == null || OF_RM()) { if (el) el.remove(); return; }
   ofLiftBeg(); el.classList.add('ok');
   setTimeout(() => { const at = [parseFloat(el.style.left), parseFloat(el.style.top)]; el.remove(); const w = ofWalker(p, at); if (!w) return ofLiftEnd(); w.classList.add('done');
-    let rd = 0; const both = () => { if (++rd < 2) return;
-      w.style.display = 'none'; const pa = car && car.querySelector('.pa'); if (pa) pa.innerHTML = ofHuAva('t', 'xs', em); if (car) car.classList.add('full');
-      ofCamGo('R', j, 1300, 'Thang xuống đưa ' + who + ' về Tầng ' + St.fl[j].n + '…', ofHuAva('t', 'xxs', em));
-      ofCarGo(car, St.stR[j], 1300, 'carR', () => { if (car) { car.classList.remove('full'); const pa2 = car.querySelector('.pa'); if (pa2) pa2.innerHTML = ''; } const a2 = $('#ofCab2 .pa'); if (a2) a2.innerHTML = '';
-        w.style.left = St.stR[j][0].toFixed(1) + 'px'; w.style.top = St.stR[j][1].toFixed(1) + 'px'; w.style.display = '';
-        ofMv(w, [St.cR[j], St.door[em] || St.cR[j]], 170, () => { w.classList.add('in'); ofCamSay(who + ' đã về phòng'); setTimeout(() => { w.remove(); ofLiftEnd(); }, 420); }); }); };
-    ofMv(w, [St.cR[0], St.stR[0]], 170, both);      // đi dọc hành lang tầng duyệt sang thang xuống
-    ofCarGo(car, St.stR[0], 900, 'carR', both);      // thang xuống lên đón ở tầng duyệt
-    ofCamGo('R', 0, 900, null, null); }, 650);
+    ofCamGo('R', 0, 600, null, ofHuAva('t', 'xxs', em));
+    ofMv(w, [St.cR[0], St.stR[0]], 170, () => {      // đi dọc hành lang tầng duyệt sang thang cuốn xuống
+      const dn = (St.escR || []).slice(St.eAt ? St.eAt(j) : 0).reverse(), ms = ofEscMs(dn); ofCamSay('Thang cuốn xuống đưa ' + who + ' về Tầng ' + St.fl[j].n + '…'); ofCamGo('R', j, ms, null, ofHuAva('t', 'xxs', em));
+      ofRide(w, dn, ms, () => { const a2 = $('#ofCab2 .pa'); if (a2) a2.innerHTML = '';
+        ofMv(w, [St.cR[j], St.door[em] || St.cR[j]], 170, () => { w.classList.add('in'); ofCamSay(who + ' đã về phòng'); setTimeout(() => { w.remove(); ofLiftEnd(); }, 420); }); }); }); }, 650);
 }
 /** THANG LÊN: gia sư gấp nhất chưa lên RỜI PHÒNG đi dọc hành lang tới thang (trái) — cùng lúc cabin xuống tầng đó — bước vào, lên Phòng duyệt, bước ra đi tới cuối hàng */
 function ofLiftFetch() {
-  const Q = ofLiftQ(), S = OF.lift, St = OF.liftSt, car = $('#ofLift'); S.ride = S.ride || {};
+  const Q = ofLiftQ(), S = OF.lift, St = OF.liftSt; S.ride = S.ride || {};
   const nx = Q.find(p => S.up.indexOf(p.em) < 0 && !S.ride[p.em]), j = nx && St ? St.idx[nx.em] : null;
   if (!nx || S.up.length + Object.keys(S.ride).length >= OF_LIFT_CAP) return OF.liftAnim ? null : ofLobPaint();
-  if (!car || !St || j == null || !St.door[nx.em] || OF_RM() || !OF.liftTop) { S.up.push(nx.em); return OF.liftAnim ? null : ofLobPaint(); }
+  if (!St || j == null || !St.door[nx.em] || OF_RM() || !OF.liftTop) { S.up.push(nx.em); return OF.liftAnim ? null : ofLobPaint(); }
   S.ride[nx.em] = 1; ofLiftBeg(); const who = nx.n.split(' ').slice(-2).join(' '), fn = St.fl[j].n, w = ofWalker(nx, St.door[nx.em]);
-  ofCamGo('L', j, 1100, who + ' rời phòng · thang lên xuống Tầng ' + fn + ' đón…', null);
-  let rd = 0; const both = () => { if (++rd < 2) return;
-    if (w) w.style.display = 'none'; const pa = car.querySelector('.pa'); if (pa) pa.innerHTML = ofHuAva('t', 'xs', nx.em) + ofLvBadge(nx); car.classList.add('full');
-    ofCamGo('L', j, 10, null, ofHuAva('t', 'xxs', nx.em) + ofLvBadge(nx), () => ofCamSay('Đang chở ' + who + ' lên Phòng duyệt · ' + ofLeft(nx.h)));
-    ofCarGo(car, St.stL[0], 1400, 'carL', () => { car.classList.remove('full'); if (pa) pa.innerHTML = ''; ofCamGo('L', 0, 10, null, '');
+  ofCamGo('L', j, 900, who + ' rời phòng · ra thang cuốn lên ở Tầng ' + fn + '…', ofHuAva('t', 'xxs', nx.em) + ofLvBadge(nx));
+  ofMv(w, [St.cL[j], St.stL[j]], 170, () => {      // đi dọc hành lang tới chân thang cuốn rồi bước lên — thang chạy sẵn, không phải chờ
+    const up = (St.escL || []).slice(St.eAt ? St.eAt(j) : 0), ms = ofEscMs(up); ofCamSay('Thang cuốn đang đưa ' + who + ' lên Phòng duyệt · ' + ofLeft(nx.h)); ofCamGo('L', 0, ms, null, ofHuAva('t', 'xxs', nx.em) + ofLvBadge(nx));
+    ofRide(w, up, ms, () => { const a1 = $('#ofCab .pa'); if (a1) a1.innerHTML = '';
       const k = S.up.length + Object.keys(S.ride).length - 1, dst = OF.liftTop.spot(Math.min(OF_LIFT_CAP - 1, k));
-      if (w) { w.style.left = St.stL[0][0].toFixed(1) + 'px'; w.style.top = St.stL[0][1].toFixed(1) + 'px'; w.style.display = ''; }
-      ofMv(w, [St.cL[0], dst], 170, () => { if (w) w.remove(); delete S.ride[nx.em]; S.up.push(nx.em); ofCamSay(who + ' đã tới — xếp hàng chờ duyệt'); ofLiftEnd(); }); }); };
-  ofCarGo(car, St.stL[j], 1100, 'carL', both);
-  ofMv(w, [St.cL[j], St.stL[j]], 170, both);
+      ofMv(w, [St.cL[0], dst], 170, () => { if (w) w.remove(); delete S.ride[nx.em]; S.up.push(nx.em); ofCamSay(who + ' đã tới — xếp hàng chờ duyệt'); ofLiftEnd(); }); }); });
 }
 /** sau khi vẽ: bỏ sơ đồ Lớp học đang ẩn (trùng #ofCv) · phóng to / kéo / vừa khung như Lớp học */
 function ofHallAfter(F) {
