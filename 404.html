@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-23T13:53:36.173Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-23T14:10:04.790Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -29361,20 +29361,30 @@ async function ktStyleView(B) {
 
 /* ── KẾT NỐI ── */
 function ktConnView(B) {
-  const b = KT.b || {}, box = (slot, c, title, sub) => '<div class="kt-card kt-pad" data-kslot="' + slot + '"><div class="kt-t"><b>' + title + '</b><span class="kt-sub">' + sub + '</span></div>' +
-    '<div class="kt-conn"><span class="kt-dot' + (c ? ' on' : '') + '"></span>' + (c ? '<span><b>' + esc(c.name || c.email) + '</b> · ' + esc(c.email) + ' · ' + esc(c.role) + '</span>' + (c.exp ? '<span class="kt-pill">Hết hạn ' + ktDm(c.exp) + '/' + String(c.exp).slice(0, 4) + '</span>' : '') + '<button class="kt-lnk" data-koff>Ngắt</button>' : '<span>Chưa nối</span>') + '</div>' +
-    '<textarea class="kt-ta mono" data-kck rows="3" placeholder="Dán giá trị dòng cookie ở đây (tên=giá trị; tên2=giá trị2 …)"></textarea><div class="kt-acts"><span class="sp"></span><button class="btn pri sm" data-ksave><i class="bi bi-plug"></i> ' + (c ? 'Dán phiên mới' : 'Kết nối') + '</button></div></div>';
-  B.innerHTML = '<div class="kt-card kt-pad"><div class="kt-t"><b><i class="bi bi-info-circle"></i> Cách lấy phiên kientre.click</b></div><ol class="kt-steps">' +
-    '<li>Mở <a href="https://kientre.click" target="_blank" rel="noopener">kientre.click</a> trên máy tính, đăng nhập đúng tài khoản (giáo viên để nhận xét · giáo vụ cho Hỏi dữ liệu và Lớp đã học).</li>' +
-    '<li>Bấm <b>F12</b> (Mac: <b>⌥⌘I</b>) → thẻ <b>Network</b> → tải lại trang → bấm một dòng có chữ <b>api</b> (VD <i>session</i>).</li>' +
-    '<li>Ở <b>Request Headers</b>, chép toàn bộ giá trị dòng <b>cookie</b>, dán vào ô bên dưới rồi bấm Kết nối.</li></ol>' +
-    '<div class="kt-sub">Phiên chỉ lưu trên máy chủ (không về trình duyệt), dùng được khoảng 30 ngày — hết hạn app báo để dán lại. Đăng xuất bên kientre.click thì phiên cũng hết.</div></div>' +
+  const b = KT.b || {}, X = b.ext || {};
+  const box = (slot, c, title, sub) => { const L = X[slot], code = KT.code && KT.code[slot];
+    return '<div class="kt-card kt-pad" data-kslot="' + slot + '"><div class="kt-t"><b>' + title + '</b><span class="kt-sub">' + sub + '</span></div>' +
+      '<div class="kt-conn"><span class="kt-dot' + (c ? ' on' : '') + '"></span>' + (c ? '<span><b>' + esc(c.name || c.email) + '</b> · ' + esc(c.email) + ' · ' + esc(c.role) + '</span>' + (c.via === 'ext' ? '<span class="kt-pill ai"><i class="bi bi-puzzle"></i> Qua tiện ích</span>' : '') + (c.exp ? '<span class="kt-pill">Hết hạn ' + ktDm(c.exp) + '/' + String(c.exp).slice(0, 4) + '</span>' : '') + '<button class="kt-lnk" data-koff>Ngắt</button>' : '<span>Chưa nối</span>') + '</div>' +
+      '<div class="kt-mat"><i class="bi bi-puzzle"></i><span>' + (L && L.at ? (L.err ? '<b>Tiện ích báo:</b> ' + esc(L.err) : 'Tiện ích gửi phiên <b>' + esc(L.who || '') + '</b>') + ' · ' + ktDm(String(L.at).slice(0, 10)) + ' ' + String(L.at).slice(11, 16) + (L.ver ? ' · bản ' + esc(L.ver) + (X.v && L.ver !== X.v ? ' <span class="kt-pill warn">có bản ' + esc(X.v) + '</span>' : '') : '') : L && L.on ? 'Đã có mã — chờ tiện ích gửi phiên lần đầu' : '<b>Tự động qua tiện ích</b> — cài Kiến Trẻ Connect, dán mã một lần là xong, khỏi dán cookie') + '</span>' +
+        '<button class="btn sm" data-kxk><i class="bi bi-key"></i> ' + (L && L.on ? 'Lấy mã mới' : 'Lấy mã cho tiện ích') + '</button></div>' +
+      (code ? '<div class="kt-goi"><b>Mã kết nối (dán vào tiện ích — mã cũ đã hết hiệu lực)</b><textarea class="kt-ta mono" rows="3" readonly data-kcode>' + esc(code) + '</textarea><div class="kt-acts"><button class="btn sm" data-kcc><i class="bi bi-clipboard"></i> Chép mã</button><a class="btn sm ghost" href="' + esc(X.zip || '#') + '" target="_blank" rel="noopener"><i class="bi bi-download"></i> Tải tiện ích</a></div></div>' : '') +
+      '<details class="kt-his"><summary><i class="bi bi-clipboard-plus"></i> Hoặc dán phiên tay</summary><div style="border:0;padding:0;margin-top:10px;display:flex;flex-direction:column;gap:8px"><textarea class="kt-ta mono" data-kck rows="3" placeholder="Dán giá trị dòng cookie ở đây (tên=giá trị; tên2=giá trị2 …)"></textarea><div class="kt-acts"><span class="sp"></span><button class="btn pri sm" data-ksave><i class="bi bi-plug"></i> ' + (c ? 'Dán phiên mới' : 'Kết nối') + '</button></div></div></details></div>'; };
+  B.innerHTML = '<div class="kt-card kt-pad"><div class="kt-t"><b><i class="bi bi-puzzle"></i> Nối bằng tiện ích Kiến Trẻ Connect (khuyên dùng)</b></div><ol class="kt-steps">' +
+    '<li><a href="' + esc(X.zip || 'https://kientre-internal.click/ext/kientre-connect.zip') + '" target="_blank" rel="noopener"><b>Tải tiện ích</b></a> (bản ' + esc(X.v || '') + ') rồi giải nén.</li>' +
+    '<li>Mở <b>chrome://extensions</b> → bật <b>Chế độ dành cho nhà phát triển</b> → <b>Tải tiện ích đã giải nén</b> → chọn thư mục <i>kientre-connect</i>.</li>' +
+    '<li>Bấm <b>Lấy mã cho tiện ích</b> ở thẻ bên dưới → <b>Chép mã</b> → bấm biểu tượng tiện ích trên Chrome, dán mã, <b>Lưu mã</b>.</li>' +
+    '<li>Đăng nhập <a href="https://kientre.click" target="_blank" rel="noopener">kientre.click</a> trên Chrome đó bằng đúng tài khoản (giáo viên để nhận xét · giáo vụ cho Hỏi dữ liệu và Lớp đã học). Tiện ích tự gửi phiên, tự gửi lại khi bạn đăng nhập lại.</li></ol>' +
+    '<div class="kt-sub">Phiên chỉ lưu trên máy chủ, không về trình duyệt. Chrome chỉ đăng nhập được một tài khoản kientre.click mỗi lúc — muốn nối cả giáo viên lẫn giáo vụ thì dùng hai hồ sơ Chrome, hoặc dán tay một phiên.</div></div>' +
     box('me', b.me, 'Tài khoản nhận xét của tôi', 'Nhận xét đẩy sang kientre.click mang tên tài khoản này — dùng tài khoản giáo viên của bạn.') +
-    (b.canOffice ? box('office', b.office, 'Phiên giáo vụ (dùng chung)', 'Đọc lịch mọi lớp cho Hỏi dữ liệu, Lớp đã học và đề mock test. Chỉ quản lý dán được; giáo viên dùng chung, không ai thấy phiên.') : '');
+    (b.canOffice ? box('office', b.office, 'Phiên giáo vụ (dùng chung)', 'Đọc lịch mọi lớp cho Hỏi dữ liệu, Lớp đã học và đề mock test. Chỉ quản lý nối được; giáo viên dùng chung, không ai thấy phiên.') : '');
   $$('[data-kslot]', B).forEach(el => { const slot = el.dataset.kslot;
     $('[data-ksave]', el).onclick = async () => { const v = $('[data-kck]', el).value.trim(); if (!v) return toast('Dán dòng cookie trước', 'warn');
       try { const r = await rpc('ktConnect', { slot: slot, cookie: v }); KT.b[slot === 'office' ? 'office' : 'me'] = r.conn; toast('Đã nối kientre.click: ' + (r.conn.name || r.conn.email), 'ok'); ktConnView(B); } catch (e) { fail(e); } };
-    const off = $('[data-koff]', el); if (off) off.onclick = async () => { if (!await ask('Ngắt phiên kientre.click này?')) return; await rpc('ktConnect', { slot: slot, off: 1 }); KT.b[slot === 'office' ? 'office' : 'me'] = null; ktConnView(B); }; });
+    $('[data-kxk]', el).onclick = async () => {
+      if (X[slot] && X[slot].on && !await ask('Lấy mã mới? Mã đang dán trong tiện ích sẽ hết hiệu lực — phải dán mã mới vào tiện ích.')) return;
+      try { const r = await rpc('ktExtKey', { slot: slot }); (KT.code = KT.code || {})[slot] = r.code; X[slot] = r.last || { on: 1 }; KT.b.ext = X; ktConnView(B); toast('Đã tạo mã — chép rồi dán vào tiện ích', 'ok'); } catch (e) { fail(e); } };
+    const cc = $('[data-kcc]', el); if (cc) cc.onclick = () => navigator.clipboard.writeText($('[data-kcode]', el).value).then(() => toast('Đã chép mã kết nối', 'ok'));
+    const off = $('[data-koff]', el); if (off) off.onclick = async () => { if (!await ask('Ngắt phiên kientre.click này? Mã tiện ích của phiên này cũng hết hiệu lực.')) return; await rpc('ktConnect', { slot: slot, off: 1 }); KT.b[slot === 'office' ? 'office' : 'me'] = null; X[slot] = null; if (KT.code) delete KT.code[slot]; ktConnView(B); }; });
 }
 </script>
 
