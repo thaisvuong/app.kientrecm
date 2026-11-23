@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-23T01:56:42.055Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-23T07:56:23.052Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -8013,7 +8013,7 @@ async function bootVerify() {
   if (!b.me.active) { lsDel('bootC'); $('#app').hidden = true; return showInactive(b.me); }
   if (b.me.email !== (S.me && S.me.email)) { lsDel('bootC'); return location.reload(); }
   // (1.39.2) có / mất thư mục nhận file (up), thư mục / chương trình được chia sẻ (pub, prog) cũng đổi menu — trước đây phải tải lại lần nữa mới thấy tab Upload file
-  const old = S.boot, sig = x => JSON.stringify([x.me.caps, x.me.apps, x.me.roles, x.me.home, x.me.taskRole, x.mods, x.app, x.sub, x.todo, x.pending, !!x.up, !!x.pub, !!x.prog]);
+  const old = S.boot, sig = x => JSON.stringify([x.me.caps, x.me.apps, x.me.roles, x.me.home, x.me.taskRole, x.mods, x.app, x.sub, x.todo, x.pending, !!x.up, !!x.pub, !!x.prog, !!x.svTab]);
   const hideOld = JSON.stringify(old.libHide || []);
   const changed = sig(old) !== sig(b), idxChanged = old.idx !== b.idx, mustOld = JSON.stringify((old.ann && old.ann.must) || []);
   if (b.themeAt && String(lsGet('themeAt', '')) < String(b.themeAt)) { lsDel('theme'); lsDel('glass'); lsSet('themeAt', b.themeAt); }
@@ -8030,6 +8030,7 @@ async function bootVerify() {
   if (!idxChanged && JSON.stringify(b.libHide || []) !== hideOld && IX.raw) { buildIndex(IX.raw); setNavCount(); Object.keys(VIEWS).forEach(k => { VIEWS[k].stale = true; }); }      // ẩn / hiện thư mục ở máy khác
   if (idxChanged) { ixReset(); const R = ROUTES[String(S.route || '').split('/')[0]]; if (R && R.ix) needIndex().then(() => go(S.route, { nohist: 1, refresh: 1 })).catch(() => {}); }
   if (b.ann && b.ann.must && b.ann.must.length && JSON.stringify(b.ann.must) !== mustOld) setTimeout(() => annGate(b.ann.must), 300);
+  if (b.sv && b.sv.n && typeof svGate === 'function') setTimeout(svGate, 350);      // (1.83) đợt khảo sát mới mở / tới hẹn cập nhật
 }
 
 /* ══════════ ĐĂNG NHẬP ══════════
@@ -8548,6 +8549,7 @@ const NAV_DEF = [
   { r: 'classes/inbox', t: 'Trao đổi', i: 'bi-chat-dots', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/inbox/, nt: 1 },
   { r: 'classes/notes', t: 'Yêu cầu', i: 'bi-inboxes', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/(notes|reqs)/, on: 'tn' },      // 1.43.15: tab “Yêu cầu” = Gửi quản lý (ghi chú & đề xuất) + Thay đổi chờ duyệt (Classes.html › clAsk) — gia sư hay nhầm hai tab      // 1.31: gia sư gửi ghi chú / đề xuất cho quản lý (bảng chung Kiến Task) — on = chỉ hiện khi máy chủ bật (S.boot.tn)      // nt = không thành tab của gia sư (tin nhắn đã có trên Trang chủ và nút Trao đổi của từng lớp)
   { r: 'ai', t: 'Trợ lý', i: 'bi-robot', g: 'lib', cap: ['ai.tutor', 'ai.admin', 'ai.log', 'settings.manage'], m: /^ai(\/|$)/, on: 'ai' },      // (1.76) AiView.html · on = máy chủ bật cho người này (S.boot.ai: AI đang bật + có quyền, hoặc người cài đặt)
+  { r: 'classes/survey', t: 'Khảo sát', i: 'bi-ui-checks', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/survey/, on: 'svTab' },      // (1.83) khảo sát gia sư bắt buộc (SurveyView.html) · on = quản lý luôn thấy, gia sư thấy khi đang có đợt cần làm (S.boot.svTab)
   { r: 'classes/stats', t: 'Thống kê', i: 'bi-clipboard-data', g: 'lib', cap: 'classes.stats', m: /^classes\/stats/, more: 1 },      // (1.77.11) more = tab ít dùng → gom vào nhóm “⋯ Thêm” cuối thanh bên
   { r: 'classes/prints', t: 'Báo cáo in', i: 'bi-printer', g: 'lib', cap: ['classes.view', 'classes.manage'], m: /^classes\/prints/, more: 1 },      // (1.80.45) gia sư in phiếu nào, bao nhiêu trang (ClassPrint.html › clPrints)
   { r: 'classes/centers', t: 'Trung tâm & QLTT', i: 'bi-buildings', g: 'lib', cap: 'classes.manage', m: /^classes\/centers/ },      // (1.69) CentersView.html
@@ -8780,7 +8782,7 @@ document.addEventListener('keydown', e => {      // Alt + 1…9 mở ứng dụn
 /** gia sư thuần (xem lớp mình dạy, không quản lý lớp) */
 function isTutor() { return can('classes.view') && !can('classes.manage'); }
 /** thứ tự tab của gia sư: 4 tab đầu nằm ngoài thanh dưới (Trang chủ · Buổi học · Lớp · Thư viện), phần còn lại (Apps, Yêu cầu…) vào “Thêm” */
-const TUT_ORDER = ['today', 'classes/todo', 'approve', 'classes/list', 'library', 'classes/notes', 'classes/room', 'ai', 'apps', 'classes/reqs', 'classes/prints', 'guide', 'info', 'programs', 'links', 'tasks', 'tasks/backlog', 'tasks/mine', 'tasks/time', 'tasks/cal', 'tasks/sum', 'compose', 'home', 'recent', 'settings'];      // (1.72.1) approve = gia sư được cấp thêm quyền Duyệt bài (VD vừa gia sư vừa Asst) → tab Duyệt bài đứng ngay sau Buổi học (điện thoại: nằm trên thanh dưới), không bị dồn xuống cuối
+const TUT_ORDER = ['today', 'classes/survey', 'classes/todo', 'approve', 'classes/list', 'library', 'classes/notes', 'classes/room', 'ai', 'apps', 'classes/reqs', 'classes/prints', 'guide', 'info', 'programs', 'links', 'tasks', 'tasks/backlog', 'tasks/mine', 'tasks/time', 'tasks/cal', 'tasks/sum', 'compose', 'home', 'recent', 'settings'];      // (1.72.1) approve = gia sư được cấp thêm quyền Duyệt bài (VD vừa gia sư vừa Asst) → tab Duyệt bài đứng ngay sau Buổi học (điện thoại: nằm trên thanh dưới), không bị dồn xuống cuối
 /** gia sư thấy tab Apps cả khi chỉ có một ứng dụng nhưng có liên kết ngoài */
 function tutApps() { return isTutor() && extApps().length > 0; }
 /** tab đang mở ứng với route (trang con như classes/c/… thuộc tab Lớp học) */
@@ -8941,9 +8943,9 @@ function navLayout(L) {
   return { groups: groups, items: items };
 }
 /** thứ tự cố định các tab của Kiến Chuyên môn (quản lý): Hướng dẫn kế cuối, Cài đặt lớp cuối — không phụ thuộc bố cục menu đã lưu từ trước khi tách tab */
-const CM_ORDER = ['today', 'ai', 'approve', 'classes', 'classes/list', 'classes/tutors', 'classes/sched', 'classes/stats', 'classes/prints', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'classes/centers', 'classes/perms', 'guide', 'classes/settings', 'classes/kgs'];
+const CM_ORDER = ['today', 'ai', 'approve', 'classes', 'classes/list', 'classes/tutors', 'classes/sched', 'classes/survey', 'classes/stats', 'classes/prints', 'programs', 'classes/reqs', 'classes/notes', 'classes/inbox', 'classes/centers', 'classes/perms', 'guide', 'classes/settings', 'classes/kgs'];
 /* (1.75.2) Kiến CM (quản lý): thanh bên chia NHÓM có nhãn — Vận hành · Hộp thư · Thiết lập (buildNav vẽ nhãn trước mục đầu mỗi nhóm; thu gọn thanh bên → vạch mảnh) */
-const CM_SEC = { today: 'Vận hành', ai: 'Vận hành', approve: 'Vận hành', classes: 'Vận hành', 'classes/list': 'Vận hành', 'classes/tutors': 'Vận hành', 'classes/sched': 'Vận hành', 'classes/stats': 'Vận hành', 'classes/prints': 'Vận hành', programs: 'Vận hành',
+const CM_SEC = { today: 'Vận hành', ai: 'Vận hành', approve: 'Vận hành', classes: 'Vận hành', 'classes/list': 'Vận hành', 'classes/tutors': 'Vận hành', 'classes/sched': 'Vận hành', 'classes/survey': 'Vận hành', 'classes/stats': 'Vận hành', 'classes/prints': 'Vận hành', programs: 'Vận hành',
   'classes/reqs': 'Hộp thư', 'classes/notes': 'Hộp thư', 'classes/inbox': 'Hộp thư', 'classes/centers': 'Thiết lập', 'classes/kgs': 'Thiết lập' };
 /** các tab người này thấy, đúng thứ tự (gia sư: thứ tự công việc) */
 function navItems(lay) {
@@ -9265,6 +9267,7 @@ function startApp() {
   presStart();
   setTimeout(() => { if (typeof clRateAsk === 'function') clRateAsk(); }, 7000);      // (1.80.50) khảo sát độ khó bài định kỳ (gia sư)
   if (S.boot.ann && S.boot.ann.must && S.boot.ann.must.length) setTimeout(() => annGate(S.boot.ann.must), 450);   // thông tin bắt buộc đọc → hiện trước, đọc xong mới dùng tiếp
+  setTimeout(() => { if (typeof svGate === 'function') svGate(); }, 500);      // (1.83) còn khảo sát bắt buộc → vào thẳng màn trả lời
   lsGet('undoQ', []).forEach(x => { if (S.me && x.u === S.me.email) undoShow(x); });      // tải lại trang giữa lúc đang đếm ngược Hoàn tác
   setTimeout(warmUp, 1200);      // vào được giao diện chính → bắt đầu tải ngầm các ứng dụng được cấp
   setTimeout(pwaHint, 6000);
@@ -9417,6 +9420,10 @@ async function go(route, opt) {
   if (key !== 'info' && key !== 'settings' && typeof annMustLeft === 'function') { const n = annMustLeft(); if (n) {
     if (!opt.replace) { haptic(); toast('Bạn cần đọc hết ' + n + ' thông tin bắt buộc trước khi dùng mục khác', 'warn', 3500); }
     route = 'info'; key = 'info'; } }
+  // (1.83) còn KHẢO SÁT BẮT BUỘC chưa trả lời / tới hẹn cập nhật → chỉ dùng được màn khảo sát (và Cài đặt để đăng xuất, Thông tin)
+  if (key !== 'settings' && key !== 'info' && !/^classes\/survey/.test(route) && typeof svLeft === 'function') { const n = svLeft(); if (n) {      // Thông tin vẫn mở được (tin bắt buộc đọc)
+    if (!opt.replace) { haptic(); toast('Bạn cần trả lời khảo sát bắt buộc (' + n + ' câu) trước khi dùng mục khác', 'warn', 3500); }
+    route = 'classes/survey'; key = 'classes'; } }
   const R = ROUTES[key];
   { const md = modOf(route); if (md) { if (md !== S.mod && myMods().some(m => m.id === md) && modSet(md)) buildNav(); MOD_LAST[md] = taskNoItem(route); lsSet('modLast', MOD_LAST); } }      // (1.80.38) không nhớ “…/t/<việc>” → mở lại Kiến Task không tự bật hộp việc cũ
   const guard = Object.values(VIEWS).find(r => r.el._guard && r.el._guard() && !r.el.hidden);
@@ -16091,7 +16098,7 @@ async function viewClasses(arg, v) {
   if (v._clTok !== tok) return;
   clBadge();
   const parts = String(arg || '').split('/');
-  const route = () => parts[0] === 'c' ? 'detail' : ['list', 'tutors', 'stats', 'settings', 'perms', 'reqs', 'inbox', 'notes', 'kgs', 'centers', 'sched', 'prints', 'room'].indexOf(parts[0]) >= 0 ? parts[0] : 'todo';
+  const route = () => parts[0] === 'c' ? 'detail' : ['list', 'tutors', 'stats', 'settings', 'perms', 'reqs', 'inbox', 'notes', 'kgs', 'centers', 'sched', 'prints', 'room', 'survey'].indexOf(parts[0]) >= 0 ? parts[0] : 'todo';
   const man = CL.d.manage;
   v.innerHTML = '<div class="cl-top"' + (man ? '' : ' hidden') + '><div class="seg" id="clTab"><button class="seg-b" data-t="todo"><i class="bi bi-send-check"></i>' + '<span class="sg-l">' + (man ? '<span class="sg-lg">Buổi học</span><span class="sg-sh">Buổi học</span>' : 'Buổi học của tôi') + '</span><span class="lk-n" id="clTN"></span></button>' +
     '<button class="seg-b" data-t="list"><i class="bi bi-table"></i>' + (man ? '<span class="sg-lg">Lớp học</span><span class="sg-sh">Lớp</span>' : 'Lớp của tôi') + '</button>' +
@@ -16127,6 +16134,7 @@ async function viewClasses(arg, v) {
     else if (r === 'tutors') { clTutors(body, v, parts[1] ? decodeURIComponent(parts[1]) : '', was !== nt || !!nav); parts.length = 1; }      // classes/tutors/<email> (bấm tên gia sư ở Thống kê) → lọc sẵn gia sư đó
     else if (r === 'stats') { if (man && can('classes.stats')) clReport(body, v); else body.innerHTML = '<div class="card"><div class="empty" style="padding:40px"><i class="bi bi-lock"></i>Bạn chưa được cấp quyền xem Thống kê lớp — Quản trị › Vai trò & quyền › “Xem Thống kê lớp & chương trình” (kèm quyền quản lý mọi lớp)</div></div>'; }
     else if (r === 'room') { clRoom(body, v, parts[1] ? decodeURIComponent(parts[1]) : '', was !== nt || !!nav); parts.length = 1; }      // (1.82.17) Phòng học của tôi (OfficeView.html) · quản lý: classes/room/<email>
+    else if (r === 'survey') svView(body, v, parts.slice(1).join('/'));      // (1.83) Khảo sát gia sư (SurveyView.html)
     else if (r === 'prints') clPrints(body, v);      // (1.80.45) Báo cáo in — quản lý: mọi gia sư · gia sư: của mình
     else if (r === 'settings') clSettings(body, v);
     else if (r === 'centers') { if (man) clCenters(body, v); else body.innerHTML = '<div class="card"><div class="empty" style="padding:40px"><i class="bi bi-lock"></i>Chỉ quản lý lớp thiết lập được trung tâm</div></div>'; }      // (1.69) CentersView.html
@@ -28224,6 +28232,458 @@ function sdPaint(B, v) {
             if (typeof aiDoneMsg === 'function') toast(aiDoneMsg(o), o.status === 'err' ? 'err' : 'ok', 6000, 'ai/assign/' + o.id); })); }
         else { toast(r.msg || 'Không có buổi để gán', 'info', 5000); delete ai.dataset.busy; ai.innerHTML = '<i class="bi bi-robot"></i>AI gán bài'; } }
       catch (x) { fail(x); delete ai.dataset.busy; ai.innerHTML = '<i class="bi bi-robot"></i>AI gán bài'; } }
+  };
+}
+</script>
+
+<style>
+/* (1.83) KHẢO SÁT GIA SƯ — Kiến CM › Khảo sát (Survey.gs). Chỉ dùng token màu → chế độ tối tự khớp · tối ưu 390px */
+.sv{ display:flex; flex-direction:column; gap:14px; max-width:1100px; margin:0 auto; width:100% }
+#svBody{ display:flex; flex-direction:column; gap:14px; min-width:0 }
+.sv-seg{ display:flex; gap:6px; flex-wrap:wrap }
+.sv-seg .seg-b{ white-space:nowrap }
+.sv-card{ border:1px solid var(--border); border-radius:var(--r-l); background:var(--surface); padding:14px 16px; display:flex; flex-direction:column; gap:10px }
+.sv-h{ display:flex; align-items:center; gap:10px; flex-wrap:wrap } .sv-h > b, .sv-h > h3{ flex:1; min-width:0; margin:0; font-size:16px }
+.sv-h small, .sv-sub{ color:var(--muted); font-size:12.5px }
+.sv-tag{ font-size:11.5px; font-weight:700; padding:2px 9px; border-radius:999px; white-space:nowrap; background:var(--surface-3); color:var(--ink-2) }
+.sv-tag.open{ background:color-mix(in oklab, var(--ok) 15%, transparent); color:var(--ok) }
+.sv-tag.draft{ background:color-mix(in oklab, var(--warn) 15%, transparent); color:var(--warn) }
+.sv-tag.l2{ background:color-mix(in oklab, var(--danger) 14%, transparent); color:var(--danger) }
+.sv-tag.l1{ background:color-mix(in oklab, var(--warn) 15%, transparent); color:var(--warn) }
+.sv-kpi{ display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px }
+.sv-kpi > div{ background:var(--surface-2); border-radius:12px; padding:10px 12px } .sv-kpi b{ display:block; font-size:22px; line-height:1.2 } .sv-kpi small{ color:var(--muted); font-size:12px; white-space:nowrap }
+.sv-kpi .bad b{ color:var(--danger) } .sv-kpi .warn b{ color:var(--warn) } .sv-kpi .good b{ color:var(--ok) }
+.sv-bar{ height:8px; border-radius:99px; background:var(--surface-3); overflow:hidden } .sv-bar i{ display:block; height:100%; background:var(--brand-600); border-radius:99px }
+.sv-list{ display:flex; flex-direction:column; gap:8px }
+.sv-row{ display:flex; gap:10px; align-items:center; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); cursor:pointer }
+.sv-row:hover{ border-color:var(--brand-400) } .sv-row > div{ flex:1; min-width:0 } .sv-row b{ display:block } .sv-row .sv-bar{ margin-top:6px; max-width:320px }
+.sv-acts{ display:flex; gap:6px; flex-wrap:wrap; align-items:center }
+/* thống kê từng câu */
+.sv-q{ display:flex; flex-direction:column; gap:6px } .sv-q > b{ font-size:14px }
+.sv-o{ display:grid; grid-template-columns:minmax(0, 1fr) 140px 38px; gap:8px; align-items:center; font-size:13px }
+.sv-o .sv-bar i.l2{ background:var(--danger) } .sv-o .sv-bar i.l1{ background:var(--warn) } .sv-o .sv-bar i.l0{ background:var(--ok) } .sv-o em{ font-style:normal; font-weight:700; text-align:right }
+/* bảng gia sư */
+.sv-tbl{ width:100%; border-collapse:collapse; font-size:13px } .sv-tbl th{ text-align:left; font-size:11.5px; color:var(--muted); font-weight:700; padding:6px 8px; border-bottom:1px solid var(--border); white-space:nowrap }
+.sv-tbl td{ padding:8px; border-bottom:1px solid var(--border); vertical-align:top } .sv-tbl tr.sv-tr{ cursor:pointer } .sv-tbl tr.sv-tr:hover td{ background:var(--surface-2) }
+.sv-tbl .n{ text-align:center; white-space:nowrap } .sv-tbl .r{ color:var(--danger); font-weight:700 } .sv-tbl .w{ color:var(--warn); font-weight:700 }
+.sv-wrap{ overflow-x:auto }
+.sv-ans{ display:flex; flex-direction:column; gap:6px; padding:6px 0 }
+.sv-a{ border-left:3px solid var(--border); padding:4px 10px; font-size:13px } .sv-a.l2{ border-color:var(--danger) } .sv-a.l1{ border-color:var(--warn) } .sv-a small{ color:var(--muted); display:block }
+.sv-flt{ display:flex; gap:6px; flex-wrap:wrap }
+/* cần cân nhắc */
+.sv-cn{ border-left:4px solid var(--warn) } .sv-cn.l2{ border-left-color:var(--danger) } .sv-cn.l0{ border-left-color:var(--border) }
+.sv-why{ margin:0; padding-left:18px; font-size:13px; display:flex; flex-direction:column; gap:3px } .sv-why small{ color:var(--muted) }
+/* màn trả lời của gia sư */
+.svt-top{ border-radius:var(--r-l); padding:16px 18px; background:color-mix(in oklab, var(--danger) 8%, var(--surface)); border:1px solid color-mix(in oklab, var(--danger) 30%, var(--border)) }
+.svt-top h2{ margin:0 0 4px; font-size:19px; display:flex; gap:8px; align-items:center } .svt-top p{ margin:4px 0 0; color:var(--ink-2); font-size:14px; white-space:pre-line }
+.svt-kid{ gap:14px } .svt-kid .sv-h b{ font-size:16.5px }
+.svt-q{ display:flex; flex-direction:column; gap:8px; padding-top:12px; border-top:1px solid var(--border) } .svt-q:first-of-type{ border-top:0; padding-top:0 }
+.svt-q > b{ font-size:14.5px } .svt-q.miss > b{ color:var(--danger) } .svt-q.miss{ animation:svShake .45s }
+.svt-note{ font-size:13px; background:color-mix(in oklab, var(--brand-600) 8%, transparent); color:var(--ink-2); border-radius:10px; padding:8px 10px; display:flex; gap:8px } .svt-note i{ color:var(--brand-600) }
+.svt-opts{ display:flex; flex-direction:column; gap:6px }
+.svt-opt{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid var(--border); border-radius:12px; cursor:pointer; font-size:14px; background:var(--surface) }
+.svt-opt input{ margin-top:3px; flex:none; width:18px; height:18px; accent-color:var(--brand-600) } .svt-opt:has(input:checked){ border-color:var(--brand-600); background:color-mix(in oklab, var(--brand-600) 8%, var(--surface)) }
+.svt-due{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:10px 12px; border-radius:12px; background:color-mix(in oklab, var(--warn) 10%, transparent); font-size:13.5px }
+.svt-due > span{ flex:1 1 100% } .svt-due select, .svt-due input{ min-width:0; flex:1 1 160px; width:auto }
+.svt-prev{ font-size:12.5px; color:var(--muted); background:var(--surface-2); border-radius:10px; padding:6px 10px }
+.svt-done{ display:flex; gap:8px; align-items:flex-start; font-size:13.5px; color:var(--ink-2) } .svt-done > i{ color:var(--ok); margin-top:2px } .svt-done > div{ flex:1; min-width:0 } .svt-done small{ display:block; color:var(--muted) }
+.svt-bar{ position:sticky; bottom:0; z-index:5; display:flex; gap:10px; align-items:center; padding:10px 14px; border-radius:16px; background:var(--surface); border:1px solid var(--border); box-shadow:0 -6px 22px rgba(0,0,0,.08) }
+.svt-bar span{ flex:1; font-size:13.5px; color:var(--ink-2) } .svt-bar .btn{ min-height:42px; padding:0 20px }
+.svt-ok{ text-align:center; padding:36px 16px } .svt-ok > i{ font-size:42px; color:var(--ok) } .svt-ok h3{ margin:8px 0 4px }
+/* thông báo tức giận */
+.sv-angry .modal-h{ background:var(--danger); color:#fff } .sv-angry .modal-h h3, .sv-angry .modal-h .ibtn{ color:#fff }
+.sv-ang{ display:flex; flex-direction:column; gap:12px; align-items:stretch }
+.sv-ang-face{ font-size:58px; text-align:center; line-height:1; animation:svShake .6s 2 }
+.sv-ang h2{ text-align:center; margin:0; color:var(--danger); font-size:20px }
+.sv-ang-m{ border-radius:12px; padding:10px 12px; background:color-mix(in oklab, var(--danger) 9%, transparent); border:1px solid color-mix(in oklab, var(--danger) 30%, transparent); font-size:14px; line-height:1.5 }
+.sv-ang-m.l1{ background:color-mix(in oklab, var(--warn) 10%, transparent); border-color:color-mix(in oklab, var(--warn) 35%, transparent) }
+.sv-ang-m b{ display:block; font-size:12.5px; margin-bottom:2px }
+.sv-ang label{ display:flex; gap:8px; align-items:flex-start; font-size:14px; font-weight:600 } .sv-ang label input{ margin-top:3px; width:18px; height:18px; accent-color:var(--danger) }
+@keyframes svShake{ 0%,100%{ transform:translateX(0) } 20%{ transform:translateX(-7px) } 40%{ transform:translateX(7px) } 60%{ transform:translateX(-5px) } 80%{ transform:translateX(5px) } }
+@media (prefers-reduced-motion:reduce){ .sv-ang-face, .svt-q.miss{ animation:none } }
+/* soạn đợt khảo sát */
+.sve{ display:flex; flex-direction:column; gap:14px }
+.sve-row{ display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 1fr); gap:10px } .sve-row > label, .sve label.f{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; font-weight:600; color:var(--ink-2) }
+.sve-q{ border:1px solid var(--border); border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:8px; background:var(--surface-2) }
+.sve-qh{ display:flex; gap:6px; align-items:center } .sve-qh b{ flex:1; font-size:13px; color:var(--muted) }
+.sve-o{ display:grid; grid-template-columns:minmax(0, 1fr) 130px auto; gap:6px; align-items:center; padding:8px; border:1px solid var(--border); border-radius:12px; background:var(--surface) }
+.sve-o .sve-ox{ grid-column:1 / -1; display:flex; gap:12px; flex-wrap:wrap; font-size:12.5px; align-items:center } .sve-o .sve-ox label{ display:flex; gap:5px; align-items:center }
+.sve-o textarea{ grid-column:1 / -1; min-height:52px }
+.sve-o.l2{ border-color:color-mix(in oklab, var(--danger) 45%, var(--border)) } .sve-o.l1{ border-color:color-mix(in oklab, var(--warn) 45%, var(--border)) }
+.sve-box{ border:1px solid var(--border); border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:8px }
+.sve-box > b{ display:flex; gap:6px; align-items:center } .sve-in{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; font-size:13px } .sve-in .inp{ width:auto; flex:1; min-width:120px }
+.sv-chips{ display:flex; flex-wrap:wrap; gap:6px; max-height:180px; overflow:auto }
+.sv-chip{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--border); background:var(--surface); font:600 12.5px/1 inherit; color:var(--ink-2); cursor:pointer; white-space:nowrap }
+.sv-chip[aria-pressed="true"]{ background:var(--brand-700); border-color:var(--brand-700); color:#fff }
+.sv-warn{ font-size:13px; padding:8px 12px; border-radius:10px; background:color-mix(in oklab, var(--warn) 12%, transparent); color:var(--ink) }
+@media (max-width:640px){
+  .sve-row{ grid-template-columns:minmax(0, 1fr) } .sve-o{ grid-template-columns:minmax(0, 1fr) auto } .sve-o select{ grid-column:1 / 2 }
+  .sv-o{ grid-template-columns:minmax(0, 1fr) 70px 30px } .sv-tbl .svh{ display:none }
+  .svt-bar{ bottom:calc(var(--bn-space, 84px) + 6px) }      /* nằm trên thanh tab dưới của điện thoại */
+}
+</style>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   (1.83) KHẢO SÁT GIA SƯ BẮT BUỘC — máy chủ: Survey.gs
+   · Gia sư: classes/survey = màn trả lời (từng bé + câu chung). Còn câu chưa trả lời / tới hẹn cập nhật (S.boot.sv.n > 0) → go() khoá các mục khác.
+   · Quản lý: classes/survey (đợt khảo sát) · /r/<mã> (báo cáo) · /c (gia sư cần cân nhắc) · /t (mẫu) · /k (ghi chú KGS hàng loạt)
+   ══════════════════════════════════════════════════════════════ */
+const SVY = { d: null, mine: null, sent: {} };
+const SV_LV = [['Bình thường', 'l0'], ['Cần chú ý', 'l1'], ['Lỗi xấu', 'l2']];
+const svWd = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+function svDm(ymd) { const a = String(ymd || '').slice(0, 10).split('-'); if (a.length < 3) return ''; const d = new Date(+a[0], +a[1] - 1, +a[2]); return svWd[d.getDay()] + ' ' + a[2] + '/' + a[1]; }
+function svQt(q, k) { return String(q.t || '').replace(/\{be\}/g, k ? k.be : '(tên bé)').replace(/([Bb]é)\s+[Bb]é\s/g, '$1 '); }
+/** số câu khảo sát người này còn phải trả lời (khoá app khi > 0) */
+function svLeft() {
+  if (!S.me || S.me.preview || S.me.guest || S.as || !S.boot || !S.boot.sv) return 0;
+  const n = Number(S.boot.sv.n) || 0; if (!n) return 0;
+  const l = lsGet('svSent', null); if (l && l.u === S.me.email && Date.now() - l.at < 10 * 60e3 && (S.boot.sv.ids || []).every(id => l.ids.indexOf(id) >= 0)) return 0;      // vừa gửi, đang lưu ngầm
+  return n;
+}
+/** mở app / bootstrap mới: còn khảo sát → đưa thẳng tới màn trả lời */
+function svGate() { if (svLeft() && !/^classes\/survey/.test(S.route || '')) go('classes/survey', { replace: true }); }
+
+async function svView(B, v, arg) {
+  arg = String(arg || '');
+  if (B._svArg === arg && B.querySelector('.sv')) return;      // dữ liệu lớp tải lại ngầm → không vẽ lại (giữ câu đang trả lời dở)
+  B._svArg = arg;
+  if (can('classes.manage')) return svMan(B, v, arg);
+  setTitle('Khảo sát', 'bi-ui-checks', [{ t: S.boot.app, r: 'home' }, { t: 'Lớp gia sư', r: 'classes' }], v);
+  return svTutor(B);
+}
+
+/* ══════════ GIA SƯ: MÀN TRẢ LỜI ══════════ */
+async function svTutor(B) {
+  B.innerHTML = '<div class="sv">' + (typeof loadFx === 'function' ? loadFx('Đang mở khảo sát…', { c: 'cmt' }) : '<div class="card"><div class="empty"><span class="spin"></span>Đang mở khảo sát…</div></div>') + '</div>';
+  let D;
+  try { D = await rpc('svMine', {}, { quiet: true }); } catch (e) { B.innerHTML = '<div class="sv"><div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i>' + esc(e.message) + '</div></div></div>'; return; }
+  SVY.mine = D;
+  const root = document.createElement('div'); root.className = 'sv'; B.innerHTML = ''; B.appendChild(root);
+  const sentL = lsGet('svSent', null), justSent = sentL && sentL.u === S.me.email && Date.now() - sentL.at < 10 * 60e3 ? sentL.ids : [];
+  const list = (D.list || []);
+  if (!list.length) { root.innerHTML = '<div class="sv-card svt-ok"><i class="bi bi-check2-circle"></i><h3>Không có khảo sát nào cần làm</h3><div class="sv-sub">Cảm ơn bạn!</div></div>'; return; }
+  const ST = {};      // trạng thái từng câu: 'mã đợt|mã bé|mã câu' → { o, t, d, ed }
+  list.forEach(s => { const dr = lsGet('svDraft:' + s.id, {}) || {}; Object.keys(dr).forEach(k => { ST[s.id + '|' + k] = dr[k]; }); s.pend.forEach(k => { ST[s.id + '|' + k] = ST[s.id + '|' + k] || {}; ST[s.id + '|' + k].p = 1; }); });
+  const draft = sid => { const o = {}; Object.keys(ST).forEach(k => { if (k.indexOf(sid + '|') === 0 && (ST[k].o || ST[k].t || ST[k].d)) o[k.slice(sid.length + 1)] = { o: ST[k].o || '', t: ST[k].t || '', d: ST[k].d || '' }; }); lsSet('svDraft:' + sid, o); };
+  const live = k => { const x = ST[k]; return x && (x.p || x.ed); };
+  const qBlock = (s, q, kid) => {
+    const key = s.id + '|' + (kid ? kid.id : '') + '|' + q.id, a = s.ans[(kid ? kid.id : '') + '|' + q.id], x = ST[key] || {};
+    if (!live(key)) {      // đã trả lời, chưa tới hẹn → tóm tắt + nút Sửa
+      const o = (q.opts || []).find(z => z.id === (a && a.o)), up = s.up.indexOf((kid ? kid.id : '') + '|' + q.id) >= 0;
+      return '<div class="svt-q"><b>' + esc(svQt(q, kid)) + '</b><div class="svt-done"><i class="bi bi-check2-circle"></i><div>' + esc(o ? o.t : '') + (o && a.t ? ' — ' : '') + esc(a ? a.t : '') +
+        (up ? '<small><i class="bi bi-alarm"></i> Hẹn cập nhật ' + esc(svDm(a.d)) + ' ' + esc(String(a.d).slice(11)) + '</small>' : '<small>Đã trả lời ' + esc(a && a.at ? ago(a.at) : '') + '</small>') + '</div>' +
+        '<button class="btn xs" data-ed="' + esc(key) + '"><i class="bi bi-pencil"></i>' + (up ? 'Cập nhật sớm' : 'Sửa') + '</button></div></div>';
+    }
+    const o = (q.opts || []).find(z => z.id === x.o), next = kid ? kid.next || [] : [];
+    const dueSel = o && o.redo ? '<div class="svt-due"><span><i class="bi bi-calendar-event"></i> Buổi dạy tiếp theo em sẽ cập nhật:</span><select class="inp" data-due="' + esc(key) + '"><option value="">— Chọn buổi —</option>' +
+        next.map(n => '<option value="' + esc(n.due) + '"' + (x.d === n.due ? ' selected' : '') + '>' + esc(svDm(n.d) + ' · ' + (n.t || '')) + '</option>').join('') + '<option value="x"' + (x.d && !next.some(n => n.due === x.d) ? ' selected' : '') + '>Ngày khác…</option></select>' +
+        (x.d && !next.some(n => n.due === x.d) || x.dx ? '<input class="inp" type="date" data-dx="' + esc(key) + '" min="' + esc(D.today) + '" value="' + esc(String(x.d || '').slice(0, 10)) + '">' : '') + '</div>' : '';
+    const txt = q.txt || (o && o.txt) ? '<textarea class="inp" rows="2" data-tx="' + esc(key) + '" placeholder="' + esc(q.ph || (o && o.txt ? 'Ghi rõ…' : 'Ghi thêm (nếu có)')) + '">' + esc(x.t || '') + '</textarea>' : '';
+    const prev = a && x.p ? '<div class="svt-prev"><i class="bi bi-clock-history"></i> Lần trước (' + esc(a.at ? new Date(a.at).toLocaleDateString('vi-VN') : '') + '): ' + esc(((q.opts || []).find(z => z.id === a.o) || {}).t || a.t || '') + (a.d ? ' — hẹn ' + esc(svDm(a.d)) : '') + '</div>' : '';
+    return '<div class="svt-q" data-qk="' + esc(key) + '"><b>' + esc(svQt(q, kid)) + '</b>' + (q.note ? '<div class="svt-note"><i class="bi bi-info-circle"></i><span>' + esc(q.note) + '</span></div>' : '') + prev +
+      ((q.opts || []).length ? '<div class="svt-opts">' + q.opts.map(z => '<label class="svt-opt"><input type="radio" name="' + esc(key) + '" value="' + esc(z.id) + '"' + (x.o === z.id ? ' checked' : '') + '><span>' + esc(z.t) + '</span></label>').join('') +
+        (q.txt === 'req' ? '<label class="svt-opt"><input type="radio" name="' + esc(key) + '" value=""' + (!x.o && (x.t || x.w) ? ' checked' : '') + '><span>Em ghi bài bé đã học tới:</span></label>' : '') + '</div>' : '') +
+      dueSel + (q.txt === 'req' && (q.opts || []).length && (x.o && !(o && o.txt)) ? '' : txt) + '</div>';
+  };
+  const paint = () => {
+    const y = scrollY;
+    root.innerHTML = list.map(s => {
+      const kq = s.qs.filter(q => q.per === 'kid'), oq = s.qs.filter(q => q.per !== 'kid');
+      const kidsH = kq.length ? s.kids.map(k => '<section class="sv-card svt-kid"><div class="sv-h"><i class="bi bi-person-heart"></i><b>Bé ' + esc(k.be.replace(/^[Bb]é\s+/, '')) + '</b><small>' + esc([k.code, k.grade ? 'Lớp ' + k.grade : '', k.prog].filter(Boolean).join(' · ')) + '</small></div>' +
+        kq.map(q => qBlock(s, q, k)).join('') + '</section>').join('') : '';
+      const oneH = oq.length ? '<section class="sv-card svt-kid"><div class="sv-h"><i class="bi bi-chat-square-text"></i><b>Câu hỏi chung</b></div>' + oq.map(q => qBlock(s, q, null)).join('') + '</section>' : '';
+      return '<div class="svt-top"><h2><i class="bi bi-ui-checks"></i>' + esc(s.title) + '</h2>' + (s.intro ? '<p>' + esc(s.intro) + '</p>' : '') +
+        '<p class="sv-sub">' + (s.pend.length && justSent.indexOf(s.id) < 0 ? '<b>Bắt buộc:</b> trả lời xong mới dùng tiếp app được' : 'Bạn đã trả lời đợt này — có thể sửa / cập nhật sớm') + (s.dueAt ? ' · Hạn ' + esc(svDm(s.dueAt)) : '') + '</p></div>' + kidsH + oneH;
+    }).join('') + '<div class="svt-bar"><span id="svtLeft"></span><button class="btn pri" id="svtSend"><i class="bi bi-send"></i>Gửi khảo sát</button></div>';
+    scrollTo(0, y); count();
+  };
+  const items = () => { const out = []; Object.keys(ST).forEach(k => { if (!live(k)) return; const [sid, c, q] = k.split('|'); out.push({ k: k, sid: sid, c: c, q: q, x: ST[k] }); }); return out; };
+  const qOf = (sid, qid) => ((list.find(s => s.id === sid) || {}).qs || []).find(q => q.id === qid);
+  const missing = it => { const q = qOf(it.sid, it.q), x = it.x, o = (q.opts || []).find(z => z.id === x.o);
+    if (!o && !String(x.t || '').trim()) return 1; if (!o && q.opts.length && q.txt !== 'req') return 1; if (o && o.txt && !String(x.t || '').trim()) return 1; if (o && o.redo && !x.d) return 1; return 0; };
+  const count = () => { const L = items(), m = L.filter(missing).length, el = root.querySelector('#svtLeft'), b = root.querySelector('#svtSend');
+    if (el) el.innerHTML = L.length ? (m ? 'Còn <b>' + m + '</b> / ' + L.length + ' câu chưa trả lời' : '<b>Đủ ' + L.length + ' câu</b> — bấm Gửi') : 'Không có câu nào cần gửi';
+    if (b) { b.disabled = !L.length; b.classList.toggle('dim', !!m); } };
+  root.addEventListener('change', e => {
+    const t = e.target;
+    if (t.type === 'radio' && ST[t.name]) { ST[t.name].o = t.value; ST[t.name].w = t.value ? 0 : 1; const q = qOf(...t.name.split('|').filter((z, i) => i !== 1)); const o = q && (q.opts || []).find(z => z.id === t.value); if (!(o && o.redo)) delete ST[t.name].d; draft(t.name.split('|')[0]); paint(); return; }
+    if (t.dataset.due) { const k = t.dataset.due; if (t.value === 'x') { ST[k].dx = 1; ST[k].d = ''; } else { ST[k].dx = 0; ST[k].d = t.value; } draft(k.split('|')[0]); paint(); return; }
+    if (t.dataset.dx) { const k = t.dataset.dx; ST[k].d = t.value ? t.value + ' 21:00' : ''; draft(k.split('|')[0]); count(); }
+  });
+  root.addEventListener('input', e => { const k = e.target.dataset.tx; if (k && ST[k]) { ST[k].t = e.target.value; clearTimeout(SVY.dt); SVY.dt = setTimeout(() => draft(k.split('|')[0]), 400); count(); } });
+  root.addEventListener('click', e => {
+    const ed = e.target.closest('[data-ed]'); if (ed) { const k = ed.dataset.ed, [sid, c, q] = k.split('|'), s = list.find(z => z.id === sid), a = s.ans[c + '|' + q] || {}; ST[k] = { ed: 1, o: a.o, t: a.t, d: '' }; paint(); const el = root.querySelector('[data-qk="' + CSS.escape(k) + '"]'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+    if (e.target.closest('#svtSend')) send();
+  });
+  const send = () => {
+    const L = items(), M = L.filter(missing);
+    if (M.length) { haptic(); toast('Còn ' + M.length + ' câu chưa trả lời đủ', 'warn'); root.querySelectorAll('.svt-q.miss').forEach(x => x.classList.remove('miss'));
+      M.forEach(it => { const el = root.querySelector('[data-qk="' + CSS.escape(it.k) + '"]'); if (el) { void el.offsetWidth; el.classList.add('miss'); } });
+      const f = root.querySelector('[data-qk="' + CSS.escape(M[0].k) + '"]'); if (f) f.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+    const W = []; L.forEach(it => { const q = qOf(it.sid, it.q), o = (q.opts || []).find(z => z.id === it.x.o), s = list.find(z => z.id === it.sid), kid = s.kids.find(k => k.id === it.c);
+      if (o && o.msg) W.push({ lv: o.lv, t: o.t, m: o.msg, be: kid ? kid.be : '' }); });
+    const go2 = () => svPost(list, L, ST, B);
+    if (W.length) svAngry(W, go2); else go2();
+  };
+  paint();
+}
+/** gửi câu trả lời: mở khoá ngay trên máy, lưu ngầm qua hàng đợi (lỗi → hàng đợi báo, lần mở sau khoá lại) */
+function svPost(list, L, ST, B) {
+  const by = {}; L.forEach(it => { (by[it.sid] = by[it.sid] || []).push({ c: it.c, q: it.q, o: it.x.o || '', t: String(it.x.t || '').trim(), d: it.x.d || '' }); });
+  const ids = Object.keys(by);
+  ids.forEach(sid => { lsDel('svDraft:' + sid); queueRpc('svSubmit', { id: sid, items: by[sid] }, { key: 'sv:' + sid, label: 'Gửi khảo sát', merge: (a, b) => ({ id: b.id, items: a.items.filter(x => !b.items.some(y => y.c === x.c && y.q === x.q)).concat(b.items) }) })
+    .then(r => { if (r && r.boot) { S.boot.sv = r.boot; lsDel('svSent'); buildNav(); } })
+    .catch(e => { lsDel('svSent'); toast('Chưa gửi được khảo sát: ' + (e && e.message || e) + ' — mở lại tab Khảo sát để gửi lại', 'err', 8000); }); });
+  lsSet('svSent', { u: S.me.email, at: Date.now(), ids: (S.boot.sv && S.boot.sv.ids) || ids });
+  toast('Đã gửi khảo sát — cảm ơn bạn!', 'ok');
+  B._svArg = null;
+  B.innerHTML = '<div class="sv"><div class="sv-card svt-ok"><i class="bi bi-check2-circle"></i><h3>Đã gửi khảo sát</h3><div class="sv-sub">App đã mở khoá. Nhớ luôn nắm tiến độ trên trường của bé nhé!</div><div style="margin-top:14px"><button class="btn pri" onclick="go(homeRoute())"><i class="bi bi-house-door"></i>Vào app</button></div></div></div>';
+}
+/** thông báo “tức giận” khi gia sư chọn câu trả lời có lời nhắc — phải tích “Em đã hiểu”, nút mở sau 5 giây */
+function svAngry(W, done) {
+  const bad = W.some(w => w.lv >= 2);
+  let left = bad ? 5 : 2;
+  const m = modal({ title: bad ? 'Không chấp nhận được!' : 'Lưu ý', icon: bad ? 'bi-exclamation-octagon-fill' : 'bi-exclamation-triangle', size: 'md sv-angry', sticky: true,
+    body: '<div class="sv-ang"><div class="sv-ang-face" aria-hidden="true">' + (bad ? '😡' : '😠') + '</div><h2>' + (bad ? 'Bạn PHẢI luôn nắm được tiến độ trên trường của học sinh!' : 'Cần khắc phục ngay') + '</h2>' +
+      W.map(w => '<div class="sv-ang-m ' + (w.lv >= 2 ? '' : 'l1') + '"><b>' + esc((w.be ? 'Bé ' + w.be.replace(/^[Bb]é\s+/, '') + ': ' : '') + w.t) + '</b>' + esc(w.m) + '</div>').join('') +
+      '<label><input type="checkbox" id="svAngOk"><span>Em đã hiểu và sẽ luôn nắm được tiến độ học trên trường của bé</span></label></div>',
+    foot: [{ t: 'Quay lại sửa', cls: 'ghost' }, { t: 'Em đã hiểu · gửi (' + left + ')', i: 'bi-send', cls: 'red', fn: m2 => { if (left > 0) return false; if (!m2.$('#svAngOk').checked) { toast('Tích “Em đã hiểu” trước khi gửi', 'warn'); m2.$('.sv-ang label').classList.add('shake'); setTimeout(() => m2.$('.sv-ang label').classList.remove('shake'), 500); return false; } setTimeout(done, 60); } }] });
+  const b = m.btns[1]; b.classList.add('dim'); haptic();
+  const tk = setInterval(() => { if (m.closed) return clearInterval(tk); left--; b.lastChild.textContent = left > 0 ? 'Em đã hiểu · gửi (' + left + ')' : 'Em đã hiểu · gửi'; if (left <= 0) { clearInterval(tk); b.classList.toggle('dim', !m.$('#svAngOk').checked); } }, 1000);
+  m.$('#svAngOk').onchange = e => b.classList.toggle('dim', !e.target.checked || left > 0);
+}
+
+/* ══════════ QUẢN LÝ ══════════ */
+async function svMan(B, v, arg) {
+  const parts = arg.split('/'), tab = { r: 'r', c: 'c', t: 't', k: 'k' }[parts[0]] || 'l';
+  setTitle('Khảo sát gia sư', 'bi-ui-checks', [{ t: S.boot.app, r: 'home' }, { t: 'Lớp gia sư', r: 'classes' }], v);
+  const root = document.createElement('div'); root.className = 'sv'; B.innerHTML = ''; B.appendChild(root);
+  const T = [['l', 'Đợt khảo sát', 'bi-ui-checks'], ['r', 'Báo cáo', 'bi-bar-chart-line'], ['c', 'Cần cân nhắc', 'bi-person-exclamation'], ['t', 'Mẫu câu hỏi', 'bi-collection'], ['k', 'Ghi chú KGS', 'bi-sticky']];
+  root.innerHTML = '<div class="seg sv-seg">' + T.map(t => '<button class="seg-b" data-svt="' + t[0] + '" aria-pressed="' + (t[0] === tab) + '"><i class="bi ' + t[2] + '"></i>' + t[1] + '</button>').join('') + '</div><div id="svBody"></div>';
+  root.querySelector('.sv-seg').addEventListener('click', e => { const b = e.target.closest('[data-svt]'); if (!b) return; const t = b.dataset.svt;
+    go('classes/survey' + (t === 'l' ? '' : t === 'r' ? '/r/' + (SVY.cur || ((SVY.d && SVY.d.list[0]) || {}).id || '') : '/' + t)); });
+  const body = root.querySelector('#svBody');
+  const CK = 'svCache:' + S.me.email; if (!SVY.d) SVY.d = lsGet(CK, null);
+  const load = async () => { const d = await rpc('svList', {}, { quiet: true }); SVY.d = d; lsSet(CK, d); return d; };
+  if (!SVY.d) { body.innerHTML = '<div class="card"><div class="empty"><span class="spin"></span>Đang tải…</div></div>'; try { await load(); } catch (e) { body.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i>' + esc(e.message) + '</div></div>'; return; } }
+  else load().then(() => { if (body.isConnected && (tab === 'l' || tab === 't' || tab === 'k')) paint(); }).catch(() => {});
+  const paint = () => { if (tab === 'l') svListV(body); else if (tab === 'r') svReportV(body, parts[1] || ''); else if (tab === 'c') svConsiderV(body); else if (tab === 't') svTplV(body); else svMemoV(body); };
+  SVY.reload = async () => { try { await load(); } catch (e) { fail(e); } if (body.isConnected) paint(); };
+  paint();
+}
+function svStTag(s) { return s.status === 'open' ? '<span class="sv-tag open">Đang mở</span>' : s.status === 'draft' ? '<span class="sv-tag draft">Nháp</span>' : '<span class="sv-tag">Đã đóng</span>'; }
+function svListV(b) {
+  const L = SVY.d.list || [];
+  b.innerHTML = '<div class="sv-card"><div class="sv-h"><b>Mở đợt khảo sát mới</b><div class="sv-acts"><button class="btn pri" id="svNew"><i class="bi bi-plus-lg"></i>Đợt mới</button></div></div>' +
+      '<div class="sv-sub">Chọn mẫu để bắt đầu nhanh (hằng tuần / hằng tháng…). Gia sư phải trả lời xong mới dùng tiếp app; mail nhắc tự gửi tới khi làm xong.</div>' +
+      '<div class="sv-flt">' + [SVY.d.def].concat(SVY.d.tpls || []).map((t, i) => '<button class="sv-chip" data-tpl="' + i + '"><i class="bi bi-collection"></i>' + esc(t.name) + '</button>').join('') + '</div></div>' +
+    (L.length ? '<div class="sv-list">' + L.map(s => { const k = s.kpi || {}, pct = k.aud ? Math.round(k.done / k.aud * 100) : 0;
+      return '<div class="sv-row" data-open="' + esc(s.id) + '"><div><b>' + esc(s.title) + '</b><span class="sv-sub">' + [s.nq + ' câu', (k.aud || 0) + ' gia sư', s.dueAt ? 'hạn ' + svDm(s.dueAt) : '', s.by].filter(Boolean).map(esc).join(' · ') + '</span>' +
+        (s.status !== 'draft' ? '<div class="sv-bar"><i style="width:' + pct + '%"></i></div><span class="sv-sub">' + (k.done || 0) + ' / ' + (k.aud || 0) + ' xong' + (k.lv2 ? ' · <b style="color:var(--danger)">' + k.lv2 + ' lỗi xấu</b>' : '') + (k.over ? ' · ' + k.over + ' quá hẹn' : '') + '</span>' : '') + '</div>' +
+        svStTag(s) + '<button class="ibtn" data-more="' + esc(s.id) + '" aria-label="Thao tác"><i class="bi bi-three-dots-vertical"></i></button></div>'; }).join('') + '</div>'
+      : '<div class="card"><div class="empty"><i class="bi bi-ui-checks"></i>Chưa có đợt khảo sát nào</div></div>');
+  b.onclick = async e => {
+    if (e.target.closest('#svNew')) return svEdit(Object.assign({}, SVY.d.def, { title: SVY.d.def.title }));
+    const tp = e.target.closest('[data-tpl]'); if (tp) { const t = [SVY.d.def].concat(SVY.d.tpls || [])[+tp.dataset.tpl]; return svEdit({ title: t.title, intro: t.intro, qs: t.qs, remind: t.remind, kmemo: t.kmemo, tplId: t.id || '' }); }
+    const mo = e.target.closest('[data-more]'); if (mo) { e.stopPropagation(); const s = SVY.d.list.find(x => x.id === mo.dataset.more); return openMenu(mo, svMenu(s)); }
+    const op = e.target.closest('[data-open]'); if (op) { const s = SVY.d.list.find(x => x.id === op.dataset.open); if (s.status === 'draft') { try { const r = await rpc('svGet', { id: s.id }); svEdit(r.s); } catch (er) { fail(er); } } else go('classes/survey/r/' + s.id); }
+  };
+}
+function svMenu(s) {
+  const st = async (x, msg) => { try { await rpc('svState', { id: s.id, st: x }); toast(msg, 'ok'); SVY.reload(); } catch (e) { fail(e); } };
+  const M = [];
+  if (s.status !== 'draft') M.push({ t: 'Xem báo cáo', i: 'bi-bar-chart-line', fn: () => go('classes/survey/r/' + s.id) });
+  M.push({ t: 'Sửa đợt khảo sát', i: 'bi-pencil', fn: async () => { try { svEdit((await rpc('svGet', { id: s.id })).s); } catch (e) { fail(e); } } });
+  M.push({ t: 'Nhân bản thành đợt mới', i: 'bi-copy', fn: async () => { try { const x = (await rpc('svGet', { id: s.id })).s; svEdit({ title: x.title, intro: x.intro, qs: x.qs, aud: x.aud, remind: x.remind, kmemo: { on: x.kmemo.on, text: x.kmemo.text, until: x.kmemo.until } }); } catch (e) { fail(e); } } });
+  if (s.status === 'open') { M.push({ t: 'Gửi mail nhắc ngay', i: 'bi-envelope-exclamation', fn: async () => { try { const r = await rpc('svRemind', { id: s.id }); toast('Đã gửi ' + r.n + ' mail nhắc', 'ok'); } catch (e) { fail(e); } } });
+    M.push({ t: 'Đóng đợt (mở khoá gia sư)', i: 'bi-stop-circle', fn: async () => { if (await ask('Đóng đợt “' + s.title + '”? Gia sư chưa làm sẽ không bị khoá nữa, ghi chú KGS của đợt được gỡ.', { ok: 'Đóng đợt' })) st('closed', 'Đã đóng đợt'); } }); }
+  else M.push({ t: s.status === 'draft' ? 'Mở khảo sát ngay' : 'Mở lại', i: 'bi-play-circle', fn: async () => { if (await ask('Mở đợt “' + s.title + '”? Gia sư sẽ bị khoá app cho tới khi trả lời xong.', { ok: 'Mở khảo sát' })) st('open', 'Đã mở khảo sát'); } });
+  if (s.status !== 'open') M.push({ t: 'Xoá', i: 'bi-trash3', danger: 1, fn: async () => { if (!await ask('Xoá đợt “' + s.title + '” cùng mọi câu trả lời? (vào Thùng rác, khôi phục được)', { ok: 'Xoá', danger: true })) return; try { await rpc('svDelete', { id: s.id }); toast('Đã xoá', 'ok'); SVY.reload(); } catch (e) { fail(e); } } });
+  return M;
+}
+
+/* ── soạn đợt / mẫu ── */
+function svEdit(x, asTpl) {
+  const E = JSON.parse(JSON.stringify({ id: x.id || '', title: x.title || '', intro: x.intro || '', qs: x.qs || [], aud: x.aud || [], dueAt: x.dueAt || '', remind: Object.assign({ on: 1, every: 24, max: 5, cc: '', ccFrom: 3, now: 1 }, x.remind || {}), kmemo: Object.assign({ on: 0, text: 'Cập nhật tiến độ học trên trường của bé và báo cáo lại Bộ phận chuyên môn', until: 1 }, x.kmemo || {}), status: x.status || 'draft', tplId: x.tplId || '', name: x.name || '' }));
+  if (!E.qs.length) E.qs.push({ id: '', per: 'kid', t: '', txt: 'req', opts: [] });
+  const TU = SVY.d.tutors || [], open = E.status === 'open';
+  const qH = (q, i) => '<div class="sve-q"><div class="sve-qh"><b>Câu ' + (i + 1) + '</b>' +
+      '<select class="inp" style="width:auto" data-qf="' + i + '.per"><option value="kid"' + (q.per !== 'one' ? ' selected' : '') + '>Hỏi từng bé</option><option value="one"' + (q.per === 'one' ? ' selected' : '') + '>Hỏi một lần</option></select>' +
+      '<button class="ibtn" data-qup="' + i + '" aria-label="Lên"' + (i ? '' : ' disabled') + '><i class="bi bi-arrow-up"></i></button><button class="ibtn" data-qdel="' + i + '" aria-label="Xoá câu"><i class="bi bi-trash3"></i></button></div>' +
+    '<input class="inp" data-qf="' + i + '.t" value="' + esc(q.t) + '" placeholder="' + (q.per === 'one' ? 'VD: Bạn gặp khó khăn gì khi dạy?' : 'VD: Bé {be} đã học đến đâu trên trường rồi?') + '">' +
+    (q.per !== 'one' ? '<small class="sv-sub">{be} = tên bé</small>' : '') +
+    '<textarea class="inp" rows="2" data-qf="' + i + '.note" placeholder="Ghi chú / hướng dẫn cho gia sư (không bắt buộc)">' + esc(q.note || '') + '</textarea>' +
+    '<div class="sve-in"><span>Ô tự ghi:</span><select class="inp" data-qf="' + i + '.txt"><option value="req"' + (q.txt === 'req' ? ' selected' : '') + '>Gia sư được tự ghi thay cho lựa chọn</option><option value="opt"' + (q.txt === 'opt' ? ' selected' : '') + '>Ghi thêm, không bắt buộc</option><option value=""' + (!q.txt ? ' selected' : '') + '>Không có ô ghi</option></select>' +
+      '<input class="inp" data-qf="' + i + '.ph" value="' + esc(q.ph || '') + '" placeholder="Chữ mờ gợi ý trong ô ghi"></div>' +
+    '<small class="sv-sub">Câu trả lời mặc định</small>' +
+    (q.opts || []).map((o, j) => '<div class="sve-o ' + (SV_LV[o.lv || 0] || SV_LV[0])[1] + '"><input class="inp" data-of="' + i + '.' + j + '.t" value="' + esc(o.t) + '" placeholder="Câu trả lời">' +
+      '<select class="inp" data-of="' + i + '.' + j + '.lv">' + SV_LV.map((l, k) => '<option value="' + k + '"' + ((o.lv || 0) === k ? ' selected' : '') + '>' + l[0] + '</option>').join('') + '</select>' +
+      '<button class="ibtn" data-odel="' + i + '.' + j + '" aria-label="Xoá"><i class="bi bi-x-lg"></i></button>' +
+      '<div class="sve-ox"><label><input type="checkbox" data-of="' + i + '.' + j + '.redo"' + (o.redo ? ' checked' : '') + '>Bắt trả lời lại (chọn ngày dạy tiếp theo)</label><label><input type="checkbox" data-of="' + i + '.' + j + '.txt"' + (o.txt ? ' checked' : '') + '>Bắt ghi rõ</label></div>' +
+      '<textarea class="inp" rows="2" data-of="' + i + '.' + j + '.msg" placeholder="Thông báo hiện khi gia sư chọn câu này (để trống = không hiện)">' + esc(o.msg || '') + '</textarea></div>').join('') +
+    '<button class="btn sm ghost" data-oadd="' + i + '" style="align-self:flex-start"><i class="bi bi-plus-lg"></i>Thêm câu trả lời</button></div>';
+  const audH = () => '<div class="sve-box"><b><i class="bi bi-people"></i>Gửi cho</b><div class="seg"><button class="seg-b" data-aud="all" aria-pressed="' + !E.aud.length + '">Mọi gia sư đang có lớp (' + TU.length + ')</button><button class="seg-b" data-aud="pick" aria-pressed="' + !!E.aud.length + '">Chọn gia sư</button></div>' +
+    (E.aud.length || E._pick ? '<div class="sv-chips">' + TU.map(t => '<button class="sv-chip" data-tu="' + esc(t.e) + '" aria-pressed="' + (E.aud.indexOf(t.e) >= 0) + '">' + esc(t.n) + ' · ' + t.k + ' bé</button>').join('') + '</div>' : '') + '</div>';
+  const remH = () => { const r = E.remind; return '<div class="sve-box"><b><i class="bi bi-envelope-exclamation"></i>Mail nhắc tới khi làm xong</b>' +
+    '<label class="sve-in"><input type="checkbox" data-rm="on"' + (r.on ? ' checked' : '') + '>Bật nhắc mail (7h–21h)</label>' +
+    (r.on ? '<div class="sve-in"><span>Mỗi</span><select class="inp" data-rm="every">' + [6, 12, 24, 48, 72].map(h => '<option value="' + h + '"' + (+r.every === h ? ' selected' : '') + '>' + (h < 24 ? h + ' giờ' : h / 24 + ' ngày') + '</option>').join('') + '</select><span>nhắc một lần, tối đa</span>' +
+      '<select class="inp" data-rm="max">' + [1, 2, 3, 4, 5, 6, 8, 10].map(n => '<option value="' + n + '"' + (+r.max === n ? ' selected' : '') + '>' + n + ' lần</option>').join('') + '</select></div>' +
+      '<label class="sve-in"><input type="checkbox" data-rm="now"' + (r.now ? ' checked' : '') + '>Gửi mail đầu tiên ngay khi mở đợt</label>' +
+      '<div class="sve-in"><span>Từ lần nhắc thứ</span><select class="inp" data-rm="ccFrom">' + [1, 2, 3, 4, 5].map(n => '<option value="' + n + '"' + (+r.ccFrom === n ? ' selected' : '') + '>' + n + '</option>').join('') + '</select><span>gửi kèm (CC) cho</span><input class="inp" data-rm="cc" value="' + esc(r.cc || '') + '" placeholder="email quản lý, cách nhau dấu phẩy"></div>' : '') + '</div>'; };
+  const kmH = () => { const k = E.kmemo; return '<div class="sve-box"><b><i class="bi bi-sticky"></i>Ghi vào Lưu ý buổi học tiếp theo bên KGS</b>' +
+    '<label class="sve-in"><input type="checkbox" data-km="on"' + (k.on ? ' checked' : '') + '>Khi mở đợt: ghi một dòng 📣 vào buổi học tiếp theo của từng bé</label>' +
+    (k.on ? '<input class="inp" data-km="text" value="' + esc(k.text) + '"><label class="sve-in"><input type="checkbox" data-km="until"' + (k.until ? ' checked' : '') + '>Tự gỡ khi gia sư đã trả lời xong bé đó</label>' + (SVY.d.kgsPush ? '' : '<div class="sv-warn"><i class="bi bi-exclamation-triangle"></i> Đồng bộ KGS chưa bật “Ghi bài sang KGS” — ghi chú sẽ chờ tới khi bật.</div>') : '') + '</div>'; };
+  const bodyH = () => '<div class="sve">' + (asTpl ? '<label class="f">Tên mẫu<input class="inp" data-ef="name" value="' + esc(E.name) + '" placeholder="VD: Tiến độ hằng tuần"></label>' : '') +
+    '<div class="sve-row"><label>Tên đợt khảo sát<input class="inp" data-ef="title" value="' + esc(E.title) + '"></label>' + (asTpl ? '' : '<label>Hạn trả lời<input class="inp" type="date" data-ef="dueAt" value="' + esc(E.dueAt) + '"></label>') + '</div>' +
+    '<label class="f">Lời dẫn<textarea class="inp" rows="2" data-ef="intro">' + esc(E.intro) + '</textarea></label>' +
+    (open ? '<div class="sv-warn"><i class="bi bi-info-circle"></i> Đợt đang mở: xoá câu hỏi / câu trả lời sẽ làm mất thống kê của chúng.</div>' : '') +
+    E.qs.map(qH).join('') + '<button class="btn ghost" data-qadd style="align-self:flex-start"><i class="bi bi-plus-lg"></i>Thêm câu hỏi</button>' +
+    (asTpl ? '' : audH()) + remH() + kmH() + '</div>';
+  const pack = () => ({ id: E.id, title: E.title, intro: E.intro, qs: E.qs, aud: E.aud, dueAt: E.dueAt, remind: E.remind, kmemo: E.kmemo, tplId: E.tplId });
+  const foot = asTpl ? [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu mẫu', i: 'bi-save', cls: 'pri', fn: async () => { await rpc('svTplSave', Object.assign(pack(), { id: x.id || '', name: E.name || E.title })); toast('Đã lưu mẫu', 'ok'); SVY.reload(); } }]
+    : [{ t: 'Xem trước', i: 'bi-eye', cls: 'ghost', fn: () => { svPreview(pack()); return false; } },
+       { t: 'Lưu thành mẫu', i: 'bi-collection', cls: 'ghost', fn: async () => { const nm = prompt('Tên mẫu (dùng lại cho các đợt sau):', E.title); if (!nm) return false; await rpc('svTplSave', Object.assign(pack(), { id: '', name: nm })); toast('Đã lưu mẫu “' + nm + '”', 'ok'); SVY.reload(); return false; } },
+       { t: open ? 'Lưu' : 'Lưu nháp', i: 'bi-save', cls: open ? 'pri' : '', fn: async () => { const r = await rpc('svSave', pack()); E.id = r.s.id; toast('Đã lưu', 'ok'); SVY.reload(); } }]
+      .concat(open ? [] : [{ t: 'Mở khảo sát', i: 'bi-play-circle', cls: 'pri', fn: async () => { if (!await ask('Mở khảo sát ngay? Gia sư ' + (E.aud.length ? 'được chọn (' + E.aud.length + ')' : 'đang có lớp (' + TU.length + ')') + ' sẽ bị khoá app cho tới khi trả lời xong.', { ok: 'Mở khảo sát' })) return false;
+          const r = await rpc('svSave', pack()); await rpc('svState', { id: r.s.id, st: 'open' }); toast('Đã mở khảo sát', 'ok'); SVY.reload(); } }]);
+  const m = modal({ title: asTpl ? (x.id ? 'Sửa mẫu' : 'Mẫu mới') : E.id ? 'Sửa đợt khảo sát' : 'Đợt khảo sát mới', icon: 'bi-ui-checks', size: 'lg', sticky: true, body: '<div id="sveB">' + bodyH() + '</div>', foot: foot });
+  const B = m.$('#sveB'), re = () => { const y = m.$('.modal-b').scrollTop; B.innerHTML = bodyH(); m.$('.modal-b').scrollTop = y; };
+  const set = (t, struct) => {
+    const v = t.type === 'checkbox' ? (t.checked ? 1 : 0) : t.value;
+    if (t.dataset.ef) E[t.dataset.ef] = v;
+    if (t.dataset.qf) { const [i, f] = t.dataset.qf.split('.'); E.qs[+i][f] = v; if (f === 'per') struct = 1; }
+    if (t.dataset.of) { const [i, j, f] = t.dataset.of.split('.'); E.qs[+i].opts[+j][f] = f === 'lv' ? +v : v; if (f === 'lv') struct = 1; }
+    if (t.dataset.rm) { E.remind[t.dataset.rm] = t.dataset.rm === 'cc' ? v : t.type === 'checkbox' ? v : +v; if (t.dataset.rm === 'on') struct = 1; }
+    if (t.dataset.km) { E.kmemo[t.dataset.km] = v; if (t.dataset.km === 'on') struct = 1; }
+    if (struct) re();
+  };
+  B.addEventListener('input', e => set(e.target));
+  B.addEventListener('change', e => set(e.target, e.target.tagName === 'SELECT' && !e.target.dataset.rm));
+  B.addEventListener('click', e => {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.hasAttribute('data-qadd')) { E.qs.push({ id: '', per: 'kid', t: '', txt: 'opt', opts: [{ id: '', t: '', lv: 0 }] }); re(); }
+    else if (t.dataset.qdel != null) { if (E.qs.length > 1) { E.qs.splice(+t.dataset.qdel, 1); re(); } else toast('Cần ít nhất một câu hỏi', 'warn'); }
+    else if (t.dataset.qup != null) { const i = +t.dataset.qup; if (i) { E.qs.splice(i - 1, 0, E.qs.splice(i, 1)[0]); re(); } }
+    else if (t.dataset.oadd != null) { (E.qs[+t.dataset.oadd].opts = E.qs[+t.dataset.oadd].opts || []).push({ id: '', t: '', lv: 0 }); re(); }
+    else if (t.dataset.odel) { const [i, j] = t.dataset.odel.split('.'); E.qs[+i].opts.splice(+j, 1); re(); }
+    else if (t.dataset.aud) { if (t.dataset.aud === 'all') { E.aud = []; E._pick = 0; } else E._pick = 1; re(); }
+    else if (t.dataset.tu) { const k = E.aud.indexOf(t.dataset.tu); if (k >= 0) E.aud.splice(k, 1); else E.aud.push(t.dataset.tu); t.setAttribute('aria-pressed', k < 0); }
+  });
+}
+/** quản lý xem trước màn trả lời với một bé mẫu (không lưu) */
+function svPreview(s) {
+  const kid = { be: 'An (bé mẫu)' };
+  const qs = (s.qs || []).filter(q => q.t);
+  const m = modal({ title: 'Xem trước · ' + (s.title || ''), icon: 'bi-eye', size: 'lg', body: '<div class="sv"><div class="svt-top"><h2><i class="bi bi-ui-checks"></i>' + esc(s.title || '') + '</h2><p>' + esc(s.intro || '') + '</p></div><section class="sv-card svt-kid">' +
+    qs.map((q, i) => '<div class="svt-q"><b>' + esc(svQt(q, q.per === 'one' ? null : kid)) + '</b>' + (q.note ? '<div class="svt-note"><i class="bi bi-info-circle"></i><span>' + esc(q.note) + '</span></div>' : '') +
+      '<div class="svt-opts">' + (q.opts || []).filter(o => o.t).map((o, j) => '<label class="svt-opt"><input type="radio" name="pv' + i + '" data-pv="' + i + '.' + j + '"><span>' + esc(o.t) + '</span>' + (o.lv ? ' <span class="sv-tag l' + o.lv + '">' + SV_LV[o.lv][0] + '</span>' : '') + (o.redo ? ' <span class="sv-tag">Hẹn cập nhật</span>' : '') + '</label>').join('') + '</div>' +
+      (q.txt ? '<textarea class="inp" rows="2" placeholder="' + esc(q.ph || '') + '"></textarea>' : '') + '</div>').join('') + '</section><small class="sv-sub">Nhãn mức độ chỉ hiện ở bản xem trước của quản lý. Chọn câu có thông báo để thử hộp thông báo.</small></div>',
+    foot: [{ t: 'Đóng', cls: 'ghost' }] });
+  m.el.addEventListener('change', e => { const p = e.target.dataset.pv; if (!p) return; const [i, j] = p.split('.'), o = (qs[+i].opts || []).filter(z => z.t)[+j]; if (o && o.msg) svAngry([{ lv: o.lv, t: o.t, m: o.msg, be: 'An' }], () => {}); });
+}
+
+/* ── báo cáo một đợt ── */
+async function svReportV(b, id) {
+  const L = (SVY.d.list || []).filter(s => s.status !== 'draft');
+  if (!id) id = (L[0] || {}).id; SVY.cur = id;
+  if (!id) { b.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-bar-chart-line"></i>Chưa có đợt khảo sát nào đã mở</div></div>'; return; }
+  const pick = '<select class="inp" id="svPick" style="max-width:420px">' + L.map(s => '<option value="' + esc(s.id) + '"' + (s.id === id ? ' selected' : '') + '>' + esc(s.title) + ' — ' + (s.status === 'open' ? 'đang mở' : 'đã đóng') + '</option>').join('') + '</select>';
+  b.innerHTML = '<div class="sv-h">' + pick + '</div>' + (typeof loadFx === 'function' ? loadFx('Đang lập báo cáo…', { c: 'cmt' }) : '<div class="card"><div class="empty"><span class="spin"></span>Đang lập báo cáo…</div></div>');
+  b.querySelector('#svPick').onchange = e => go('classes/survey/r/' + e.target.value);
+  let D; try { D = await rpc('svGet', { id: id }, { quiet: true }); } catch (e) { b.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i>' + esc(e.message) + '</div></div>'; return; }
+  if (!b.isConnected || SVY.cur !== id) return;
+  const s = D.s, R = D.r, K = R.kpi, Q = {}; s.qs.forEach(q => { Q[q.id] = q; });
+  let flt = 'all';
+  const kpi = '<div class="sv-kpi"><div class="good"><b>' + K.done + '/' + K.aud + '</b><small>gia sư đã xong</small></div><div class="' + (K.pend ? 'warn' : '') + '"><b>' + K.pend + '</b><small>gia sư còn thiếu (' + K.left + ' câu)</small></div>' +
+    '<div class="' + (K.lv2 ? 'bad' : '') + '"><b>' + K.lv2 + '</b><small>câu trả lời lỗi xấu</small></div><div class="' + (K.lv1 ? 'warn' : '') + '"><b>' + K.lv1 + '</b><small>cần chú ý</small></div><div class="' + (K.over ? 'bad' : '') + '"><b>' + K.over + '</b><small>tới hẹn chưa cập nhật</small></div></div>';
+  const stats = s.qs.map(q => { const c = R.cnt[q.id] || {}, tot = Object.keys(c).reduce((a, k) => a + c[k], 0) || 1;
+    return '<div class="sv-q"><b>' + esc(svQt(q, null)) + '</b>' + (q.opts || []).map(o => '<div class="sv-o"><span>' + esc(o.t) + (o.lv ? ' <span class="sv-tag l' + o.lv + '">' + SV_LV[o.lv][0] + '</span>' : '') + '</span><div class="sv-bar"><i class="l' + (o.lv || 0) + '" style="width:' + Math.round((c[o.id] || 0) / tot * 100) + '%"></i></div><em>' + (c[o.id] || 0) + '</em></div>').join('') +
+      (c._t ? '<div class="sv-o"><span>Tự ghi (bài bé đã học tới…)</span><div class="sv-bar"><i class="l0" style="width:' + Math.round(c._t / tot * 100) + '%"></i></div><em>' + c._t + '</em></div>' : '') + '</div>'; }).join('');
+  const ansOf = e => R.ans.filter(a => a.e === e).sort((x, y) => (x.c + x.q).localeCompare(y.c + y.q));
+  const aH = a => { const q = Q[a.q] || {}, o = (q.opts || []).find(z => z.id === a.o), k = R.kids[a.c];
+    return '<div class="sv-a l' + (a.lv || 0) + '"><b>' + esc(k ? k.be : 'Câu chung') + '</b> · ' + esc(svQt(q, k ? { be: k.be } : null)) + '<div>' + esc(o ? o.t : '') + (o && a.t ? ' — ' : '') + esc(a.t) + '</div>' +
+      '<small>' + esc(ago(a.at)) + (a.d && a.st !== 'r' ? ' · hẹn cập nhật ' + esc(svDm(a.d) + ' ' + a.d.slice(11)) : '') + (a.st === 'r' ? ' · <b style="color:var(--danger)">tới hẹn, chưa cập nhật</b>' : '') + (a.n > 1 ? ' · đã trả lời ' + a.n + ' lần' : '') + '</small>' +
+      (a.h && a.h.length ? '<small>Trước: ' + a.h.map(h => esc(((q.opts || []).find(z => z.id === h.o) || {}).t || h.t || '') + ' (' + esc(new Date(h.at).toLocaleDateString('vi-VN')) + ')').join(' → ') + '</small>' : '') + '</div>'; };
+  const tbl = () => { const T = R.tut.filter(t => flt === 'all' || (flt === 'pend' && t.pend) || (flt === 'bad' && (t.lv2 || t.lv1 || t.over)));
+    return '<div class="sv-wrap"><table class="sv-tbl"><thead><tr><th>Gia sư</th><th class="n">Bé</th><th class="n">Đã trả lời</th><th class="n">Lỗi xấu</th><th class="n svh">Chú ý</th><th class="n">Quá hẹn</th><th class="n svh">Đã nhắc</th><th class="n">Điểm</th><th></th></tr></thead><tbody>' +
+      (T.length ? T.map(t => '<tr class="sv-tr" data-tr="' + esc(t.e) + '"><td><b>' + esc(t.n) + '</b>' + (t.last ? '<br><small class="sv-sub">' + esc(ago(t.last)) + '</small>' : '') + '</td><td class="n">' + t.kids + '</td><td class="n' + (t.pend ? ' w' : '') + '">' + (t.need - t.pend) + '/' + t.need + '</td><td class="n' + (t.lv2 ? ' r' : '') + '">' + t.lv2 + '</td><td class="n svh' + (t.lv1 ? ' w' : '') + '">' + t.lv1 + '</td><td class="n' + (t.over ? ' r' : '') + '">' + t.over + '</td><td class="n svh">' + t.sent + '</td><td class="n' + (t.score >= 8 ? ' r' : t.score >= 4 ? ' w' : '') + '">' + t.score + '</td>' +
+        '<td class="n">' + (t.pend && s.status === 'open' ? '<button class="btn xs" data-nhac="' + esc(t.e) + '" title="Gửi mail nhắc ngay"><i class="bi bi-envelope"></i>Nhắc</button>' : '') + '</td></tr>' +
+        '<tr hidden data-tx="' + esc(t.e) + '"><td colspan="9"><div class="sv-ans">' + (ansOf(t.e).map(aH).join('') || '<span class="sv-sub">Chưa trả lời câu nào</span>') + '</div></td></tr>').join('') : '<tr><td colspan="9" class="sv-sub" style="text-align:center;padding:18px">Không có gia sư nào</td></tr>') + '</tbody></table></div>'; };
+  const csv = () => { const rows = [['Gia sư', 'Email', 'Bé', 'Mã lớp', 'Câu hỏi', 'Câu trả lời', 'Ghi', 'Mức', 'Hẹn cập nhật', 'Lúc trả lời', 'Số lần']];
+    const nm = {}; R.tut.forEach(t => { nm[t.e] = t.n; });
+    R.ans.forEach(a => { const q = Q[a.q] || {}, o = (q.opts || []).find(z => z.id === a.o), k = R.kids[a.c] || {}; rows.push([nm[a.e] || a.e, a.e, k.be || '', k.code || '', svQt(q, k.be ? k : null), o ? o.t : '', a.t, SV_LV[a.lv || 0][0], a.d, a.at ? new Date(a.at).toLocaleString('vi-VN') : '', a.n]); });
+    R.tut.filter(t => t.pend).forEach(t => rows.push([t.n, t.e, '', '', '(chưa trả lời ' + t.pend + ' câu)', '', '', '', '', '', '']));
+    const blob = new Blob(['﻿' + rows.map(r => r.map(x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"').join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Khao-sat-' + s.title.replace(/[^\wÀ-ỹ -]+/g, '').slice(0, 40) + '.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+  b.innerHTML = '<div class="sv-h">' + pick + svStTag({ status: s.status }) + '<div class="sv-acts">' + (s.status === 'open' ? '<button class="btn sm" id="svNhacAll"><i class="bi bi-envelope-exclamation"></i>Nhắc tất cả</button>' : '') + '<button class="btn sm ghost" id="svCsv"><i class="bi bi-download"></i>Xuất CSV</button></div></div>' +
+    '<div class="sv-card">' + kpi + '<div class="sv-sub">' + [s.dueAt ? 'Hạn ' + svDm(s.dueAt) : '', s.openedAt ? 'mở ' + new Date(s.openedAt).toLocaleDateString('vi-VN') : '', s.remind.on ? 'nhắc mail mỗi ' + (s.remind.every < 24 ? s.remind.every + ' giờ' : s.remind.every / 24 + ' ngày') + ', tối đa ' + s.remind.max + ' lần' : 'không nhắc mail'].filter(Boolean).map(esc).join(' · ') + '</div></div>' +
+    '<div class="sv-card"><div class="sv-h"><b>Thống kê câu trả lời</b></div>' + stats + '</div>' +
+    '<div class="sv-card"><div class="sv-h"><b>Theo gia sư</b><div class="seg sv-flt" id="svFlt"><button class="seg-b" data-f="all" aria-pressed="true">Tất cả</button><button class="seg-b" data-f="pend" aria-pressed="false">Còn thiếu</button><button class="seg-b" data-f="bad" aria-pressed="false">Có lỗi</button></div></div><div id="svTbl">' + tbl() + '</div>' +
+    '<small class="sv-sub">Điểm = lỗi xấu × 3 + cần chú ý × 1 + tới hẹn chưa cập nhật × 2 + quá hạn chưa trả lời × 2 / câu + hẹn đi hẹn lại × 2 + đã nhắc tới lần cuối 2. Bấm một dòng để xem câu trả lời từng bé.</small></div>';
+  b.querySelector('#svPick').onchange = e => go('classes/survey/r/' + e.target.value);
+  b.querySelector('#svCsv').onclick = csv;
+  b.onclick = async e => {
+    const f = e.target.closest('[data-f]'); if (f) { flt = f.dataset.f; b.querySelectorAll('#svFlt .seg-b').forEach(x => x.setAttribute('aria-pressed', x === f)); b.querySelector('#svTbl').innerHTML = tbl(); return; }
+    const nh = e.target.closest('[data-nhac]'); if (nh) { e.stopPropagation(); nh.disabled = true; try { const r = await rpc('svRemind', { id: id, e: nh.dataset.nhac }); toast(r.n ? 'Đã gửi mail nhắc' : 'Không gửi được (hết lượt mail?)', r.n ? 'ok' : 'warn'); } catch (er) { fail(er); nh.disabled = false; } return; }
+    if (e.target.closest('#svNhacAll')) { if (!await ask('Gửi mail nhắc ngay cho mọi gia sư còn thiếu (' + K.pend + ' người)?', { ok: 'Gửi' })) return; try { const r = await rpc('svRemind', { id: id }); toast('Đã gửi ' + r.n + ' mail nhắc', 'ok'); } catch (er) { fail(er); } return; }
+    const tr = e.target.closest('[data-tr]'); if (tr) { const x = b.querySelector('[data-tx="' + CSS.escape(tr.dataset.tr) + '"]'); if (x) x.hidden = !x.hidden; }
+  };
+}
+
+/* ── gia sư cần cân nhắc (gộp nhiều đợt) ── */
+async function svConsiderV(b) {
+  b.innerHTML = '<div class="sv-h"><b>Gia sư cần cân nhắc</b><select class="inp" id="svDays" style="width:auto">' + [[30, '30 ngày'], [60, '60 ngày'], [120, '120 ngày'], [365, '1 năm']].map(d => '<option value="' + d[0] + '"' + (d[0] === (SVY.days || 120) ? ' selected' : '') + '>' + d[1] + ' qua</option>').join('') + '</select></div><div id="svCn"><div class="card"><div class="empty"><span class="spin"></span>Đang tổng hợp…</div></div></div>';
+  b.querySelector('#svDays').onchange = e => { SVY.days = +e.target.value; svConsiderV(b); };
+  let L; try { L = (await rpc('svConsider', { days: SVY.days || 120 }, { quiet: true })).list; } catch (e) { b.querySelector('#svCn').innerHTML = '<div class="card"><div class="empty">' + esc(e.message) + '</div></div>'; return; }
+  const lvT = ['Theo dõi', 'Cần nhắc nhở', 'Cần cân nhắc nghiêm túc'];
+  b.querySelector('#svCn').innerHTML = L.length ? '<div class="sv-list">' + L.map(m => '<div class="sv-card sv-cn l' + m.lvl + '"><div class="sv-h"><b>' + esc(m.n) + '</b><span class="sv-tag ' + (m.lvl === 2 ? 'l2' : m.lvl === 1 ? 'l1' : '') + '">' + lvT[m.lvl] + ' · ' + m.score + ' điểm</span></div>' +
+      '<div class="sv-sub">' + [m.sv + ' đợt', m.lv2 ? m.lv2 + ' lỗi xấu' : '', m.lv1 ? m.lv1 + ' cần chú ý' : '', m.over ? m.over + ' quá hẹn cập nhật' : '', m.miss ? m.miss + ' câu bỏ trống sau hạn' : '', m.rep ? m.rep + ' bé hẹn nhiều lần' : ''].filter(Boolean).join(' · ') + '</div>' +
+      '<ul class="sv-why">' + m.why.map(w => '<li><span class="sv-tag ' + (w.lv >= 2 ? 'l2' : 'l1') + '">' + (w.lv >= 2 ? 'Lỗi' : 'Chú ý') + '</span> ' + (w.be ? '<b>' + esc(w.be) + ':</b> ' : '') + esc(w.t) + ' <small>· ' + esc(w.s) + '</small></li>').join('') + '</ul>' +
+      '<div class="sv-acts"><button class="btn xs ghost" data-tut="' + esc(m.e) + '"><i class="bi bi-person-badge"></i>Xem gia sư</button></div></div>').join('') + '</div>'
+    : '<div class="card"><div class="empty"><i class="bi bi-emoji-smile"></i>Không có gia sư nào cần cân nhắc</div></div>';
+  b.onclick = e => { const t = e.target.closest('[data-tut]'); if (t) go('classes/tutors/' + encodeURIComponent(t.dataset.tut)); };
+}
+
+/* ── mẫu câu hỏi ── */
+function svTplV(b) {
+  const L = SVY.d.tpls || [];
+  b.innerHTML = '<div class="sv-card"><div class="sv-h"><b>Mẫu câu hỏi</b><div class="sv-acts"><button class="btn pri sm" id="svTNew"><i class="bi bi-plus-lg"></i>Mẫu mới</button></div></div><div class="sv-sub">Lưu bộ câu hỏi + câu trả lời mặc định + cài đặt nhắc mail để mở các đợt hằng tuần / hằng tháng chỉ với một cú bấm.</div></div>' +
+    '<div class="sv-list">' + [Object.assign({ def: 1 }, SVY.d.def)].concat(L).map((t, i) => '<div class="sv-row" data-tu="' + i + '"><div><b>' + esc(t.name) + '</b><span class="sv-sub">' + t.qs.length + ' câu · ' + t.qs.reduce((a, q) => a + (q.opts || []).length, 0) + ' câu trả lời mặc định' + (t.remind && t.remind.on ? ' · nhắc mỗi ' + (t.remind.every < 24 ? t.remind.every + ' giờ' : t.remind.every / 24 + ' ngày') + ' × ' + t.remind.max : '') + '</span></div>' +
+      '<button class="btn sm" data-use="' + i + '"><i class="bi bi-play-circle"></i>Dùng mẫu</button>' + (t.def ? '<span class="sv-tag">Mặc định</span>' : '<button class="ibtn" data-ted="' + i + '" aria-label="Sửa"><i class="bi bi-pencil"></i></button><button class="ibtn" data-tdel="' + i + '" aria-label="Xoá"><i class="bi bi-trash3"></i></button>') + '</div>').join('') + '</div>';
+  const all = [SVY.d.def].concat(L);
+  b.onclick = async e => {
+    if (e.target.closest('#svTNew')) return svEdit({ name: '', title: SVY.d.def.title, intro: SVY.d.def.intro, qs: SVY.d.def.qs, remind: SVY.d.def.remind, kmemo: SVY.d.def.kmemo }, true);
+    const u = e.target.closest('[data-use]'); if (u) { const t = all[+u.dataset.use]; return svEdit({ title: t.title, intro: t.intro, qs: t.qs, remind: t.remind, kmemo: t.kmemo, tplId: t.id || '' }); }
+    const ed = e.target.closest('[data-ted]'); if (ed) return svEdit(all[+ed.dataset.ted], true);
+    const dl = e.target.closest('[data-tdel]'); if (dl) { const t = all[+dl.dataset.tdel]; if (!await ask('Xoá mẫu “' + t.name + '”?', { ok: 'Xoá', danger: true })) return; try { await rpc('svTplDelete', { id: t.id }); toast('Đã xoá mẫu', 'ok'); SVY.reload(); } catch (er) { fail(er); } }
+  };
+}
+
+/* ── ghi chú hàng loạt sang KGS ── */
+function svMemoV(b) {
+  const L = SVY.d.memos || [], TU = SVY.d.tutors || [];
+  const F = SVY.mf = SVY.mf || { text: 'Cập nhật tiến độ học trên trường của bé và báo cáo lại Bộ phận chuyên môn', scope: 'all', tut: [] };
+  const form = () => '<div class="sv-card"><div class="sv-h"><b><i class="bi bi-sticky"></i> Ghi vào Lưu ý buổi học tiếp theo bên KGS</b></div>' +
+    '<div class="sv-sub">Một dòng 📣 được ghi vào “Lưu ý buổi học” của <b>buổi học tiếp theo</b> của từng bé bên app KGS (qua lượt đồng bộ KGS kế tiếp), cộng sau ghi chú của Giáo vụ. Gỡ ghi chú → lượt sau gỡ bên KGS.</div>' +
+    (SVY.d.kgsPush ? '' : '<div class="sv-warn"><i class="bi bi-exclamation-triangle"></i> Đồng bộ KGS chưa bật “Ghi bài sang KGS” (Kiến CM › Đồng bộ KGS) — ghi chú sẽ chờ tới khi bật.</div>') +
+    '<input class="inp" id="kmT" value="' + esc(F.text) + '" maxlength="300">' +
+    '<div class="seg"><button class="seg-b" data-ks="all" aria-pressed="' + (F.scope === 'all') + '">Mọi lớp đang học</button><button class="seg-b" data-ks="tut" aria-pressed="' + (F.scope === 'tut') + '">Lớp của gia sư được chọn</button></div>' +
+    (F.scope === 'tut' ? '<div class="sv-chips">' + TU.map(t => '<button class="sv-chip" data-kt="' + esc(t.e) + '" aria-pressed="' + (F.tut.indexOf(t.e) >= 0) + '">' + esc(t.n) + ' · ' + t.k + ' bé</button>').join('') + '</div>' : '') +
+    '<div class="sv-acts"><button class="btn pri" id="kmGo"><i class="bi bi-send"></i>Ghi vào buổi tiếp theo</button><span class="sv-sub">' + (F.scope === 'tut' ? F.tut.length + ' gia sư · ' + TU.filter(t => F.tut.indexOf(t.e) >= 0).reduce((a, t) => a + t.k, 0) + ' bé' : TU.reduce((a, t) => a + t.k, 0) + ' bé') + '</span></div></div>';
+  const list = () => L.length ? '<div class="sv-list">' + L.map(m => '<div class="sv-card"><div class="sv-h"><b>📣 ' + esc(m.text) + '</b>' + (m.on ? '<span class="sv-tag open">Đang ghi</span>' : '<span class="sv-tag">Đã gỡ</span>') + (m.sv ? '<span class="sv-tag">Theo khảo sát</span>' : '') +
+      '<button class="btn xs" data-km="' + esc(m.id) + '" data-on="' + (m.on ? 0 : 1) + '"><i class="bi ' + (m.on ? 'bi-x-circle' : 'bi-arrow-counterclockwise') + '"></i>' + (m.on ? 'Gỡ' : 'Ghi lại') + '</button></div>' +
+      '<div class="sv-sub">' + [m.n + ' bé', m.tg + ' buổi nhận ghi chú', m.pushed + ' đã ghi bên KGS', m.none ? m.none + ' bé chưa có buổi bên KGS' : '', m.done ? m.done + ' bé đã trả lời xong (đã gỡ)' : '', m.by, m.at ? ago(m.at) : ''].filter(Boolean).map(esc).join(' · ') + '</div>' +
+      '<details><summary class="sv-sub">Xem từng bé</summary><div class="sv-wrap"><table class="sv-tbl"><thead><tr><th>Bé</th><th class="svh">Gia sư</th><th>Buổi nhận ghi chú</th><th>KGS</th></tr></thead><tbody>' +
+        m.rows.map(r => '<tr><td>' + esc(r.be) + ' <small class="sv-sub">' + esc(r.code) + '</small></td><td class="svh">' + esc(r.tut || '') + '</td><td>' + (r.done ? 'Đã trả lời xong' : r.d ? esc(svDm(r.d) + ' · ' + (r.t || '')) : '<span class="w">Chưa có buổi bên KGS</span>') + '</td><td>' + (r.ok ? '<i class="bi bi-check2-circle" style="color:var(--ok)"></i> Đã ghi' : r.d && m.on ? 'Chờ đồng bộ' : '') + '</td></tr>').join('') + '</tbody></table></div></details></div>').join('') + '</div>'
+    : '<div class="card"><div class="empty"><i class="bi bi-sticky"></i>Chưa có ghi chú nào</div></div>';
+  b.innerHTML = form() + list();
+  b.oninput = e => { if (e.target.id === 'kmT') F.text = e.target.value; };
+  b.onclick = async e => {
+    const ks = e.target.closest('[data-ks]'); if (ks) { F.scope = ks.dataset.ks; return svMemoV(b); }
+    const kt = e.target.closest('[data-kt]'); if (kt) { const i = F.tut.indexOf(kt.dataset.kt); if (i >= 0) F.tut.splice(i, 1); else F.tut.push(kt.dataset.kt); return svMemoV(b); }
+    if (e.target.closest('#kmGo')) { if (!F.text.trim()) return toast('Nhập nội dung ghi chú', 'warn'); if (F.scope === 'tut' && !F.tut.length) return toast('Chọn ít nhất một gia sư', 'warn');
+      try { const r = await rpc('kmemoSave', { text: F.text, scope: F.scope, tut: F.tut }); SVY.d.memos = r.memos; lsSet('svCache:' + S.me.email, SVY.d); toast('Đã lên lịch ghi vào buổi tiếp theo — lượt đồng bộ KGS sau sẽ ghi', 'ok'); svMemoV(b); } catch (er) { fail(er); } return; }
+    const km = e.target.closest('[data-km]'); if (km) { try { const r = await rpc('kmemoOff', { id: km.dataset.km, on: km.dataset.on === '1' }); SVY.d.memos = r.memos; toast(km.dataset.on === '1' ? 'Đã bật lại ghi chú' : 'Đã gỡ — lượt đồng bộ sau gỡ bên KGS', 'ok'); svMemoV(b); } catch (er) { fail(er); } }
   };
 }
 </script>
