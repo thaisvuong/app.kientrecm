@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-23T14:10:04.790Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-23T15:18:18.492Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -8589,6 +8589,7 @@ const NAV_DEF = [
   { r: 'kt', t: 'Nhận xét', i: 'bi-chat-heart', g: 'lib', cap: 'kt.use', m: /^kt$/ },
   { r: 'kt/ask', t: 'Hỏi dữ liệu', i: 'bi-stars', g: 'lib', cap: 'kt.use', m: /^kt\/ask/ },
   { r: 'kt/learned', t: 'Lớp đã học', i: 'bi-journal-check', g: 'lib', cap: 'kt.use', m: /^kt\/learned/ },
+  { r: 'kt/prof', t: 'Hồ sơ bé', i: 'bi-person-vcard', g: 'lib', cap: 'kt.use', m: /^kt\/prof/ },      // (1.84.3) nhận xét cũ → AI tóm tắt → PDF bàn giao gia sư mới
   { r: 'kt/style', t: 'Văn phong', i: 'bi-feather', g: 'lib', cap: 'kt.use', m: /^kt\/style/ },
   { r: 'kt/conn', t: 'Kết nối', i: 'bi-plug', g: 'lib', cap: 'kt.use', m: /^kt\/conn/ },
   { r: 'tasks/admin', t: 'Quản trị', i: 'bi-shield-check', g: 'lib', cap: ['tasks.roles', 'tasks.boards', 'tasks.remind', 'tasks.manage'], m: /^tasks\/(admin|roles|boards)/ },
@@ -9060,7 +9061,7 @@ const BN_FILL = { 'bi-bell': 1, 'bi-grid-3x3-gap': 1, 'bi-megaphone': 1, 'bi-peo
 const BN_LABEL = { today: 'Tổng quan', classes: 'Buổi học', 'classes/list': 'Lớp', 'classes/todo': 'Buổi học', 'classes/tutors': 'Gia sư', 'classes/reqs': 'Yêu cầu', 'classes/notes': 'Yêu cầu', 'classes/room': 'Phòng học', 'classes/inbox': 'Tin nhắn', 'classes/stats': 'Thống kê',
   programs: 'C.trình', guide: 'H.dẫn', home: 'Tổng quan', library: 'Thư viện', recent: 'Mới', links: 'Link', compose: 'Phiếu Toán', 'compose/van': 'Phiếu Văn', syllabus: 'Syllabus', tasks: 'Bảng', 'tasks/backlog': 'Kế hoạch', 'tasks/time': 'Timeline', 'tasks/mine': 'Của tôi', 'tasks/cal': 'Lịch', 'tasks/sum': 'Báo cáo',
   activity: 'Hoạt động', sources: 'Nguồn', users: 'Tài khoản', 'users/roles': 'Vai trò', 'users/apps': 'Phân quyền', 'users/invites': 'Lời mời', xapps: 'Ứng dụng', info: 'Tin', settings: 'Cài đặt', apps: 'Apps',
-  asst: 'Trợ lý', 'asst/office': 'Văn phòng', 'asst/set': 'Cài đặt', 'asst/subs': 'Các trợ lý', kt: 'Nhận xét', 'kt/ask': 'Hỏi', 'kt/learned': 'Đã học', 'kt/style': 'Văn phong', 'kt/conn': 'Kết nối' };      // (1.82.37) nhãn ngắn một dòng — bỏ chữ “AI / chung” thay vì cắt “…”
+  asst: 'Trợ lý', 'asst/office': 'Văn phòng', 'asst/set': 'Cài đặt', 'asst/subs': 'Các trợ lý', kt: 'Nhận xét', 'kt/ask': 'Hỏi', 'kt/learned': 'Đã học', 'kt/prof': 'Hồ sơ', 'kt/style': 'Văn phong', 'kt/conn': 'Kết nối' };      // (1.82.37) nhãn ngắn một dòng — bỏ chữ “AI / chung” thay vì cắt “…”
 function bnShort(t) { return ({ 'Tổng quan': 'Tổng quan', 'Lớp gia sư': 'Lớp', 'Thư viện': 'Thư viện', 'Chương trình': 'Chương trình', 'Link tạm': 'Link', 'Mới cập nhật': 'Mới' })[t] || t; }
 function buildBottom(items) {
   let bn = $('#bnav');
@@ -13012,9 +13013,9 @@ async function setKgs(B) {
           '<div class="row"><button class="btn sm ghost" id="kgKey"><i class="bi bi-arrow-clockwise"></i>Tạo mã mới</button></div>'
         : '<div class="row"><button class="btn pri" id="kgKey"><i class="bi bi-key"></i>Tạo mã kết nối</button></div>') +
       '<details class="adv"' + (K.extAt ? '' : ' open') + '><summary><i class="bi bi-chevron-right"></i> Cài tiện ích (một lần, trên máy tính)</summary>' + steps([
-        'Lấy thư mục <b>extension/kgs-sync</b> trong mã nguồn webapp (trên máy Mac: <span class="mono">KienTreCM/webapp/extension/kgs-sync</span>).',
+        '<a href="https://kientre-internal.click/ext/kien-connect.zip" target="_blank" rel="noopener"><b>Tải tiện ích Kiến Connect</b></a> rồi giải nén (một tiện ích cho cả Đồng bộ KGS và Kiến Trẻ — đã cài KGS Sync cũ thì gỡ bản cũ).',
         'Chrome › gõ <span class="mono">chrome://extensions</span> › bật <b>Developer mode</b> (góc phải) › <b>Load unpacked</b> › chọn thư mục đó.',
-        'Bấm biểu tượng ghim 🧩 › ghim <b>KGS Sync</b> › bấm vào › dán <b>Mã kết nối</b> ở trên › <b>Lưu mã</b>.',
+        'Bấm biểu tượng ghim 🧩 › ghim <b>Kiến Connect</b> › bấm vào › dán <b>Mã kết nối</b> ở trên › <b>Lưu mã</b>. Mã này dùng chung với Kiến Trẻ › Kết nối — dán một lần cho cả hai.',
         'Đăng nhập <b>app.kiengiasu.edu.vn</b> bằng Google trên Chrome này (nếu chưa). Thấy “Đồng bộ xong” là xong; chấm đỏ trên biểu tượng = lỗi (thường là hết phiên → đăng nhập lại).']) + '</details>' +
       '</div></div>';
   };
@@ -13064,7 +13065,7 @@ async function setKgs(B) {
         '<button class="btn sm ghost" id="kgFilesAll" title="Bấm đồng bộ lại MỌI topic bên KGS (lâu hơn)">Tất cả topic</button><span class="small muted">Mỗi lần đồng bộ, topic có tệp mới cũng tự được cập nhật sang KGS. Tệp thêm thẳng vào Drive: quét lại Thư viện trước để app thấy tệp.</span></div>' +
       (N.sjSkip ? '<div class="small" style="line-height:1.6"><i class="bi bi-funnel"></i> Bỏ qua <b>' + N.sjSkip + '</b> buổi khác môn áp dụng' + (N.sjBy ? ' (' + Object.keys(N.sjBy).map(s => esc((K.subjs || {})[s] || s) + ': ' + N.sjBy[s]).join(' · ') + ')' : '') + (N.sjNone ? ' · <b>' + N.sjNone + '</b> buổi bên KGS chưa khai môn vẫn giữ' : '') + '</div>' : N.sjNone ? '<div class="small muted"><i class="bi bi-funnel"></i> ' + N.sjNone + ' buổi bên KGS chưa khai môn vẫn giữ</div>' : '') +
       (K.state.sjr ? '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Lần lọc môn gần nhất: gỡ ' + K.state.sjr.drop + ' buổi khác môn, dời ' + K.state.sjr.move + ' bài sang buổi đúng môn' + (K.state.sjr.spare ? ', ' + K.state.sjr.spare + ' bài thành buổi dư' : '') + '</summary><div class="small" style="line-height:1.8;margin-top:6px">' + (K.state.sjr.kept ? '<div class="muted">Giữ lại ' + K.state.sjr.kept + ' buổi khác môn đã dạy (lịch sử).</div>' : '') + (K.state.sjr.cls || []).map(c => '<span class="tag">' + esc(c) + '</span>').join(' ') + '<div class="muted" style="margin-top:4px">Bài gán cũ của các buổi nằm trong Thùng rác, khôi phục được trong thời hạn giữ.</div></div></details>' : '') +
-      (N.extOld ? '<div class="small" style="color:var(--warn,#8A5200);line-height:1.6"><i class="bi bi-exclamation-triangle"></i> Tiện ích Chrome KGS Sync bản cũ chưa gửi môn của buổi nên chưa lấy lịch từ tiện ích — cập nhật tiện ích (bản 1.4.2).</div>' : '') +
+      (N.extOld ? '<div class="small" style="color:var(--warn,#8A5200);line-height:1.6"><i class="bi bi-exclamation-triangle"></i> Tiện ích Chrome bản cũ chưa gửi môn của buổi nên chưa lấy lịch từ tiện ích — cập nhật tiện ích (bản 1.4.2).</div>' : '') +
       (K.rq || (K.state.rfail || []).length ? '<div class="kg-need"><i class="bi bi-send"></i><div><b>' + (K.rq || 0) + ' lộ trình đang chờ gửi sang KGS</b>' + ((K.state.rfail || []).length ? '<ul>' + K.state.rfail.slice(0, 6).map(f => '<li>' + esc(f.err) + '</li>').join('') + '</ul><small>KGS từ chối các bản trên — xem lý do, sửa rồi đồng bộ lại. Lý do quyền thì cấp quyền ở KGS › Phân quyền rồi dán lại phiên.</small>' : '') + '</div></div>' : '') +
       (K.topics && K.lib < K.topics ? '<div class="small" style="color:var(--warn,#8A5200);line-height:1.6">' + (K.topics - K.lib) + ' topic chưa có trong Thư viện nên chưa xếp vào buổi được — thêm thư mục chứa các topic (thư mục Drive của KGS) làm nguồn ở Thư viện › Nguồn dữ liệu rồi quét.</div>' : '') +
       (K.cls.length ? '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Lớp đang lấy lịch</summary><div class="small" style="line-height:1.8;margin-top:6px">' + K.cls.map(c => '<span class="tag">' + esc(c.code) + (c.student ? ' · ' + esc(c.student) : '') + '</span>').join(' ') + '</div></details>' : '') +
@@ -13215,7 +13216,7 @@ async function setKgs(B) {
     if (t.id === 'kgRpCsv') return rpCsv();
     if (t.id === 'kgRpSh') return rpSheet(t);
     if (t.dataset.rpf !== undefined) { RpF = t.dataset.rpf; return paint(); }
-    if (t.id === 'kgCopy') return !K.code ? toast('Đang tải mã — thử lại sau một giây', 'info') : copyText(K.code, 'Đã chép mã kết nối — dán vào tiện ích KGS Sync');
+    if (t.id === 'kgCopy') return !K.code ? toast('Đang tải mã — thử lại sau một giây', 'info') : copyText(K.code, 'Đã chép mã kết nối — dán vào tiện ích Kiến Connect');
     if (t.id === 'kgKey') { if (K._code && !K.code) return toast('Đang tải — thử lại sau một giây', 'info'); if (K.code && !await ask('Tạo mã kết nối mới? Mã cũ hết dùng được — tiện ích trên các máy phải dán mã mới.', { ok: 'Tạo mã mới' })) return; return run(t, 'Đang tạo…', () => rpc('kgsKey', {}, { quiet: true })); }
     if (t.id === 'kgCkGo') { const v = $('#kgCk', B).value.trim(); if (!v) return toast('Dán phiên vào ô trước', 'info'); const k = await run(t, 'Đang thử gọi KGS…', () => rpc('kgsCookie', { cookie: v }, { quiet: true })); if (k) toast('Phiên dùng được' + (k.who ? ' · ' + k.who : '') + ' — bấm Đồng bộ ngay hoặc chờ lịch tự chạy', 'ok', 5000); return; }
     if (t.id === 'kgCkOff') { if (!await ask('Xoá phiên KGS đã dán? Máy chủ thôi tự đồng bộ (tiện ích Chrome vẫn chạy nếu có).', { ok: 'Xoá phiên', danger: true })) return; return now(K => { K.cookie = { has: false, tail: '', at: '' }; }, 'kgsCookie', { off: 1 }, 'xoá phiên'); }
@@ -13223,7 +13224,7 @@ async function setKgs(B) {
     if (t.id === 'kgDrop') return now(K => { K.queue = 0; }, 'kgsDrop', {}, 'bỏ hàng chờ topic');
     if (t.id === 'kgFiles' || t.id === 'kgFilesAll') { const all = t.id === 'kgFilesAll'; if (all && !await ask('Đồng bộ lại MỌI topic bên KGS? Mất vài phút, chạy nền.', { ok: 'Đồng bộ tất cả' })) return;      // (1.80.18)
       const k = await run(t, 'Đang tìm tệp mới…', () => rpc('kgsFilesPush', all ? { all: 1 } : {}, { quiet: true })); if (!k || !k.pushed) return; const P2 = k.pushed;
-      return toast(P2.n ? P2.n + ' topic có tệp mới → ' + (P2.run ? 'đang đồng bộ nền sang KGS, xong trang tự cập nhật' : 'chờ lượt đồng bộ tới (tiện ích KGS Sync / dán phiên KGS để chạy ngay)') : 'Không thấy topic nào có tệp mới — tệp vừa thêm vào Drive thì quét lại Thư viện trước', P2.n ? 'ok' : 'info', 7000); }
+      return toast(P2.n ? P2.n + ' topic có tệp mới → ' + (P2.run ? 'đang đồng bộ nền sang KGS, xong trang tự cập nhật' : 'chờ lượt đồng bộ tới (tiện ích Kiến Connect / dán phiên KGS để chạy ngay)') : 'Không thấy topic nào có tệp mới — tệp vừa thêm vào Drive thì quét lại Thư viện trước', P2.n ? 'ok' : 'info', 7000); }
     if (t.id === 'kgSjLock') {      // (1.66) mở khoá môn áp dụng: gõ xác nhận — máy chủ kiểm admin chủ hệ thống
       if (K.cfg.subjOpen) { if (!await ask('Khoá lại, chỉ áp dụng môn Toán? Lần đồng bộ sau, buổi môn khác sẽ được gỡ khỏi Kiến CM.', { ok: 'Khoá lại' })) return; return run(t, 'Đang khoá…', () => rpc('kgsSubjLock', { open: 0 }, { quiet: true })); }
       const m2 = modal({ title: 'Mở khoá môn áp dụng', icon: 'bi-unlock', body: '<p class="small" style="line-height:1.6;margin:0 0 8px">Mở khoá thì quản trị chọn được thêm môn; lần đồng bộ sau Kiến CM sẽ lấy cả buổi học, lộ trình của môn đó. Chỉ admin chủ hệ thống được mở. Gõ <b>MỞ KHOÁ</b> để xác nhận.</p><input class="inp" id="kgSjCf" autocomplete="off">',
@@ -24481,6 +24482,9 @@ html[data-mode="dark"] .of-zm-sc{ --st1:#15204A; --st2:#0A1022 }
 .of-w1.me, .of-w2.me{ fill:#F59E0B; fill-opacity:.1; stroke:#F59E0B; stroke-opacity:.45 } .of-flr.me{ fill:#FFFBEB; stroke:#F59E0B; stroke-opacity:.55; stroke-width:1.8 } html[data-mode="dark"] .of-flr.me{ fill:#2A220E }
 .of-fold2{ fill:#FCD34D; stroke:#D97706; stroke-width:.6 } .of-fold3{ fill:#F87171; stroke:#B91C1C; stroke-width:.6 }
 /* (1.82.49) TÒA KIẾN TASK */
+.of-zm-b{ position:relative } .of-zm-sc{ position:relative } .of-zm-scv{ width:100%; display:flex; align-items:center; justify-content:center; transform-origin:0 0 } .of-zm-sc:has(.of-zs.tk) .of-zm-scv{ align-items:flex-start }      /* (1.84.2) phóng to / kéo cảnh trong popup phòng */
+.of-zm-sc.vzon{ overflow:hidden !important; cursor:grab; touch-action:none } .of-zm-sc.vzpan{ cursor:grabbing } .of-zm-sc.vzpan .of-zm-scv *{ pointer-events:none } .of-vzc.zm{ right:auto !important; z-index:6 }
+@media (max-width:860px){ .of-zm-sc:has(.of-zs.tk) .of-zm-scv{ display:block; width:max-content } }
 .of-zs.tk{ max-width:none } .of-zm-sc:has(.of-zs.tk){ overflow:auto; align-items:flex-start }
 @media (max-width:860px){ .of-zm-sc:has(.of-zs.tk){ justify-content:flex-start; -webkit-overflow-scrolling:touch; display:block; flex:none } .of-zs.tk{ width:700px !important; min-width:700px; flex:none } .of-zs.tk.camp{ width:640px !important; min-width:640px } }      /* (1.83.2) khung tòa có chiều cao riêng — trước co còn 17px nên không thấy cảnh · (1.82.49) điện thoại: tòa đủ lớn để đọc, vuốt ngang */
 .of-zi.tkfl{ transform:translate(-100%, -50%); display:block; text-align:right; white-space:nowrap; padding:3px 9px; border-radius:9px; background:var(--lb, var(--surface)); box-shadow:0 0 0 1px var(--edge, var(--border)), 0 6px 14px -10px rgba(15,23,42,.4); font-size:clamp(9px, 1.25cqw, 12px); color:var(--lbi, var(--ink)); z-index:22 }
@@ -26381,14 +26385,15 @@ function ofZoomPaint(refresh) {
     '<div class="of-dr-s"><h4>Đang làm<span class="sp"></span>' + (runs.length > 1 ? '1 robot chính + ' + Math.min(3, runs.length - 1) + ' mini trợ lý' : '') + '</h4>' + (runs.length ? runs.map((r, i) => '<div class="of-zr">' + asstAva(a.av, 'xs', 1) + '<div class="t"><b>' + esc(r.t) + '</b><small>' + esc((i ? 'Mini trợ lý ' + i : 'Robot chính') + (r.kt ? ' · ' + r.kt : '') + (r.sp ? ' · bước ' + r.sp : '') + (r.hub ? ' · Trợ lý chung giao' : '') + (r.at ? ' · ' + asbAgo(r.at) : '')) + '</small>' + (r.sp ? '<div class="of-bar"><i style="width:' + Math.round(100 * (Number(r.sp.split('/')[0]) - .5) / Number(r.sp.split('/')[1])) + '%"></i></div>' : '') + '</div></div>').join('') : '<div class="small muted">Phòng đang rảnh — giao việc ở dưới, robot nhận làm ngay; nhiều việc cùng lúc thì mỗi việc thêm một mini trợ lý.</div>') + '</div>' +
     '<div class="of-dr-s"><h4>Dụng cụ làm việc</h4><div class="of-chips of-tools">' + sees.map(t => '<span><i class="bi ' + ofTi(t) + '"></i>' + esc(t) + '</span>').join('') + (a.docs.length ? '<span><i class="bi bi-folder2"></i>' + a.docs.length + ' tài liệu riêng</span>' : '') + '</div></div>' +
     '<div class="of-dr-s"><h4>Kết quả gần đây</h4>' + (done.length ? done.map(r => '<button type="button" class="of-hi of-hb" data-ofres="' + esc(r.id) + '" data-ofag="' + esc(k) + '" title="Xem kết quả"><span class="s ' + (okS(r.st) ? 'ok' : r.st === 'err' ? 'e' : '') + '">' + (okS(r.st) ? 'xong' : r.st === 'err' ? 'lỗi' : r.st) + '</span><span class="t">' + esc(r.t) + '</span>' + (OF.rc && OF.rc[r.id] ? '<i class="bi bi-lightning-charge-fill of-ready" title="Đã tải sẵn"></i>' : '') + '<small class="muted">' + esc(asbAgo(r.at)) + '</small></button>').join('') : '<div class="small muted">Chưa có việc nào gần đây.</div>') + '</div>';
-  if (!z.firstChild) z.innerHTML = '<div class="of-zm-h"></div><div class="of-zm-b"><div class="of-zm-sc"></div><div class="of-zm-p"><div class="of-zm-dyn"></div><div class="of-dr-s of-zm-les"></div>' +
+  if (!z.firstChild) z.innerHTML = '<div class="of-zm-h"></div><div class="of-zm-b"><div class="of-zm-sc"><div class="of-zm-scv"></div></div><div class="of-zm-p"><div class="of-zm-dyn"></div><div class="of-dr-s of-zm-les"></div>' +
       '<div class="of-dr-s of-give"><h4>Giao việc cho phòng này</h4><textarea class="ta" id="ofZg" placeholder="' + esc(k === 'hub' ? 'VD “rà soát các bé lệch KGS rồi báo mình” — Trợ lý chung tự chia việc' : job ? 'VD “gán bài tuần tới cho bé Hồng Nhật” — đi qua Trợ lý chuyên môn' : 'Việc cần làm…') + '"></textarea><div class="r"><small>' + (room ? 'Phòng làm liền — bài gán lưu NHÁP, kết quả vào Tủ báo cáo.' : job ? 'Chạy qua Trợ lý chuyên môn (cần dữ liệu lớp / buổi).' : 'Các phòng làm song song, tắt trang vẫn chạy.') + '</small><button type="button" class="btn sm pri" data-ofzg="' + esc(OF_VIA[k] || (/^x:/.test(k) || room ? k : 'cm')) + '"><i class="bi bi-send"></i>Giao</button></div></div>' +
       '<div class="of-zm-act"><button type="button" class="btn sm" data-ofzd><i class="bi bi-archive"></i>Tủ hồ sơ · tên & cấp trên</button>' + (D.can ? '<button type="button" class="btn sm ghost" data-ofzs><i class="bi bi-diagram-3"></i>Xưởng agent</button>' : '') + '</div></div></div>';
   const set = (sel, h) => { const e = z.querySelector(sel); if (e && e.dataset.h !== h) { const ta = $$('textarea[id]', e).map(t => [t.id, t.value, document.activeElement === t]); e.dataset.h = h; e.innerHTML = h; ta.forEach(v => { const t = e.querySelector('#' + v[0]); if (t) { t.value = v[1]; if (v[2]) t.focus({ preventScroll: true }); } }); } };      // (1.83.2) vẽ lại không mất chữ đang gõ
   z.classList.toggle('sch', k === 'task' && !!(OF.tp && OF.tp.boards && OF.tp.boards.length));      // (1.82.49) tòa Kiến Task: khung rộng như phòng học
-  set('.of-zm-h', hd); set('.of-zm-sc', k === 'task' && OF.tp && OF.tp.boards && OF.tp.boards.length ? ofTaskTower() : ofRoomScene(a, runs));      // (1.82.49) phòng Kiến Task = TÒA KIẾN TASK (mỗi tầng một bảng)
+  set('.of-zm-h', hd); set('.of-zm-scv', k === 'task' && OF.tp && OF.tp.boards && OF.tp.boards.length ? ofTaskTower() : ofRoomScene(a, runs));      // (1.82.49) phòng Kiến Task = TÒA KIẾN TASK (mỗi tầng một bảng)
   set('.of-zm-dyn', (k === 'task' ? ofTaskPanel() : '') + dyn);
   { const sc = z.querySelector('.of-zm-sc'), t = sc && sc.querySelector('.of-zs.tk'); if (sc) sc.style.minHeight = t && innerWidth <= 860 ? Math.round((t.classList.contains('camp') ? 640 : 700) / Number(t.dataset.r || 1.4) + 18) + 'px' : ''; }      // (1.83.2) điện thoại: khung tòa đủ cao (trước co còn 17px)      // (1.83.2) trước nằm lọt trong chú thích phía trên nên bảng bên không bao giờ cập nhật
+  ofZvz(z);      // (1.84.2) phóng to / kéo cảnh (tòa Kiến Task, phòng agent)
 }
 /** (1.82.18) PHÒNG CỦA BẠN (zoom): bàn đầy chồng báo cáo chờ duyệt, khay thư, con dấu — bảng bên là Bàn kiểm soát (báo cáo theo phòng, duyệt lần lượt, Tủ báo cáo) */
 function ofMePaint(z) {
@@ -26397,9 +26402,47 @@ function ofMePaint(z) {
     '<span class="of-pl ' + (un.length ? 'w' : 'ok') + '">' + (un.length ? un.length + ' chờ duyệt' : 'đã duyệt hết') + '</span><button type="button" class="ibtn sm" data-ofzx aria-label="Đóng"><i class="bi bi-x-lg"></i></button>';
   const pn = '<div class="of-dr-s"><h4><i class="bi bi-inboxes"></i> Bàn kiểm soát<span class="sp"></span>' + (OF.rp0 ? un.length + ' báo cáo hôm nay' + (fl ? ' · ' + fl + ' cảnh báo' : '') : '') + '</h4>' + (OF.rp0 ? ofQueueList(un, G) : typeof loadFx === 'function' ? loadFx('Đang tải báo cáo…', { c: 'cmt', sm: 1 }) : miniLoader('Đang tải báo cáo…')) + '</div>' +
     '<div class="of-zm-act"><button type="button" class="btn sm ghost" data-ofqrep><i class="bi bi-archive"></i>Tủ báo cáo (các ngày)</button>' + (un.length ? '<button type="button" class="btn sm pri" data-ofqgo><i class="bi bi-play-fill"></i>Duyệt lần lượt</button>' : '') + '</div>';
-  if (!z.firstChild) z.innerHTML = '<div class="of-zm-h"></div><div class="of-zm-b"><div class="of-zm-sc"></div><div class="of-zm-p"><div class="of-zm-dyn"></div></div></div>';
+  if (!z.firstChild) z.innerHTML = '<div class="of-zm-h"></div><div class="of-zm-b"><div class="of-zm-sc"><div class="of-zm-scv"></div></div><div class="of-zm-p"><div class="of-zm-dyn"></div></div></div>';
   const set = (sel, h) => { const e = z.querySelector(sel); if (e && e.dataset.h !== h) { e.dataset.h = h; e.innerHTML = h; } };
-  set('.of-zm-h', hd); set('.of-zm-sc', ofRoomScene(a, [])); set('.of-zm-dyn', pn);
+  set('.of-zm-h', hd); set('.of-zm-scv', ofRoomScene(a, [])); set('.of-zm-dyn', pn); ofZvz(z);      // (1.84.2) phóng to / kéo cảnh
+}
+/** (1.84.2) PHÓNG TO / KÉO CẢNH TRONG POPUP PHÒNG (tòa Kiến Task, phòng agent, Văn phòng của bạn, phòng học): nút − % + ⤡ ở góc trên phải cảnh · Ctrl / ⌘ + cuộn
+    (chụm bàn rê) · hai ngón chụm · kéo (chuột hoặc một ngón) khi đã phóng. Vẽ lại cảnh chỉ thay .of-zm-scv bên trong nên độ phóng giữ nguyên */
+function ofZvz(z) {
+  const sc = z && z.querySelector('.of-zm-sc'), b = sc && sc.parentNode; if (!sc || !sc.querySelector('.of-zm-scv')) return;
+  if (!sc._zv) { sc._zv = { z: 1, x: 0, y: 0 }; ofZvzBind(sc); }
+  if (!b.querySelector(':scope > .of-vzc')) { const c = document.createElement('div'); c.className = 'of-vzc zm'; c.setAttribute('role', 'group'); c.setAttribute('aria-label', 'Phóng to cảnh');
+    c.innerHTML = '<button type="button" data-ofzv="-1" aria-label="Thu nhỏ" title="Thu nhỏ"><i class="bi bi-dash-lg"></i></button><b>100%</b><button type="button" data-ofzv="1" aria-label="Phóng to" title="Phóng to · Ctrl / ⌘ + cuộn · hai ngón chụm"><i class="bi bi-plus-lg"></i></button><button type="button" data-ofzv="0" title="Vừa khung" aria-label="Vừa khung"><i class="bi bi-arrows-angle-contract"></i></button>';
+    c.addEventListener('click', e => { const t = e.target.closest('[data-ofzv]'); if (!t) return; e.stopPropagation(); const v = +t.dataset.ofzv; if (!v) return ofZvzSet(sc, 1, 0, 0); ofZvzAt(sc, sc._zv.z * (v > 0 ? 1.4 : 1 / 1.4), sc.clientWidth / 2, sc.clientHeight / 2); });
+    b.appendChild(c); }
+  ofZvzSet(sc);
+}
+function ofZvzEnter(sc) { const Z = sc._zv; if (Z.z > 1) return; Z.x = -sc.scrollLeft; Z.y = -sc.scrollTop; sc.classList.add('vzon'); sc.scrollLeft = 0; sc.scrollTop = 0; }      // đang cuộn ngang / dọc → đổi thành dịch, khung thôi cuộn
+function ofZvzSet(sc, z, x, y) {
+  const Z = sc._zv, V = sc.querySelector('.of-zm-scv'), c = sc.parentNode && sc.parentNode.querySelector(':scope > .of-vzc'); if (!Z || !V) return;
+  if (z != null) { Z.z = Math.max(1, Math.min(4, z)); Z.x = x; Z.y = y; }
+  if (Z.z <= 1.001) { const was = sc.classList.contains('vzon'), px = -Z.x, py = -Z.y; Z.z = 1; Z.x = 0; Z.y = 0; V.style.transform = ''; sc.classList.remove('vzon', 'vzpan'); if (was) { sc.scrollLeft = px; sc.scrollTop = py; } }
+  else { const ox = V.offsetLeft, oy = V.offsetTop, lim = (a, lo, hi) => Math.min(Math.max(lo, hi), Math.max(Math.min(lo, hi), a));
+    Z.x = lim(Z.x, sc.clientWidth - ox - V.offsetWidth * Z.z, -ox); Z.y = lim(Z.y, sc.clientHeight - oy - V.offsetHeight * Z.z, -oy);
+    sc.classList.add('vzon'); V.style.transform = 'translate(' + Z.x.toFixed(1) + 'px, ' + Z.y.toFixed(1) + 'px) scale(' + Z.z.toFixed(3) + ')'; }
+  if (c) { c.querySelector('b').textContent = Math.round(Z.z * 100) + '%'; c.style.left = Math.round(sc.offsetLeft + sc.clientWidth - c.offsetWidth - 10) + 'px'; c.style.top = Math.round(sc.offsetTop + 10) + 'px'; }
+}
+function ofZvzAt(sc, z, cx, cy) { ofZvzEnter(sc); const Z = sc._zv, V = sc.querySelector('.of-zm-scv'), z2 = Math.max(1, Math.min(4, z)), k = z2 / Z.z, ox = V ? V.offsetLeft : 0, oy = V ? V.offsetTop : 0; ofZvzSet(sc, z2, (cx - ox) - (cx - ox - Z.x) * k, (cy - oy) - (cy - oy - Z.y) * k); }
+function ofZvzBind(sc) {
+  const loc = e => { const r = sc.getBoundingClientRect(); return [e.clientX - r.left - sc.clientLeft, e.clientY - r.top - sc.clientTop]; };
+  sc.addEventListener('click', e => { if (Date.now() - (sc._zdAt || 0) < 300) { e.stopPropagation(); e.preventDefault(); } }, true);      // vừa kéo xong → không tính là bấm (chọn bảng, mở người)
+  sc.addEventListener('wheel', e => { if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault(); const c = loc(e); ofZvzAt(sc, sc._zv.z * Math.pow(1.0022, -e.deltaY * (e.ctrlKey && !e.metaKey ? 3 : 1)), c[0], c[1]); }, { passive: false });
+  let dr = null;
+  sc.addEventListener('pointerdown', e => { if (e.button || e.pointerType === 'touch' || sc._zv.z <= 1 || e.target.closest('input, textarea, select')) return; dr = { id: e.pointerId, x: e.clientX, y: e.clientY, zx: sc._zv.x, zy: sc._zv.y, mv: 0 }; });
+  sc.addEventListener('pointermove', e => { if (!dr || e.pointerId !== dr.id) return; const dx = e.clientX - dr.x, dy = e.clientY - dr.y; if (!dr.mv) { if (Math.hypot(dx, dy) < 5) return; dr.mv = 1; try { sc.setPointerCapture(dr.id); } catch (er) {} sc.classList.add('vzpan'); } ofZvzSet(sc, sc._zv.z, dr.zx + dx, dr.zy + dy); });
+  const up = () => { if (dr && dr.mv) sc._zdAt = Date.now(); dr = null; sc.classList.remove('vzpan'); }; sc.addEventListener('pointerup', up); sc.addEventListener('pointercancel', up);
+  /* chạm: hai ngón chụm = phóng (dịch theo tâm hai ngón) · một ngón kéo khi đã phóng to (chưa phóng thì vuốt cuộn như cũ) */
+  let T0 = null; const two = e => { const a = e.touches[0], b = e.touches[1], r = sc.getBoundingClientRect(); return { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1, x: (a.clientX + b.clientX) / 2 - r.left, y: (a.clientY + b.clientY) / 2 - r.top }; };
+  sc.addEventListener('touchstart', e => { if (e.touches.length === 2) { ofZvzEnter(sc); const t = two(e); T0 = { d: t.d, z: sc._zv.z, x: sc._zv.x, y: sc._zv.y, cx: t.x, cy: t.y }; } else if (e.touches.length === 1 && sc._zv.z > 1) { const a = e.touches[0]; T0 = { one: 1, x0: a.clientX, y0: a.clientY, x: sc._zv.x, y: sc._zv.y, mv: 0 }; } }, { passive: true });
+  sc.addEventListener('touchmove', e => { if (!T0) return; const V = sc.querySelector('.of-zm-scv'), ox = V ? V.offsetLeft : 0, oy = V ? V.offsetTop : 0;
+    if (e.touches.length === 2 && !T0.one) { e.preventDefault(); const t = two(e), z2 = Math.max(1, Math.min(4, T0.z * t.d / T0.d)), k = z2 / T0.z; T0.mv = 1; ofZvzSet(sc, z2, (t.x - ox) - (T0.cx - ox - T0.x) * k, (t.y - oy) - (T0.cy - oy - T0.y) * k); }
+    else if (T0.one && e.touches.length === 1) { const a = e.touches[0], dx = a.clientX - T0.x0, dy = a.clientY - T0.y0; if (!T0.mv && Math.hypot(dx, dy) < 6) return; T0.mv = 1; e.preventDefault(); ofZvzSet(sc, sc._zv.z, T0.x + dx, T0.y + dy); } }, { passive: false });
+  sc.addEventListener('touchend', e => { if (!T0 || e.touches.length) return; if (T0.mv) sc._zdAt = Date.now(); T0 = null; if (sc._zv.z <= 1) ofZvzSet(sc); }, { passive: true });
 }
 /** bài học từ đánh giá của phòng (tải khi mở zoom) — bỏ từng bài nếu không còn đúng */
 async function ofZoomLes(k) {
@@ -26441,7 +26484,7 @@ async function ofZoomClick(ev) {
                    (2) view riêng “Sảnh gia sư” (tab đầu trang): 4 cột, lọc mức gấp / tìm tên, tải từng 30 người, thao tác nhanh
    · Người nhỏ (khác robot AI): màu theo mức gấp — đỏ ≤ 6 giờ / quá hạn (giọt mồ hôi) · cam ≤ 24 · vàng ≤ 48 · xanh; vào hàng thì bước vào, được giải quyết thì đi về phòng phụ trách
    · Bấm người → popup Phòng học của gia sư (các bé, lộ trình, buổi sắp tới, nhận xét KGS) — hàm dựng dùng chung để sau này công khai cho từng gia sư
-   · Phòng Kiến Task (zoom): bảng kanban trên tường + người đứng trước bảng (thẻ đỏ = trễ hạn, đồng hồ cát = sắp hạn, mờ = chưa check-in) → popup KPI + nhận xét */
+   · Phòng Kiến Task (zoom): bảng kanban trên tường + người đứng trước bảng (thẻ đỏ = trễ hạn, đồng hồ cát = sắp hạn) → popup KPI + nhận xét */
 const OF_LQ = [['bai', 'Cần bài', 'bi-journal-x', 'assign'], ['duyet', 'Chờ duyệt bài', 'bi-journal-check', 'assign'], ['yc', 'Yêu cầu', 'bi-inboxes', 'reqs'], ['ph', 'Phản hồi', 'bi-chat-left-dots', 'reqs']];
 const OF_LV = { do: 'Đỏ · ≤ 6 giờ', cam: 'Cam · ≤ 24 giờ', vang: 'Vàng · ≤ 48 giờ', xanh: 'Xanh' };
 function ofIni(n) { const w = String(n || '?').trim().split(/\s+/); return (w[w.length - 1] || '?').charAt(0).toUpperCase(); }
@@ -27054,9 +27097,9 @@ function ofSchZoomPaint(z) {
   const pn = (Q ? '<div class="of-chips of-tq" style="margin-bottom:8px">' + Q + '</div>' : '') + '<div class="of-kcs">' + kids.map(kc).join('') + '</div>' +
     '<div class="of-dr-s of-give"><h4><i class="bi bi-send"></i> Giao AI cho phòng này</h4><div class="of-gto"><select class="inp sm" id="ofSgTo"><option value="assign">Phòng Gán bài</option><option value="route">Rà soát lộ trình</option><option value="grade">Nhận xét bài</option><option value="hub">Trợ lý chung (tự chọn phòng)</option></select></div>' +
       '<textarea class="ta" id="ofSgT" placeholder="VD “gán bài 2 tuần tới cho các bé”, “rà soát bé nào đang lệch trường”"></textarea><div class="r"><small>Kèm sẵn tên gia sư và các bé của phòng · bài gán lưu NHÁP.</small><button type="button" class="btn sm pri" data-ofsg><i class="bi bi-send"></i>Giao</button></div></div>';
-  if (!z.firstChild) z.innerHTML = '<div class="of-zm-h"></div><div class="of-zm-b"><div class="of-zm-sc"></div><div class="of-zm-p"><div class="of-zm-dyn"></div></div></div>';
+  if (!z.firstChild) z.innerHTML = '<div class="of-zm-h"></div><div class="of-zm-b"><div class="of-zm-sc"><div class="of-zm-scv"></div></div><div class="of-zm-p"><div class="of-zm-dyn"></div></div></div>';
   const set = (sel, h) => { const e = z.querySelector(sel); if (e && e.dataset.h !== h) { const ta = e.querySelector('#ofSgT'), tv = ta && ta.value, to = e.querySelector('#ofSgTo'), tov = to && to.value; e.dataset.h = h; e.innerHTML = h; if (tv) { const n = e.querySelector('#ofSgT'); if (n) n.value = tv; } if (tov) { const n = e.querySelector('#ofSgTo'); if (n) n.value = tov; } } };
-  set('.of-zm-h', hd); set('.of-zm-sc', ofTutScene(t, kids)); set('.of-zm-dyn', pn);
+  set('.of-zm-h', hd); set('.of-zm-scv', ofTutScene(t, kids)); set('.of-zm-dyn', pn); ofZvz(z);      // (1.84.2) phóng to / kéo cảnh
   if (OF.scSel) { const s0 = z.querySelector('.of-kc.sel'); if (s0 && !s0.dataset.sc) { s0.dataset.sc = 1; s0.scrollIntoView({ block: 'nearest' }); } }
 }
 async function ofSchZoomClick(ev) {
@@ -27568,13 +27611,13 @@ function ofTaskScene(L, poly, ln, at, box) {
     h.push(at(L((x0 + x1) / 2, 0, 116), esc(aiCut(b.name, 16)), 'kbn', b.name + ' · ' + b.people.length + ' người'));      // (1.82.18) nhãn ngắn, không đè bảng bên cạnh
     if (b.people.length > 4) h.push(at(L(x1 - .02, .2, 0), '+' + (b.people.length - 4), 'more', (b.people.length - 4) + ' người nữa — xem danh sách bên phải'));
     b.people.slice(0, 4).forEach((p, j) => { const q = L(x0 + .07 + j * (x1 - x0 - .1) / 3, .12, 0), lv = ofPLv(p);
-      h.push('<button type="button" class="of-zi pp' + (p.ck ? '' : ' off') + '" data-ofpp="' + esc(p.e) + '" data-ofpb="' + esc(b.id) + '" style="left:' + (q[0] / 640 * 100).toFixed(2) + '%;top:' + (q[1] / 460 * 100).toFixed(2) + '%" title="' + esc(p.n + ' · ' + p.open + ' việc mở · ' + p.late + ' trễ hạn · ' + p.soon + ' sắp hạn' + (p.ck ? '' : ' · chưa check-in hôm nay')) + '">' +
+      h.push('<button type="button" class="of-zi pp" data-ofpp="' + esc(p.e) + '" data-ofpb="' + esc(b.id) + '" style="left:' + (q[0] / 640 * 100).toFixed(2) + '%;top:' + (q[1] / 460 * 100).toFixed(2) + '%" title="' + esc(p.n + ' · ' + p.open + ' việc mở · ' + p.late + ' trễ hạn · ' + p.soon + ' sắp hạn') + '">' +
         ofPersonSvg(lv, '', 36, 'w', p.e) + (p.late ? '<span class="of-pcard">' + p.late + '</span>' : '') + '</button>'); }); });
   return { sv: sv.join(''), h: h.join('') };
 }
 /** (1.82.49) TÒA KIẾN TASK (vào từ phòng Kiến Task ở Văn phòng AI): MỖI TẦNG MỘT BẢNG — tầng trên lùi sau + cao hơn (bậc thang) nên không che nhau, nối bằng THANG CUỐN ĐÔI ở mép phải.
     Mỗi tầng: bảng kanban trên tường sau (thẻ theo cột Cần làm · Đang làm · Duyệt, thẻ đỏ = trễ), một bàn cho mỗi người có việc ở bảng đó — chồng giấy trên bàn cao theo số việc;
-    nhiều việc thì PHÂN THÂN (≥ 6 việc: 2 người · ≥ 12: 3 người); chưa check-in → bàn trống, người đứng xếp hàng ở SẢNH CHỜ tầng trệt (quầy check-in + trợ lý Kiến Task). Bấm người → popup việc · KPI · nhận xét */
+    nhiều việc thì PHÂN THÂN (≥ 6 việc: 2 người · ≥ 12: 3 người); (1.84.2) KHÔNG CẦN CHECK-IN: ai có việc ở bảng nào ngồi luôn vào bàn ở phòng bảng đó; tầng trệt là SẢNH (quầy lễ tân + trợ lý Kiến Task). Bấm người → popup việc · KPI · nhận xét */
 /** (1.83.2) cài đặt cảnh Kiến Task của người xem (lưu trên máy): lay = 'stair' (tòa bậc thang) | 'campus' (khuôn viên) · hide = mã bảng ẩn khỏi cảnh */
 function ofTkSet(v) { const k = 'ofTk:' + ((S.me && S.me.email) || ''); if (v) { lsSet(k, v); return v; } const o = lsGet(k, null) || {}; return { lay: o.lay === 'campus' ? 'campus' : 'stair', hide: Array.isArray(o.hide) ? o.hide.slice(0, 80) : [] }; }
 function ofTkBoards() { return OF.tp.boards.map(b => Object.assign({ tot: b.people.reduce((s, p) => s + p.open, 0), lt: b.people.reduce((s, p) => s + p.late, 0), sn: b.people.reduce((s, p) => s + p.soon, 0), dg: b.people.reduce((s, p) => s + p.doing, 0) }, b)).sort((a, b) => b.lt - a.lt || b.tot - a.tot); }
@@ -27588,7 +27631,7 @@ function ofTaskTower() {
   const X0 = Math.round(YT * TW / 2 + (camp ? 150 : 300)), Y0 = Math.round(70 + (camp ? 30 : (N - 1) * ZF) + WH), W = Math.round(X0 + (XT + .75) * TW / 2 + 40), H = Math.round(Y0 + (XT + .75 + YT) * TH / 2 + 40);
   const P0 = (x, y, z) => [X0 + (x - y) * TW / 2, Y0 + (x + y) * TH / 2 - (z || 0)], pg = (A, c, x) => ofPoly(A, c, x), sv = [], h = [], f1 = v => v.toFixed(1);
   const at = (p, html, cls, tt, attr) => '<div class="of-zi ' + (cls || '') + '"' + (attr || '') + ' style="left:' + (p[0] / W * 100).toFixed(2) + '%;top:' + (p[1] / H * 100).toFixed(2) + '%"' + (tt ? ' title="' + esc(tt) + '"' : '') + '>' + html + '</div>';
-  const nock = {}; B0.forEach(b => b.people.forEach(p => { if (!p.ck) nock[p.e] = p; }));
+  const nall = {}; B.forEach(b => b.people.forEach(p => { nall[p.e] = 1; }));      // (1.84.2) người đang ngồi ở các phòng trong cảnh
   sv.push(pg([P0(-.25 - (camp ? .3 : 0), -.25 - (camp ? .3 : 0)), P0(XT + .75, -.25 - (camp ? .3 : 0)), P0(XT + .75, YT + .1), P0(-.25 - (camp ? .3 : 0), YT + .1)], 'of-base'));
   if (camp) {      /* LỐI ĐI giữa các phòng (dọc + ngang) — người đi theo các lối này */
     for (let c = 1; c < C; c++) { const x = c * (FX + GX) - GX; sv.push(pg([P0(x + .12, -.3), P0(x + GX - .12, -.3), P0(x + GX - .12, YT + .3), P0(x + .12, YT + .3)], 'cr-walk') + '<path class="of-walkl" d="M' + ofPt(P0(x + GX / 2, -.25)) + ' L' + ofPt(P0(x + GX / 2, YT + .25)) + '"/>'); }
@@ -27601,15 +27644,12 @@ function ofTaskTower() {
     sv.push(pg([P(0, y0), P(0, y0 + RD), P(0, y0 + RD, WH), P(0, y0, WH)], 'of-w1') + pg([P(0, y0), P(FX, y0), P(FX, y0, WH), P(0, y0, WH)], 'of-w2') + pg([P(0, y0), P(FX, y0), P(FX, y0 + RD), P(0, y0 + RD)], 'of-flr' + (lob ? ' of-lobf' : ' tkf') + (on ? ' tksel' : ''), b ? ' data-oftb="' + esc(b.id) + '"' : ''));
     sv.push(pg([P(-.15, y0 + RD + .06), P(FX + .7, y0 + RD + .06), P(FX + .7, y0 + D - .06), P(-.15, y0 + D - .06)], 'cr-walk') + '<path class="of-walkl" d="M' + ofPt(P(0, y0 + RD + HL / 2)) + ' L' + ofPt(P(FX + .3, y0 + RD + HL / 2)) + '"/>');
     const lbP = camp ? P(FX * .42, y0 + D + GY * .5, 0) : P(-.3, y0 + D - .05, 0), lbC = camp ? ' c' : '';      // khuôn viên: biển tên nằm trên lối đi ngay trước phòng
-    if (lob) {      /* SẢNH CHỜ: quầy check-in + trợ lý Kiến Task · sofa · cây · hàng người chưa check-in */
+    if (lob) {      /* (1.84.2) SẢNH: quầy lễ tân + trợ lý Kiến Task · sofa · cây — không còn hàng chờ check-in */
       sv.push(ofIsoBox(P, .5, 1.9, y0 + .3, y0 + .5, 0, 20, 'of-dk') + ofIsoBox(P, .45, 1.95, y0 + .26, y0 + .3, 20, 3, 'of-dk'));
       sv.push(ofIsoBox(P, 3.0, 4.1, y0 + .12, y0 + .32, 0, 9, 'cr-sofa') + ofIsoBox(P, 3.0, 4.1, y0 + .1, y0 + .16, 9, 12, 'cr-sofa') + ofIsoBox(P, 3.3, 3.8, y0 + .45, y0 + .65, 0, 7, 'of-dk'));
       sv.push(ofIsoBox(P, FX - .35, FX - .12, y0 + .1, y0 + .33, 0, 16, 'of-zpot') + ofPlant(P(FX - .235, y0 + .215, 16), 1.05) + ofIsoBox(P, .12, .32, y0 + .1, y0 + .3, 0, 14, 'of-zpot') + ofPlant(P(.22, y0 + .2, 14), .85));
-      h.push(at(P(1.2, y0 + .36, 30), typeof asstAva === 'function' ? asstAva((OF.d && (OF.d.agents.find(a => a.key === 'task') || {}).av) || 0, 'sm', 0) : '', 'tkbot', 'Trợ lý Kiến Task — quầy check-in'));
-      h.push(at(lbP, '<i class="bi bi-door-open"></i><b>Sảnh chờ</b><small>' + (Object.keys(nock).length ? Object.keys(nock).length + ' người chưa check-in' : 'mọi người đã check-in') + '</small>', 'tkfl lob' + lbC));
-      Object.keys(nock).slice(0, 8).forEach((e, i) => { const p = nock[e], q = P(1.0 + i * .42, y0 + .78, 0);
-        h.push('<button type="button" class="of-zi pp tk off" data-ofpp="' + esc(p.e) + '" style="left:' + (q[0] / W * 100).toFixed(2) + '%;top:' + (q[1] / H * 100).toFixed(2) + '%" title="' + esc(p.n + ' · chưa check-in hôm nay · ' + p.open + ' việc mở') + '">' + ofPersonSvg(ofPLv(p), '', 30, 'w', p.e) + '</button>'); });
-      if (Object.keys(nock).length > 8) h.push(at(P(4.5, y0 + .8, 0), '+' + (Object.keys(nock).length - 8), 'more'));
+      h.push(at(P(1.2, y0 + .36, 30), typeof asstAva === 'function' ? asstAva((OF.d && (OF.d.agents.find(a => a.key === 'task') || {}).av) || 0, 'sm', 0) : '', 'tkbot', 'Trợ lý Kiến Task — quầy lễ tân'));
+      h.push(at(lbP, '<i class="bi bi-door-open"></i><b>Sảnh</b><small>' + (NB ? Object.keys(nall).length + ' người ở ' + NB + ' phòng' : 'chưa có phòng nào') + '</small>', 'tkfl lob' + lbC));
       h.push(ofEnterHtml(W, H, 'task', P(FX + .6, y0 + D, 0), P(4.7, y0 + .85, 0), [[P(1.2, y0 + .36, 70), 'Chào bạn! Hôm nay ' + OF.tp.late + ' việc trễ']]));
       continue; }
     /* BẢNG KANBAN trên tường sau: 3 cột, thẻ theo giai đoạn (đỏ = trễ) */
@@ -27621,12 +27661,11 @@ function ofTaskTower() {
     const ai = (OF.tkAi || {})[b.id];
     h.push('<button type="button" class="of-zi tkfl' + lbC + (b.lt ? ' bad' : '') + (on ? ' on' : '') + (b.name.length > 20 ? ' sm' : '') + '" data-oftb="' + esc(on ? '' : b.id) + '" style="left:' + (lbP[0] / W * 100).toFixed(2) + '%;top:' + (lbP[1] / H * 100).toFixed(2) + '%" title="' + esc(b.name + (camp ? '' : ' — tầng ' + (N - 1 - j)) + ' · bấm để ' + (on ? 'bỏ chọn' : 'xem số liệu, giao việc, AI phân tích')) + '"><i class="bi bi-kanban"></i><b>' + esc(b.name) + '</b>' + (ai && ai.st === 'run' ? '<em class="of-aib"><i class="bi bi-stars"></i>AI đang phân tích<b class="of-aid"><i></i><i></i><i></i></b></em>' : '') + '<small>' + b.tot + ' việc' + (b.lt ? ' · <em>' + b.lt + ' trễ</em>' : '') + ' · ' + b.people.length + ' người</small></button>');
     /* BÀN + NGƯỜI: người nhiều việc nhất ngồi gần bảng; phân thân theo số việc */
-    b.people.slice().sort((a, c) => c.open - a.open).slice(0, NP).forEach((p, i) => { const cx = .5 + i * DX + DX / 2, cy = y0 + .62, nst = ofStackN(p.open), cl = !p.ck ? 0 : p.open >= 12 ? 2 : p.open >= 6 ? 1 : 0;
+    b.people.slice().sort((a, c) => c.open - a.open).slice(0, NP).forEach((p, i) => { const cx = .5 + i * DX + DX / 2, cy = y0 + .62, nst = ofStackN(p.open), cl = p.open >= 12 ? 2 : p.open >= 6 ? 1 : 0;
       sv.push(ofIsoBox(P, cx - .3, cx + .3, cy - .17, cy + .05, 0, 13, 'of-dk'));
       for (let k = 0; k < Math.min(nst, 12); k++) sv.push(ofIsoBox(P, cx + .08, cx + .24, cy - .14, cy - .03, 13 + k * 1.8, 1.6, k === Math.min(nst, 12) - 1 && p.late ? 'of-zfoldx' : k % 4 === 3 ? 'of-zfold' : 'of-zsheet'));
-      sv.push('<rect class="of-mon' + (p.ck ? ' on' : '') + '" x="' + f1(P(cx - .12, cy - .1, 15)[0] - 8) + '" y="' + f1(P(cx - .12, cy - .1, 15)[1] - 11) + '" width="16" height="11" rx="1.5"/>');
-      const tip = p.n + ' · ' + p.open + ' việc ở bảng này · ' + p.late + ' trễ · ' + p.soon + ' sắp hạn' + (p.ck ? '' : ' · chưa check-in (đang ở sảnh chờ)') + (cl ? ' · nhiều việc nên phân thân ' + (cl + 1) + ' người' : '');
-      if (!p.ck) { h.push(at(P(cx, cy + .22, 0), esc(aiCut(p.n.split(' ').slice(-1)[0], 10)) + ' vắng', 'tkaw', tip)); return; }
+      sv.push('<rect class="of-mon on" x="' + f1(P(cx - .12, cy - .1, 15)[0] - 8) + '" y="' + f1(P(cx - .12, cy - .1, 15)[1] - 11) + '" width="16" height="11" rx="1.5"/>');
+      const tip = p.n + ' · ' + p.open + ' việc ở bảng này · ' + p.late + ' trễ · ' + p.soon + ' sắp hạn' + (cl ? ' · nhiều việc nên phân thân ' + (cl + 1) + ' người' : '');
       for (let k = cl; k >= 0; k--) { const q = P(cx - .02 + k * .2, cy + .2 + k * .1, 0);
         h.push('<button type="button" class="of-zi pp tk' + (k ? ' cln' : '') + '" data-ofpp="' + esc(p.e) + '" data-ofpb="' + esc(b.id) + '" style="left:' + (q[0] / W * 100).toFixed(2) + '%;top:' + (q[1] / H * 100).toFixed(2) + '%" title="' + esc(tip) + '">' + ofPersonSvg(ofPLv(p), '', k ? 26 : 32, 'w', p.e) + (!k && p.late ? '<span class="of-pcard">' + p.late + '</span>' : '') + (!k ? '<small>' + esc(aiCut(p.n.split(' ').slice(-1)[0], 10)) + ' · ' + p.open + '</small>' : '') + '</button>'); } });
     if (b.people.length > NP) h.push(at(P(FX - .1, y0 + .9, 0), '+' + (b.people.length - NP) + ' người', 'more', 'Xem đủ ở danh sách bên phải'));
@@ -27647,11 +27686,11 @@ function ofTaskPanel() {
     B.map(b => { const off = TS.hide.indexOf(b.id) >= 0; return '<label class="of-tkpi' + (off ? ' off' : '') + '"><input type="checkbox" data-oftkeye="' + esc(b.id) + '"' + (off ? '' : ' checked') + '><span class="t">' + esc(b.name) + '</span><small>' + b.tot + ' việc' + (b.lt ? ' · <em>' + b.lt + ' trễ</em>' : '') + '</small></label>'; }).join('') +
     '<div class="r"><button type="button" class="btn xs ghost" data-oftkall="1">Hiện tất cả</button><button type="button" class="btn xs ghost" data-oftkall="0">Ẩn tất cả</button></div></div></details></div>';
   let bd = '';
-  if (sel) { const b = B.find(x => x.id === sel), ck = b.people.filter(p => p.ck).length, kp = b.people.map(p => p.kpi && p.kpi.ontime).filter(v => v != null), ot = kp.length ? Math.round(kp.reduce((s, v) => s + v, 0) / kp.length) : null, ai = (OF.tkAi || {})[sel];
+  if (sel) { const b = B.find(x => x.id === sel), kp = b.people.map(p => p.kpi && p.kpi.ontime).filter(v => v != null), ot = kp.length ? Math.round(kp.reduce((s, v) => s + v, 0) / kp.length) : null, ai = (OF.tkAi || {})[sel];
     const T = {}; b.people.forEach(p => p.tasks.forEach(t => { if (!T[t.id]) T[t.id] = Object.assign({ who: [] }, t); T[t.id].who.push(p.n.split(' ').slice(-1)[0]); })); const ts = Object.keys(T).map(k => T[k]), late = ts.filter(t => t.tre).sort((a, c) => c.tre - a.tre), soon = ts.filter(t => !t.tre && t.due && t.due <= ymdLocal(1));
     const row = t => '<div class="of-hi"><span class="s' + (t.tre ? ' e' : '') + '">' + esc(t.key || '') + '</span><span class="t" style="white-space:normal">' + esc(t.title) + '<small class="muted"> · ' + esc(t.who.join(', ')) + ' · ' + esc(t.st) + '</small></span><small class="' + (t.tre ? 'of-tre' : 'muted') + '">' + (t.tre ? 'trễ ' + t.tre + ' ngày' : t.due ? 'hạn ' + ofDm(t.due) : '') + '</small></div>';
     bd = '<div class="of-dr-s of-tkb"><h4><i class="bi bi-kanban"></i> ' + esc(b.name) + '<span class="sp"></span><button type="button" class="ibtn sm" data-oftb="" aria-label="Bỏ chọn bảng" title="Bỏ chọn bảng"><i class="bi bi-x-lg"></i></button></h4>' +
-      '<div class="of-kpi of-kpi3"><div><b>' + b.tot + '</b><small>việc mở</small></div><div' + (b.lt ? ' class="bad"' : '') + '><b>' + b.lt + '</b><small>trễ hạn</small></div><div><b>' + b.sn + '</b><small>sắp hạn</small></div><div><b>' + b.dg + '</b><small>đang làm</small></div><div><b>' + ck + '/' + b.people.length + '</b><small>đã check-in</small></div><div><b>' + (ot != null ? ot + '%' : '–') + '</b><small>đúng hạn 30 ngày</small></div></div>' +
+      '<div class="of-kpi of-kpi3"><div><b>' + b.tot + '</b><small>việc mở</small></div><div' + (b.lt ? ' class="bad"' : '') + '><b>' + b.lt + '</b><small>trễ hạn</small></div><div><b>' + b.sn + '</b><small>sắp hạn</small></div><div><b>' + b.dg + '</b><small>đang làm</small></div><div><b>' + b.people.length + '</b><small>người</small></div><div><b>' + (ot != null ? ot + '%' : '–') + '</b><small>đúng hạn 30 ngày</small></div></div>' +
       (late.length ? '<h5 class="of-tkh">Trễ hạn · ' + late.length + '</h5>' + late.slice(0, 6).map(row).join('') : '') + (soon.length ? '<h5 class="of-tkh">Sắp đến hạn · ' + soon.length + '</h5>' + soon.slice(0, 4).map(row).join('') : '') + (!late.length && !soon.length ? '<div class="small muted">Không có việc trễ hay sắp hạn.</div>' : '') +
       '<div class="of-tkai' + (ai ? ' ' + ai.st : '') + '">' + (!ai ? '<small class="muted">AI đọc số liệu bảng này (việc trễ, đứng yên, ai quá tải, đúng hạn 30 ngày) rồi viết nhận định + việc nên làm — kết quả hiện ngay tại đây và vào Tủ báo cáo.</small>'
         : ai.st === 'run' ? '<span class="of-aib"><i class="bi bi-stars"></i>AI đang phân tích báo cáo bảng<b class="of-aid"><i></i><i></i><i></i></b></span>'
@@ -27661,7 +27700,7 @@ function ofTaskPanel() {
   B.filter(b => !sel || b.id === sel).forEach(b => b.people.forEach(p => P.push(Object.assign({ b: b.name, bid: b.id }, p))));
   P.sort((a, c) => c.late - a.late || c.soon - a.soon || c.open - a.open);
   return ctl + bd + '<div class="of-dr-s"><h4><i class="bi bi-people"></i> ' + (sel ? 'Người của bảng' : 'Người Kiến Task') + '<span class="sp"></span>' + (sel ? '' : OF.tp.late + ' việc trễ') + '</h4>' + (sel ? '' : '<div class="of-rp-days" style="margin-bottom:6px"><button type="button" data-oftb="" class="on">Mọi bảng</button>' + B.map(b => '<button type="button" data-oftb="' + esc(b.id) + '">' + esc(aiCut(b.name, 20)) + '</button>').join('') + '</div>') +
-    (P.length ? P.slice(0, 40).map(p => '<button type="button" class="of-qi" data-ofpp="' + esc(p.e) + '" data-ofpb="' + esc(p.bid) + '">' + ofPersonSvg(ofPLv(p), '', 30, 'w', p.e) + '<span class="t"><b>' + esc(p.n) + (p.ck ? '' : ' <em class="of-nock">chưa check-in</em>') + '</b><small>' + esc([sel ? '' : p.b, p.late ? p.late + ' trễ hạn' : '', p.soon ? p.soon + ' sắp hạn' : '', p.open + ' việc mở', p.kpi && p.kpi.ontime != null ? p.kpi.ontime + '% đúng hạn' : '', p.nn ? p.nn + ' nhận xét' : ''].filter(Boolean).join(' · ')) + '</small></span><i class="bi bi-chevron-right"></i></button>').join('') : '<div class="small muted">Chưa có việc nào đang mở.</div>') + '</div>';
+    (P.length ? P.slice(0, 40).map(p => '<button type="button" class="of-qi" data-ofpp="' + esc(p.e) + '" data-ofpb="' + esc(p.bid) + '">' + ofPersonSvg(ofPLv(p), '', 30, 'w', p.e) + '<span class="t"><b>' + esc(p.n) + '</b><small>' + esc([sel ? '' : p.b, p.late ? p.late + ' trễ hạn' : '', p.soon ? p.soon + ' sắp hạn' : '', p.open + ' việc mở', p.kpi && p.kpi.ontime != null ? p.kpi.ontime + '% đúng hạn' : '', p.nn ? p.nn + ' nhận xét' : ''].filter(Boolean).join(' · ')) + '</small></span><i class="bi bi-chevron-right"></i></button>').join('') : '<div class="small muted">Chưa có việc nào đang mở.</div>') + '</div>';
 }
 /** (1.83.2) giao việc / AI phân tích cho MỘT bảng Kiến Task ngay trong cảnh — kết quả hiện ở bảng bên (OF.tkAi[bid]) và vào Tủ báo cáo */
 async function ofTkGive(bid, text, ana, btn) {
@@ -27685,8 +27724,8 @@ async function ofPersonPop(e, bid) {
   const T = [].concat.apply([], ps.map((p, i) => p.tasks.map(t => Object.assign({ b: all[i].name }, t)))), late = T.filter(t => t.tre).sort((a, b) => b.tre - a.tre), soon = T.filter(t => !t.tre && t.due && t.due <= ymdLocal(1)), rest = T.filter(t => late.indexOf(t) < 0 && soon.indexOf(t) < 0), k = p0.kpi || {};
   const row = t => '<div class="of-hi"><span class="s' + (t.tre ? ' e' : '') + '">' + esc(t.key || '') + '</span><span class="t" style="white-space:normal">' + esc(t.title) + '<small class="muted"> · ' + esc(t.b) + ' · ' + esc(t.st) + '</small></span><small class="' + (t.tre ? 'of-tre' : 'muted') + '">' + (t.tre ? 'trễ ' + t.tre + ' ngày' : t.due ? 'hạn ' + ofDm(t.due) : '') + '</small></div>';
   const P = ofPopShell('@p:' + e), el = P.el, can = !!OF.tp.can;
-  el.innerHTML = '<div class="of-pop-h">' + ofPersonSvg(ofPLv({ late: late.length, soon: soon.length }), '', 36, 'w', e) + '<div class="t"><b>' + esc(p0.n) + '</b><small>' + esc(all.map(b => b.name).join(' · ')) + (p0.ck ? ' · đã check-in hôm nay' : ' · chưa check-in hôm nay') + '</small></div><button type="button" class="ibtn sm" data-ofpx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
-    '<div class="of-pop-b"><div class="of-kpi"><div><b>' + (k.done != null ? k.done : '–') + '</b><small>việc xong 30 ngày</small></div><div><b>' + (k.ontime != null ? k.ontime + '%' : '–') + '</b><small>đúng hạn</small></div><div><b>' + (k.cyc != null ? k.cyc : '–') + '</b><small>ngày / việc</small></div><div><b>' + (k.ck != null ? k.ck : '–') + '</b><small>ngày check-in</small></div></div>' +
+  el.innerHTML = '<div class="of-pop-h">' + ofPersonSvg(ofPLv({ late: late.length, soon: soon.length }), '', 36, 'w', e) + '<div class="t"><b>' + esc(p0.n) + '</b><small>' + esc(all.map(b => b.name).join(' · ')) + '</small></div><button type="button" class="ibtn sm" data-ofpx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
+    '<div class="of-pop-b"><div class="of-kpi"><div><b>' + (k.done != null ? k.done : '–') + '</b><small>việc xong 30 ngày</small></div><div><b>' + (k.ontime != null ? k.ontime + '%' : '–') + '</b><small>đúng hạn</small></div><div><b>' + (k.cyc != null ? k.cyc : '–') + '</b><small>ngày / việc</small></div><div><b>' + T.length + '</b><small>việc mở</small></div></div>' +
     (late.length ? '<div class="of-dr-s"><h4>Trễ hạn<span class="sp"></span>' + late.length + '</h4>' + late.map(row).join('') + '</div>' : '') + (soon.length ? '<div class="of-dr-s"><h4>Sắp đến hạn</h4>' + soon.map(row).join('') + '</div>' : '') +
     (rest.length ? '<div class="of-dr-s"><h4>Đang mở<span class="sp"></span>' + rest.length + '</h4>' + rest.slice(0, 12).map(row).join('') + '</div>' : '') +
     '<div class="of-dr-s"><h4><i class="bi bi-chat-left-text"></i> Nhận xét của quản lý</h4><div id="ofPN">' + miniLoader('Đang tải…') + '</div>' + (can ? '<div class="of-give" style="margin-top:6px"><textarea class="ta" id="ofPNt" placeholder="VD “Cần báo sớm khi bị chặn”, “Tuần này làm tốt phần soát đề”"></textarea><div class="r"><small>Lưu theo người, chỉ quản lý xem / ghi.</small><button type="button" class="btn sm" data-ofpna><i class="bi bi-plus-lg"></i>Ghi nhận xét</button></div></div>' : '') + '</div></div>' +
@@ -29018,6 +29057,16 @@ function svMemoV(b) {
 .kt-conn > span:not(.kt-dot):not(.kt-pill){ flex:1 1 200px; min-width:0 }
 .kt-dot{ width:10px; height:10px; border-radius:50%; background:var(--danger); flex:none; box-shadow:0 0 0 4px color-mix(in oklab, var(--danger) 15%, transparent) } .kt-dot.on{ background:var(--ok); box-shadow:0 0 0 4px color-mix(in oklab, var(--ok) 15%, transparent) }
 .kt-sub{ color:var(--muted); font-size:12.5px; line-height:1.5 }
+/* (1.84.3) hồ sơ bé — bàn giao gia sư mới */
+.kt-pfs{ display:flex; gap:12px; align-items:center; width:100%; padding:11px 18px; border:0; border-bottom:1px solid var(--border); background:none; color:inherit; font:inherit; text-align:left; cursor:pointer }
+.kt-pfs:last-child{ border-bottom:0 } .kt-pfs:hover{ background:var(--surface-2) } .kt-pfs .sp{ flex:1 }
+.kt-kpi{ display:flex; gap:8px; flex-wrap:wrap }
+.kt-kpi > div{ flex:1; min-width:84px; background:var(--surface-2); border-radius:12px; padding:9px 10px; text-align:center }
+.kt-kpi b{ display:block; font-size:18px; letter-spacing:-.02em } .kt-kpi small{ color:var(--muted); font-size:11.5px }
+.kt-pf .kt-pfq{ font-size:14.5px; line-height:1.6; border-left:3px solid var(--brand-500, var(--brand-600)); padding-left:12px; margin:0 }
+.kt-pfb{ display:flex; flex-direction:column; gap:5px } .kt-pfb h5{ margin:0; font-size:12px; color:var(--brand-700); text-transform:uppercase; letter-spacing:.04em; display:flex; gap:6px; align-items:center }
+.kt-pfb p{ margin:0; font-size:13.5px; line-height:1.6 } .kt-pfb ul{ margin:0; padding-left:18px; font-size:13.5px; line-height:1.6 } .kt-pfb li{ margin:0 0 3px }
+.kt-pf2{ display:flex; gap:14px; flex-wrap:wrap } .kt-pf2 > *{ flex:1; min-width:220px }
 @media (max-width:640px){
   .kt-pad{ padding:14px } .kt-rh{ padding:10px 14px } .kt-ed{ padding:4px 14px 14px } .kt-fs{ grid-template-columns:minmax(0, 1fr) }
   .kt-sugs{ grid-template-columns:minmax(0, 1fr) } .kt-hello h2{ font-size:22px } .kt-mu{ max-width:92% }
@@ -29027,7 +29076,7 @@ function svMemoV(b) {
 <script>
 /* ══════════ (1.84) ỨNG DỤNG KIẾN TRẺ — route kt · kt/ask · kt/learned · kt/style · kt/conn ══════════ */
 const KT = { b: null, day: '', teacher: lsGet('ktTea', ''), d: null, ed: {}, ai: {}, push: {}, op: {}, sj: lsGet('ktSj', 'MATH'), ln: null, open: {}, pick: {}, sel: {}, chat: lsGet('ktChat', { conv: '', msgs: [] }), ask: { sj: lsGet('ktAskSj', ''), span: lsGet('ktAskSpan', 150) } };
-const KT_TABS = [['', 'bi-chat-heart', 'Nhận xét'], ['ask', 'bi-stars', 'Hỏi dữ liệu'], ['learned', 'bi-journal-check', 'Lớp đã học'], ['style', 'bi-feather', 'Văn phong'], ['conn', 'bi-plug', 'Kết nối']];
+const KT_TABS = [['', 'bi-chat-heart', 'Nhận xét'], ['ask', 'bi-stars', 'Hỏi dữ liệu'], ['learned', 'bi-journal-check', 'Lớp đã học'], ['prof', 'bi-person-vcard', 'Hồ sơ bé'], ['style', 'bi-feather', 'Văn phong'], ['conn', 'bi-plug', 'Kết nối']];
 const KT_FL = [['td', 'Thái độ học tập'], ['bt', 'Bài tập trên lớp'], ['yeu', 'Kiến thức còn yếu'], ['nx', 'Nhận xét chung']];
 const KT_AVC = ['#4F46E5', '#0EA5E9', '#14B8A6', '#F59E0B', '#EC4899', '#8B5CF6', '#22C55E', '#EF4444'];
 function ktToday() { const d = new Date(Date.now() + 7 * 3600e3); return d.toISOString().slice(0, 10); }
@@ -29052,7 +29101,8 @@ async function viewKt(arg, v) {
       a = KT.b.office ? 'ask' : 'conn'; const r = 'kt/' + a; if (S.route !== r) setTimeout(() => go(r, { replace: 1 }), 0); }
     const T = KT_TABS.find(t => t[0] === a); setTitle(T[2], T[1], [{ t: 'Kiến Trẻ', r: 'kt' }], v);      // tên ngắn — không bị cắt “…” trên điện thoại
     const B = $('#ktBody', v); B.innerHTML = '';
-    ({ ask: ktAskView, learned: ktLearnedView, style: ktStyleView, conn: ktConnView })[a] ? ({ ask: ktAskView, learned: ktLearnedView, style: ktStyleView, conn: ktConnView })[a](B) : ktDayView(B);
+    const VW = { ask: ktAskView, learned: ktLearnedView, prof: ktProfView, style: ktStyleView, conn: ktConnView };
+    VW[a] ? VW[a](B) : ktDayView(B);
   };
   v._onArg = a => show(a);
   show(arg);
@@ -29340,6 +29390,175 @@ function ktMockDlg(c) {
       ktWatch(r.log, show); return false; } }] });
 }
 
+/* ── (1.84.3) HỒ SƠ BÉ — BÀN GIAO CHO GIA SƯ MỚI: nhận xét cũ của thầy cô → AI tóm tắt → xuất PDF ── */
+function ktProfView(B) {
+  const to = ktToday();
+  KT.pf = KT.pf || { fr: ktAdd(to, -180), to: to, open: {}, sum: {}, cls: '', code: '', name: '', data: null };
+  const P = KT.pf;
+  B.innerHTML = '<div class="kt-top"><span class="kt-day" style="padding:3px 10px"><input type="date" id="ktPfFr" value="' + P.fr + '" aria-label="Từ ngày" style="position:static;opacity:1;border:0;background:none;color:var(--ink);font:inherit;font-size:13px;width:auto"><span class="kt-sub">→</span><input type="date" id="ktPfTo" value="' + P.to + '" aria-label="Đến ngày" style="position:static;opacity:1;border:0;background:none;color:var(--ink);font:inherit;font-size:13px;width:auto"></span>' +
+    '<input class="kt-sel" id="ktPfQ" placeholder="Tìm bé, lớp…" style="min-width:160px;flex:1"><button class="kt-ico" id="ktPfRe" aria-label="Tải lại"><i class="bi bi-arrow-clockwise"></i></button></div><div id="ktPf" class="kt"></div>';
+  const V = $('#ktPf', B);
+  const load = async fresh => {
+    V.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx('Đang đọc danh sách lớp từ kientre.click…', { c: 'doc' }) : 'Đang tải…') + '</div>';
+    try { P.list = await rpc('ktProfList', { fr: P.fr, to: P.to, fresh: fresh ? 1 : 0 }, { quiet: true }); } catch (e) { V.innerHTML = ktErrCard(e); return; }
+    pick();
+  };
+  /* chọn bé */
+  const pick = () => {
+    const R = P.list, q = ($('#ktPfQ', B).value || '').trim().toLowerCase();
+    const hit = c => !q || c.cls.toLowerCase().indexOf(q) >= 0 || c.st.some(s => s.name.toLowerCase().indexOf(q) >= 0);
+    const list = (R.list || []).filter(hit);
+    if (!(R.list || []).length) { V.innerHTML = '<div class="kt-card kt-empty"><i class="bi bi-journal-x"></i><div>Không có lớp nào từ ' + ktDm(R.fr) + ' tới ' + ktDm(R.to) + '.</div></div>'; return; }
+    V.innerHTML = '<div class="kt-stat"><span><b>' + list.length + '</b>lớp</span><span>' + ktDm(R.fr) + ' → ' + ktDm(R.to) + '</span><span>' + (R.office ? 'Phiên giáo vụ — mọi lớp' : 'Phiên của bạn — lớp bạn dạy') + '</span><span>Chọn một bé để xem hồ sơ bàn giao</span></div>' +
+      list.map(c => { const op = P.open[c.cls], st = c.st.filter(s => !q || s.name.toLowerCase().indexOf(q) >= 0 || c.cls.toLowerCase().indexOf(q) >= 0);
+        return '<div class="kt-card" data-kpc="' + esc(c.cls) + '"><div class="kt-cl" data-ktog><div class="kt-t" style="flex:1;min-width:180px"><b>' + esc(c.cls) + '</b><span class="kt-meta">' + [c.grades && 'Khối ' + c.grades, c.prog, (c.sj || []).join(', '), (c.tea || []).join(', ')].filter(Boolean).map(x => '<span>' + esc(x) + '</span>').join('') + '</span></div>' +
+          '<span class="kt-pill">' + c.st.length + ' bé</span><span class="kt-pill ok">' + c.n + ' buổi</span><i class="bi bi-chevron-down kt-chev" style="' + (op ? 'transform:rotate(180deg)' : '') + '"></i></div>' +
+          (op ? '<div class="kt-list">' + (st.length ? st.map(s => '<button type="button" class="kt-pfs" data-kpst="' + esc(s.code) + '" data-kpsn="' + esc(s.name) + '">' + ktAv(s.name) + '<span class="kt-rn"><b>' + esc(s.name) + '</b><small>' + s.n + ' buổi · buổi gần nhất ' + ktDm(s.last) + '</small></span><span class="sp"></span><span class="kt-pill ai"><i class="bi bi-file-earmark-pdf"></i> Hồ sơ</span><i class="bi bi-chevron-right kt-chev"></i></button>').join('') : '<div class="kt-pad small muted">Buổi của lớp này chưa ghi danh sách học sinh.</div>') + '</div>' : '') + '</div>'; }).join('');
+    $$('[data-kpc]', V).forEach(el => { const cls = el.dataset.kpc;
+      $('[data-ktog]', el).onclick = () => { P.open[cls] = !P.open[cls]; pick(); };
+      $$('[data-kpst]', el).forEach(b => { b.onclick = () => open(cls, b.dataset.kpst, b.dataset.kpsn); }); });
+  };
+  /* hồ sơ một bé */
+  const open = async (cls, code, name) => {
+    P.cls = cls; P.code = code; P.name = name; P.data = null;
+    V.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx('Đang gom nhận xét cũ của ' + name + '…', { c: 'cmt' }) : 'Đang tải…') + '</div>';
+    const C = (P.list.list || []).find(x => x.cls === cls) || {};
+    try { P.data = await rpc('ktProf', { cls: cls, code: code, name: name, fr: P.fr, to: P.to, grades: C.grades, prog: C.prog }, { quiet: true }); }
+    catch (e) { V.innerHTML = ktErrCard(e) + '<button class="btn sm" id="ktPfBk2"><i class="bi bi-arrow-left"></i> Chọn bé khác</button>'; const b = $('#ktPfBk2', V); if (b) b.onclick = pick; return; }
+    paint();
+  };
+  const key = () => P.cls + '|' + P.code;
+  const paint = () => {
+    const R = P.data, S = P.sum[key()], busy = P.busy === key();
+    V.innerHTML = '<div class="kt-card kt-pad"><div class="kt-h"><button class="btn sm ghost" id="ktPfBk"><i class="bi bi-arrow-left"></i> Chọn bé khác</button><span class="sp"></span><span class="kt-sub">' + ktDm(R.fr) + ' → ' + ktDm(R.to) + '</span></div>' +
+      '<div class="kt-h">' + ktAv(R.stu.name) + '<div class="kt-t" style="flex:1;min-width:180px"><b>' + esc(R.stu.name) + '</b><span class="kt-meta">' + [R.stu.cls, R.stu.grades && 'Khối ' + R.stu.grades, R.stu.prog, (R.tea || []).join(', ')].filter(Boolean).map(x => '<span>' + esc(x) + '</span>').join('') + '</span></div>' + (S && S.mucDo ? '<span class="kt-pill ai">Sức học: ' + esc(S.mucDo) + '</span>' : '') + '</div>' +
+      '<div class="kt-kpi"><div><b>' + R.n + '</b><small>buổi đã học</small></div><div><b>' + R.nCmt + '</b><small>buổi có nhận xét</small></div><div><b>' + R.vang + '</b><small>buổi vắng</small></div><div><b>' + (R.hw != null ? R.hw + '%' : '–') + '</b><small>BTVN hoàn thành</small></div></div>' +
+      '<div class="kt-acts"><button class="btn pri sm" id="ktPfAi"' + (busy ? ' disabled' : '') + '><i class="bi bi-stars"></i> ' + (S ? 'Phân tích lại' : 'AI phân tích') + '</button>' +
+        '<button class="btn sm" id="ktPfPdf"><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' + (S ? '<button class="btn sm ghost" id="ktPfCp"><i class="bi bi-clipboard"></i> Chép tóm tắt</button>' : '') +
+        '<span class="sp"></span><span class="kt-sub">' + (S ? 'Đã có tóm tắt — PDF gồm cả tóm tắt và nhật ký buổi học' : 'Bấm AI phân tích rồi xuất PDF để gửi gia sư mới') + '</span></div>' +
+      '<div id="ktPfAo"></div></div>' + (S ? ktProfSumHtml(S) : '') + ktProfLogHtml(R);
+    $('#ktPfBk', V).onclick = pick;
+    $('#ktPfPdf', V).onclick = () => ktProfPdf(R, P.sum[key()]);
+    const cp = $('#ktPfCp', V); if (cp) cp.onclick = () => { navigator.clipboard.writeText(ktProfText(R, S)).then(() => toast('Đã chép bản tóm tắt', 'ok')); };
+    if (busy) $('#ktPfAo', V).innerHTML = ktThink(['Đang đọc nhận xét cũ của các thầy cô', 'Đang gom mạch kiến thức đã học', 'Đang đánh giá sức học', 'Đang viết bản bàn giao']);
+    $('#ktPfAi', V).onclick = async () => {
+      const k = key(); P.busy = k; paint();
+      try { const r = await rpc('ktProfAi', { cls: P.cls, code: P.code, name: P.name, fr: P.fr, to: P.to }, { quiet: true });
+        ktWatch(r.log, lg => { P.busy = ''; const A = lg && lg.actions && lg.actions.prof;
+          if (!A) { P.sum[k] = null; paint(); const o = $('#ktPfAo', V); if (o) o.innerHTML = '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc((lg && lg.err) || 'AI chưa đọc được hồ sơ — thử lại') + '</span></div>'; return; }
+          P.sum[k] = A; if (key() === k) paint(); toast('Đã có bản tóm tắt — bấm Xuất PDF để gửi gia sư mới', 'ok', 5000); }); }
+      catch (e) { P.busy = ''; paint(); fail(e); }
+    };
+  };
+  $('#ktPfFr', B).onchange = e => { P.fr = e.target.value || P.fr; P.data = null; load(); };
+  $('#ktPfTo', B).onchange = e => { P.to = e.target.value || P.to; P.data = null; load(); };
+  $('#ktPfQ', B).oninput = () => { if (P.list && !P.data) pick(); };
+  $('#ktPfRe', B).onclick = () => { P.data = null; load(true); };
+  if (P.list && P.data) paint(); else if (P.list) pick(); else load();
+}
+/** khối tóm tắt AI trên màn hình */
+function ktProfSumHtml(S) {
+  const ul = (t, i, L) => L && L.length ? '<div class="kt-pfb"><h5><i class="bi ' + i + '"></i> ' + t + '</h5><ul>' + L.map(x => '<li>' + x + '</li>').join('') + '</ul></div>' : '';
+  const tx = (t, i, v) => v ? '<div class="kt-pfb"><h5><i class="bi ' + i + '"></i> ' + t + '</h5><p>' + esc(v) + '</p></div>' : '';
+  return '<div class="kt-card kt-pad kt-pf"><div class="kt-t"><b><i class="bi bi-stars"></i> Bản bàn giao do AI tóm tắt</b><span class="kt-sub">Đọc lại và sửa nếu cần trước khi gửi — AI chỉ dựa vào nhận xét cũ trên kientre.click.</span></div>' +
+    (S.tongQuan ? '<p class="kt-pfq">' + esc(S.tongQuan) + '</p>' : '') +
+    (S.daHoc && S.daHoc.length ? '<div class="kt-pfb"><h5><i class="bi bi-signpost-split"></i> Đã dạy tới đâu</h5><table class="kt-tbl"><tbody>' + S.daHoc.map(x => '<tr><td style="white-space:normal;font-weight:700;width:34%">' + esc(x.mang) + '</td><td style="white-space:normal">' + esc(x.ketQua) + '</td></tr>').join('') + '</tbody></table></div>' : '') +
+    '<div class="kt-pf2">' + ul('Điểm mạnh', 'bi-hand-thumbs-up', (S.diemManh || []).map(esc)) +
+      ul('Cần kèm thêm', 'bi-life-preserver', (S.canKem || []).map(x => esc(x.y) + (x.vi ? ' <span class="kt-sub">(' + esc(ktProfVi(x.vi)) + ')</span>' : ''))) + '</div>' +
+    tx('Thái độ & thói quen học', 'bi-emoji-smile', S.thaiDo) + tx('Bài tập về nhà', 'bi-journal-check', S.btvn) +
+    ul('Gợi ý cho gia sư mới', 'bi-lightbulb', (S.goiY || []).map(esc)) + tx('Lưu ý khi dạy', 'bi-exclamation-circle', S.luuY) + '</div>';
+}
+/** nhật ký buổi học trên màn hình */
+function ktProfLogHtml(R) {
+  if (!R.items.length) return '<div class="kt-card kt-empty"><i class="bi bi-journal-x"></i><div>Chưa có buổi nào của bé trong khoảng ngày này.</div></div>';
+  return '<div class="kt-card"><div class="kt-pad" style="padding-bottom:0"><div class="kt-t"><b><i class="bi bi-clock-history"></i> Nhật ký buổi học &amp; nhận xét cũ</b><span class="kt-sub">' + R.items.length + ' buổi · ' + R.nCmt + ' buổi thầy cô có ghi nhận xét</span></div></div>' +
+    '<div class="kt-scroll tall"><table class="kt-tbl"><thead><tr><th>Ngày</th><th>Bài</th><th>Nhận xét của thầy cô</th><th>BTVN</th></tr></thead><tbody>' +
+    R.items.map(it => '<tr><td class="n">' + ktThu(it.d) + ' ' + ktDm(it.d) + '</td><td style="white-space:normal;min-width:120px">' + esc(it.bai || it.lc || '—') + (it.tea ? '<br><span class="kt-sub">' + esc(it.tea) + '</span>' : '') + '</td>' +
+      '<td style="white-space:normal;min-width:260px">' + (ktProfCmt(it).map(x => '<div><b class="kt-sub">' + x[0] + ':</b> ' + esc(x[1]) + '</div>').join('') || '<span class="kt-sub">' + esc(it.att || '—') + '</span>') + '</td>' +
+      '<td class="n">' + (it.lam != null ? it.lam + '%' + (it.dung != null ? ' · đúng ' + it.dung + '%' : '') : '—') + '</td></tr>').join('') + '</tbody></table></div></div>';
+}
+/** dẫn chứng AI trả về có ngày dạng 2026-11-16 → đổi sang 16/11 cho dễ đọc */
+function ktProfVi(s) { return String(s || '').replace(/(\d{4})-(\d{2})-(\d{2})/g, (m, y, mo, d) => d + '/' + mo); }
+function ktProfCmt(it) { return [['Thái độ', it.td], ['Bài tập', it.bt], ['Còn yếu', it.yeu], ['Nhận xét', it.nx]].filter(x => x[1]); }
+/** bản tóm tắt dạng chữ (nút Chép) */
+function ktProfText(R, S) {
+  const L = ['HỒ SƠ BÀN GIAO · ' + R.stu.name + (R.stu.cls ? ' · ' + R.stu.cls : ''), ktDm(R.fr) + ' → ' + ktDm(R.to) + ' · ' + R.n + ' buổi · ' + R.nCmt + ' buổi có nhận xét', ''];
+  if (!S) return L.join('\n');
+  if (S.mucDo) L.push('Sức học: ' + S.mucDo);
+  if (S.tongQuan) L.push(S.tongQuan, '');
+  if ((S.daHoc || []).length) { L.push('ĐÃ DẠY TỚI ĐÂU'); S.daHoc.forEach(x => L.push('- ' + x.mang + ': ' + x.ketQua)); L.push(''); }
+  if ((S.diemManh || []).length) { L.push('ĐIỂM MẠNH'); S.diemManh.forEach(x => L.push('- ' + x)); L.push(''); }
+  if ((S.canKem || []).length) { L.push('CẦN KÈM THÊM'); S.canKem.forEach(x => L.push('- ' + x.y + (x.vi ? ' (' + ktProfVi(x.vi) + ')' : ''))); L.push(''); }
+  if (S.thaiDo) L.push('THÁI ĐỘ: ' + S.thaiDo);
+  if (S.btvn) L.push('BTVN: ' + S.btvn);
+  if ((S.goiY || []).length) { L.push('', 'GỢI Ý CHO GIA SƯ MỚI'); S.goiY.forEach(x => L.push('- ' + x)); }
+  if (S.luuY) L.push('', 'LƯU Ý: ' + S.luuY);
+  return L.join('\n');
+}
+/* ══════ XUẤT PDF HỒ SƠ (in → “Lưu thành PDF”, khổ A4) ══════ */
+function ktProfPdf(R, S) {
+  const d = new Date(), dd = x => String(x).padStart(2, '0'), hom = dd(d.getDate()) + '/' + dd(d.getMonth() + 1) + '/' + d.getFullYear();
+  const li = L => '<ul>' + L.map(x => '<li>' + x + '</li>').join('') + '</ul>';
+  const sec = (t, inner) => inner ? '<section><h2>' + t + '</h2>' + inner + '</section>' : '';
+  const head = '<header><div class="bar"><div class="br"><b>Kiến Trẻ</b><span>Hồ sơ bàn giao học sinh</span></div><div class="dt">Xuất ngày ' + hom + '</div></div>' +
+    '<div class="who"><div class="nm"><b>' + esc(R.stu.name) + '</b><span>' + [R.stu.cls, R.stu.grades && 'Khối ' + R.stu.grades, R.stu.prog].filter(Boolean).map(esc).join(' · ') + '</span></div>' +
+    (S && S.mucDo ? '<div class="lv"><small>Sức học</small><b>' + esc(S.mucDo) + '</b></div>' : '') + '</div>' +
+    '<div class="kpi"><div><b>' + R.n + '</b><small>buổi đã học</small></div><div><b>' + R.nCmt + '</b><small>buổi có nhận xét</small></div><div><b>' + R.vang + '</b><small>buổi vắng</small></div><div><b>' + (R.hw != null ? R.hw + '%' : '–') + '</b><small>BTVN hoàn thành</small></div><div><b>' + ktDm(R.fr) + ' → ' + ktDm(R.to) + '</b><small>khoảng thời gian</small></div></div>' +
+    ((R.tea || []).length ? '<p class="tea"><b>Thầy cô đã dạy:</b> ' + esc(R.tea.join(' · ')) + '</p>' : '') + '</header>';
+  const sum = !S ? '<section class="note">Hồ sơ này chưa có bản tóm tắt của AI — bấm <b>AI phân tích</b> trước khi xuất để gia sư mới nắm nhanh.</section>' :
+    (S.tongQuan ? '<section class="lead"><p>' + esc(S.tongQuan) + '</p></section>' : '') +
+    sec('Đã dạy tới đâu', (S.daHoc || []).length ? '<table class="tb"><tbody>' + S.daHoc.map(x => '<tr><td class="k">' + esc(x.mang) + '</td><td>' + esc(x.ketQua) + '</td></tr>').join('') + '</tbody></table>' : '') +
+    '<div class="two">' + ((S.diemManh || []).length ? '<section class="bx ok"><h2>Điểm mạnh</h2>' + li(S.diemManh.map(esc)) + '</section>' : '') +
+      ((S.canKem || []).length ? '<section class="bx warn"><h2>Cần kèm thêm</h2>' + li(S.canKem.map(x => esc(x.y) + (x.vi ? ' <i>(' + esc(ktProfVi(x.vi)) + ')</i>' : ''))) + '</section>' : '') + '</div>' +
+    sec('Thái độ &amp; thói quen học', S.thaiDo ? '<p>' + esc(S.thaiDo) + '</p>' : '') +
+    sec('Bài tập về nhà', S.btvn ? '<p>' + esc(S.btvn) + '</p>' : '') +
+    ((S.goiY || []).length ? '<section class="bx tip"><h2>Gợi ý cho gia sư mới</h2>' + li(S.goiY.map(esc)) + '</section>' : '') +
+    (S.luuY ? '<section class="bx note2"><h2>Lưu ý khi dạy</h2><p>' + esc(S.luuY) + '</p></section>' : '');
+  const log = '<section class="brk"><h2>Nhật ký buổi học &amp; nhận xét cũ</h2><table class="tb log"><thead><tr><th>Ngày</th><th>Bài</th><th>Nhận xét của thầy cô</th><th>BTVN</th></tr></thead><tbody>' +
+    R.items.map(it => '<tr><td class="d">' + ktDm(it.d) + '</td><td class="b">' + esc(it.bai || it.lc || '—') + (it.tea ? '<br><i>' + esc(it.tea) + '</i>' : '') + '</td>' +
+      '<td>' + (ktProfCmt(it).map(x => '<div><b>' + x[0] + ':</b> ' + esc(x[1]) + '</div>').join('') || '<i>' + esc(it.att || '—') + '</i>') + '</td>' +
+      '<td class="d">' + (it.lam != null ? it.lam + '%' + (it.dung != null ? '<br><i>đúng ' + it.dung + '%</i>' : '') : '—') + '</td></tr>').join('') + '</tbody></table></section>';
+  const foot = '<footer>Nguồn: nhận xét buổi học của thầy cô trên kientre.click · Bản tóm tắt do AI viết lại, người bàn giao đã đọc trước khi gửi.</footer>';
+  const area = document.createElement('div'); area.id = 'ktPrint';
+  area.innerHTML = '<article class="kt-pg">' + head + sum + log + foot + '</article>';
+  document.body.appendChild(area);
+  const st = document.createElement('style'); st.id = 'ktPrintCss'; st.textContent = KT_PDF_CSS;
+  document.head.appendChild(st);
+  const t0 = document.title; document.title = 'Ho so ban giao - ' + R.stu.name.replace(/[\\/:*?"<>|]/g, '') + ' - ' + R.fr + ' den ' + R.to;
+  const clean = () => { area.remove(); st.remove(); document.title = t0; removeEventListener('afterprint', clean); };
+  addEventListener('afterprint', clean);
+  toast('Chọn “Lưu thành PDF” (Save as PDF), khổ A4, bật “Đồ hoạ nền”', 'info', 5000);
+  setTimeout(() => window.print(), 80);
+}
+/** CSS trang in A4 — màu cố định (không dùng token theo chế độ tối) để bản in luôn nền trắng, chữ đậm */
+const KT_PDF_CSS = '#ktPrint{ display:none }' +
+  '@media print{ @page{ size:A4; margin:12mm 12mm 10mm } body > *:not(#ktPrint){ display:none !important } html,body{ height:auto !important; overflow:visible !important; background:#fff !important }' +
+  '#ktPrint{ display:block; font-family:"Be Vietnam Pro",Helvetica,Arial,sans-serif; font-size:10.5pt; line-height:1.5 }' +
+  /* app đang ở chế độ tối thì chữ của app là màu sáng — bản in đặt lại màu cho MỌI phần tử để không bị trắng trên trắng */
+  '#ktPrint, #ktPrint *{ box-sizing:border-box; color:#111827 !important; background-color:transparent; box-shadow:none !important; text-shadow:none !important }' +
+  '#ktPrint h2{ font-size:11pt; margin:0 0 5px; color:#2F45C8 !important; letter-spacing:.01em; text-transform:uppercase }' +
+  '#ktPrint section{ margin:0 0 11px; break-inside:avoid } #ktPrint p{ margin:0 0 5px } #ktPrint ul{ margin:0; padding-left:16px } #ktPrint li{ margin:0 0 3px }' +
+  '#ktPrint .bar{ display:flex; align-items:flex-end; justify-content:space-between; border-bottom:2.5pt solid #2F45C8; padding-bottom:6px }' +
+  '#ktPrint .br b{ font-size:15pt; color:#2F45C8 !important; letter-spacing:-.02em } #ktPrint .br span{ display:block; font-size:10pt; font-weight:600; color:#4B5563 !important; margin-top:1px }' +
+  '#ktPrint .dt{ font-size:9pt; color:#6B7280 !important }' +
+  '#ktPrint .who{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:10px 0 8px }' +
+  '#ktPrint .nm b{ font-size:19pt; display:block; letter-spacing:-.02em } #ktPrint .nm span{ font-size:10pt; color:#4B5563 !important }' +
+  '#ktPrint .lv{ border:1.2pt solid #2F45C8; border-radius:8px; padding:5px 12px; text-align:center; min-width:96px } #ktPrint .lv small{ display:block; font-size:8pt; color:#6B7280 !important; text-transform:uppercase; letter-spacing:.04em } #ktPrint .lv b{ font-size:12pt; color:#2F45C8 !important }' +
+  '#ktPrint .kpi{ display:flex; gap:6px; margin:0 0 8px } #ktPrint .kpi > div{ flex:1; background:#F3F4F8 !important; border-radius:7px; padding:6px 8px; text-align:center }' +
+  '#ktPrint .kpi b{ display:block; font-size:12pt } #ktPrint .kpi small{ font-size:7.6pt; color:#6B7280 !important }' +
+  '#ktPrint .tea{ font-size:9.5pt; color:#374151 !important; margin:0 0 12px }' +
+  '#ktPrint .lead p{ font-size:11pt; line-height:1.6; border-left:3pt solid #F59E0B; padding-left:10px; margin:0 0 12px }' +
+  '#ktPrint .two{ display:flex; gap:10px; break-inside:avoid } #ktPrint .two > section{ flex:1 }' +
+  '#ktPrint .bx{ border:0.8pt solid #D7DCEA; border-radius:9px; padding:8px 11px; background:#FAFBFF !important }' +
+  '#ktPrint .bx.ok{ background:#F2FBF5 !important; border-color:#BBE5C8 } #ktPrint .bx.warn{ background:#FFF8F0 !important; border-color:#F3D6AE }' +
+  '#ktPrint .bx.tip{ background:#F1F3FE !important; border-color:#C3CAF5 } #ktPrint .bx.note2{ background:#FFF7F7 !important; border-color:#F0CACA }' +
+  '#ktPrint .tb{ width:100%; border-collapse:collapse; font-size:9.6pt } #ktPrint .tb td, #ktPrint .tb th{ border-bottom:0.6pt solid #E3E7F0; padding:4px 6px; vertical-align:top; text-align:left }' +
+  '#ktPrint .tb .k{ font-weight:700; width:32% } #ktPrint .tb th{ background:#EEF1FA !important; color:#2F45C8 !important; font-size:8.6pt; text-transform:uppercase; letter-spacing:.03em; border-bottom:1pt solid #C9D2EA }' +
+  '#ktPrint .log tr{ break-inside:avoid } #ktPrint .log .d{ white-space:nowrap; width:11%; color:#4B5563 !important } #ktPrint .log .b{ width:22%; font-weight:600 } #ktPrint .log i{ color:#6B7280 !important; font-style:normal; font-size:8.8pt }' +
+  '#ktPrint .log b{ color:#2F45C8 !important; font-size:8.8pt; text-transform:uppercase; letter-spacing:.02em }' +
+  '#ktPrint .brk{ break-before:page } #ktPrint .note{ font-size:10pt; background:#FFF8F0 !important; border:0.8pt solid #F3D6AE; border-radius:9px; padding:8px 11px }' +
+  '#ktPrint footer{ margin-top:10px; padding-top:6px; border-top:0.6pt solid #E3E7F0; font-size:8.4pt; color:#6B7280 !important } }';
+
 /* ── VĂN PHONG ── */
 async function ktStyleView(B) {
   B.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx('Đang mở văn phong…', { c: 'cmt' }) : '') + '</div>';
@@ -29365,13 +29584,13 @@ function ktConnView(B) {
   const box = (slot, c, title, sub) => { const L = X[slot], code = KT.code && KT.code[slot];
     return '<div class="kt-card kt-pad" data-kslot="' + slot + '"><div class="kt-t"><b>' + title + '</b><span class="kt-sub">' + sub + '</span></div>' +
       '<div class="kt-conn"><span class="kt-dot' + (c ? ' on' : '') + '"></span>' + (c ? '<span><b>' + esc(c.name || c.email) + '</b> · ' + esc(c.email) + ' · ' + esc(c.role) + '</span>' + (c.via === 'ext' ? '<span class="kt-pill ai"><i class="bi bi-puzzle"></i> Qua tiện ích</span>' : '') + (c.exp ? '<span class="kt-pill">Hết hạn ' + ktDm(c.exp) + '/' + String(c.exp).slice(0, 4) + '</span>' : '') + '<button class="kt-lnk" data-koff>Ngắt</button>' : '<span>Chưa nối</span>') + '</div>' +
-      '<div class="kt-mat"><i class="bi bi-puzzle"></i><span>' + (L && L.at ? (L.err ? '<b>Tiện ích báo:</b> ' + esc(L.err) : 'Tiện ích gửi phiên <b>' + esc(L.who || '') + '</b>') + ' · ' + ktDm(String(L.at).slice(0, 10)) + ' ' + String(L.at).slice(11, 16) + (L.ver ? ' · bản ' + esc(L.ver) + (X.v && L.ver !== X.v ? ' <span class="kt-pill warn">có bản ' + esc(X.v) + '</span>' : '') : '') : L && L.on ? 'Đã có mã — chờ tiện ích gửi phiên lần đầu' : '<b>Tự động qua tiện ích</b> — cài Kiến Trẻ Connect, dán mã một lần là xong, khỏi dán cookie') + '</span>' +
-        '<button class="btn sm" data-kxk><i class="bi bi-key"></i> ' + (L && L.on ? 'Lấy mã mới' : 'Lấy mã cho tiện ích') + '</button></div>' +
-      (code ? '<div class="kt-goi"><b>Mã kết nối (dán vào tiện ích — mã cũ đã hết hiệu lực)</b><textarea class="kt-ta mono" rows="3" readonly data-kcode>' + esc(code) + '</textarea><div class="kt-acts"><button class="btn sm" data-kcc><i class="bi bi-clipboard"></i> Chép mã</button><a class="btn sm ghost" href="' + esc(X.zip || '#') + '" target="_blank" rel="noopener"><i class="bi bi-download"></i> Tải tiện ích</a></div></div>' : '') +
+      '<div class="kt-mat"><i class="bi bi-puzzle"></i><span>' + (L && L.at ? (L.err ? '<b>Tiện ích báo:</b> ' + esc(L.err) : 'Tiện ích gửi phiên <b>' + esc(L.who || '') + '</b>') + ' · ' + ktDm(String(L.at).slice(0, 10)) + ' ' + String(L.at).slice(11, 16) + (L.ver ? ' · bản ' + esc(L.ver) + (X.v && L.ver !== X.v ? ' <span class="kt-pill warn">có bản ' + esc(X.v) + '</span>' : '') : '') : L && L.on ? 'Đã có mã — chờ tiện ích gửi phiên lần đầu' : '<b>Tự động qua tiện ích</b> — cài Kiến Connect, dán mã một lần là xong, khỏi dán cookie') + '</span>' +
+        (code ? '' : '<button class="btn sm" data-kxk="0"><i class="bi bi-key"></i> ' + (L && L.on ? 'Hiện mã' : 'Lấy mã cho tiện ích') + '</button>') + '</div>' +
+      (code ? '<div class="kt-goi"><b>Mã kết nối chung' + (KT.codeKgs && KT.codeKgs[slot] ? ' — gồm cả Đồng bộ KGS' : '') + '</b><span class="kt-sub">Dán vào tiện ích Kiến Connect. ' + (slot === 'me' && KT.codeKgs && KT.codeKgs.me ? 'Cùng mã ở Kiến CM › Đồng bộ KGS — một tiện ích, một mã cho cả hai.' : 'Một tiện ích, một mã.') + '</span><textarea class="kt-ta mono" rows="3" readonly data-kcode>' + esc(code) + '</textarea><div class="kt-acts"><button class="btn sm" data-kcc><i class="bi bi-clipboard"></i> Chép mã</button><a class="btn sm ghost" href="' + esc(X.zip || '#') + '" target="_blank" rel="noopener"><i class="bi bi-download"></i> Tải tiện ích</a><span class="sp"></span><button class="kt-lnk" data-kxk="1">Lấy mã mới</button></div></div>' : '') +
       '<details class="kt-his"><summary><i class="bi bi-clipboard-plus"></i> Hoặc dán phiên tay</summary><div style="border:0;padding:0;margin-top:10px;display:flex;flex-direction:column;gap:8px"><textarea class="kt-ta mono" data-kck rows="3" placeholder="Dán giá trị dòng cookie ở đây (tên=giá trị; tên2=giá trị2 …)"></textarea><div class="kt-acts"><span class="sp"></span><button class="btn pri sm" data-ksave><i class="bi bi-plug"></i> ' + (c ? 'Dán phiên mới' : 'Kết nối') + '</button></div></div></details></div>'; };
-  B.innerHTML = '<div class="kt-card kt-pad"><div class="kt-t"><b><i class="bi bi-puzzle"></i> Nối bằng tiện ích Kiến Trẻ Connect (khuyên dùng)</b></div><ol class="kt-steps">' +
-    '<li><a href="' + esc(X.zip || 'https://kientre-internal.click/ext/kientre-connect.zip') + '" target="_blank" rel="noopener"><b>Tải tiện ích</b></a> (bản ' + esc(X.v || '') + ') rồi giải nén.</li>' +
-    '<li>Mở <b>chrome://extensions</b> → bật <b>Chế độ dành cho nhà phát triển</b> → <b>Tải tiện ích đã giải nén</b> → chọn thư mục <i>kientre-connect</i>.</li>' +
+  B.innerHTML = '<div class="kt-card kt-pad"><div class="kt-t"><b><i class="bi bi-puzzle"></i> Nối bằng tiện ích Kiến Connect (khuyên dùng)</b></div><ol class="kt-steps">' +
+    '<li><a href="' + esc(X.zip || 'https://kientre-internal.click/ext/kien-connect.zip') + '" target="_blank" rel="noopener"><b>Tải tiện ích</b></a> (bản ' + esc(X.v || '') + ') rồi giải nén.</li>' +
+    '<li>Mở <b>chrome://extensions</b> → bật <b>Chế độ dành cho nhà phát triển</b> → <b>Tải tiện ích đã giải nén</b> → chọn thư mục <i>kien-connect</i>. Đã cài KGS Sync / Kiến Trẻ Connect cũ thì gỡ bản cũ.</li>' +
     '<li>Bấm <b>Lấy mã cho tiện ích</b> ở thẻ bên dưới → <b>Chép mã</b> → bấm biểu tượng tiện ích trên Chrome, dán mã, <b>Lưu mã</b>.</li>' +
     '<li>Đăng nhập <a href="https://kientre.click" target="_blank" rel="noopener">kientre.click</a> trên Chrome đó bằng đúng tài khoản (giáo viên để nhận xét · giáo vụ cho Hỏi dữ liệu và Lớp đã học). Tiện ích tự gửi phiên, tự gửi lại khi bạn đăng nhập lại.</li></ol>' +
     '<div class="kt-sub">Phiên chỉ lưu trên máy chủ, không về trình duyệt. Chrome chỉ đăng nhập được một tài khoản kientre.click mỗi lúc — muốn nối cả giáo viên lẫn giáo vụ thì dùng hai hồ sơ Chrome, hoặc dán tay một phiên.</div></div>' +
@@ -29380,9 +29599,12 @@ function ktConnView(B) {
   $$('[data-kslot]', B).forEach(el => { const slot = el.dataset.kslot;
     $('[data-ksave]', el).onclick = async () => { const v = $('[data-kck]', el).value.trim(); if (!v) return toast('Dán dòng cookie trước', 'warn');
       try { const r = await rpc('ktConnect', { slot: slot, cookie: v }); KT.b[slot === 'office' ? 'office' : 'me'] = r.conn; toast('Đã nối kientre.click: ' + (r.conn.name || r.conn.email), 'ok'); ktConnView(B); } catch (e) { fail(e); } };
-    $('[data-kxk]', el).onclick = async () => {
-      if (X[slot] && X[slot].on && !await ask('Lấy mã mới? Mã đang dán trong tiện ích sẽ hết hiệu lực — phải dán mã mới vào tiện ích.')) return;
-      try { const r = await rpc('ktExtKey', { slot: slot }); (KT.code = KT.code || {})[slot] = r.code; X[slot] = r.last || { on: 1 }; KT.b.ext = X; ktConnView(B); toast('Đã tạo mã — chép rồi dán vào tiện ích', 'ok'); } catch (e) { fail(e); } };
+    const xk = $('[data-kxk]', el); if (xk) xk.onclick = async () => {      // 0 = hiện mã đang có (tạo nếu chưa có) · 1 = mã mới (mã cũ hết hiệu lực)
+      const fresh = xk.dataset.kxk === '1';
+      if (fresh && !await ask('Lấy mã mới? Mã đang dán trong tiện ích (kể cả phần Đồng bộ KGS nếu dùng chung) sẽ hết hiệu lực — phải dán mã mới vào tiện ích.')) return;
+      try { const r = await rpc('ktExtKey', { slot: slot, fresh: fresh ? 1 : 0 }); (KT.code = KT.code || {})[slot] = r.code; (KT.codeKgs = KT.codeKgs || {})[slot] = r.kgs; X[slot] = r.last || { on: 1 }; KT.b.ext = X; ktConnView(B); toast(fresh ? 'Đã tạo mã mới — chép rồi dán vào tiện ích' : 'Chép mã rồi dán vào tiện ích', 'ok'); } catch (e) { fail(e); } };
+    $$('[data-kxk="1"]', el).forEach(b => { if (b !== xk) b.onclick = async () => { if (!await ask('Lấy mã mới? Mã đang dán trong tiện ích (kể cả phần Đồng bộ KGS nếu dùng chung) sẽ hết hiệu lực — phải dán mã mới vào tiện ích.')) return;
+      try { const r = await rpc('ktExtKey', { slot: slot, fresh: 1 }); KT.code[slot] = r.code; KT.codeKgs[slot] = r.kgs; X[slot] = r.last || { on: 1 }; ktConnView(B); toast('Đã tạo mã mới — chép rồi dán vào tiện ích', 'ok'); } catch (e) { fail(e); } }; });
     const cc = $('[data-kcc]', el); if (cc) cc.onclick = () => navigator.clipboard.writeText($('[data-kcode]', el).value).then(() => toast('Đã chép mã kết nối', 'ok'));
     const off = $('[data-koff]', el); if (off) off.onclick = async () => { if (!await ask('Ngắt phiên kientre.click này? Mã tiện ích của phiên này cũng hết hiệu lực.')) return; await rpc('ktConnect', { slot: slot, off: 1 }); KT.b[slot === 'office' ? 'office' : 'me'] = null; X[slot] = null; if (KT.code) delete KT.code[slot]; ktConnView(B); }; });
 }
