@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T00:28:20.082Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T01:26:20.470Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -9380,7 +9380,7 @@ const ROUTES = {
   settings: { t: 'Cài đặt', i: 'bi-gear', fn: (a, v) => viewSettings(a, v), arg: 1 },
   admin:    { t: 'Cài đặt quản trị', i: 'bi-sliders', fn: (a, v) => viewSettings(a, v, true), arg: 1, cap: ['settings.manage', 'audit.view'] },      // (1.43.2) Chung & truy cập · Menu & tab · Hệ thống · Nhật ký — tab riêng của Quản trị
   tasks:    { t: 'Kiến Task', i: 'bi-kanban', fn: (a, v) => viewTasks(a, v), arg: 1, cls: 'tk-view', cap: TASK_TABS },
-  kt:       { t: 'Kiến Trẻ', i: 'bi-chat-heart', fn: (a, v) => viewKt(a, v), arg: 1, cap: 'kt.use' },      // (1.84) KienTreView.html
+  kt:       { t: 'Kiến Trẻ', i: 'bi-backpack2', fn: (a, v) => viewKt(a, v), arg: 1, cap: 'kt.use' },      // (1.84) KienTreView.html
   book:     { t: 'Kiến Cẩm Nang', i: 'bi-journal-richtext', fn: (a, v) => viewBook(a, v), arg: 1, cls: 'bk-view', cap: ['book.view', 'book.manage'] },
   apps:     { t: 'Apps', i: 'bi-grid-3x3-gap', fn: (a, v) => viewApps(a, v) },
   trash:    { t: 'Thùng rác', i: 'bi-trash3', fn: (a, v) => viewTrash(a, v) },      // (1.57) ai cũng mở được: mỗi người thấy mục mình xoá, Admin thấy hết (Trash.gs › trashCan_)
@@ -16772,10 +16772,11 @@ function clFbChat(c, box, ctx) {
 /** (1.84.4) XUẤT PDF BÁO CÁO NHẬN XÉT GIA SƯ — khung rptPdf (logo con diều, bộ màu mail): thẻ số · phân tích AI (nếu đã chạy) · biểu đồ BTVN · bảng từng buổi (có ảnh vở) */
 function clFbPdf(c, L, X, st) {
   if (typeof rptPdf !== 'function') return toast('Chưa tải được khung báo cáo — tải lại trang', 'warn');
+  if (!(X && (X.summary || X.fb))) return toast('Chưa có phần nhận xét tổng hợp — bấm “AI phân tích & gán bài” trước rồi xuất PDF', 'warn');      // (1.84.6) PDF chỉ chứa phần nhận xét tổng hợp
   const dm = d => String(d || '').slice(8, 10) + '/' + String(d || '').slice(5, 7), n = v => v === '' || v == null || isNaN(Number(v)) ? null : Number(v);
   const H = L.filter(x => n(x.lam) != null || n(x.dung) != null).slice(0, 16).reverse();
   const chart = H.length >= 2 && typeof ktChartSvg === 'function' ? '<section>' + ktChartSvg({ type: 'line', title: 'Bài tập về nhà theo buổi', unit: '%', labels: H.map(x => dm(x.d)), series: [{ name: 'Làm', data: H.map(x => n(x.lam)) }, { name: 'Đúng', data: H.map(x => n(x.dung)) }] }, { print: 1 }) + '</section>' : '';
-  const ai = X && (X.summary || X.fb) ? '<section class="ktr-bx tip"><h2>Phân tích của AI</h2>' + (X.summary ? '<p><b>' + esc(X.summary) + '</b></p>' : '') + (X.fb ? (typeof aiMd === 'function' ? aiMd(X.fb, {}) : '<p>' + esc(X.fb) + '</p>') : '') + '</section>' :
+  const ai = X && (X.summary || X.fb) ? '<section class="ktr-bx tip"><h2>Nhận xét tổng hợp</h2>' + (X.summary ? '<p><b>' + esc(X.summary) + '</b></p>' : '') + (X.fb ? (typeof aiMd === 'function' ? aiMd(X.fb, {}) : '<p>' + esc(X.fb) + '</p>') : '') + '</section>' :
     '<div class="ktr-note">Báo cáo chưa có phần phân tích — bấm <b>AI phân tích &amp; gán bài</b> trong bảng nhận xét trước khi xuất để có tóm tắt điểm mạnh / phần còn yếu.</div>';
   const cmt = x => [['Tiếp thu', x.tt], ['Thái độ', x.td], ['Bài tập trên lớp', x.bt], ['Còn yếu', x.yeu], ['Nhận xét GS', x.nx]].filter(y => y[1]).map(y => '<div><span class="lb">' + y[0] + '</span> ' + esc(y[1]) + '</div>').join('');
   const ph = x => { const U = (Array.isArray(x.ph) ? x.ph : []).filter(u => /^\/api\/uploads\//.test(String(u))).slice(0, 3); return U.length ? '<div class="ktr-ph">' + U.map(u => '<img src="https://app.kiengiasu.edu.vn' + esc(u) + '" alt="">').join('') + '</div>' : ''; };
@@ -16784,8 +16785,8 @@ function clFbPdf(c, L, X, st) {
       '<td class="b">' + esc(x.nd || '—') + '</td><td>' + (cmt(x) || '<span class="mu">—</span>') + ph(x) + '</td><td class="n">' + (n(x.lam) != null ? n(x.lam) + '%' + (n(x.dung) != null ? '<br><span class="mu">đúng ' + n(x.dung) + '%</span>' : '') : '—') + '</td></tr>').join('') + '</tbody></table></section>';
   rptPdf({ kicker: 'Báo cáo nhận xét gia sư', title: clName(c), sub: [c.code, c.tutorName && 'Gia sư ' + c.tutorName, c.grade, c.course].filter(Boolean).join(' · '),
     kpi: [{ n: L.length, t: 'buổi có nhận xét' }, { n: st.lam, t: 'BTVN làm TB' }, { n: st.dung, t: 'BTVN đúng TB' }, { n: st.vang || 0, t: 'buổi vắng / nghỉ' }, { n: st.nDv, t: 'KGS đã duyệt' }],
-    body: ai + chart + tbl, file: 'Nhan xet gia su - ' + clName(c) + ' - ' + (c.code || ''),
-    foot: 'Nguồn: nhận xét điểm danh gia sư ghi bên Kiến Gia Sư' + (st.at ? ' · cập nhật ' + esc(fmtDT(st.at)) : '') + ' · dòng chưa duyệt nên đọc lại trước khi gửi phụ huynh.' });
+    body: ai + chart, file:      /* (1.84.6) bỏ bảng nhận xét từng buổi (tbl) khỏi PDF — chỉ phần nhận xét tổng hợp + biểu đồ */ 'Nhan xet gia su - ' + clName(c) + ' - ' + (c.code || ''),
+    foot: 'Tổng hợp từ nhận xét buổi học của gia sư Kiến Gia Sư' + (st.at ? ' · cập nhật ' + esc(fmtDT(st.at)) : '') + '.' });
 }
 /** (1.78.6) THỜI KHOÁ BIỂU CỦA BÉ: mọi buổi của bé trên các lớp (cùng mã học sinh KGS, không có mã thì cùng tên) — sắp tới + 45 ngày đã qua, kèm người dạy + gia sư ghi gì bên KGS */
 /** (1.78.10) địa điểm học (KGS › Vận hành › Cơ sở → Classes.campus): “Tại nhà” / tên cơ sở */
@@ -24160,7 +24161,8 @@ function asstAva(av, sz, busy) {
 }
 const AGL = [[1, 'Chuỗi flow', 'Model + API'], [2, 'Chỉ dẫn', 'System prompt'], [3, 'Dữ liệu tra cứu', 'RAG'], [4, 'Công cụ', 'Tools / MCP'], [5, 'Phân quyền', 'Ai được dùng'], [6, 'Rào chắn', 'Guardrails'], [7, 'Bộ đệm + định tuyến', 'Cache + Router'], [8, 'Giám sát', 'Monitoring + Eval']];
 const AG_TOOLS_RO = { hub: ['Tổng quan các trợ lý', 'Việc đang chạy', 'Giao việc cho trợ lý con', 'Tóm tắt Kiến Task'], chat: ['Lớp & buổi', 'Lộ trình bé', 'Nhận xét KGS', 'Thư viện tài liệu', 'Link tạm', 'Tìm web (nếu bật)'], task: ['Bảng Kiến Task', 'Check-in', 'Hiệu suất 30 ngày'], audit: ['Buổi sắp tới của mọi bé', 'Lộ trình & tiến độ trường', 'Báo cáo các phòng hôm nay', 'Giao Gán bài gán lại (nháp)'],
-  assign: ['Lộ trình bé', 'Buổi sắp tới', 'Nhận xét KGS', 'Kho topic'], route: ['Nội dung dạy bên KGS', 'Chương trình cũ', 'Bài nháp 3 tuần'], match: ['Nội dung gia sư ghi bên KGS', 'Bài đã gán'], pmap: ['Bài đã học ở chương trình cũ'], reqs: ['Yêu cầu của gia sư', 'Trao đổi lớp'], grade: ['Tệp phiếu / đề', 'Tiêu chuẩn chấm'] };
+  assign: ['Lộ trình bé', 'Buổi sắp tới', 'Nhận xét KGS', 'Kho topic'], route: ['Nội dung dạy bên KGS', 'Chương trình cũ', 'Bài nháp 3 tuần'], match: ['Nội dung gia sư ghi bên KGS', 'Bài đã gán'], pmap: ['Bài đã học ở chương trình cũ'], reqs: ['Yêu cầu của gia sư', 'Trao đổi lớp'], grade: ['Tệp phiếu / đề', 'Tiêu chuẩn chấm'],
+  ktc: ['kientre.click · lịch & topic các lớp', 'Điểm danh, BTVN, nhận xét giáo viên', 'Hồ sơ học sinh học lớp', 'Phạm vi mock test theo nhóm lớp'], kgsm: ['KGS · nhận xét gia sư từng buổi', 'Ảnh vở, BTVN', 'Lộ trình & tiến độ bé', 'Hồ sơ bàn giao gia sư mới'] };      // (1.84.6)
 const AG_GUARD_RO = { assign: 'Máy chủ luôn kiểm: mã bài có thật trong lộ trình, không gán bài đã học / bài cũ / bị bỏ qua, không xếp lùi.', route: 'Máy chủ luôn kiểm: chỉ xếp lại bài NHÁP, không xếp lùi, có Hoàn tác.', match: 'Chỉ đề xuất — quản lý bấm Lưu.', pmap: 'Chỉ khớp bài có trong chương trình mới.', reqs: 'Chỉ áp dụng những việc quản trị cho tự làm.', grade: 'Điểm 0–10, tiêu chí theo bộ tiêu chuẩn.' };
 const AGS = { d: null, sel: 'hub', dr: null, dirty: false, test: null };
 async function asstAgentStudio(host) {
@@ -25228,9 +25230,9 @@ html[data-oflook="net"][data-mode="dark"] :is(.of-in, .of-cvin, .of-zs) > svg :i
    · BỘ NÃO CHUNG ở giữa: bấm → ngăn thiết lập (ghi nhớ bật / tắt / thêm / quên, hướng dẫn, kỹ năng) ═════ */
 const OF = { d: null, seen: null, prev: {}, t: 0, fx: {}, pend: [], sig: '', dockMin: !!lsGet('ofDockMin', true) };
 const OF_TW = 300, OF_TH = 150, OF_WH = 48;
-const OF_SHORT = { hub: 'Điều phối', chat: 'Chuyên môn', task: 'Kiến Task', assign: 'Gán bài', route: 'Rà soát lộ trình', match: 'Khớp bài đã dạy', pmap: 'Đổi chương trình', reqs: 'Yêu cầu & trao đổi', grade: 'Nhận xét bài', audit: 'Kiểm tra báo cáo' };
-const OF_TOOLS = { tong: 'Tổng quan các trợ lý', task: 'Dữ liệu Kiến Task', giao: 'Giao việc cho trợ lý con', web: 'Tìm trên web', lop: 'Lịch học 7 ngày', lotrinh: 'Lộ trình & tiến độ bé', kgs: 'Nội dung KGS 14 ngày', yeucau: 'Yêu cầu & ghi chú', baocao: 'Tủ báo cáo', thuvien: 'Tìm trong Thư viện', giasu: 'Gia sư & các bé' };
-const OF_VIA = { hub: 'hub', chat: 'cm', task: 'task' }, OF_ROOM = { assign: 1, route: 1, match: 1, pmap: 1, reqs: 1, grade: 1, audit: 1 };      // (1.82.12) phòng chuyên biệt nhận việc thẳng
+const OF_SHORT = { hub: 'Điều phối', chat: 'Chuyên môn', task: 'Kiến Task', assign: 'Gán bài', route: 'Rà soát lộ trình', match: 'Khớp bài đã dạy', pmap: 'Đổi chương trình', reqs: 'Yêu cầu & trao đổi', grade: 'Nhận xét bài', audit: 'Kiểm tra báo cáo', ktc: 'Quản lý click', kgsm: 'Quản lý KGS' };      // (1.84.6) hai phòng dữ liệu
+const OF_TOOLS = { tong: 'Tổng quan các trợ lý', task: 'Dữ liệu Kiến Task', giao: 'Giao việc cho trợ lý con', web: 'Tìm trên web', lop: 'Lịch học 7 ngày', lotrinh: 'Lộ trình & tiến độ bé', kgs: 'KGS · học gia sư 14 ngày', click: 'kientre.click · học lớp', yeucau: 'Yêu cầu & ghi chú', baocao: 'Tủ báo cáo', thuvien: 'Tìm trong Thư viện', giasu: 'Gia sư & các bé' };
+const OF_VIA = { hub: 'hub', chat: 'cm', task: 'task' }, OF_ROOM = { assign: 1, route: 1, match: 1, pmap: 1, reqs: 1, grade: 1, audit: 1, ktc: 1, kgsm: 1 };      // (1.82.12) phòng chuyên biệt nhận việc thẳng
 function ofShort(a) { return (a.nick ? a.nick + ' · ' : '') + (OF_SHORT[a.key] || a.t); }      // (1.82.13) + tên riêng
 function ofCol(a) { return 'var(--primary)'; }      /* (1.82.9) phòng / thẻ / luồng dùng màu chính của bộ thiết kế — robot vẫn giữ màu riêng */
 function ofName(k) { const a = OF.d && OF.d.agents.find(x => x.key === k); return a ? (a.nick ? a.nick + ' (' + a.t + ')' : a.t) : k; }
@@ -25293,6 +25295,7 @@ function ofPaint() {
   /* (1.82.13) PHÂN CẤP: mỗi phòng một cấp trên (a.up) — Trưởng phòng (chuyên môn / vận hành / kiểm soát) đứng đầu nhóm, nhân viên thụt vào dưới; agent riêng theo cấp trên đã chọn */
   const kids = k => A.filter(a => a.key !== 'hub' && (a.up || 'hub') === k), lead = k => A.find(a => a.key === k);
   const grp = [['Điều phối', [lead('hub')].filter(Boolean), 0], ['Phòng chuyên môn', [lead('chat')].filter(Boolean).concat(kids('chat')), 1], ['Phòng vận hành', [lead('task')].filter(Boolean).concat(kids('task')), 1], ['Kiểm soát', [lead('audit')].filter(Boolean).concat(kids('audit')), 1],
+    ['Phòng dữ liệu học sinh', [lead('ktc'), lead('kgsm')].filter(a => a && (a.up || 'hub') === 'hub'), 0],      // (1.84.6) kientre.click (học lớp) · KGS (học gia sư) — tách nguồn
     ['Agent riêng', A.filter(a => /^x:/.test(a.key) && (a.up || 'hub') === 'hub'), 0]];
   $('#ofS').innerHTML = grp.filter(g => g[1].length || g[0] === 'Agent riêng').map(g => '<div class="of-sh">' + g[0] + '</div>' + g[1].map((a, i) => { const b = byAg[a.key], sub = g[2] && i > 0;
     return '<button type="button" class="of-si' + (sub ? ' sub' : '') + '" data-ofr="' + esc(a.key) + '" title="' + esc(ofNick(a)) + (sub ? ' — cấp trên: ' + esc(ofName(a.up)) : '') + '"><span class="of-dot ' + (b ? 'run' : 'idle') + '"></span>' + asstAva(a.av, 'xs', !!b) + '<span class="t"><b>' + esc(a.nick || a.t) + (g[2] && i === 0 ? ' <em class="of-lead">trưởng phòng</em>' : '') + '</b><small>' + (ofLay().hide.indexOf(a.key) >= 0 && !b ? '<i class="bi bi-eye-slash" title="Đang ẩn khỏi sơ đồ"></i> ' : '') + esc((a.nick ? a.t + ' · ' : '') + (b ? (b.length > 1 ? b.length + ' việc song song' : 'đang làm' + (b[0].sp ? ' · bước ' + b[0].sp : '')) : a.today.n ? a.today.n + ' lượt hôm nay' : a.chain > 1 ? a.chain + ' bước flow' : 'rảnh')) + '</small></span></button>'; }).join('') +
@@ -26075,7 +26078,7 @@ function ofDrawer(k, refresh, focus) {
     '<div class="of-dr-b"><div class="of-dr-s"><div class="of-chips"><span>' + (runs.length ? (runs.length > 1 ? runs.length + ' việc song song' : 'đang làm 1 việc') : a.off ? 'đang tắt' : 'rảnh') + '</span><span>' + (a.chain > 1 ? a.chain + ' bước flow' : 'một flow') + '</span><span>Hôm nay ' + a.today.n + ' lượt · ' + a.today.ok + ' xong' + (a.today.err ? ' · ' + a.today.err + ' lỗi' : '') + '</span>' + (a.sys ? '<span>có chỉ dẫn riêng</span>' : '') + (a.guard ? '<span>có rào chắn</span>' : '') + '</div></div>' +
       (runs.length ? '<div class="of-dr-s"><h4>Đang làm' + (runs.length > 1 ? ' song song' : '') + '</h4>' + runs.map(r => '<div class="of-run"><b>' + esc(r.t) + '</b><small>' + esc(r.kt) + (r.sp ? ' · bước ' + r.sp + ' của chuỗi flow' : '') + (r.hub ? ' · Trợ lý chung giao' : '') + ' · ' + esc(r.who) + ' · ' + esc(asbAgo(r.at)) + '</small>' + (r.sp ? '<div class="of-bar"><i style="width:' + Math.round(100 * (Number(r.sp.split('/')[0]) - .5) / Number(r.sp.split('/')[1])) + '%"></i></div>' : '') + '</div>').join('') + '</div>' : '') +
       (bq.length ? '<div class="of-dr-s"><h4>Việc dài chia đợt</h4>' + bq.map(j => '<div class="of-run"><b>' + esc(j.t || 'Gán bài') + '</b><small>Đợt ' + Math.min(j.i + 1, j.n) + '/' + j.n + ' · ' + j.be + ' bé · ' + j.days + ' ngày tới · mỗi phút máy chủ gửi tiếp một đợt, tắt trang vẫn chạy</small><div class="of-bar"><i style="width:' + Math.round(100 * j.i / Math.max(1, j.n)) + '%"></i></div></div>').join('') + '</div>' : '') +
-      '<div class="of-dr-s of-give"><h4>Giao việc cho phòng này</h4><textarea class="ta" id="ofGx" placeholder="' + esc(k === 'hub' ? 'VD “rà soát các bé lệch KGS rồi báo mình” — Trợ lý chung tự chia việc' : job ? 'VD “gán bài tuần tới cho bé Hồng Nhật” — đi qua Trợ lý chuyên môn' : 'Việc cần làm…') + '"></textarea><div class="r"><small>' + (room ? (k === 'audit' ? 'Phòng soát ngay các buổi sắp tới + báo cáo hôm nay, nhận xét và tự giao gán lại (nháp).' : k === 'reqs' ? 'Phòng đọc ngay yêu cầu / ghi chú / tin chờ trả lời và đề xuất cách xử lý.' : 'Phòng LÀM LIỀN: chọn bé, mỗi bé một thư theo đúng lộ trình của bé, bài gán lưu NHÁP — kết quả vào Tủ báo cáo.') : job ? 'Việc của phòng này chạy qua Trợ lý chuyên môn (cần dữ liệu lớp / buổi).' : 'Giao nhiều việc liền nhau được — các phòng làm song song, tắt trang vẫn chạy.') + '</small><button type="button" class="btn sm pri" data-ofg="' + esc(via) + '"><i class="bi bi-send"></i>Giao</button></div></div>' +
+      '<div class="of-dr-s of-give"><h4>Giao việc cho phòng này</h4><textarea class="ta" id="ofGx" placeholder="' + esc(k === 'hub' ? 'VD “rà soát các bé lệch KGS rồi báo mình” — Trợ lý chung tự chia việc' : job ? 'VD “gán bài tuần tới cho bé Hồng Nhật” — đi qua Trợ lý chuyên môn' : 'Việc cần làm…') + '"></textarea><div class="r"><small>' + (room ? (k === 'audit' ? 'Phòng soát ngay các buổi sắp tới + báo cáo hôm nay, nhận xét và tự giao gán lại (nháp).' : k === 'ktc' ? 'Chỉ dữ liệu kientre.click (học lớp) — đọc lịch, topic, BTVN, nhận xét qua phiên giáo vụ; trả lời như Trợ lý Kiến Trẻ.' : k === 'kgsm' ? 'Chỉ dữ liệu KGS (học gia sư 1–1) — nhận xét gia sư, BTVN, ảnh vở, lộ trình bé.' : k === 'reqs' ? 'Phòng đọc ngay yêu cầu / ghi chú / tin chờ trả lời và đề xuất cách xử lý.' : 'Phòng LÀM LIỀN: chọn bé, mỗi bé một thư theo đúng lộ trình của bé, bài gán lưu NHÁP — kết quả vào Tủ báo cáo.') : job ? 'Việc của phòng này chạy qua Trợ lý chuyên môn (cần dữ liệu lớp / buổi).' : 'Giao nhiều việc liền nhau được — các phòng làm song song, tắt trang vẫn chạy.') + '</small><button type="button" class="btn sm pri" data-ofg="' + esc(via) + '"><i class="bi bi-send"></i>Giao</button></div></div>' +
       '<div class="of-dr-s" id="ofCab"><h4><i class="bi bi-archive"></i> Tủ hồ sơ của phòng<span class="sp"></span>' + (D.can ? '<button type="button" class="btn xs" data-ofdn><i class="bi bi-plus-lg"></i>Thêm tài liệu</button>' : '') + '</h4>' +
         '<div class="small muted" style="margin-bottom:6px">Agent xem được:</div><div class="of-chips" style="margin-bottom:10px">' + ofSees(a).map(x => '<span>' + esc(x) + '</span>').join('') + '</div>' +
         (a.docs.length ? a.docs.map((d, i) => '<div class="of-doc"><i class="bi bi-' + (/docs\.google|drive\.google/.test(d.url) ? 'file-earmark-text' : d.url ? 'link-45deg' : 'sticky') + '"></i><div class="t">' + (d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">' + esc(d.t || d.url) + '</a>' : '<b>' + esc(d.t || 'Ghi chú') + '</b>') + (d.b ? '<small>' + esc(aiCut(d.b, 300)) + '</small>' : '') + '<small class="of-dk">' + (d.url && /docs\.google|drive\.google/.test(d.url) ? '<i class="bi bi-eye"></i> Agent đọc nội dung tệp (tối đa 5.000 ký tự)' : d.url ? '<i class="bi bi-exclamation-triangle"></i> Link web: agent chỉ thấy đường link, không đọc trang' : '<i class="bi bi-eye"></i> Agent đọc nguyên ghi chú') + '</small><div class="of-dpk" id="ofDpk' + i + '"></div></div>' + (D.can ? '<button type="button" class="btn xs ghost" data-ofdpk="' + i + '" title="Đọc thử đúng như agent đọc"><i class="bi bi-search"></i>Thử đọc</button><button type="button" class="ibtn sm" data-ofdx="' + i + '" aria-label="Xoá tài liệu"><i class="bi bi-trash"></i></button>' : '') + '</div>').join('')
@@ -29104,6 +29107,15 @@ function svMemoV(b) {
 .kt-sug:hover{ border-color:var(--brand-400); color:var(--ink) } .kt-sug i{ color:var(--brand-600); margin-top:1px }
 .kt-mu{ align-self:flex-end; max-width:82%; background:color-mix(in oklab, var(--brand-600) 11%, var(--surface)); color:var(--ink); padding:10px 15px; border-radius:20px 20px 6px 20px; font-size:14.5px; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere }
 .kt-ma{ display:flex; gap:12px; align-items:flex-start }
+.kt-gadd{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px } .kt-gadd .kt-sel{ flex:1; min-width:180px }      /* (1.84.6) cấp quyền theo mail */
+.kt-gsrc{ display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 11px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font:inherit; font-size:12.5px; cursor:pointer; white-space:nowrap }
+.kt-gsrc.on{ background:color-mix(in oklab, var(--brand-600, var(--primary)) 12%, var(--surface)); border-color:color-mix(in oklab, var(--brand-600, var(--primary)) 45%, var(--border)); color:var(--ink); font-weight:600 }
+.kt-glist{ display:flex; flex-direction:column; margin-top:12px; border-top:1px solid var(--border) }
+.kt-grow{ display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid var(--border); flex-wrap:wrap } .kt-grow .kt-rn{ min-width:0; display:flex; flex-direction:column } .kt-grow .kt-rn small{ color:var(--muted); font-size:12px }
+.kt-warn{ color:var(--warn, #B45309) }
+@media (max-width:560px){ .kt-grow .sp{ flex-basis:100%; height:0 } }
+.kt-ma > .as-bot.xs{ width:34px; height:34px; font-size:16px; margin-top:1px }      /* (1.84.6) Trợ lý = agent có vòng xoay (asstBot — như phòng Điều phối) */
+.kt-hello > .as-bot.md{ margin:0 auto 14px }
 .kt-ma > .kt-av2{ width:30px; height:30px; border-radius:50%; flex:none; background:var(--kite) 54% 52%/auto 62% no-repeat, var(--surface); box-shadow:inset 0 0 0 1px var(--border-strong, var(--border)); margin-top:1px }
 .kt-ma > div{ flex:1; min-width:0; display:flex; flex-direction:column; gap:10px }
 .kt-scope{ display:flex; gap:6px; flex-wrap:wrap } .kt-mact{ display:flex; gap:4px; flex-wrap:wrap; margin-left:-6px }
@@ -29419,21 +29431,21 @@ function ktAskView(B) {
   SEND.onclick = () => { if (Q.value.trim()) ask(Q.value.trim()); };
   const paint = () => {
     const L = KT.chat.msgs;
-    if (!L.length) { M.innerHTML = '<div class="kt-hello"><span class="kt-orb"></span><h2>Trợ lý Kiến Trẻ</h2><p>Hỏi về các lớp trên kientre.click: bài (topic) đã học, bài chung giữa các lớp, tình hình học của một học sinh / một lớp theo môn, bài tập về nhà, chuyên cần — có biểu đồ khi cần.</p>' +
+    if (!L.length) { M.innerHTML = '<div class="kt-hello">' + ktBot('md') + '<h2>Trợ lý Kiến Trẻ</h2><p>Hỏi về các lớp trên kientre.click: bài (topic) đã học, bài chung giữa các lớp, tình hình học của một học sinh / một lớp theo môn, bài tập về nhà, chuyên cần — có biểu đồ khi cần.</p>' +
       (!(KT.b.office || (KT.b.me && KT.b.me.office)) ? '<p class="kt-err" style="justify-content:center"><i class="bi bi-plug"></i> Cần phiên giáo vụ — quản lý dán ở tab Kết nối.</p>' : '') +
       '<div class="kt-sugs">' + (KT.chat.stu ? [['bi-clipboard-data', 'Tóm tắt tình hình học của ' + KT.chat.stu.name + ' theo từng môn'], ['bi-exclamation-diamond', 'Em đang yếu phần nào? Dẫn ngày cụ thể'], ['bi-envelope-heart', 'Viết nhận xét chi tiết gửi phụ huynh của ' + KT.chat.stu.name], ['bi-graph-up', 'BTVN của em thay đổi thế nào? Vẽ biểu đồ']] : KT_SUGS).map(x => '<button class="kt-sug" data-ksg="' + esc(x[1]) + '"><i class="bi ' + x[0] + '"></i><span>' + esc(x[1]) + '</span></button>').join('') + '</div></div>';
       $$('[data-ksg]', M).forEach(b => { b.onclick = () => ask(b.dataset.ksg); }); return; }
     M.innerHTML = L.map((m, i) => m.role === 'u' ? '<div class="kt-mu">' + esc(m.text) + '</div>' :
-      '<div class="kt-ma" data-kmi="' + i + '"><span class="kt-av2" aria-hidden="true"></span><div>' +
+      '<div class="kt-ma" data-kmi="' + i + '">' + ktBot('xs', m.st === 'wait') + '<div>' +
         (m.scope ? '<div class="kt-scope"><span class="kt-pill">' + esc((m.scope.mon || []).join(', ')) + '</span><span class="kt-pill">' + esc(/^(Lớp|Khối)/.test(m.scope.khoi) ? m.scope.khoi : 'Khối ' + m.scope.khoi) + '</span><span class="kt-pill">' + m.scope.n + ' lớp</span><span class="kt-pill">' + ktDm(m.scope.fr) + ' → ' + ktDm(m.scope.to) + '</span>' + (m.scope.cut ? '<span class="kt-pill warn">Mốc ' + ktDm(m.scope.cut) + '</span>' : '') + (m.scope.att ? '<span class="kt-pill">' + m.scope.att + ' lượt điểm danh</span>' : '') + ((m.scope.hs || []).length ? '<span class="kt-pill ai"><i class="bi bi-person"></i> ' + esc(m.scope.hs.join(', ')) + '</span>' : '') + '</div>' : '') +
         (m.grp && m.grp.length ? ktGrpHtml(m.grp, m.cut) : '') + (m.st === 'wait' ? ktThink(['Đang đọc lịch các lớp từ kientre.click', 'Đang đọc điểm danh, BTVN, nhận xét', 'Đang so sánh và tính số liệu', 'Đang soạn câu trả lời']) : m.st === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(m.text) + '</span></div>' : m.prof ? ktProfSumHtml(m.prof, m.src) : '<div class="kt-md kt-ans">' + ktMdC(m.text) + '</div>') +
-        (m.st !== 'wait' ? '<div class="kt-mact">' + ((m.text || m.prof) && m.st !== 'err' ? '<button data-kcp><i class="bi bi-clipboard"></i> Chép</button>' : '') + (m.prof ? '<button data-kmpdf><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' : '') + (m.mx && m.mx.rows && m.mx.rows.length ? '<button data-kmx><i class="bi bi-grid-3x3"></i> Bảng topic · ' + m.mx.cols.length + ' lớp × ' + m.mx.rows.length + ' bài</button>' : '') + (m.mx && m.mx.common && m.mx.common.length ? '<button data-kcm><i class="bi bi-intersect"></i> ' + m.mx.common.length + ' bài chung</button>' : '') + '</div>' : '') +
+        (m.st !== 'wait' ? '<div class="kt-mact">' + ((m.text || m.prof) && m.st !== 'err' ? '<button data-kcp><i class="bi bi-clipboard"></i> Chép</button>' : '') + (m.prof ? '<button data-kmpdf><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' : '') + (ktWantMx(m) && m.mx && m.mx.rows && m.mx.rows.length ? '<button data-kmx><i class="bi bi-grid-3x3"></i> Bảng topic · ' + m.mx.cols.length + ' lớp × ' + m.mx.rows.length + ' bài</button>' : '') + (ktWantMx(m) && m.mx && m.mx.common && m.mx.common.length ? '<button data-kcm><i class="bi bi-intersect"></i> ' + m.mx.common.length + ' bài chung</button>' : '') + '</div>' : '') +
       '</div></div>').join('');
     $$('[data-kmi]', M).forEach(el => { const m = L[Number(el.dataset.kmi)];
       const pd = $('[data-kmpdf]', el); if (pd) pd.onclick = async () => { if (m.stuK !== ktStuKey(KT.chat.stu)) return toast('Chọn lại học sinh của báo cáo này rồi xuất PDF', 'warn'); try { ktProfPdf(await ktStuLoad(), m.prof); } catch (e) { fail(e); } };
       const pp = $('[data-kpph]', el); if (pp && m.prof) pp.onclick = () => navigator.clipboard.writeText(m.prof.thuPhuHuynh || '').then(() => toast('Đã chép nhận xét gửi phụ huynh', 'ok'));
       if (m.prof) { const c0 = $('[data-kcp]', el); if (c0) c0.onclick = () => navigator.clipboard.writeText(ktProfText(KT.stuR || { stu: { name: '' }, fr: '', to: '', n: 0, nCmt: 0 }, m.prof)).then(() => toast('Đã chép báo cáo', 'ok')); }
-      const cp = m.prof ? null : $('[data-kcp]', el); if (cp) cp.onclick = () => navigator.clipboard.writeText(String(m.text || '').replace(/```chart[\s\S]*?```/g, '').trim()).then(() => toast('Đã chép', 'ok'));
+      const cp = m.prof ? null : $('[data-kcp]', el); if (cp) cp.onclick = () => navigator.clipboard.writeText(String(m.text || '').replace(/```(?:chart|json)?[\s\S]*?```/g, '').replace(/\{\s*"type"[^\n]*"series"[^\n]*\}/g, '').trim()).then(() => toast('Đã chép', 'ok'));
       $$('[data-kgc]', el).forEach(b => { b.onclick = () => navigator.clipboard.writeText(ktGrpText(m.grp[Number(b.dataset.kgc)], m.cut)).then(() => toast('Đã chép phạm vi ' + m.grp[Number(b.dataset.kgc)].ten, 'ok')); });
       const mx = $('[data-kmx]', el); if (mx) mx.onclick = () => ktMatrixDlg(m.mx, 'Bảng topic · ' + (m.scope ? (m.scope.mon || []).join(', ') + ' · khối ' + m.scope.khoi : ''));
       const cm = $('[data-kcm]', el); if (cm) cm.onclick = () => ktMatrixDlg(m.mx, 'Bài chung của ' + m.mx.cols.length + ' lớp', true); });
@@ -29441,10 +29453,10 @@ function ktAskView(B) {
   };
   const ask = async q => {
     Q.value = ''; fit();
-    const c = KT.chat, um = { role: 'u', text: q }, am = { role: 'a', st: 'wait', text: '' }; c.msgs.push(um, am); ktChatSave(); paint();
+    const c = KT.chat, um = { role: 'u', text: q }, am = { role: 'a', st: 'wait', text: '', q: q }; c.msgs.push(um, am); ktChatSave(); paint();
     try {
       const r = await rpc('ktAsk', { q: q, conv: c.conv, stu: c.stu || null, sj: KT.ask.sj, fr: ktAdd(ktToday(), -Number(KT.ask.span || 150)), to: ktToday() }, { quiet: true });
-      c.conv = r.conv; am.scope = r.scope; am.mx = r.mx; am.grp = r.grp || null; am.cut = r.cut || ''; am.id = r.log.id; ktChatSave(); paint();
+      c.conv = r.conv; am.scope = r.scope; am.mx = r.mx; am.stu = r.stu || ''; am.grp = r.grp || null; am.cut = r.cut || ''; am.id = r.log.id; ktChatSave(); paint();
       ktWatch(r.log, o => { am.st = o.status === 'err' ? 'err' : 'ok'; am.text = o.status === 'err' ? (o.err || 'AI chưa trả lời được') : (o.reply || '(không có nội dung)'); ktChatSave(); if ($('#ktMsgs')) paint(); });
     } catch (e) { am.st = 'err'; am.text = e.message; ktChatSave(); paint(); }
   };
@@ -29568,9 +29580,11 @@ function ktProfView(B) {
   const to = ktToday();
   const SP0 = ktSpanGet('prof', 180);
   KT.pf = KT.pf || { src: lsGet('ktPfSrc', 'kt'), fr: SP0.fr, to: SP0.to, open: {}, sum: {}, cls: '', code: '', name: '', data: null };
-  const P = KT.pf, dateBox = '<span id="ktPfDs">' + ktSpanHtml('prof', SP0) + '</span>';
+  const P = KT.pf, dateBox = '<span id="ktPfDs">' + ktSpanHtml('prof', SP0) + '</span>', SRC = (KT.b && KT.b.src) || { kt: 1, kgs: 1 };      // (1.84.6) mail được cấp chỉ một nguồn → ẩn nguồn kia
+  if (!SRC[P.src]) P.src = SRC.kt ? 'kt' : 'kgs';
   B.innerHTML = '<div class="kt-top"><div class="kt-seg" role="tablist" aria-label="Nguồn dữ liệu"><button type="button" data-kpsrc="kt" aria-pressed="' + (P.src !== 'kgs') + '"><i class="bi bi-building"></i> Học lớp · kientre.click</button><button type="button" data-kpsrc="kgs" aria-pressed="' + (P.src === 'kgs') + '"><i class="bi bi-person-video3"></i> Học gia sư · KGS</button></div>' +
     dateBox + '<input class="kt-sel" id="ktPfQ" placeholder="Tìm học sinh, lớp, giáo viên…" style="min-width:160px;flex:1"><button class="kt-ico" id="ktPfRe" aria-label="Tải lại"><i class="bi bi-arrow-clockwise"></i></button></div><div id="ktPf" class="kt"></div>';
+  $$('[data-kpsrc]', B).forEach(b => { if (!SRC[b.dataset.kpsrc]) b.hidden = true; });
   const V = $('#ktPf', B), kgs = () => P.src === 'kgs';
   const syncTop = () => { $('#ktPfDs', B).hidden = kgs(); $$('[data-kpsrc]', B).forEach(x => x.setAttribute('aria-pressed', x.dataset.kpsrc === P.src)); };
   const load = async fresh => {
@@ -29715,11 +29729,11 @@ function ktProfText(R, S) {
 }
 /* ══════ XUẤT PDF HỒ SƠ (khung rptPdf — bộ màu mail, logo con diều) ══════ */
 function ktProfPdf(R, S) {
+  if (!S) return toast('Chưa có phần nhận xét — bấm “Lập báo cáo” / “AI phân tích” trước rồi xuất PDF', 'warn');      // (1.84.6) PDF chỉ chứa phần nhận xét tổng hợp
   const li = L => '<ul>' + L.map(x => '<li>' + x + '</li>').join('') + '</ul>', sec = (t, inner, cls) => inner ? '<section' + (cls ? ' class="' + cls + '"' : '') + '><h2>' + t + '</h2>' + inner + '</section>' : '';
   const hw = ktProfHw(R), multi = (R.hist || []).length > 1;
   const tl = multi ? sec('Quá trình học', '<div class="ktr-tl">' + R.hist.map((h, i) => '<span' + (i === R.hist.length - 1 ? ' class="cur"' : '') + '>' + esc(h.cls) + ' · ' + ktDm(h.fr) + ' → ' + ktDm(h.to) + ' · ' + h.n + ' buổi</span>').join('<i>→</i>') + '</div>') : '';
-  const sum = !S ? '<div class="ktr-note">Hồ sơ này chưa có bản tóm tắt của AI — bấm <b>AI phân tích</b> trước khi xuất để gia sư mới nắm nhanh.</div>' :
-    (S.tongQuan ? '<p class="ktr-lead">' + esc(S.tongQuan) + '</p>' : '') +
+  const sum = (S.tongQuan ? '<p class="ktr-lead">' + esc(S.tongQuan) + '</p>' : '') +
     sec('Đã dạy tới đâu', (S.daHoc || []).length ? '<table><tbody>' + S.daHoc.map(x => '<tr><td class="k">' + esc(x.mang) + '</td><td>' + esc(x.ketQua) + '</td></tr>').join('') + '</tbody></table>' : '') +
     ((S.diemManh || []).length || (S.canKem || []).length ? '<div class="ktr-two">' + ((S.diemManh || []).length ? '<section class="ktr-bx ok"><h2>Điểm mạnh</h2>' + li(S.diemManh.map(esc)) + '</section>' : '') +
       ((S.canKem || []).length ? '<section class="ktr-bx warn"><h2>Cần kèm thêm</h2>' + li(S.canKem.map(x => esc(x.y) + (x.vi ? ' <span class="mu">(' + esc(ktProfVi(x.vi)) + ')</span>' : ''))) + '</section>' : '') + '</div>' : '') +
@@ -29727,7 +29741,8 @@ function ktProfPdf(R, S) {
     ((S.goiY || []).length ? sec(R.src === 'kgs' ? 'Gợi ý cho gia sư mới' : 'Gợi ý cho giáo viên đứng lớp', li(S.goiY.map(esc)), 'ktr-bx tip') : '') + (S.luuY ? sec('Lưu ý khi dạy', '<p>' + esc(S.luuY) + '</p>', 'ktr-bx warn') : '');
   const chart = hw ? '<section>' + ktChartSvg(hw, { print: 1 }) + '</section>' : '';
   const thu = S && S.thuPhuHuynh ? '<section class="ktr-bx ok flow"><h2>Nhận xét gửi phụ huynh</h2>' + S.thuPhuHuynh.split(/\n{2,}/).map(x => '<p>' + esc(x).replace(/\n/g, '<br>') + '</p>').join('') + '</section>' : '';
-  const log = '<section class="flow"><h2>Nhật ký buổi học &amp; nhận xét cũ</h2><table><thead><tr><th>Ngày</th><th>Bài</th><th>Nhận xét của thầy cô</th><th>BTVN</th></tr></thead><tbody>' +
+  /* (1.84.6) bỏ “Nhật ký buổi học & nhận xét cũ” khỏi PDF — người dùng chỉ gửi phần nhận xét tổng hợp; nhật ký vẫn xem trong app */
+  const log = '', log0 = '<section class="flow"><h2>Nhật ký buổi học &amp; nhận xét cũ</h2><table><thead><tr><th>Ngày</th><th>Bài</th><th>Nhận xét của thầy cô</th><th>BTVN</th></tr></thead><tbody>' +
     R.items.map(it => '<tr><td class="d">' + ktDm(it.d) + (multi && it.cls ? '<br><span class="mu">' + esc(it.cls) + '</span>' : '') + '</td><td class="b">' + esc(it.bai || it.lc || '—') + (it.tea ? '<br><span class="mu">' + esc(it.tea) + '</span>' : '') + '</td>' +
       '<td>' + (ktProfCmt(it).map(x => '<div><span class="lb">' + x[0] + '</span> ' + esc(x[1]) + '</div>').join('') || '<span class="mu">' + esc(it.att || '—') + '</span>') + '</td>' +
       '<td class="n">' + (it.lam != null ? it.lam + '%' + (it.dung != null ? '<br><span class="mu">đúng ' + it.dung + '%</span>' : '') : '—') + '</td></tr>').join('') + '</tbody></table></section>';
@@ -29736,7 +29751,7 @@ function ktProfPdf(R, S) {
     kpi: [{ n: R.n, t: 'buổi đã học' }, { n: R.nCmt, t: 'buổi có nhận xét' }, { n: R.vang, t: 'buổi vắng' }, { n: R.hw != null ? R.hw + '%' : '–', t: 'BTVN làm' }, { n: R.ok != null ? R.ok + '%' : '–', t: 'BTVN đúng' }, { n: ktDm(R.fr) + ' → ' + ktDm(R.to), t: 'khoảng thời gian' }],
     body: ((R.tea || []).length ? '<p class="mu" style="margin:0 0 10px"><b>Thầy cô đã dạy:</b> ' + esc(R.tea.join(' · ')) + '</p>' : '') + tl + sum + chart + thu + log,
     file: 'Ho so hoc sinh - ' + R.stu.name + ' - ' + R.fr + ' den ' + R.to,
-    foot: 'Nguồn: nhận xét buổi học của thầy cô trên ' + (R.src === 'kgs' ? 'Kiến Gia Sư' : 'kientre.click') + ' · bản tóm tắt do AI viết lại, người bàn giao đã đọc trước khi gửi.' });
+    foot: 'Tổng hợp từ nhận xét buổi học của thầy cô' + (R.src === 'kgs' ? ' Kiến Gia Sư' : ' Kiến Trẻ') + ' · ' + ktDm(R.fr) + '/' + String(R.fr).slice(0, 4) + ' → ' + ktDm(R.to) + '/' + String(R.to).slice(0, 4) + '.' });
 }
 
 /* ══════ (1.84.4) DÙNG CHUNG: BIỂU ĐỒ SVG · MARKDOWN KÈM BIỂU ĐỒ · KHUNG PDF THEO BỘ MÀU MAIL (Kiến Trẻ + Kiến CM › Nhận xét KGS) ══════ */
@@ -29774,14 +29789,34 @@ function ktChartSvg(c, o) {
   }
   return '<figure class="kt-chart"><figcaption>' + (c.title ? '<b>' + e(c.title) + '</b>' : '') + (S.length > 1 || S[0].name ? '<span>' + S.map((s, j) => '<i style="background:' + pal[j] + '"></i>' + e(s.name || 'Số liệu')).join('<em></em>') + '</span>' : '') + '</figcaption>' + svg + '</figure>';
 }
-/** Markdown của AI có khối ```chart {json}``` → HTML (biểu đồ vẽ tại chỗ) */
+/** Markdown của AI có khối ```chart {json}``` → HTML (biểu đồ vẽ tại chỗ).
+    (1.84.6) AI có lúc quên bọc: ```json {…}``` hoặc JSON TRẦN giữa đoạn văn ({"type":"line",…,"series":[…]}) → vẫn nhận ra và vẽ, không hiện chữ JSON */
 function ktMdC(t, o) {
-  const out = [], re = /```chart\s*\n?([\s\S]*?)```/g; let last = 0, m; t = String(t || '');
-  while ((m = re.exec(t))) { if (m.index > last) out.push(ktMd(t.slice(last, m.index)));
-    let h = ''; try { h = ktChartSvg(JSON.parse(m[1]), o); } catch (e) {} out.push(h || ''); last = re.lastIndex; }
-  if (last < t.length) out.push(ktMd(t.slice(last)));
+  t = String(t || '').replace(/```(?:json|js|javascript)?[ \t]*\n?(\{[\s\S]*?\})\s*```/g, (m0, j) => /"series"\s*:/.test(j) ? '```chart\n' + j + '\n```' : m0);
+  const out = [], re = /```chart\s*\n?([\s\S]*?)```/g; let last = 0, m;
+  while ((m = re.exec(t))) { if (m.index > last) out.push(ktMdJ(t.slice(last, m.index), o));
+    let h = ''; try { h = ktChartSvg(JSON.parse(ktJsonQ(m[1])), o); } catch (e) {} out.push(h || ''); last = re.lastIndex; }
+  if (last < t.length) out.push(ktMdJ(t.slice(last), o));
   return out.join('');
 }
+/** ngoặc kép cong “ ” → " (AI hay đổi khi viết tiếng Việt) */
+function ktJsonQ(s) { return String(s).replace(/[\u201C\u201D]/g, '"'); }
+/** đoạn chữ có JSON biểu đồ TRẦN → tách ra vẽ; phần còn lại vẫn là Markdown */
+function ktMdJ(s, o) {
+  const out = [], re = /\{\s*["\u201C](?:type|title|labels|series|unit)["\u201D]\s*:/g; let i = 0, m;
+  while ((m = re.exec(s))) { const st = m.index; let d = 0, e = -1, q = false, bs = false;
+    for (let j = st; j < s.length; j++) { const ch = s[j]; if (q) { if (bs) bs = false; else if (ch === '\\') bs = true; else if (ch === '"' || ch === '\u201D') q = false; continue; }
+      if (ch === '"' || ch === '\u201C') q = true; else if (ch === '{') d++; else if (ch === '}') { d--; if (!d) { e = j; break; } } }
+    if (e < 0) break; let c = null; try { c = JSON.parse(ktJsonQ(s.slice(st, e + 1))); } catch (er) {}
+    const h = c && Array.isArray(c.series) ? ktChartSvg(c, o) : ''; if (!h) continue;
+    out.push(ktMd(s.slice(i, st))); out.push(h); i = e + 1; re.lastIndex = e + 1; }
+  out.push(ktMd(s.slice(i))); return out.join('');
+}
+/** (1.84.6) biểu tượng Trợ lý Kiến Trẻ = agent có vòng xoay (asstBot của module Trợ lý) — busy: vòng quay nhanh khi đang trả lời */
+function ktBot(sz, busy) { return typeof asstBot === 'function' ? asstBot(sz, busy) : '<span class="kt-av2" aria-hidden="true"></span>'; }
+/** (1.84.6) Bảng topic chỉ hiện khi câu hỏi về bài / topic / phạm vi đề — hỏi về một học sinh (BTVN, tình hình học…) thì không */
+const KT_MX_RE = /topic|chủ đề|chu de|bài chung|bai chung|đã học|da hoc|học (tới|đến|toi|den)|bài nào|bai nao|những bài|các bài|cac bai|mock|ra đề|ra de|\bđề\b|nội dung|noi dung|chương trình|chuong trinh|lộ trình|lo trinh|giáo trình|tài liệu/i;
+function ktWantMx(m) { return !!(m && !m.stu && (m.grp && m.grp.length || m.q && KT_MX_RE.test(m.q))); }
 /** logo con diều (Brand.html › --kite) → data URL cho <img> (ảnh luôn in được, không phụ thuộc “đồ hoạ nền”) */
 function ktLogo() { try { const v = getComputedStyle(document.documentElement).getPropertyValue('--kite').trim(), m = /url\(["']?(data:[^"')]+)["']?\)/.exec(v); return m ? m[1] : ''; } catch (e) { return ''; } }
 /** KHUNG BÁO CÁO A4 (in → Lưu thành PDF) — cùng bộ màu với mail của app: đầu xanh đậm #1E3A6E + vạch cam #EE5B27, thẻ số #F5F7FB.
@@ -29913,10 +29948,10 @@ function ktStuBar(box, onChange) {
 }
 /** hộp chọn lớp › học sinh (học lớp kientre.click hoặc học gia sư KGS) */
 function ktStuPick(onChange) {
-  let src = (KT.chat.stu && KT.chat.stu.src) || 'kt', q = '', L = null;
+  const SRC = (KT.b && KT.b.src) || { kt: 1, kgs: 1 }; let src = (KT.chat.stu && KT.chat.stu.src) || (SRC.kt ? 'kt' : 'kgs'), q = '', L = null; if (!SRC[src]) src = SRC.kt ? 'kt' : 'kgs';
   const m = modal({ title: 'Chọn học sinh', icon: 'bi-person-lines-fill', size: 'lg', foot: [{ t: 'Đóng' }],
     body: '<div class="kt-top" style="margin-bottom:10px"><div class="kt-seg"><button type="button" data-kpk="kt">Học lớp · kientre.click</button><button type="button" data-kpk="kgs">Học gia sư · KGS</button></div><input class="kt-sel" data-kpq placeholder="Tìm học sinh, lớp…" style="flex:1;min-width:150px"></div><div data-kpl class="kt-scroll tall"></div>' });
-  const box = $('[data-kpl]', m.el);
+  const box = $('[data-kpl]', m.el); $$('[data-kpk]', m.el).forEach(b => { if (!SRC[b.dataset.kpk]) b.hidden = true; });
   const paint = () => {
     $$('[data-kpk]', m.el).forEach(b => b.setAttribute('aria-pressed', b.dataset.kpk === src));
     if (!L) { box.innerHTML = typeof loadFx === 'function' ? loadFx('Đang đọc danh sách…', { c: 'doc' }) : 'Đang tải…'; return; }
@@ -29982,6 +30017,31 @@ function ktPasteHow(slot) {
     '<li>Dòng <b>cookie:</b> → chuột phải vào giá trị → <b>Copy value</b> (hoặc bôi đen cả giá trị rồi chép) → dán vào ô bên dưới → <b>Kết nối</b>.</li></ol>' +
     '<div class="kt-sub"><i class="bi bi-info-circle"></i> Phiên dùng được khoảng 30 ngày; hết hạn thì app báo, làm lại các bước trên. Cần nối cả tài khoản giáo viên lẫn giáo vụ: lấy phiên tài khoản thứ hai trong cửa sổ ẩn danh, chép xong thì đóng cửa sổ (không bấm Đăng xuất). Không gửi phiên cho người khác: ai có phiên là đăng nhập được tài khoản của bạn.</div></div>';
 }
+/* ══════ (1.84.6) CẤP QUYỀN THEO MAIL — mail được cấp vào được module Kiến Trẻ, dùng PHIÊN GIÁO VỤ đã nhập (không cần tự dán phiên);
+   mỗi mail chọn nguồn kientre.click (học lớp) và / hoặc KGS (học gia sư). Nhận xét đẩy sang kientre.click vẫn cần phiên riêng của người đó. ══════ */
+async function ktGrantView(host) {
+  if (!host) return; host.innerHTML = '<div class="kt-card kt-pad"><div class="kt-sub">' + ktThink(['Đang đọc danh sách cấp quyền']) + '</div></div>';
+  let D; try { D = await rpc('ktGrantList', {}, { quiet: true }); } catch (e) { host.innerHTML = ktErrCard(e); return; }
+  const chip = (on, k, i, t) => '<button type="button" class="kt-gsrc' + (on ? ' on' : '') + '" data-kgt="' + k + '" aria-pressed="' + (on ? 'true' : 'false') + '"><i class="bi ' + i + '"></i>' + t + '</button>';
+  const paint = () => {
+    host.innerHTML = '<div class="kt-card kt-pad"><div class="kt-h"><div class="kt-t"><b><i class="bi bi-person-check"></i> Cấp quyền dùng Kiến Trẻ theo mail</b><span class="kt-sub">Mail được cấp vào được module Kiến Trẻ và đọc dữ liệu bằng phiên giáo vụ đã nhập — không cần tự dán phiên. Chọn nguồn để giới hạn phạm vi dữ liệu.</span></div></div>' +
+      (D.office ? '' : '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>Chưa có phiên giáo vụ — nối ở thẻ bên trên thì mail được cấp mới đọc được dữ liệu kientre.click.</span></div>') +
+      '<div class="kt-gadd"><input class="kt-sel" id="ktGe" type="email" placeholder="mail@kitee.vn" autocomplete="off" aria-label="Mail cần cấp quyền">' + chip(1, 'kt', 'bi-building', 'kientre.click') + chip(1, 'kgs', 'bi-person-video3', 'KGS') + '<button class="btn sm pri" id="ktGa"><i class="bi bi-plus-lg"></i> Cấp quyền</button></div>' +
+      (D.list.length ? '<div class="kt-glist">' + D.list.map((g, i) => '<div class="kt-grow" data-kgi="' + i + '">' + ktAv(g.name || g.e) + '<span class="kt-rn"><b>' + esc(g.name || g.e.split('@')[0]) + '</b><small>' + esc(g.e) + (g.user === 0 ? ' · <span class="kt-warn">chưa có tài khoản app — thêm ở Quản trị › Người dùng</span>' : g.user === 2 ? ' · <span class="kt-warn">tài khoản đang tắt</span>' : '') + '</small></span><span class="sp"></span>' +
+        chip(g.kt, 'kt', 'bi-building', 'kientre.click') + chip(g.kgs, 'kgs', 'bi-person-video3', 'KGS') + '<button class="kt-ico" data-kgx title="Gỡ quyền" aria-label="Gỡ quyền ' + esc(g.e) + '"><i class="bi bi-x-lg"></i></button></div>').join('') + '</div>'
+        : '<div class="kt-sub" style="margin-top:10px">Chưa cấp mail nào. Người có vai trò dùng Kiến Trẻ vẫn vào được như cũ.</div>') + '</div>';
+    const add = $('.kt-gadd', host);
+    $$('[data-kgt]', add).forEach(b => { b.onclick = () => { const on = !b.classList.contains('on'); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }; });
+    const save = async o => { try { D = await rpc('ktGrantSave', o); paint(); return true; } catch (e) { fail(e); return false; } };
+    $('#ktGa', host).onclick = async () => { const e = $('#ktGe', host).value.trim(), kt = $('[data-kgt="kt"]', add).classList.contains('on'), kg = $('[data-kgt="kgs"]', add).classList.contains('on');
+      if (!e) return toast('Nhập mail cần cấp quyền', 'warn'); if (await save({ e: e, kt: kt ? 1 : 0, kgs: kg ? 1 : 0 })) toast('Đã cấp Kiến Trẻ cho ' + e + ' — người đó tải lại app là thấy', 'ok'); };
+    $('#ktGe', host).onkeydown = ev => { if (ev.key === 'Enter') $('#ktGa', host).click(); };
+    $$('[data-kgi]', host).forEach(r => { const g = D.list[Number(r.dataset.kgi)];
+      $$('[data-kgt]', r).forEach(b => { b.onclick = () => { const o = { e: g.e, kt: g.kt, kgs: g.kgs }; o[b.dataset.kgt] = g[b.dataset.kgt] ? 0 : 1; if (!o.kt && !o.kgs) return toast('Cần ít nhất một nguồn — muốn bỏ hẳn thì bấm ✕', 'warn'); save(o); }; });
+      $('[data-kgx]', r).onclick = async () => { if (!await ask('Gỡ quyền Kiến Trẻ của ' + g.e + '? Người đó không vào được module nữa (trừ khi vai trò có sẵn quyền).')) return; save({ e: g.e, off: 1 }); }; });
+  };
+  paint();
+}
 function ktConnView(B) {
   const b = KT.b || {}, X = b.ext || {};
   const box = (slot, c, title, sub) => { const L = X[slot], code = KT.code && KT.code[slot];
@@ -29998,7 +30058,8 @@ function ktConnView(B) {
     '<li>Đăng nhập <a href="https://kientre.click" target="_blank" rel="noopener">kientre.click</a> trên Chrome đó bằng đúng tài khoản (giáo viên để nhận xét · giáo vụ cho Hỏi dữ liệu và Lớp đã học). Tiện ích tự gửi phiên, tự gửi lại khi bạn đăng nhập lại.</li></ol>' +
     '<div class="kt-sub">Phiên chỉ lưu trên máy chủ, không về trình duyệt. Chrome chỉ đăng nhập được một tài khoản kientre.click mỗi lúc — muốn nối cả giáo viên lẫn giáo vụ thì dùng hai hồ sơ Chrome, hoặc dán tay một phiên.</div></div>' +
     box('me', b.me, 'Tài khoản nhận xét của tôi', 'Nhận xét đẩy sang kientre.click mang tên tài khoản này — dùng tài khoản giáo viên của bạn.') +
-    (b.canOffice ? box('office', b.office, 'Phiên giáo vụ (dùng chung)', 'Đọc lịch mọi lớp cho Hỏi dữ liệu, Lớp đã học và đề mock test. Chỉ quản lý nối được; giáo viên dùng chung, không ai thấy phiên.') : '');
+    (b.canOffice ? box('office', b.office, 'Phiên giáo vụ (dùng chung)', 'Đọc lịch mọi lớp cho Hỏi dữ liệu, Lớp đã học và đề mock test. Chỉ quản lý nối được; giáo viên dùng chung, không ai thấy phiên.') + '<div id="ktGrant"></div>' : '');
+  if (b.canOffice) ktGrantView($('#ktGrant', B));
   $$('[data-kslot]', B).forEach(el => { const slot = el.dataset.kslot;
     $('[data-ksave]', el).onclick = async () => { const v = $('[data-kck]', el).value.trim(); if (!v) return toast('Dán dòng cookie trước', 'warn');
       try { const r = await rpc('ktConnect', { slot: slot, cookie: v }); KT.b[slot === 'office' ? 'office' : 'me'] = r.conn; toast('Đã nối kientre.click: ' + (r.conn.name || r.conn.email), 'ok'); ktConnView(B); } catch (e) { fail(e); } };
