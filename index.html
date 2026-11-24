@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-23T16:53:56.218Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T00:28:20.082Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -8598,10 +8598,11 @@ const NAV_DEF = [
   { r: 'asst/set', t: 'Cài đặt AI', i: 'bi-sliders', g: 'lib', cap: 'settings.manage', m: /^asst\/set/ },      // (1.82.18) Cài đặt Trợ lý AI (kết nối, tự chạy, gán bài, yêu cầu, Gemini web…) — chuyển từ Kiến CM › Trợ lý chuyên môn
   { r: 'asst/subs', t: 'Các trợ lý', i: 'bi-diagram-3', g: 'lib', cap: ['ai.admin', 'ai.log', 'settings.manage'], m: /^asst\/subs/ },      // bộ não từng trợ lý con
   /* (1.84) Ứng dụng Kiến Trẻ — nhận xét buổi học kientre.click (KienTreView.html · KienTre.gs) */
+  { r: 'kt/ask', t: 'Trợ lý', i: 'bi-chat-square-text', g: 'lib', cap: 'kt.use', m: /^kt\/ask/ },      // (1.84.5) đổi tên từ Hỏi dữ liệu, lên đầu — dùng nhiều nhất
   { r: 'kt', t: 'Nhận xét', i: 'bi-chat-heart', g: 'lib', cap: 'kt.use', m: /^kt$/ },
-  { r: 'kt/ask', t: 'Hỏi dữ liệu', i: 'bi-chat-square-text', g: 'lib', cap: 'kt.use', m: /^kt\/ask/ },
   { r: 'kt/learned', t: 'Lớp đã học', i: 'bi-journal-check', g: 'lib', cap: 'kt.use', m: /^kt\/learned/ },
   { r: 'kt/prof', t: 'Hồ sơ học sinh', i: 'bi-person-vcard', g: 'lib', cap: 'kt.use', m: /^kt\/prof/ },      // (1.84.3) nhận xét cũ → AI tóm tắt → PDF bàn giao gia sư mới
+  { r: 'kt/jobs', t: 'Việc AI', i: 'bi-activity', g: 'lib', cap: 'kt.use', m: /^kt\/jobs/ },      // (1.84.5) lượt AI đang chạy / xong — chuyển tab không mất
   { r: 'kt/style', t: 'Văn phong', i: 'bi-feather', g: 'lib', cap: 'kt.use', m: /^kt\/style/ },
   { r: 'kt/conn', t: 'Kết nối', i: 'bi-plug', g: 'lib', cap: 'kt.use', m: /^kt\/conn/ },
   { r: 'tasks/admin', t: 'Quản trị', i: 'bi-shield-check', g: 'lib', cap: ['tasks.roles', 'tasks.boards', 'tasks.remind', 'tasks.manage'], m: /^tasks\/(admin|roles|boards)/ },
@@ -9073,7 +9074,7 @@ const BN_FILL = { 'bi-bell': 1, 'bi-grid-3x3-gap': 1, 'bi-megaphone': 1, 'bi-peo
 const BN_LABEL = { today: 'Tổng quan', classes: 'Buổi học', 'classes/list': 'Lớp', 'classes/todo': 'Buổi học', 'classes/tutors': 'Gia sư', 'classes/reqs': 'Yêu cầu', 'classes/notes': 'Yêu cầu', 'classes/room': 'Phòng học', 'classes/inbox': 'Tin nhắn', 'classes/stats': 'Thống kê',
   programs: 'C.trình', guide: 'H.dẫn', home: 'Tổng quan', library: 'Thư viện', recent: 'Mới', links: 'Link', compose: 'Phiếu Toán', 'compose/van': 'Phiếu Văn', syllabus: 'Syllabus', tasks: 'Bảng', 'tasks/backlog': 'Kế hoạch', 'tasks/time': 'Timeline', 'tasks/mine': 'Của tôi', 'tasks/cal': 'Lịch', 'tasks/sum': 'Báo cáo',
   activity: 'Hoạt động', sources: 'Nguồn', users: 'Tài khoản', 'users/roles': 'Vai trò', 'users/apps': 'Phân quyền', 'users/invites': 'Lời mời', xapps: 'Ứng dụng', info: 'Tin', settings: 'Cài đặt', apps: 'Apps',
-  asst: 'Trợ lý', 'asst/office': 'Văn phòng', 'asst/set': 'Cài đặt', 'asst/subs': 'Các trợ lý', kt: 'Nhận xét', 'kt/ask': 'Hỏi', 'kt/learned': 'Đã học', 'kt/prof': 'Hồ sơ', 'kt/style': 'Văn phong', 'kt/conn': 'Kết nối' };      // (1.82.37) nhãn ngắn một dòng — bỏ chữ “AI / chung” thay vì cắt “…”
+  asst: 'Trợ lý', 'asst/office': 'Văn phòng', 'asst/set': 'Cài đặt', 'asst/subs': 'Các trợ lý', kt: 'Nhận xét', 'kt/ask': 'Trợ lý', 'kt/learned': 'Đã học', 'kt/prof': 'Hồ sơ', 'kt/jobs': 'Việc AI', 'kt/style': 'Văn phong', 'kt/conn': 'Kết nối' };      // (1.82.37) nhãn ngắn một dòng — bỏ chữ “AI / chung” thay vì cắt “…”
 function bnShort(t) { return ({ 'Tổng quan': 'Tổng quan', 'Lớp gia sư': 'Lớp', 'Thư viện': 'Thư viện', 'Chương trình': 'Chương trình', 'Link tạm': 'Link', 'Mới cập nhật': 'Mới' })[t] || t; }
 function buildBottom(items) {
   let bn = $('#bnav');
@@ -16774,10 +16775,10 @@ function clFbPdf(c, L, X, st) {
   const dm = d => String(d || '').slice(8, 10) + '/' + String(d || '').slice(5, 7), n = v => v === '' || v == null || isNaN(Number(v)) ? null : Number(v);
   const H = L.filter(x => n(x.lam) != null || n(x.dung) != null).slice(0, 16).reverse();
   const chart = H.length >= 2 && typeof ktChartSvg === 'function' ? '<section>' + ktChartSvg({ type: 'line', title: 'Bài tập về nhà theo buổi', unit: '%', labels: H.map(x => dm(x.d)), series: [{ name: 'Làm', data: H.map(x => n(x.lam)) }, { name: 'Đúng', data: H.map(x => n(x.dung)) }] }, { print: 1 }) + '</section>' : '';
-  const ai = X && (X.summary || X.fb) ? '<section class="rp-bx tip"><h2>Phân tích của AI</h2>' + (X.summary ? '<p><b>' + esc(X.summary) + '</b></p>' : '') + (X.fb ? (typeof aiMd === 'function' ? aiMd(X.fb, {}) : '<p>' + esc(X.fb) + '</p>') : '') + '</section>' :
-    '<div class="rp-note">Báo cáo chưa có phần phân tích — bấm <b>AI phân tích &amp; gán bài</b> trong bảng nhận xét trước khi xuất để có tóm tắt điểm mạnh / phần còn yếu.</div>';
+  const ai = X && (X.summary || X.fb) ? '<section class="ktr-bx tip"><h2>Phân tích của AI</h2>' + (X.summary ? '<p><b>' + esc(X.summary) + '</b></p>' : '') + (X.fb ? (typeof aiMd === 'function' ? aiMd(X.fb, {}) : '<p>' + esc(X.fb) + '</p>') : '') + '</section>' :
+    '<div class="ktr-note">Báo cáo chưa có phần phân tích — bấm <b>AI phân tích &amp; gán bài</b> trong bảng nhận xét trước khi xuất để có tóm tắt điểm mạnh / phần còn yếu.</div>';
   const cmt = x => [['Tiếp thu', x.tt], ['Thái độ', x.td], ['Bài tập trên lớp', x.bt], ['Còn yếu', x.yeu], ['Nhận xét GS', x.nx]].filter(y => y[1]).map(y => '<div><span class="lb">' + y[0] + '</span> ' + esc(y[1]) + '</div>').join('');
-  const ph = x => { const U = (Array.isArray(x.ph) ? x.ph : []).filter(u => /^\/api\/uploads\//.test(String(u))).slice(0, 3); return U.length ? '<div class="rp-ph">' + U.map(u => '<img src="https://app.kiengiasu.edu.vn' + esc(u) + '" alt="">').join('') + '</div>' : ''; };
+  const ph = x => { const U = (Array.isArray(x.ph) ? x.ph : []).filter(u => /^\/api\/uploads\//.test(String(u))).slice(0, 3); return U.length ? '<div class="ktr-ph">' + U.map(u => '<img src="https://app.kiengiasu.edu.vn' + esc(u) + '" alt="">').join('') + '</div>' : ''; };
   const tbl = '<section class="flow"><h2>Nhận xét từng buổi</h2><table><thead><tr><th>Ngày</th><th>Nội dung dạy</th><th>Nhận xét của gia sư</th><th>BTVN</th></tr></thead><tbody>' +
     L.map(x => '<tr><td class="d">' + dm(x.d) + '/' + String(x.d || '').slice(2, 4) + (x.st && !/có mặt|co mat|present/i.test(x.st) ? '<br><span class="mu">' + esc(x.st) + '</span>' : '') + (x.dv === 'ok' ? '<br><span class="mu">KGS đã duyệt</span>' : '') + '</td>' +
       '<td class="b">' + esc(x.nd || '—') + '</td><td>' + (cmt(x) || '<span class="mu">—</span>') + ph(x) + '</td><td class="n">' + (n(x.lam) != null ? n(x.lam) + '%' + (n(x.dung) != null ? '<br><span class="mu">đúng ' + n(x.dung) + '%</span>' : '') : '—') + '</td></tr>').join('') + '</tbody></table></section>';
@@ -29159,6 +29160,26 @@ function svMemoV(b) {
 .kt-ans th{ background:var(--surface-2) !important; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); text-align:left; border:0 !important; border-bottom:1px solid var(--border) !important }
 .kt-ans td{ border:0 !important; border-bottom:1px solid var(--border) !important; font-size:13px } .kt-ans tr:last-child td{ border-bottom:0 !important } .kt-ans tr:nth-child(even) td{ background:color-mix(in oklab, var(--surface-2) 55%, transparent) }
 .kt-ans blockquote{ margin:6px 0; padding:6px 12px; border-left:3px solid var(--brand-400); background:var(--surface-2); border-radius:0 10px 10px 0 }
+.kt-sjs{ display:flex; gap:6px; align-items:center; flex-wrap:wrap } .kt-sjs > .kt-sub{ font-weight:700; margin-right:4px }
+.kt-pfl{ font-size:14.5px; line-height:1.7; border-left:3px solid var(--ok); padding-left:14px } .kt-pfl p{ margin:0 0 10px }
+.kt-jobs{ display:flex; flex-direction:column } .kt-job{ display:flex; gap:12px; align-items:center; padding:12px 18px; border:0; border-bottom:1px solid var(--border); background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; width:100% }
+.kt-job:last-child{ border-bottom:0 } .kt-job:hover{ background:var(--surface-2) } .kt-job .sp{ flex:1 } .kt-job .kt-rn small{ white-space:normal }
+.kt-jico{ width:34px; height:34px; border-radius:10px; display:grid; place-items:center; flex:none; background:var(--surface-2); color:var(--brand-700) } .kt-jico.run i{ animation:ktspin 1s linear infinite }
+.kt-stubox{ padding-top:4px }
+.kt-stub{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; border:1px dashed var(--border); border-radius:14px; padding:10px 14px; font-size:13px; color:var(--muted); background:var(--surface) } .kt-stub > span{ flex:1 1 220px } .kt-stub > i{ font-size:18px; color:var(--brand-600) }
+.kt-stud{ border:1px solid var(--border); border-radius:16px; background:var(--surface); padding:12px 14px; display:flex; flex-direction:column; gap:10px; box-shadow:var(--sh-1) } .kt-stud .kt-ico{ width:32px; height:32px }
+.kt-stud .kt-chart{ max-width:none; padding:8px 10px 4px } .kt-stud .kt-chart svg{ max-height:150px }
+.kt-span{ display:inline-flex; gap:6px; align-items:center; flex-wrap:wrap }
+/* (1.84.5) phạm vi ra đề theo nhóm lớp */
+.kt-grps{ display:flex; flex-direction:column; gap:12px }
+.kt-grp{ border:1px solid var(--border); border-radius:16px; background:var(--surface); padding:12px 14px; display:flex; flex-direction:column; gap:10px }
+.kt-grph{ display:flex; gap:10px; align-items:baseline; flex-wrap:wrap } .kt-grph b{ font-size:15.5px } .kt-grph .sp{ flex:1 }
+.kt-grpl{ display:flex; gap:5px; flex-wrap:wrap }
+.kt-grpc{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px }
+.kt-grpc > div{ border-radius:12px; padding:10px 12px; min-width:0 } .kt-grpc .ok{ background:color-mix(in oklab, var(--ok) 8%, var(--surface)) } .kt-grpc .no{ background:color-mix(in oklab, var(--danger) 7%, var(--surface)) }
+.kt-grpc h6{ margin:0 0 6px; font-size:12.5px; text-transform:uppercase; letter-spacing:.04em; display:flex; gap:6px; align-items:center } .kt-grpc .ok h6{ color:var(--ok) } .kt-grpc .no h6{ color:var(--danger) }
+.kt-grpc ol{ margin:0; padding-left:20px; font-size:13px; line-height:1.5 } .kt-grpc li{ margin:3px 0 } .kt-grpc li small{ display:block; color:var(--muted); font-size:11.5px }
+@media (max-width:640px){ .kt-grpc{ grid-template-columns:minmax(0, 1fr) } }
 /* bảng topic × lớp */
 .kt-mxbar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px }
 .kt-mx{ overflow:auto; max-height:62vh; border:1px solid var(--border); border-radius:14px }
@@ -29184,7 +29205,7 @@ function svMemoV(b) {
 <script>
 /* ══════════ (1.84) ỨNG DỤNG KIẾN TRẺ — route kt · kt/ask · kt/learned · kt/style · kt/conn ══════════ */
 const KT = { b: null, day: '', teacher: lsGet('ktTea', ''), d: null, ed: {}, ai: {}, push: {}, op: {}, sj: lsGet('ktSj', 'MATH'), ln: null, open: {}, pick: {}, sel: {}, chat: lsGet('ktChat', { conv: '', msgs: [] }), ask: { sj: lsGet('ktAskSj', ''), span: lsGet('ktAskSpan', 150) } };
-const KT_TABS = [['', 'bi-chat-heart', 'Nhận xét'], ['ask', 'bi-chat-square-text', 'Hỏi dữ liệu'], ['learned', 'bi-journal-check', 'Lớp đã học'], ['prof', 'bi-person-vcard', 'Hồ sơ học sinh'], ['style', 'bi-feather', 'Văn phong'], ['conn', 'bi-plug', 'Kết nối']];
+const KT_TABS = [['ask', 'bi-chat-square-text', 'Trợ lý'], ['', 'bi-chat-heart', 'Nhận xét'], ['learned', 'bi-journal-check', 'Lớp đã học'], ['prof', 'bi-person-vcard', 'Hồ sơ học sinh'], ['jobs', 'bi-activity', 'Việc AI'], ['style', 'bi-feather', 'Văn phong'], ['conn', 'bi-plug', 'Kết nối']];
 const KT_FL = [['td', 'Thái độ học tập'], ['bt', 'Bài tập trên lớp'], ['yeu', 'Kiến thức còn yếu'], ['nx', 'Nhận xét chung']];
 const KT_AVC = ['#4F46E5', '#0EA5E9', '#14B8A6', '#F59E0B', '#EC4899', '#8B5CF6', '#22C55E', '#EF4444'];
 function ktToday() { const d = new Date(Date.now() + 7 * 3600e3); return d.toISOString().slice(0, 10); }
@@ -29208,7 +29229,7 @@ async function viewKt(arg, v) {
     // (1.84.4) chưa nối tài khoản giáo viên → VẪN mở tab Nhận xét (thẻ hướng dẫn nối) — trước tự nhảy sang Hỏi dữ liệu nên không vào được Nhận xét
     const T = KT_TABS.find(t => t[0] === a); setTitle(T[2], T[1], [{ t: 'Kiến Trẻ', r: 'kt' }], v);      // tên ngắn — không bị cắt “…” trên điện thoại
     const B = $('#ktBody', v); B.innerHTML = '';
-    const VW = { ask: ktAskView, learned: ktLearnedView, prof: ktProfView, style: ktStyleView, conn: ktConnView };
+    const VW = { jobs: ktJobsView, ask: ktAskView, learned: ktLearnedView, prof: ktProfView, style: ktStyleView, conn: ktConnView };
     VW[a] ? VW[a](B) : ktDayView(B);
   };
   v._onArg = a => show(a);
@@ -29220,7 +29241,7 @@ function ktErrCard(e, retry) { return '<div class="kt-card kt-empty"><i class="b
 function ktDayView(B) {
   if (!KT.b.me) {      // (1.84.4) chưa nối tài khoản giáo viên — nói rõ cần gì, không nhảy sang tab khác
     B.innerHTML = '<div class="kt-card kt-empty"><i class="bi bi-chat-heart"></i><div><b>Chưa nối tài khoản giáo viên kientre.click</b></div><div class="kt-sub" style="max-width:460px">Nhận xét đẩy sang kientre.click mang tên tài khoản giáo viên của bạn — nối một lần bằng tiện ích Kiến Connect hoặc dán phiên tay (có hướng dẫn từng bước).</div>' +
-      '<div class="kt-acts" style="justify-content:center"><button class="btn pri sm" onclick="go(\'kt/conn\')"><i class="bi bi-plug"></i> Kết nối tài khoản</button>' + (KT.b.office ? '<button class="btn sm" onclick="go(\'kt/ask\')"><i class="bi bi-chat-square-text"></i> Hỏi dữ liệu</button>' : '') + '</div></div>';
+      '<div class="kt-acts" style="justify-content:center"><button class="btn pri sm" onclick="go(\'kt/conn\')"><i class="bi bi-plug"></i> Kết nối tài khoản</button>' + (KT.b.office ? '<button class="btn sm" onclick="go(\'kt/ask\')"><i class="bi bi-chat-square-text"></i> Trợ lý</button>' : '') + '</div></div>';
     return;
   }
   KT.day = KT.day || ktToday();
@@ -29232,6 +29253,7 @@ function ktDayView(B) {
     try { KT.d = await rpc('ktDay', { day: KT.day, teacher: KT.teacher }, { quiet: true }); }
     catch (e) { D.innerHTML = ktErrCard(e, 1); const r = $('[data-kre]', D); if (r) r.onclick = load; return; }
     ktTeaPick(B, load); ktPaintDay(D);
+    if (KT.d.via === 'office' && !KT._viaT) { KT._viaT = 1; toast('kientre.click chặn tài khoản giáo viên đọc lịch — app đọc bằng phiên giáo vụ (đúng các lớp của bạn)', 'info', 6000); }
   };
   $$('[data-kd]', B).forEach(b => { b.onclick = () => { const k = Number(b.dataset.kd); KT.day = k ? ktAdd(KT.day, k) : ktToday(); $('#ktDate', B).value = KT.day; load(); }; });
   $('#ktDate', B).onchange = e => { if (e.target.value) { KT.day = e.target.value; load(); } };
@@ -29375,7 +29397,7 @@ function ktPushRun(s, L) {
     let ok = 0; (r.res || []).forEach(x => { const st = s.st.find(y => y.code === x.code); if (!st) return; const e = ktEd(s, st);
       if (x.ok) { ok++; e.st = 'pushed'; e.dirty = false; e.err = ''; st.rid = x.rid; st.st = 'marked'; st.f = Object.assign({}, e.f); KT.op[ktKey(s, st)] = false; } else { e.st = 'err'; e.err = x.err; KT.op[ktKey(s, st)] = true; } });
     items.forEach(it => { delete KT.push[KT.day + '|' + s.cls + '|' + it.code]; });
-    ktRepaintSess(s); toast(ok === items.length ? 'Đã đẩy ' + ok + ' nhận xét sang kientre.click' : 'Đẩy được ' + ok + '/' + items.length + ' — xem lỗi dưới từng bé', ok === items.length ? 'ok' : 'warn');
+    ktRepaintSess(s); toast(ok === items.length ? 'Đã đẩy ' + ok + ' nhận xét sang kientre.click' + ((r.res || []).some(x => x.via === 'office') ? ' (qua phiên giáo vụ — tài khoản giáo viên bị chặn ghi)' : '') : 'Đẩy được ' + ok + '/' + items.length + ' — xem lỗi dưới từng bé', ok === items.length ? 'ok' : 'warn');
   }).catch(e => { items.forEach(it => { delete KT.push[KT.day + '|' + s.cls + '|' + it.code]; }); ktRepaintSess(s); if (e.code === 'KTAUTH') toast(e.message, 'err', 0, 'kt/conn'); else fail(e); });
 }
 
@@ -29384,7 +29406,7 @@ const KT_SUGS = [['bi-journal-text', 'Các lớp 5 môn Toán đã học những
 function ktChatSave() { const c = KT.chat; c.msgs = c.msgs.slice(-30); lsSet('ktChat', c); }
 function ktAskView(B) {
   const SJ = (KT.b && KT.b.sj) || {}, spans = [[30, '1 tháng'], [90, '3 tháng'], [150, '5 tháng'], [300, 'Năm học']];
-  B.innerHTML = '<div class="kt-chat"><div class="kt-msgs" id="ktMsgs"></div><div class="kt-comp"><textarea id="ktQ" rows="1" placeholder="Hỏi về các lớp trên kientre.click…" aria-label="Câu hỏi"></textarea>' +
+  B.innerHTML = '<div class="kt-chat"><div id="ktStuBox" class="kt-stubox"></div><div class="kt-msgs" id="ktMsgs"></div><div class="kt-comp"><textarea id="ktQ" rows="1" placeholder="Hỏi Trợ lý về lớp, học sinh, bài đã học, BTVN…" aria-label="Câu hỏi"></textarea>' +
     '<div class="kt-acts"><select id="ktAsj" aria-label="Môn"><option value="">Môn: tự nhận</option>' + Object.keys(SJ).map(k => '<option value="' + k + '"' + (KT.ask.sj === k ? ' selected' : '') + '>' + esc(SJ[k]) + '</option>').join('') + '</select>' +
     '<select id="ktAsp" aria-label="Khoảng ngày">' + spans.map(x => '<option value="' + x[0] + '"' + (Number(KT.ask.span) === x[0] ? ' selected' : '') + '>' + x[1] + ' gần đây</option>').join('') + '</select>' +
     '<button class="kt-lnk" id="ktNew"><i class="bi bi-plus-lg"></i> Cuộc mới</button><span class="sp"></span><button class="kt-send" id="ktSend" aria-label="Gửi" disabled><i class="bi bi-arrow-up"></i></button></div></div></div>';
@@ -29393,22 +29415,26 @@ function ktAskView(B) {
   Q.oninput = fit; Q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (Q.value.trim()) ask(Q.value.trim()); } };
   $('#ktAsj', B).onchange = e => { KT.ask.sj = e.target.value; lsSet('ktAskSj', KT.ask.sj); };
   $('#ktAsp', B).onchange = e => { KT.ask.span = Number(e.target.value); lsSet('ktAskSpan', KT.ask.span); };
-  $('#ktNew', B).onclick = () => { KT.chat = { conv: '', msgs: [] }; ktChatSave(); paint(); Q.focus(); };
+  $('#ktNew', B).onclick = () => { KT.chat = { conv: '', msgs: [], stu: KT.chat.stu || null }; ktChatSave(); paint(); Q.focus(); };      // cuộc mới vẫn giữ học sinh đang chọn
   SEND.onclick = () => { if (Q.value.trim()) ask(Q.value.trim()); };
   const paint = () => {
     const L = KT.chat.msgs;
-    if (!L.length) { M.innerHTML = '<div class="kt-hello"><span class="kt-orb"></span><h2>Hỏi dữ liệu Kiến Trẻ</h2><p>Hỏi về các lớp trên kientre.click: bài (topic) đã học, bài chung giữa các lớp, tình hình học của một học sinh / một lớp theo môn, bài tập về nhà, chuyên cần — có biểu đồ khi cần.</p>' +
+    if (!L.length) { M.innerHTML = '<div class="kt-hello"><span class="kt-orb"></span><h2>Trợ lý Kiến Trẻ</h2><p>Hỏi về các lớp trên kientre.click: bài (topic) đã học, bài chung giữa các lớp, tình hình học của một học sinh / một lớp theo môn, bài tập về nhà, chuyên cần — có biểu đồ khi cần.</p>' +
       (!(KT.b.office || (KT.b.me && KT.b.me.office)) ? '<p class="kt-err" style="justify-content:center"><i class="bi bi-plug"></i> Cần phiên giáo vụ — quản lý dán ở tab Kết nối.</p>' : '') +
-      '<div class="kt-sugs">' + KT_SUGS.map(x => '<button class="kt-sug" data-ksg="' + esc(x[1]) + '"><i class="bi ' + x[0] + '"></i><span>' + esc(x[1]) + '</span></button>').join('') + '</div></div>';
+      '<div class="kt-sugs">' + (KT.chat.stu ? [['bi-clipboard-data', 'Tóm tắt tình hình học của ' + KT.chat.stu.name + ' theo từng môn'], ['bi-exclamation-diamond', 'Em đang yếu phần nào? Dẫn ngày cụ thể'], ['bi-envelope-heart', 'Viết nhận xét chi tiết gửi phụ huynh của ' + KT.chat.stu.name], ['bi-graph-up', 'BTVN của em thay đổi thế nào? Vẽ biểu đồ']] : KT_SUGS).map(x => '<button class="kt-sug" data-ksg="' + esc(x[1]) + '"><i class="bi ' + x[0] + '"></i><span>' + esc(x[1]) + '</span></button>').join('') + '</div></div>';
       $$('[data-ksg]', M).forEach(b => { b.onclick = () => ask(b.dataset.ksg); }); return; }
     M.innerHTML = L.map((m, i) => m.role === 'u' ? '<div class="kt-mu">' + esc(m.text) + '</div>' :
       '<div class="kt-ma" data-kmi="' + i + '"><span class="kt-av2" aria-hidden="true"></span><div>' +
-        (m.scope ? '<div class="kt-scope"><span class="kt-pill">' + esc((m.scope.mon || []).join(', ')) + '</span><span class="kt-pill">Khối ' + esc(m.scope.khoi) + '</span><span class="kt-pill">' + m.scope.n + ' lớp</span><span class="kt-pill">' + ktDm(m.scope.fr) + ' → ' + ktDm(m.scope.to) + '</span>' + (m.scope.att ? '<span class="kt-pill">' + m.scope.att + ' lượt điểm danh</span>' : '') + ((m.scope.hs || []).length ? '<span class="kt-pill ai"><i class="bi bi-person"></i> ' + esc(m.scope.hs.join(', ')) + '</span>' : '') + '</div>' : '') +
-        (m.st === 'wait' ? ktThink(['Đang đọc lịch các lớp từ kientre.click', 'Đang đọc điểm danh, BTVN, nhận xét', 'Đang so sánh và tính số liệu', 'Đang soạn câu trả lời']) : m.st === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(m.text) + '</span></div>' : '<div class="kt-md kt-ans">' + ktMdC(m.text) + '</div>') +
-        (m.st !== 'wait' ? '<div class="kt-mact">' + (m.text && m.st !== 'err' ? '<button data-kcp><i class="bi bi-clipboard"></i> Chép</button>' : '') + (m.mx && m.mx.rows && m.mx.rows.length ? '<button data-kmx><i class="bi bi-grid-3x3"></i> Bảng topic · ' + m.mx.cols.length + ' lớp × ' + m.mx.rows.length + ' bài</button>' : '') + (m.mx && m.mx.common && m.mx.common.length ? '<button data-kcm><i class="bi bi-intersect"></i> ' + m.mx.common.length + ' bài chung</button>' : '') + '</div>' : '') +
+        (m.scope ? '<div class="kt-scope"><span class="kt-pill">' + esc((m.scope.mon || []).join(', ')) + '</span><span class="kt-pill">' + esc(/^(Lớp|Khối)/.test(m.scope.khoi) ? m.scope.khoi : 'Khối ' + m.scope.khoi) + '</span><span class="kt-pill">' + m.scope.n + ' lớp</span><span class="kt-pill">' + ktDm(m.scope.fr) + ' → ' + ktDm(m.scope.to) + '</span>' + (m.scope.cut ? '<span class="kt-pill warn">Mốc ' + ktDm(m.scope.cut) + '</span>' : '') + (m.scope.att ? '<span class="kt-pill">' + m.scope.att + ' lượt điểm danh</span>' : '') + ((m.scope.hs || []).length ? '<span class="kt-pill ai"><i class="bi bi-person"></i> ' + esc(m.scope.hs.join(', ')) + '</span>' : '') + '</div>' : '') +
+        (m.grp && m.grp.length ? ktGrpHtml(m.grp, m.cut) : '') + (m.st === 'wait' ? ktThink(['Đang đọc lịch các lớp từ kientre.click', 'Đang đọc điểm danh, BTVN, nhận xét', 'Đang so sánh và tính số liệu', 'Đang soạn câu trả lời']) : m.st === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(m.text) + '</span></div>' : m.prof ? ktProfSumHtml(m.prof, m.src) : '<div class="kt-md kt-ans">' + ktMdC(m.text) + '</div>') +
+        (m.st !== 'wait' ? '<div class="kt-mact">' + ((m.text || m.prof) && m.st !== 'err' ? '<button data-kcp><i class="bi bi-clipboard"></i> Chép</button>' : '') + (m.prof ? '<button data-kmpdf><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' : '') + (m.mx && m.mx.rows && m.mx.rows.length ? '<button data-kmx><i class="bi bi-grid-3x3"></i> Bảng topic · ' + m.mx.cols.length + ' lớp × ' + m.mx.rows.length + ' bài</button>' : '') + (m.mx && m.mx.common && m.mx.common.length ? '<button data-kcm><i class="bi bi-intersect"></i> ' + m.mx.common.length + ' bài chung</button>' : '') + '</div>' : '') +
       '</div></div>').join('');
     $$('[data-kmi]', M).forEach(el => { const m = L[Number(el.dataset.kmi)];
-      const cp = $('[data-kcp]', el); if (cp) cp.onclick = () => navigator.clipboard.writeText(String(m.text || '').replace(/```chart[\s\S]*?```/g, '').trim()).then(() => toast('Đã chép', 'ok'));
+      const pd = $('[data-kmpdf]', el); if (pd) pd.onclick = async () => { if (m.stuK !== ktStuKey(KT.chat.stu)) return toast('Chọn lại học sinh của báo cáo này rồi xuất PDF', 'warn'); try { ktProfPdf(await ktStuLoad(), m.prof); } catch (e) { fail(e); } };
+      const pp = $('[data-kpph]', el); if (pp && m.prof) pp.onclick = () => navigator.clipboard.writeText(m.prof.thuPhuHuynh || '').then(() => toast('Đã chép nhận xét gửi phụ huynh', 'ok'));
+      if (m.prof) { const c0 = $('[data-kcp]', el); if (c0) c0.onclick = () => navigator.clipboard.writeText(ktProfText(KT.stuR || { stu: { name: '' }, fr: '', to: '', n: 0, nCmt: 0 }, m.prof)).then(() => toast('Đã chép báo cáo', 'ok')); }
+      const cp = m.prof ? null : $('[data-kcp]', el); if (cp) cp.onclick = () => navigator.clipboard.writeText(String(m.text || '').replace(/```chart[\s\S]*?```/g, '').trim()).then(() => toast('Đã chép', 'ok'));
+      $$('[data-kgc]', el).forEach(b => { b.onclick = () => navigator.clipboard.writeText(ktGrpText(m.grp[Number(b.dataset.kgc)], m.cut)).then(() => toast('Đã chép phạm vi ' + m.grp[Number(b.dataset.kgc)].ten, 'ok')); });
       const mx = $('[data-kmx]', el); if (mx) mx.onclick = () => ktMatrixDlg(m.mx, 'Bảng topic · ' + (m.scope ? (m.scope.mon || []).join(', ') + ' · khối ' + m.scope.khoi : ''));
       const cm = $('[data-kcm]', el); if (cm) cm.onclick = () => ktMatrixDlg(m.mx, 'Bài chung của ' + m.mx.cols.length + ' lớp', true); });
     const last = M.lastElementChild; if (last) last.scrollIntoView({ block: 'end', behavior: 'smooth' });
@@ -29417,13 +29443,22 @@ function ktAskView(B) {
     Q.value = ''; fit();
     const c = KT.chat, um = { role: 'u', text: q }, am = { role: 'a', st: 'wait', text: '' }; c.msgs.push(um, am); ktChatSave(); paint();
     try {
-      const r = await rpc('ktAsk', { q: q, conv: c.conv, sj: KT.ask.sj, fr: ktAdd(ktToday(), -Number(KT.ask.span || 150)), to: ktToday() }, { quiet: true });
-      c.conv = r.conv; am.scope = r.scope; am.mx = r.mx; am.id = r.log.id; ktChatSave(); paint();
+      const r = await rpc('ktAsk', { q: q, conv: c.conv, stu: c.stu || null, sj: KT.ask.sj, fr: ktAdd(ktToday(), -Number(KT.ask.span || 150)), to: ktToday() }, { quiet: true });
+      c.conv = r.conv; am.scope = r.scope; am.mx = r.mx; am.grp = r.grp || null; am.cut = r.cut || ''; am.id = r.log.id; ktChatSave(); paint();
       ktWatch(r.log, o => { am.st = o.status === 'err' ? 'err' : 'ok'; am.text = o.status === 'err' ? (o.err || 'AI chưa trả lời được') : (o.reply || '(không có nội dung)'); ktChatSave(); if ($('#ktMsgs')) paint(); });
     } catch (e) { am.st = 'err'; am.text = e.message; ktChatSave(); paint(); }
   };
   // lượt còn chờ từ lần mở trước (tắt tab giữa chừng) → theo dõi tiếp
-  KT.chat.msgs.forEach(m => { if (m.st === 'wait' && m.id) ktWatch({ id: m.id, status: 'wait' }, o => { m.st = o.status === 'err' ? 'err' : 'ok'; m.text = o.status === 'err' ? (o.err || 'AI chưa trả lời được') : (o.reply || ''); ktChatSave(); if ($('#ktMsgs')) paint(); }); else if (m.st === 'wait') { m.st = 'err'; m.text = 'Lượt hỏi bị ngắt — hỏi lại nhé'; } });
+  KT.chat.msgs.forEach(m => { if (m.st === 'wait' && m.id) ktWatch({ id: m.id, status: 'wait' }, o => { const A = m.rep && o.actions && o.actions.prof; if (m.rep) { m.prof = A || null; m.st = A ? 'ok' : 'err'; m.text = A ? '' : (o.err || 'AI chưa lập được báo cáo'); ktChatSave(); if ($('#ktMsgs')) paint(); return; } m.st = o.status === 'err' ? 'err' : 'ok'; m.text = o.status === 'err' ? (o.err || 'AI chưa trả lời được') : (o.reply || ''); ktChatSave(); if ($('#ktMsgs')) paint(); }); else if (m.st === 'wait') { m.st = 'err'; m.text = 'Lượt hỏi bị ngắt — hỏi lại nhé'; } });
+  // (1.84.5) học sinh đang chọn + Lập báo cáo (AI viết báo cáo chi tiết, nhận xét gửi phụ huynh) — kết quả nằm trong cuộc hỏi, xuất PDF được
+  const SB = $('#ktStuBox', B);
+  const report = async () => { const st = KT.chat.stu; if (!st) return;
+    const c = KT.chat, um = { role: 'u', text: 'Lập báo cáo học tập chi tiết cho ' + st.name }, am = { role: 'a', st: 'wait', rep: 1, stuK: ktStuKey(st), src: st.src, text: '' }; c.msgs.push(um, am); ktChatSave(); paint();
+    try { const S0 = ktSpanGet('prof', 180), r = await rpc('ktProfAi', st.src === 'kgs' ? { src: 'kgs', id: st.code } : { cls: st.cls, code: st.code, name: st.name, fr: S0.fr, to: S0.to }, { quiet: true }); am.id = r.log.id; ktChatSave();
+      ktWatch(r.log, lg => { const A = lg && lg.actions && lg.actions.prof; am.prof = A || null; am.st = A ? 'ok' : 'err'; am.text = A ? '' : ((lg && lg.err) || 'AI chưa lập được báo cáo'); ktChatSave(); if ($('#ktMsgs')) paint(); }); }
+    catch (e) { am.st = 'err'; am.text = e.message; ktChatSave(); paint(); } };
+  const stuChange = act => { if (act === 'report') return report(); ktStuBar(SB, stuChange); paint(); };
+  ktStuBar(SB, stuChange);
   paint(); setTimeout(() => Q.focus(), 50);
 }
 /** (1.84.4) BẢNG TOPIC × LỚP — dễ đọc: cột Topic cố định khi cuộn ngang, tên lớp hai dòng (cơ sở nhỏ · lớp đậm), ô đã học là chip ngày, cột Độ phủ (k/n lớp),
@@ -29452,9 +29487,22 @@ function ktMatrixDlg(mx, title, onlyCommon) {
     $('[data-kcpy]', b).onclick = () => { const R = flt(); navigator.clipboard.writeText(R.map((r, i) => (i + 1) + '. ' + (r.no ? r.no + '_' : '') + r.name + (mode === 'common' ? '' : ' — ' + mx.cols.filter(c => r.by[c]).map(c => sh(c).main).join(', '))).join('\n')).then(() => toast('Đã chép ' + R.length + ' topic', 'ok')); }; };
   paint();
 }
+/** (1.84.5) như ktTopicName_ ở máy chủ — bỏ số đầu, PHT_5A_ / PHT_5B_, đuôi _Sol để cùng một bài ở các lớp khớp nhau */
+function ktTopicName(raw) { let n = String(raw || '').trim().replace(/^\s*\d{1,3}\s*[_.\-:)]\s*/, '');
+  n = n.replace(/^(PHT|PBT|BTVN|BTTC|BT|PHIEU|DE|ĐỀ)_[0-9]{1,2}[A-Z]{0,3}\d?_/i, '').replace(/[_\s-]+(Sol|Solution|HDG|Đáp án|Dap an|Key)$/i, '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim(); return n || String(raw || '').trim(); }
+/** (1.84.5) PHẠM VI RA ĐỀ theo từng nhóm lớp (máy chủ tính sẵn, không qua AI) — Nên ra: mọi lớp đã học · Không nên ra: có lớp chưa học (ghi rõ lớp) */
+function ktGrpHtml(G, cut) {
+  const sh = c => String(c).split('_').pop();
+  return '<div class="kt-grps">' + G.map((g, i) => '<div class="kt-grp"><div class="kt-grph"><b>' + esc(g.ten) + '</b><span class="kt-sub">' + g.lop.length + ' lớp' + (cut ? ' · tính các buổi trước ' + ktDm(cut) : '') + '</span><span class="sp"></span><button class="kt-lnk" data-kgc="' + i + '"><i class="bi bi-clipboard"></i> Chép</button></div>' +
+    (g.lop.length ? '<div class="kt-grpl">' + g.lop.map(c => '<span class="kt-pill" title="' + esc(c) + '">' + esc(c) + '</span>').join('') + '</div>' +
+      '<div class="kt-grpc"><div class="ok"><h6><i class="bi bi-check-circle-fill"></i> Nên ra · ' + g.nenRa.length + '</h6>' + (g.nenRa.length ? '<ol>' + g.nenRa.map(t => '<li>' + esc(t.t) + '</li>').join('') + '</ol>' : '<p class="kt-sub">Chưa có chủ đề nào mọi lớp đều đã học.</p>') + '</div>' +
+      '<div class="no"><h6><i class="bi bi-x-circle-fill"></i> Không nên ra · ' + g.khongNenRa.length + '</h6>' + (g.khongNenRa.length ? '<ol>' + g.khongNenRa.map(t => '<li>' + esc(t.t) + '<small>' + t.k + '/' + t.n + ' lớp đã học · chưa học: ' + t.chua.map(c => esc(sh(c))).join(', ') + '</small></li>').join('') + '</ol>' : '<p class="kt-sub">Không có — mọi chủ đề đều đã học ở tất cả các lớp.</p>') + '</div></div>'
+      : '<p class="kt-sub">Không thấy lớp nào thuộc nhóm này trong khoảng ngày / môn đã chọn.</p>') + '</div>').join('') + '</div>';
+}
+function ktGrpText(g, cut) { return g.ten + ' (' + g.lop.join(', ') + ')' + (cut ? ' — tính các buổi trước ' + ktDm(cut) : '') + '\nNÊN RA (' + g.nenRa.length + '):\n' + g.nenRa.map((t, i) => (i + 1) + '. ' + t.t).join('\n') + '\n\nKHÔNG NÊN RA (' + g.khongNenRa.length + '):\n' + g.khongNenRa.map((t, i) => (i + 1) + '. ' + t.t + ' — chưa học: ' + t.chua.join(', ')).join('\n'); }
 function ktMatrixC(list) {      // như ktMatrix_ ở máy chủ
   const T = {}, fold = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-  list.forEach(c => c.items.forEach(it => { if (!it.done) return; const raw = String(it.t || it.lc || '').trim(); if (!raw) return; const nm = raw.replace(/^\s*\d{1,3}\s*[_.\-:)]\s*/, '').trim() || raw, no = (/^\s*(\d{1,3})\s*[_.\-:)]/.exec(raw) || [])[1], k = fold(nm); if (!k) return;
+  list.forEach(c => c.items.forEach(it => { if (!it.done) return; const raw = String(it.t || it.lc || '').trim(); if (!raw) return; const nm = ktTopicName(raw), no = (/^\s*(\d{1,3})\s*[_.\-:)]/.exec(raw) || [])[1], k = fold(nm); if (!k) return;
     const r = T[k] = T[k] || { name: nm, no: no ? Number(no) : (it.no || null), by: {}, d0: it.d }; if (!r.by[c.cls]) r.by[c.cls] = it.d; if (it.d < r.d0) r.d0 = it.d; }));
   const rows = Object.keys(T).map(k => T[k]).sort((a, b) => (a.no || 999) - (b.no || 999) || a.d0.localeCompare(b.d0)).map(r => Object.assign(r, { k: Object.keys(r.by).length }));
   return { cols: list.map(c => c.cls), rows: rows, common: list.length > 1 ? rows.filter(r => r.k === list.length).map(r => r.name) : [] };
@@ -29463,9 +29511,9 @@ function ktMatrixC(list) {      // như ktMatrix_ ở máy chủ
 /* ── LỚP ĐÃ HỌC (giáo vụ) + SO SÁNH LỚP + ĐỀ MOCK TEST ── */
 function ktLearnedView(B) {
   const SJ = (KT.b && KT.b.sj) || { MATH: 'Toán' }, to = ktToday();
-  KT.lnFr = KT.lnFr || ktAdd(to, -150); KT.lnTo = KT.lnTo || to;
+  const SL0 = ktSpanGet('ln', 150); KT.lnFr = SL0.fr; KT.lnTo = SL0.to;
   B.innerHTML = '<div class="kt-top"><span class="kt-seg">' + Object.keys(SJ).map(k => '<button type="button" data-ksj="' + k + '" aria-pressed="' + (KT.sj === k) + '">' + esc(SJ[k]) + '</button>').join('') + '</span>' +
-    '<span class="kt-day" style="padding:3px 10px"><input type="date" id="ktFr" value="' + KT.lnFr + '" aria-label="Từ ngày" style="position:static;opacity:1;border:0;background:none;color:var(--ink);font:inherit;font-size:13px;width:auto"><span class="kt-sub">→</span><input type="date" id="ktTo" value="' + KT.lnTo + '" aria-label="Đến ngày" style="position:static;opacity:1;border:0;background:none;color:var(--ink);font:inherit;font-size:13px;width:auto"></span>' +
+    ktSpanHtml('ln', SL0) +
     '<input class="kt-sel" id="ktQf" placeholder="Tìm lớp, giáo viên…" style="min-width:150px;flex:1"><button class="kt-ico" id="ktLnRe" aria-label="Tải lại"><i class="bi bi-arrow-clockwise"></i></button></div><div id="ktLn" class="kt"></div>';
   const L = $('#ktLn', B), load = async fresh => {
     L.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx('Đang đọc lịch các lớp từ kientre.click…', { c: 'doc' }) : 'Đang tải…') + '</div>';
@@ -29494,7 +29542,7 @@ function ktLearnedView(B) {
     const clr = $('[data-kclr]', L); if (clr) clr.onclick = () => { KT.sel = {}; paint(); };
   };
   $$('[data-ksj]', B).forEach(b => { b.onclick = () => { KT.sj = b.dataset.ksj; lsSet('ktSj', KT.sj); $$('[data-ksj]', B).forEach(x => x.setAttribute('aria-pressed', x === b)); load(); }; });
-  $('#ktFr', B).onchange = e => { KT.lnFr = e.target.value || KT.lnFr; load(); }; $('#ktTo', B).onchange = e => { KT.lnTo = e.target.value || KT.lnTo; load(); };
+  ktSpanBind(B, 'ln', 150, S => { KT.lnFr = S.fr; KT.lnTo = S.to; load(); });
   $('#ktQf', B).oninput = () => { if (KT.ln) paint(); }; $('#ktLnRe', B).onclick = () => load(true);
   load();
 }
@@ -29518,16 +29566,19 @@ function ktMockDlg(c) {
    Học lớp: chỉ học sinh đang học ở lớp hiện tại (chuyển lớp → hiện ở lớp mới, nhận xét lớp cũ thành “quá trình học”), đã nghỉ / lớp đã kết thúc → không hiện. ── */
 function ktProfView(B) {
   const to = ktToday();
-  KT.pf = KT.pf || { src: lsGet('ktPfSrc', 'kt'), fr: ktAdd(to, -180), to: to, open: {}, sum: {}, cls: '', code: '', name: '', data: null };
-  const P = KT.pf, dateBox = '<span class="kt-day" id="ktPfDs" style="padding:3px 10px"><input type="date" id="ktPfFr" value="' + P.fr + '" aria-label="Từ ngày" class="kt-dt"><span class="kt-sub">→</span><input type="date" id="ktPfTo" value="' + P.to + '" aria-label="Đến ngày" class="kt-dt"></span>';
+  const SP0 = ktSpanGet('prof', 180);
+  KT.pf = KT.pf || { src: lsGet('ktPfSrc', 'kt'), fr: SP0.fr, to: SP0.to, open: {}, sum: {}, cls: '', code: '', name: '', data: null };
+  const P = KT.pf, dateBox = '<span id="ktPfDs">' + ktSpanHtml('prof', SP0) + '</span>';
   B.innerHTML = '<div class="kt-top"><div class="kt-seg" role="tablist" aria-label="Nguồn dữ liệu"><button type="button" data-kpsrc="kt" aria-pressed="' + (P.src !== 'kgs') + '"><i class="bi bi-building"></i> Học lớp · kientre.click</button><button type="button" data-kpsrc="kgs" aria-pressed="' + (P.src === 'kgs') + '"><i class="bi bi-person-video3"></i> Học gia sư · KGS</button></div>' +
     dateBox + '<input class="kt-sel" id="ktPfQ" placeholder="Tìm học sinh, lớp, giáo viên…" style="min-width:160px;flex:1"><button class="kt-ico" id="ktPfRe" aria-label="Tải lại"><i class="bi bi-arrow-clockwise"></i></button></div><div id="ktPf" class="kt"></div>';
   const V = $('#ktPf', B), kgs = () => P.src === 'kgs';
   const syncTop = () => { $('#ktPfDs', B).hidden = kgs(); $$('[data-kpsrc]', B).forEach(x => x.setAttribute('aria-pressed', x.dataset.kpsrc === P.src)); };
   const load = async fresh => {
     syncTop(); V.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx(kgs() ? 'Đang đọc nhận xét Kiến Gia Sư…' : 'Đang đọc danh sách lớp từ kientre.click…', { c: 'doc' }) : 'Đang tải…') + '</div>';
-    try { P.list = kgs() ? await rpc('ktProfKgsList', {}, { quiet: true }) : await rpc('ktProfList', { fr: P.fr, to: P.to, fresh: fresh ? 1 : 0 }, { quiet: true }); } catch (e) { V.innerHTML = ktErrCard(e); return; }
-    pick();
+    const lk = P.src + '|' + P.fr + '|' + P.to;
+    if (!P.lp || P.lpk !== lk || fresh) { P.lpk = lk; P.lp = kgs() ? rpc('ktProfKgsList', {}, { quiet: true }) : rpc('ktProfList', { fr: P.fr, to: P.to, fresh: fresh ? 1 : 0 }, { quiet: true }); }
+    try { const L = await P.lp; if (P.lpk !== lk) return; P.list = L; } catch (e) { P.lp = null; if (V.isConnected) V.innerHTML = ktErrCard(e); return; }
+    P.lp = null; if (P.view && P.view.isConnected) P.pick();
   };
   const hidNote = H => { const a = []; if (H && H.moved) a.push(H.moved + ' lượt học sinh đã chuyển lớp'); if (H && H.quit) a.push(H.quit + ' học sinh đã nghỉ'); if (H && H.ended) a.push(H.ended + ' lớp đã kết thúc'); return a.length ? '<span title="Không hiện ở danh sách — học sinh chuyển lớp vẫn xem được ở lớp mới, kèm nhận xét lớp cũ"><i class="bi bi-eye-slash"></i> Ẩn ' + a.join(' · ') + '</span>' : ''; };
   /* chọn học sinh */
@@ -29559,59 +29610,76 @@ function ktProfView(B) {
   };
   /* hồ sơ một học sinh */
   const open = async (cls, code, name) => {
-    P.cls = cls; P.code = code; P.name = name; P.data = null;
+    P.cls = cls; P.code = code; P.name = name; P.data = null; P.sjSel = [];
     V.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx('Đang gom nhận xét cũ của ' + name + '…', { c: 'cmt' }) : 'Đang tải…') + '</div>';
     const C = kgs() ? {} : (P.list.list || []).find(x => x.cls === cls) || {};
-    try { P.data = kgs() ? await rpc('ktProfKgs', { id: code }, { quiet: true }) : await rpc('ktProf', { cls: cls, code: code, name: name, fr: P.fr, to: P.to, grades: C.grades, prog: C.prog }, { quiet: true }); }
-    catch (e) { V.innerHTML = ktErrCard(e) + '<button class="btn sm" id="ktPfBk2"><i class="bi bi-arrow-left"></i> Chọn học sinh khác</button>'; const b = $('#ktPfBk2', V); if (b) b.onclick = pick; return; }
-    paint();
+    const ok0 = key();
+    P.op = kgs() ? rpc('ktProfKgs', { id: code }, { quiet: true }) : rpc('ktProf', { cls: cls, code: code, name: name, fr: P.fr, to: P.to, grades: C.grades, prog: C.prog }, { quiet: true });
+    try { const D = await P.op; if (key() !== ok0) return; P.data = D; }
+    catch (e) { P.op = null; if (!P.view || !P.view.isConnected) return; P.view.innerHTML = ktErrCard(e) + '<button class="btn sm" id="ktPfBk2"><i class="bi bi-arrow-left"></i> Chọn học sinh khác</button>'; const b = $('#ktPfBk2', P.view); if (b) b.onclick = P.pick; return; }
+    P.op = null; if (P.view && P.view.isConnected) P.paint();
   };
-  const key = () => P.src + '|' + P.cls + '|' + P.code;
+  const key = () => P.src + '|' + P.cls + '|' + P.code + '|' + (P.sjSel || []).join(',');
   const paint = () => {
-    const R = P.data, S = P.sum[key()], busy = P.busy === key(), src = R.src === 'kgs' ? 'Học gia sư · Kiến Gia Sư' : 'Học lớp · kientre.click';
+    const R0 = P.data, SJ = [...new Set(R0.items.map(it => it.sj).filter(Boolean))], R = ktProfView1(R0, P.sjSel), S = P.sum[key()], busy = P.busy === key(), src = R.src === 'kgs' ? 'Học gia sư · Kiến Gia Sư' : 'Học lớp · kientre.click';
     V.innerHTML = '<div class="kt-card kt-pad"><div class="kt-h"><button class="btn sm ghost" id="ktPfBk"><i class="bi bi-arrow-left"></i> Chọn học sinh khác</button><span class="sp"></span><span class="kt-pill">' + esc(src) + '</span><span class="kt-sub">' + ktDm(R.fr) + ' → ' + ktDm(R.to) + '</span></div>' +
       '<div class="kt-h">' + ktAv(R.stu.name) + '<div class="kt-t" style="flex:1"><b>' + esc(R.stu.name) + '</b><span class="kt-meta">' + [R.stu.cls, R.stu.grades && 'Khối ' + R.stu.grades, R.stu.prog].filter(Boolean).map(x => '<span>' + esc(x) + '</span>').join('') + '</span>' +
         ((R.tea || []).length ? '<span class="kt-meta kt-tea"><i class="bi bi-person-workspace"></i><span>' + esc(R.tea.join(' · ')) + '</span></span>' : '') + '</div>' + (S && S.mucDo ? '<span class="kt-pill ai">Sức học: ' + esc(S.mucDo) + '</span>' : '') + '</div>' +
+      (SJ.length > 1 ? '<div class="kt-sjs"><span class="kt-sub"><i class="bi bi-funnel"></i> Môn phân tích</span><button type="button" class="kt-chip" data-kpsj="" aria-pressed="' + !(P.sjSel || []).length + '">Tất cả</button>' + SJ.map(x => '<button type="button" class="kt-chip" data-kpsj="' + esc(x) + '" aria-pressed="' + ((P.sjSel || []).indexOf(x) >= 0) + '">' + esc(x) + '</button>').join('') + '</div>' : '') +
       '<div class="kt-kpi"><div><b>' + R.n + '</b><small>buổi đã học</small></div><div><b>' + R.nCmt + '</b><small>buổi có nhận xét</small></div><div><b>' + R.vang + '</b><small>buổi vắng</small></div><div><b>' + (R.hw != null ? R.hw + '%' : '–') + '</b><small>BTVN làm</small></div><div><b>' + (R.ok != null ? R.ok + '%' : '–') + '</b><small>BTVN đúng</small></div></div>' +
       ((R.hist || []).length > 1 ? '<div class="kt-tl"><span class="kt-sub"><i class="bi bi-signpost-2"></i> Quá trình học</span>' + R.hist.map((h, i) => '<span class="kt-pill' + (i === R.hist.length - 1 ? ' ai' : '') + '" title="' + h.n + ' buổi">' + esc(h.cls) + ' · ' + ktDm(h.fr) + ' → ' + ktDm(h.to) + '</span>').join('<i class="bi bi-arrow-right kt-sub"></i>') + '</div>' : '') +
       '<div class="kt-acts"><button class="btn pri sm" id="ktPfAi"' + (busy ? ' disabled' : '') + '><i class="bi bi-stars"></i> ' + (S ? 'Phân tích lại' : 'AI phân tích') + '</button>' +
         '<button class="btn sm" id="ktPfPdf"><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' + (S ? '<button class="btn sm ghost" id="ktPfCp"><i class="bi bi-clipboard"></i> Chép tóm tắt</button>' : '') +
-        '<span class="sp"></span><span class="kt-sub">' + (S ? 'PDF gồm tóm tắt AI, biểu đồ BTVN và nhật ký buổi học' : 'Bấm AI phân tích rồi xuất PDF để gửi gia sư mới') + '</span></div>' +
-      '<div id="ktPfAo"></div></div>' + ktProfChart(R) + (S ? ktProfSumHtml(S) : '') + ktProfLogHtml(R);
+        '<span class="sp"></span><span class="kt-sub">' + (S ? 'PDF gồm tóm tắt AI, biểu đồ BTVN và nhật ký buổi học' : (R.src === 'kgs' ? 'Bấm AI phân tích rồi xuất PDF để gửi gia sư mới / phụ huynh' : 'Bấm AI phân tích rồi xuất PDF để gửi phụ huynh / giáo viên') + (busy ? ' · chuyển tab vẫn chạy, xem ở Việc AI' : '')) + '</span></div>' +
+      '<div id="ktPfAo"></div></div>' + ktProfChart(R) + (S ? ktProfSumHtml(S, R.src) : '') + ktProfLogHtml(R);
     $('#ktPfBk', V).onclick = pick;
+    $$('[data-kpsj]', V).forEach(b => { b.onclick = () => { const x = b.dataset.kpsj, L = (P.sjSel || []).slice(); if (!x) P.sjSel = []; else { const i = L.indexOf(x); if (i >= 0) L.splice(i, 1); else L.push(x); P.sjSel = L.length === SJ.length ? [] : L; } paint(); }; });
+    const cpp = $('[data-kpph]', V); if (cpp) cpp.onclick = () => navigator.clipboard.writeText(S.thuPhuHuynh).then(() => toast('Đã chép nhận xét gửi phụ huynh', 'ok'));
     $('#ktPfPdf', V).onclick = () => ktProfPdf(R, P.sum[key()]);
     const cp = $('#ktPfCp', V); if (cp) cp.onclick = () => { navigator.clipboard.writeText(ktProfText(R, S)).then(() => toast('Đã chép bản tóm tắt', 'ok')); };
     if (busy) $('#ktPfAo', V).innerHTML = ktThink(['Đang đọc nhận xét cũ của các thầy cô', 'Đang gom mạch kiến thức đã học', 'Đang đánh giá sức học', 'Đang viết bản bàn giao']);
     $('#ktPfAi', V).onclick = async () => {
       const k = key(); P.busy = k; paint();
-      try { const r = await rpc('ktProfAi', R.src === 'kgs' ? { src: 'kgs', id: P.code } : { cls: P.cls, code: P.code, name: P.name, fr: P.fr, to: P.to }, { quiet: true });
-        ktWatch(r.log, lg => { P.busy = ''; const A = lg && lg.actions && lg.actions.prof;
-          if (!A) { P.sum[k] = null; if (key() === k && P.data) paint(); const o = $('#ktPfAo', V); if (o) o.innerHTML = '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc((lg && lg.err) || 'AI chưa đọc được hồ sơ — thử lại') + '</span></div>'; return; }
-          P.sum[k] = A; if (key() === k && P.data) paint(); toast('Đã có bản tóm tắt — bấm Xuất PDF để gửi gia sư mới', 'ok', 5000); }); }
+      try { const sj = (P.sjSel || []).slice(), r = await rpc('ktProfAi', Object.assign(R.src === 'kgs' ? { src: 'kgs', id: P.code } : { cls: P.cls, code: P.code, name: P.name, fr: P.fr, to: P.to }, { sjs: sj }), { quiet: true });
+        const live = () => P.view && P.view.isConnected && key() === k && P.data;      // chuyển tab rồi quay lại: vẽ vào khung đang hiện (P.paint mới), không vào khung cũ
+        ktWatch(r.log, lg => { if (P.busy === k) P.busy = ''; const A = lg && lg.actions && lg.actions.prof;
+          if (!A) { P.sum[k] = null; if (live()) { P.paint(); const o = $('#ktPfAo', P.view); if (o) o.innerHTML = '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc((lg && lg.err) || 'AI chưa đọc được hồ sơ — thử lại') + '</span></div>'; } return; }
+          P.sum[k] = A; if (live()) P.paint(); toast('Đã có báo cáo AI của ' + (P.name || 'học sinh') + ' — xem ở Hồ sơ học sinh hoặc Việc AI', 'ok', 5000); }); }
       catch (e) { P.busy = ''; paint(); fail(e); }
     };
   };
   $$('[data-kpsrc]', B).forEach(b => { b.onclick = () => { if (P.src === b.dataset.kpsrc) return; P.src = b.dataset.kpsrc; lsSet('ktPfSrc', P.src); P.data = null; P.list = null; load(); }; });
-  $('#ktPfFr', B).onchange = e => { P.fr = e.target.value || P.fr; P.data = null; load(); };
-  $('#ktPfTo', B).onchange = e => { P.to = e.target.value || P.to; P.data = null; load(); };
+  ktSpanBind(B, 'prof', 180, S => { P.fr = S.fr; P.to = S.to; P.data = null; P.list = null; load(); });      // (1.84.5) nhớ khoảng ngày cho lần mở sau
   $('#ktPfQ', B).oninput = () => { if (P.list && !P.data) pick(); };
   $('#ktPfRe', B).onclick = () => { P.data = null; load(true); };
-  syncTop(); if (P.list && P.data) paint(); else if (P.list) pick(); else load();
+  P.view = V; P.paint = paint; P.pick = pick;      // (1.84.5) khung đang hiện — lượt AI / tải xong sau khi chuyển tab vẽ vào đây
+  syncTop();
+  if (P.list && P.data) paint();
+  else if (P.op) { V.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx('Đang gom nhận xét cũ của ' + P.name + '…', { c: 'cmt' }) : 'Đang tải…') + '</div>'; }
+  else if (P.list) pick(); else load();
+}
+/** (1.84.5) hồ sơ chỉ gồm các môn đang chọn — tính lại số buổi, vắng, % BTVN */
+function ktProfView1(R, sel) {
+  if (!sel || !sel.length) return R;
+  const L = R.items.filter(it => sel.indexOf(it.sj) >= 0), av = a => { const v = a.filter(x => x != null); return v.length ? Math.round(v.reduce((x, y) => x + y, 0) / v.length) : null; };
+  return Object.assign({}, R, { items: L, n: L.length, nCmt: L.filter(it => it.nx || it.td || it.bt || it.yeu).length, vang: L.filter(it => /vắng|vang|absent|nghỉ|nghi/i.test(String(it.att || ''))).length, hw: av(L.map(it => it.lam)), ok: av(L.map(it => it.dung)), mon: sel });
 }
 /** số liệu BTVN theo buổi (cũ → mới, tối đa 16 buổi có số) — dùng cho màn hình và PDF */
 function ktProfHw(R) { const L = R.items.filter(it => it.lam != null || it.dung != null).slice(0, 16).reverse(); return L.length >= 2 ? { type: 'line', title: 'Bài tập về nhà theo buổi', unit: '%', labels: L.map(it => ktDm(it.d)), series: [{ name: 'Làm', data: L.map(it => it.lam) }, { name: 'Đúng', data: L.map(it => it.dung) }] } : null; }
 function ktProfChart(R) { const c = ktProfHw(R); return c ? '<div class="kt-card kt-pad">' + ktChartSvg(c) + '</div>' : ''; }
 /** khối tóm tắt AI trên màn hình */
-function ktProfSumHtml(S) {
+function ktProfSumHtml(S, src) {
   const ul = (t, i, L) => L && L.length ? '<div class="kt-pfb"><h5><i class="bi ' + i + '"></i> ' + t + '</h5><ul>' + L.map(x => '<li>' + x + '</li>').join('') + '</ul></div>' : '';
   const tx = (t, i, v) => v ? '<div class="kt-pfb"><h5><i class="bi ' + i + '"></i> ' + t + '</h5><p>' + esc(v) + '</p></div>' : '';
-  return '<div class="kt-card kt-pad kt-pf"><div class="kt-t"><b><i class="bi bi-stars"></i> Bản bàn giao do AI tóm tắt</b><span class="kt-sub">Đọc lại và sửa nếu cần trước khi gửi — AI chỉ dựa vào nhận xét cũ.</span></div>' +
+  const kgs = src === 'kgs';
+  return '<div class="kt-card kt-pad kt-pf"><div class="kt-t"><b><i class="bi bi-stars"></i> Báo cáo học tập do AI viết</b><span class="kt-sub">Đọc lại và sửa nếu cần trước khi gửi — AI chỉ dựa vào nhận xét cũ.</span></div>' +
     (S.tongQuan ? '<p class="kt-pfq">' + esc(S.tongQuan) + '</p>' : '') +
     (S.daHoc && S.daHoc.length ? '<div class="kt-pfb"><h5><i class="bi bi-signpost-split"></i> Đã dạy tới đâu</h5><table class="kt-tbl"><tbody>' + S.daHoc.map(x => '<tr><td style="white-space:normal;font-weight:700;width:34%">' + esc(x.mang) + '</td><td style="white-space:normal">' + esc(x.ketQua) + '</td></tr>').join('') + '</tbody></table></div>' : '') +
     '<div class="kt-pf2">' + ul('Điểm mạnh', 'bi-hand-thumbs-up', (S.diemManh || []).map(esc)) +
       ul('Cần kèm thêm', 'bi-life-preserver', (S.canKem || []).map(x => esc(x.y) + (x.vi ? ' <span class="kt-sub">(' + esc(ktProfVi(x.vi)) + ')</span>' : ''))) + '</div>' +
     tx('Thái độ & thói quen học', 'bi-emoji-smile', S.thaiDo) + tx('Bài tập về nhà', 'bi-journal-check', S.btvn) +
-    ul('Gợi ý cho gia sư mới', 'bi-lightbulb', (S.goiY || []).map(esc)) + tx('Lưu ý khi dạy', 'bi-exclamation-circle', S.luuY) + '</div>';
+    ul(kgs ? 'Gợi ý cho gia sư mới' : 'Gợi ý cho giáo viên đứng lớp', 'bi-lightbulb', (S.goiY || []).map(esc)) + tx('Lưu ý khi dạy', 'bi-exclamation-circle', S.luuY) + '</div>' +
+    (S.thuPhuHuynh ? '<div class="kt-card kt-pad kt-pf"><div class="kt-h"><div class="kt-t"><b><i class="bi bi-envelope-heart"></i> Nhận xét gửi phụ huynh</b><span class="kt-sub">AI viết từ nhận xét các buổi — đọc lại, sửa rồi gửi.</span></div><span class="sp"></span><button class="btn sm" data-kpph><i class="bi bi-clipboard"></i> Chép</button></div><div class="kt-pfl">' + S.thuPhuHuynh.split(/\n{2,}/).map(x => '<p>' + esc(x).replace(/\n/g, '<br>') + '</p>').join('') + '</div></div>' : '');
 }
 /** ảnh vở KGS (mở công khai) */
 function ktPhotos(L) { return (L || []).length ? '<span class="kt-ph">' + L.map(u => '<a href="' + esc(u) + '" target="_blank" rel="noopener" title="Mở ảnh vở"><img src="' + esc(u) + '" alt="Ảnh vở" loading="lazy"></a>').join('') + '</span>' : ''; }
@@ -29640,31 +29708,33 @@ function ktProfText(R, S) {
   if ((S.canKem || []).length) { L.push('CẦN KÈM THÊM'); S.canKem.forEach(x => L.push('- ' + x.y + (x.vi ? ' (' + ktProfVi(x.vi) + ')' : ''))); L.push(''); }
   if (S.thaiDo) L.push('THÁI ĐỘ: ' + S.thaiDo);
   if (S.btvn) L.push('BTVN: ' + S.btvn);
-  if ((S.goiY || []).length) { L.push('', 'GỢI Ý CHO GIA SƯ MỚI'); S.goiY.forEach(x => L.push('- ' + x)); }
+  if ((S.goiY || []).length) { L.push('', R.src === 'kgs' ? 'GỢI Ý CHO GIA SƯ MỚI' : 'GỢI Ý CHO GIÁO VIÊN'); S.goiY.forEach(x => L.push('- ' + x)); }
   if (S.luuY) L.push('', 'LƯU Ý: ' + S.luuY);
+  if (S.thuPhuHuynh) L.push('', 'NHẬN XÉT GỬI PHỤ HUYNH', S.thuPhuHuynh);
   return L.join('\n');
 }
 /* ══════ XUẤT PDF HỒ SƠ (khung rptPdf — bộ màu mail, logo con diều) ══════ */
 function ktProfPdf(R, S) {
   const li = L => '<ul>' + L.map(x => '<li>' + x + '</li>').join('') + '</ul>', sec = (t, inner, cls) => inner ? '<section' + (cls ? ' class="' + cls + '"' : '') + '><h2>' + t + '</h2>' + inner + '</section>' : '';
   const hw = ktProfHw(R), multi = (R.hist || []).length > 1;
-  const tl = multi ? sec('Quá trình học', '<div class="rp-tl">' + R.hist.map((h, i) => '<span' + (i === R.hist.length - 1 ? ' class="cur"' : '') + '>' + esc(h.cls) + ' · ' + ktDm(h.fr) + ' → ' + ktDm(h.to) + ' · ' + h.n + ' buổi</span>').join('<i>→</i>') + '</div>') : '';
-  const sum = !S ? '<div class="rp-note">Hồ sơ này chưa có bản tóm tắt của AI — bấm <b>AI phân tích</b> trước khi xuất để gia sư mới nắm nhanh.</div>' :
-    (S.tongQuan ? '<p class="rp-lead">' + esc(S.tongQuan) + '</p>' : '') +
+  const tl = multi ? sec('Quá trình học', '<div class="ktr-tl">' + R.hist.map((h, i) => '<span' + (i === R.hist.length - 1 ? ' class="cur"' : '') + '>' + esc(h.cls) + ' · ' + ktDm(h.fr) + ' → ' + ktDm(h.to) + ' · ' + h.n + ' buổi</span>').join('<i>→</i>') + '</div>') : '';
+  const sum = !S ? '<div class="ktr-note">Hồ sơ này chưa có bản tóm tắt của AI — bấm <b>AI phân tích</b> trước khi xuất để gia sư mới nắm nhanh.</div>' :
+    (S.tongQuan ? '<p class="ktr-lead">' + esc(S.tongQuan) + '</p>' : '') +
     sec('Đã dạy tới đâu', (S.daHoc || []).length ? '<table><tbody>' + S.daHoc.map(x => '<tr><td class="k">' + esc(x.mang) + '</td><td>' + esc(x.ketQua) + '</td></tr>').join('') + '</tbody></table>' : '') +
-    ((S.diemManh || []).length || (S.canKem || []).length ? '<div class="rp-two">' + ((S.diemManh || []).length ? '<section class="rp-bx ok"><h2>Điểm mạnh</h2>' + li(S.diemManh.map(esc)) + '</section>' : '') +
-      ((S.canKem || []).length ? '<section class="rp-bx warn"><h2>Cần kèm thêm</h2>' + li(S.canKem.map(x => esc(x.y) + (x.vi ? ' <span class="mu">(' + esc(ktProfVi(x.vi)) + ')</span>' : ''))) + '</section>' : '') + '</div>' : '') +
-    (S.thaiDo || S.btvn ? '<div class="rp-two">' + sec('Thái độ &amp; thói quen học', S.thaiDo ? '<p>' + esc(S.thaiDo) + '</p>' : '', 'rp-bx') + sec('Bài tập về nhà', S.btvn ? '<p>' + esc(S.btvn) + '</p>' : '', 'rp-bx') + '</div>' : '') +
-    ((S.goiY || []).length ? sec('Gợi ý cho gia sư mới', li(S.goiY.map(esc)), 'rp-bx tip') : '') + (S.luuY ? sec('Lưu ý khi dạy', '<p>' + esc(S.luuY) + '</p>', 'rp-bx warn') : '');
+    ((S.diemManh || []).length || (S.canKem || []).length ? '<div class="ktr-two">' + ((S.diemManh || []).length ? '<section class="ktr-bx ok"><h2>Điểm mạnh</h2>' + li(S.diemManh.map(esc)) + '</section>' : '') +
+      ((S.canKem || []).length ? '<section class="ktr-bx warn"><h2>Cần kèm thêm</h2>' + li(S.canKem.map(x => esc(x.y) + (x.vi ? ' <span class="mu">(' + esc(ktProfVi(x.vi)) + ')</span>' : ''))) + '</section>' : '') + '</div>' : '') +
+    (S.thaiDo || S.btvn ? '<div class="ktr-two">' + sec('Thái độ &amp; thói quen học', S.thaiDo ? '<p>' + esc(S.thaiDo) + '</p>' : '', 'ktr-bx') + sec('Bài tập về nhà', S.btvn ? '<p>' + esc(S.btvn) + '</p>' : '', 'ktr-bx') + '</div>' : '') +
+    ((S.goiY || []).length ? sec(R.src === 'kgs' ? 'Gợi ý cho gia sư mới' : 'Gợi ý cho giáo viên đứng lớp', li(S.goiY.map(esc)), 'ktr-bx tip') : '') + (S.luuY ? sec('Lưu ý khi dạy', '<p>' + esc(S.luuY) + '</p>', 'ktr-bx warn') : '');
   const chart = hw ? '<section>' + ktChartSvg(hw, { print: 1 }) + '</section>' : '';
+  const thu = S && S.thuPhuHuynh ? '<section class="ktr-bx ok flow"><h2>Nhận xét gửi phụ huynh</h2>' + S.thuPhuHuynh.split(/\n{2,}/).map(x => '<p>' + esc(x).replace(/\n/g, '<br>') + '</p>').join('') + '</section>' : '';
   const log = '<section class="flow"><h2>Nhật ký buổi học &amp; nhận xét cũ</h2><table><thead><tr><th>Ngày</th><th>Bài</th><th>Nhận xét của thầy cô</th><th>BTVN</th></tr></thead><tbody>' +
     R.items.map(it => '<tr><td class="d">' + ktDm(it.d) + (multi && it.cls ? '<br><span class="mu">' + esc(it.cls) + '</span>' : '') + '</td><td class="b">' + esc(it.bai || it.lc || '—') + (it.tea ? '<br><span class="mu">' + esc(it.tea) + '</span>' : '') + '</td>' +
       '<td>' + (ktProfCmt(it).map(x => '<div><span class="lb">' + x[0] + '</span> ' + esc(x[1]) + '</div>').join('') || '<span class="mu">' + esc(it.att || '—') + '</span>') + '</td>' +
       '<td class="n">' + (it.lam != null ? it.lam + '%' + (it.dung != null ? '<br><span class="mu">đúng ' + it.dung + '%</span>' : '') : '—') + '</td></tr>').join('') + '</tbody></table></section>';
-  rptPdf({ kicker: 'Hồ sơ học sinh · bàn giao gia sư mới', title: R.stu.name, sub: [R.stu.cls, R.stu.grades && 'Khối ' + R.stu.grades, R.stu.prog, R.src === 'kgs' ? 'Học gia sư (Kiến Gia Sư)' : 'Học lớp (kientre.click)'].filter(Boolean).join(' · '),
+  rptPdf({ kicker: R.src === 'kgs' ? 'Hồ sơ học sinh · bàn giao gia sư mới' : 'Báo cáo học tập' + (R.mon ? ' · ' + R.mon.join(', ') : ''), title: R.stu.name, sub: [R.stu.cls, R.stu.grades && 'Khối ' + R.stu.grades, R.stu.prog, R.src === 'kgs' ? 'Học gia sư (Kiến Gia Sư)' : 'Học lớp (kientre.click)'].filter(Boolean).join(' · '),
     badge: S && S.mucDo ? { k: 'Sức học', v: S.mucDo } : null,
     kpi: [{ n: R.n, t: 'buổi đã học' }, { n: R.nCmt, t: 'buổi có nhận xét' }, { n: R.vang, t: 'buổi vắng' }, { n: R.hw != null ? R.hw + '%' : '–', t: 'BTVN làm' }, { n: R.ok != null ? R.ok + '%' : '–', t: 'BTVN đúng' }, { n: ktDm(R.fr) + ' → ' + ktDm(R.to), t: 'khoảng thời gian' }],
-    body: ((R.tea || []).length ? '<p class="mu" style="margin:0 0 10px"><b>Thầy cô đã dạy:</b> ' + esc(R.tea.join(' · ')) + '</p>' : '') + tl + sum + chart + log,
+    body: ((R.tea || []).length ? '<p class="mu" style="margin:0 0 10px"><b>Thầy cô đã dạy:</b> ' + esc(R.tea.join(' · ')) + '</p>' : '') + tl + sum + chart + thu + log,
     file: 'Ho so hoc sinh - ' + R.stu.name + ' - ' + R.fr + ' den ' + R.to,
     foot: 'Nguồn: nhận xét buổi học của thầy cô trên ' + (R.src === 'kgs' ? 'Kiến Gia Sư' : 'kientre.click') + ' · bản tóm tắt do AI viết lại, người bàn giao đã đọc trước khi gửi.' });
 }
@@ -29719,12 +29789,12 @@ function ktLogo() { try { const v = getComputedStyle(document.documentElement).g
 function rptPdf(o) {
   const d = new Date(), dd = x => String(x).padStart(2, '0'), hom = dd(d.getDate()) + '/' + dd(d.getMonth() + 1) + '/' + d.getFullYear(), logo = ktLogo();
   const app = o.app || (($('#appName') || {}).textContent || '').trim() || 'Kiến Trẻ';
-  const head = '<header class="rp-h"><div class="rp-bar">' + (logo ? '<span class="rp-logo"><img src="' + logo + '" alt=""></span>' : '') + '<div class="rp-t"><small>' + esc(app) + ' · ' + esc(o.kicker || 'Báo cáo') + '</small><b>' + esc(o.title || '') + '</b>' + (o.sub ? '<span>' + esc(o.sub) + '</span>' : '') + '</div>' +
-      (o.badge ? '<div class="rp-bd"><small>' + esc(o.badge.k) + '</small><b>' + esc(o.badge.v) + '</b></div>' : '') + '</div><div class="rp-strip"></div></header>' +
-    ((o.kpi || []).length ? '<div class="rp-kpi">' + o.kpi.map(k => '<div><b>' + esc(k.n) + '</b><small>' + esc(k.t) + '</small></div>').join('') + '</div>' : '');
-  const foot = '<footer class="rp-f">' + (o.foot ? o.foot + '<br>' : '') + esc(app) + ' · xuất ngày ' + hom + '</footer>';
+  const head = '<header class="ktr-h"><div class="ktr-bar">' + (logo ? '<span class="ktr-logo"><img src="' + logo + '" alt=""></span>' : '') + '<div class="ktr-t"><small>' + esc(app) + ' · ' + esc(o.kicker || 'Báo cáo') + '</small><b>' + esc(o.title || '') + '</b>' + (o.sub ? '<span>' + esc(o.sub) + '</span>' : '') + '</div>' +
+      (o.badge ? '<div class="ktr-bd"><small>' + esc(o.badge.k) + '</small><b>' + esc(o.badge.v) + '</b></div>' : '') + '</div><div class="ktr-strip"></div></header>' +
+    ((o.kpi || []).length ? '<div class="ktr-kpi">' + o.kpi.map(k => '<div><b>' + esc(k.n) + '</b><small>' + esc(k.t) + '</small></div>').join('') + '</div>' : '');
+  const foot = '<footer class="ktr-f">' + (o.foot ? o.foot + '<br>' : '') + esc(app) + ' · xuất ngày ' + hom + '</footer>';
   const area = document.createElement('div'); area.id = 'ktPrint';
-  area.innerHTML = '<article class="rp">' + head + (o.body || '') + foot + '</article>';
+  area.innerHTML = '<article class="ktr">' + head + (o.body || '') + foot + '</article>';
   document.body.appendChild(area);
   const st = document.createElement('style'); st.id = 'ktPrintCss'; st.textContent = RPT_CSS; document.head.appendChild(st);
   const t0 = document.title; document.title = String(o.file || o.title || 'Bao cao').replace(/[\\/:*?"<>|]/g, '');
@@ -29739,34 +29809,143 @@ const RPT_CSS = '#ktPrint{ display:none }' +
   '@media print{ @page{ size:A4; margin:10mm 11mm 10mm } body > *:not(#ktPrint){ display:none !important } html,body{ height:auto !important; overflow:visible !important; background:#fff !important }' +
   '#ktPrint{ display:block; font-family:"Be Vietnam Pro",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size:10pt; line-height:1.5 }' +
   '#ktPrint, #ktPrint *{ box-sizing:border-box; color:#2B3245 !important; background-color:transparent; box-shadow:none !important; text-shadow:none !important; -webkit-print-color-adjust:exact; print-color-adjust:exact }' +
-  '#ktPrint .rp-bar{ display:flex; align-items:center; gap:12px; background:#1E3A6E !important; border-radius:12px 12px 0 0; padding:14px 18px }' +
-  '#ktPrint .rp-logo{ width:44px; height:44px; border-radius:50%; background:#fff !important; display:grid; place-items:center; flex:none } #ktPrint .rp-logo img{ height:30px; width:auto; display:block }' +
-  '#ktPrint .rp-t{ flex:1; min-width:0; display:flex; flex-direction:column } #ktPrint .rp-t small{ font-size:8.6pt; color:#BFD0EE !important; letter-spacing:.04em }' +
-  '#ktPrint .rp-t b{ font-size:17pt; line-height:1.2; color:#fff !important; letter-spacing:-.01em } #ktPrint .rp-t span{ font-size:9.4pt; color:#D7E2F5 !important; margin-top:2px }' +
-  '#ktPrint .rp-bd{ background:#fff !important; border-radius:10px; padding:5px 12px; text-align:center; flex:none } #ktPrint .rp-bd small{ display:block; font-size:7.6pt; color:#5B6478 !important; text-transform:uppercase; letter-spacing:.05em } #ktPrint .rp-bd b{ font-size:11.5pt; color:#1E3A6E !important }' +
-  '#ktPrint .rp-strip{ height:4px; background:#EE5B27 !important; border-radius:0 0 4px 4px; margin-bottom:12px }' +
-  '#ktPrint .rp-kpi{ display:flex; gap:7px; margin:0 0 12px } #ktPrint .rp-kpi > div{ flex:1; background:#F5F7FB !important; border-radius:10px; padding:8px 6px; text-align:center }' +
-  '#ktPrint .rp-kpi b{ display:block; font-size:14pt; line-height:1.2; font-weight:800; color:#1E3A6E !important } #ktPrint .rp-kpi small{ font-size:7.8pt; color:#5B6478 !important }' +
+  '#ktPrint .ktr-bar{ display:flex; align-items:center; gap:12px; background:#1E3A6E !important; border-radius:12px 12px 0 0; padding:14px 18px }' +
+  '#ktPrint .ktr-logo{ width:44px; height:44px; border-radius:50%; background:#fff !important; display:grid; place-items:center; flex:none } #ktPrint .ktr-logo img{ height:30px; width:auto; display:block }' +
+  '#ktPrint .ktr-t{ flex:1; min-width:0; display:flex; flex-direction:column } #ktPrint .ktr-t small{ font-size:8.6pt; color:#BFD0EE !important; letter-spacing:.04em }' +
+  '#ktPrint .ktr-t b{ font-size:17pt; line-height:1.2; color:#fff !important; letter-spacing:-.01em } #ktPrint .ktr-t span{ font-size:9.4pt; color:#D7E2F5 !important; margin-top:2px }' +
+  '#ktPrint .ktr-bd{ background:#fff !important; border-radius:10px; padding:5px 12px; text-align:center; flex:none } #ktPrint .ktr-bd small{ display:block; font-size:7.6pt; color:#5B6478 !important; text-transform:uppercase; letter-spacing:.05em } #ktPrint .ktr-bd b{ font-size:11.5pt; color:#1E3A6E !important }' +
+  '#ktPrint .ktr-strip{ height:4px; background:#EE5B27 !important; border-radius:0 0 4px 4px; margin-bottom:12px }' +
+  '#ktPrint .ktr-kpi{ display:flex; gap:7px; margin:0 0 12px } #ktPrint .ktr-kpi > div{ flex:1; background:#F5F7FB !important; border-radius:10px; padding:8px 6px; text-align:center }' +
+  '#ktPrint .ktr-kpi b{ display:block; font-size:14pt; line-height:1.2; font-weight:800; color:#1E3A6E !important } #ktPrint .ktr-kpi small{ font-size:7.8pt; color:#5B6478 !important }' +
   '#ktPrint section{ margin:0 0 12px; break-inside:avoid } #ktPrint section.flow{ break-inside:auto }' +
   '#ktPrint h2{ break-after:avoid; padding-top:2px; font-size:9.6pt; margin:0 0 6px; color:#1E3A6E !important; letter-spacing:.06em; text-transform:uppercase; font-weight:800; display:flex; align-items:center; gap:7px }' +
   '#ktPrint h2::before{ content:""; width:7px; height:7px; border-radius:50%; background:#1E3A6E !important; display:inline-block }' +
   '#ktPrint p{ margin:0 0 5px } #ktPrint ul, #ktPrint ol{ margin:0 0 4px; padding-left:16px } #ktPrint li{ margin:0 0 3px } #ktPrint h3, #ktPrint h4{ font-size:10pt; margin:6px 0 3px; color:#14213D !important }' +
-  '#ktPrint .rp-lead{ font-size:10.6pt; line-height:1.6; border-left:3pt solid #EE5B27; padding:2px 0 2px 11px; margin:0 0 12px; color:#14213D !important }' +
-  '#ktPrint .rp-two{ display:flex; gap:9px; break-inside:avoid; margin-bottom:12px } #ktPrint .rp-two > section{ flex:1; margin:0 }' +
-  '#ktPrint .rp-bx{ border:0.8pt solid #E3E7F0; border-radius:10px; padding:9px 12px; background:#FAFBFE !important }' +
-  '#ktPrint .rp-bx.ok{ background:#F1FAF4 !important; border-color:#CEEAD6 } #ktPrint .rp-bx.ok h2{ color:#0F7B45 !important } #ktPrint .rp-bx.ok h2::before{ background:#0F7B45 !important }' +
-  '#ktPrint .rp-bx.warn{ background:#FFF6F1 !important; border-color:#F8D5C4 } #ktPrint .rp-bx.warn h2{ color:#C2410C !important } #ktPrint .rp-bx.warn h2::before{ background:#EE5B27 !important }' +
-  '#ktPrint .rp-bx.tip{ background:#EEF3FC !important; border-color:#CFDCF3 }' +
-  '#ktPrint .rp-tl{ display:flex; flex-wrap:wrap; gap:6px; align-items:center } #ktPrint .rp-tl span{ background:#EAF0FB !important; color:#1E3A6E !important; border-radius:999px; padding:3px 10px; font-size:8.8pt; font-weight:600 } #ktPrint .rp-tl span.cur{ background:#1E3A6E !important; color:#fff !important } #ktPrint .rp-tl i{ color:#8A93A6 !important; font-style:normal }' +
+  '#ktPrint .ktr-lead{ font-size:10.6pt; line-height:1.6; border-left:3pt solid #EE5B27; padding:2px 0 2px 11px; margin:0 0 12px; color:#14213D !important }' +
+  '#ktPrint .ktr-two{ display:flex; gap:9px; break-inside:avoid; margin-bottom:12px } #ktPrint .ktr-two > section{ flex:1; margin:0 }' +
+  '#ktPrint .ktr-bx{ border:0.8pt solid #E3E7F0; border-radius:10px; padding:9px 12px; background:#FAFBFE !important }' +
+  '#ktPrint .ktr-bx.ok{ background:#F1FAF4 !important; border-color:#CEEAD6 } #ktPrint .ktr-bx.ok h2{ color:#0F7B45 !important } #ktPrint .ktr-bx.ok h2::before{ background:#0F7B45 !important }' +
+  '#ktPrint .ktr-bx.warn{ background:#FFF6F1 !important; border-color:#F8D5C4 } #ktPrint .ktr-bx.warn h2{ color:#C2410C !important } #ktPrint .ktr-bx.warn h2::before{ background:#EE5B27 !important }' +
+  '#ktPrint .ktr-bx.tip{ background:#EEF3FC !important; border-color:#CFDCF3 }' +
+  '#ktPrint .ktr-tl{ display:flex; flex-wrap:wrap; gap:6px; align-items:center } #ktPrint .ktr-tl span{ background:#EAF0FB !important; color:#1E3A6E !important; border-radius:999px; padding:3px 10px; font-size:8.8pt; font-weight:600 } #ktPrint .ktr-tl span.cur{ background:#1E3A6E !important; color:#fff !important } #ktPrint .ktr-tl i{ color:#8A93A6 !important; font-style:normal }' +
   '#ktPrint table{ width:100%; border-collapse:collapse; font-size:9pt } #ktPrint td, #ktPrint th{ border-bottom:0.6pt solid #EEF1F6; padding:5px 6px; vertical-align:top; text-align:left }' +
   '#ktPrint th{ background:#EAF0FB !important; color:#1E3A6E !important; font-size:7.8pt; text-transform:uppercase; letter-spacing:.04em; border-bottom:0 } #ktPrint tr{ break-inside:avoid } #ktPrint thead{ display:table-header-group }' +
   '#ktPrint td.k{ font-weight:700; width:30%; color:#14213D !important } #ktPrint td.d{ white-space:nowrap; width:10%; color:#5B6478 !important } #ktPrint td.b{ width:22%; font-weight:600; color:#14213D !important } #ktPrint td.n{ white-space:nowrap; width:11% }' +
   '#ktPrint .lb{ color:#1E3A6E !important; font-size:7.8pt; font-weight:800; text-transform:uppercase; letter-spacing:.03em } #ktPrint .mu{ color:#8A93A6 !important; font-size:8.4pt }' +
-  '#ktPrint .rp-brk{ break-before:page } #ktPrint .rp-note{ font-size:9.4pt; background:#FFF6F1 !important; border:0.8pt solid #F8D5C4; border-radius:10px; padding:8px 12px; margin-bottom:12px }' +
+  '#ktPrint .ktr-brk{ break-before:page } #ktPrint .ktr-note{ font-size:9.4pt; background:#FFF6F1 !important; border:0.8pt solid #F8D5C4; border-radius:10px; padding:8px 12px; margin-bottom:12px }' +
   '#ktPrint figure.kt-chart{ margin:0; border:0.8pt solid #E3E7F0; border-radius:10px; padding:8px 10px 4px; break-inside:avoid } #ktPrint .kt-chart figcaption{ display:flex; gap:10px; justify-content:space-between; font-size:8.8pt; margin-bottom:4px }' +
   '#ktPrint .kt-chart figcaption span{ display:flex; gap:4px; align-items:center; color:#5B6478 !important } #ktPrint .kt-chart figcaption i{ width:9px; height:9px; border-radius:3px; display:inline-block } #ktPrint .kt-chart figcaption em{ width:8px }' +
-  '#ktPrint .rp-ph{ display:flex; gap:4px; margin-top:4px } #ktPrint .rp-ph img{ width:54px; height:54px; object-fit:cover; border-radius:6px; border:0.6pt solid #E3E7F0 }' +
-  '#ktPrint footer.rp-f{ margin-top:10px; padding-top:6px; border-top:0.6pt solid #E3E7F0; font-size:7.8pt; color:#8A93A6 !important; text-align:center } }';
+  '#ktPrint .ktr-ph{ display:flex; gap:4px; margin-top:4px } #ktPrint .ktr-ph img{ width:54px; height:54px; object-fit:cover; border-radius:6px; border:0.6pt solid #E3E7F0 }' +
+  '#ktPrint footer.ktr-f{ margin-top:10px; padding-top:6px; border-top:0.6pt solid #E3E7F0; font-size:7.8pt; color:#8A93A6 !important; text-align:center } }';
+
+/* ── (1.84.5) VIỆC AI — mọi lượt AI của Kiến Trẻ (nhận xét · hỏi dữ liệu · đề mock test · phân tích hồ sơ · hỏi nhận xét KGS): đang chạy / xong / lỗi.
+   Máy chủ giữ kết quả (AiLog) nên chuyển tab, tắt máy vẫn còn — bấm một dòng để xem lại kết quả hoặc mở lại đúng chỗ. ── */
+const KT_JOB_I = { ktnx: 'bi-chat-heart', ktask: 'bi-chat-square-text', ktde: 'bi-file-earmark-text', kths: 'bi-person-vcard', fbask: 'bi-table' };
+function ktJobsView(B) {
+  B.innerHTML = '<div class="kt-top"><span class="kt-stat" id="ktJs"></span><span class="sp"></span><button class="kt-ico" id="ktJr" aria-label="Tải lại"><i class="bi bi-arrow-clockwise"></i></button></div><div id="ktJl" class="kt"></div>';
+  const V = $('#ktJl', B);
+  const ago = s => { const m = Math.round((Date.now() - new Date(s)) / 60000); return m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : m < 1440 ? Math.round(m / 60) + ' giờ trước' : ktDm(String(s).slice(0, 10)); };
+  const st = j => /^(send|wait|proc)$/.test(j.status) ? ['run', 'Đang chạy', 'ai'] : j.status === 'err' ? ['err', 'Lỗi', 'bad'] : j.status === 'empty' ? ['ok', 'Không có nội dung', 'warn'] : ['ok', 'Xong', 'ok'];
+  let tm = 0;
+  const load = async () => {
+    clearTimeout(tm); let R;
+    try { R = await rpc('ktJobs', { n: 50 }, { quiet: true }); } catch (e) { V.innerHTML = ktErrCard(e); return; }
+    if (!V.isConnected) return;
+    const L = R.list || [], run = L.filter(j => st(j)[0] === 'run').length;
+    $('#ktJs', B).innerHTML = '<span><b>' + run + '</b>đang chạy</span><span><b>' + L.length + '</b>lượt gần đây</span><span>Chuyển tab vẫn chạy — kết quả lưu ở máy chủ</span>';
+    V.innerHTML = L.length ? '<div class="kt-card kt-jobs">' + L.map((j, i) => { const s = st(j);
+      return '<button type="button" class="kt-job" data-kji="' + i + '"><span class="kt-jico' + (s[0] === 'run' ? ' run' : '') + '"><i class="bi ' + (s[0] === 'run' ? 'bi-arrow-repeat' : KT_JOB_I[j.kind] || 'bi-stars') + '"></i></span><span class="kt-rn" style="min-width:0"><b>' + esc(j.title || j.kindT) + '</b><small>' + esc([j.kindT, ago(j.at), j.ctx].filter(Boolean).join(' · ')) + '</small></span><span class="sp"></span><span class="kt-pill ' + s[2] + '">' + s[1] + '</span><i class="bi bi-chevron-right kt-chev"></i></button>'; }).join('') + '</div>'
+      : '<div class="kt-card kt-empty"><i class="bi bi-activity"></i><div>Chưa có lượt AI nào.</div></div>';
+    $$('[data-kji]', V).forEach(b => { b.onclick = () => ktJobOpen(L[Number(b.dataset.kji)]); });
+    if (run) tm = setTimeout(() => { if (V.isConnected) load(); }, 5000);      // còn lượt đang chạy → tự hỏi lại
+  };
+  $('#ktJr', B).onclick = load;
+  load();
+}
+/** mở một lượt: hồ sơ → về đúng học sinh (kèm báo cáo AI) · hỏi dữ liệu → về cuộc hỏi · nhận xét → về đúng ngày · còn lại xem trong hộp */
+async function ktJobOpen(j) {
+  let lg; try { lg = ((await rpc('aiPoll', { ids: [j.id] }, { quiet: true })).list || [])[0]; } catch (e) { return fail(e); }
+  if (!lg) return toast('Không đọc được lượt này', 'warn');
+  const m = j.m || {};
+  if (j.kind === 'kths' && lg.actions && lg.actions.prof) {
+    const to = ktToday(); KT.pf = KT.pf || { fr: ktAdd(to, -180), to: to, open: {}, sum: {} };
+    const P = KT.pf; Object.assign(P, { src: m.src === 'kgs' ? 'kgs' : 'kt', cls: m.src === 'kgs' ? '' : m.cls, code: m.code, name: m.name || '', data: null, list: P.list && P.src === (m.src === 'kgs' ? 'kgs' : 'kt') ? P.list : null, sjSel: m.sjs || [] });
+    P.sum[P.src + '|' + P.cls + '|' + P.code + '|' + (P.sjSel || []).join(',')] = lg.actions.prof;
+    P.op = P.src === 'kgs' ? rpc('ktProfKgs', { id: m.code }, { quiet: true }) : rpc('ktProf', { cls: m.cls, code: m.code, name: m.name, fr: P.fr, to: P.to }, { quiet: true });
+    P.op.then(D => { P.data = D; P.op = null; if (P.view && P.view.isConnected) P.paint(); }).catch(e => { P.op = null; fail(e); });
+    return go('kt/prof');
+  }
+  if (j.kind === 'ktnx' && m.day) { KT.day = m.day; return go('kt'); }
+  if (j.kind === 'ktask' && m.conv && KT.chat && KT.chat.conv === m.conv) return go('kt/ask');
+  modal({ title: j.title || j.kindT, icon: 'bi-stars', size: 'lg', foot: [{ t: 'Đóng' }],
+    body: '<div style="display:flex;flex-direction:column;gap:10px">' + (lg.prompt ? '<div class="kt-mu" style="align-self:flex-start;max-width:100%">' + esc(lg.prompt) + '</div>' : '') +
+      (lg.status === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(lg.err || 'Lỗi') + '</span></div>' : /^(send|wait|proc)$/.test(lg.status) ? ktThink(['AI đang làm', 'Đang soạn kết quả']) : '<div class="kt-md kt-ans">' + ktMdC(lg.reply || '') + '</div>') + '</div>' });
+}
+
+/* ══════ (1.84.5) TRỢ LÝ THEO HỌC SINH — chọn lớp › học sinh ngay trong khung chat: dashboard (số liệu, BTVN, quá trình học),
+   hỏi liên tục về em đó, "Lập báo cáo" (AI viết báo cáo chi tiết + nhận xét gửi phụ huynh) → Xuất PDF. Học sinh đang chọn lưu theo cuộc hỏi. ══════ */
+function ktStuKey(s) { return s ? s.src + '|' + s.cls + '|' + s.code : ''; }
+async function ktStuLoad(force) {
+  const s = KT.chat.stu; if (!s) { KT.stuR = null; return null; }
+  if (!force && KT.stuR && KT.stuRk === ktStuKey(s)) return KT.stuR;
+  const S = ktSpanGet('prof', 180);
+  KT.stuR = s.src === 'kgs' ? await rpc('ktProfKgs', { id: s.code }, { quiet: true }) : await rpc('ktProf', { cls: s.cls, code: s.code, name: s.name, fr: S.fr, to: S.to }, { quiet: true });
+  KT.stuRk = ktStuKey(s); return KT.stuR;
+}
+/** thanh học sinh trên đầu khung chat: chưa chọn → nút Chọn học sinh · đã chọn → dashboard gọn (mở / gập) */
+function ktStuBar(box, onChange) {
+  const s = KT.chat.stu;
+  if (!s) { box.innerHTML = '<div class="kt-stub"><i class="bi bi-person-lines-fill"></i><span>Hỏi về một học sinh cụ thể? Chọn lớp › học sinh để xem dashboard, hỏi liên tục và lập báo cáo gửi phụ huynh.</span><button class="btn sm" data-kstp><i class="bi bi-person-plus"></i> Chọn học sinh</button></div>';
+    $('[data-kstp]', box).onclick = () => ktStuPick(onChange); return; }
+  const R = KT.stuR && KT.stuRk === ktStuKey(s) ? KT.stuR : null, open = lsGet('ktStuOpen', 1);
+  box.innerHTML = '<div class="kt-stud">' + '<div class="kt-h">' + ktAv(s.name) + '<div class="kt-t"><b>' + esc(s.name) + '</b><span class="kt-meta"><span>' + esc(s.cls || '') + '</span><span>' + (s.src === 'kgs' ? 'Học gia sư · KGS' : 'Học lớp · kientre.click') + '</span>' + (R && R.stu.grades ? '<span>Khối ' + esc(R.stu.grades) + '</span>' : '') + '</span></div>' +
+      '<span class="sp"></span><button class="btn sm pri" data-ksrep><i class="bi bi-stars"></i> Lập báo cáo</button><button class="btn sm" data-kspdf' + (R ? '' : ' disabled') + '><i class="bi bi-file-earmark-pdf"></i> PDF</button><button class="kt-ico" data-kstg title="' + (open ? 'Thu gọn' : 'Mở dashboard') + '" aria-label="Mở / gập dashboard"><i class="bi bi-chevron-' + (open ? 'up' : 'down') + '"></i></button><button class="kt-ico" data-kstp title="Đổi học sinh" aria-label="Đổi học sinh"><i class="bi bi-arrow-left-right"></i></button><button class="kt-ico" data-kstx title="Bỏ chọn" aria-label="Bỏ chọn học sinh"><i class="bi bi-x-lg"></i></button></div>' +
+    (open ? (R ? '<div class="kt-kpi"><div><b>' + R.n + '</b><small>buổi đã học</small></div><div><b>' + R.nCmt + '</b><small>có nhận xét</small></div><div><b>' + R.vang + '</b><small>buổi vắng</small></div><div><b>' + (R.hw != null ? R.hw + '%' : '–') + '</b><small>BTVN làm</small></div><div><b>' + (R.ok != null ? R.ok + '%' : '–') + '</b><small>BTVN đúng</small></div></div>' +
+        ((R.hist || []).length > 1 ? '<div class="kt-tl"><span class="kt-sub"><i class="bi bi-signpost-2"></i> Quá trình học</span>' + R.hist.map((h, i) => '<span class="kt-pill' + (i === R.hist.length - 1 ? ' ai' : '') + '">' + esc(h.cls) + ' · ' + ktDm(h.fr) + ' → ' + ktDm(h.to) + '</span>').join('') + '</div>' : '') +
+        (ktProfHw(R) ? ktChartSvg(ktProfHw(R)) : '')
+      : '<div class="kt-sub">' + ktThink(['Đang đọc hồ sơ của ' + s.name]) + '</div>') : '') + '</div>';
+  $('[data-kstp]', box).onclick = () => ktStuPick(onChange);
+  $('[data-kstx]', box).onclick = () => { KT.chat.stu = null; KT.stuR = null; ktChatSave(); onChange(); };
+  $('[data-kstg]', box).onclick = () => { lsSet('ktStuOpen', open ? 0 : 1); ktStuBar(box, onChange); };
+  $('[data-kspdf]', box).onclick = () => { const L = KT.chat.msgs.filter(m => m.prof && m.stuK === ktStuKey(s)), last = L[L.length - 1]; ktProfPdf(R, last ? last.prof : null); };
+  $('[data-ksrep]', box).onclick = () => onChange('report');
+  if (!R) ktStuLoad().then(() => { if (box.isConnected) ktStuBar(box, onChange); }).catch(e => { if (box.isConnected) box.innerHTML = ktErrCard(e); });
+}
+/** hộp chọn lớp › học sinh (học lớp kientre.click hoặc học gia sư KGS) */
+function ktStuPick(onChange) {
+  let src = (KT.chat.stu && KT.chat.stu.src) || 'kt', q = '', L = null;
+  const m = modal({ title: 'Chọn học sinh', icon: 'bi-person-lines-fill', size: 'lg', foot: [{ t: 'Đóng' }],
+    body: '<div class="kt-top" style="margin-bottom:10px"><div class="kt-seg"><button type="button" data-kpk="kt">Học lớp · kientre.click</button><button type="button" data-kpk="kgs">Học gia sư · KGS</button></div><input class="kt-sel" data-kpq placeholder="Tìm học sinh, lớp…" style="flex:1;min-width:150px"></div><div data-kpl class="kt-scroll tall"></div>' });
+  const box = $('[data-kpl]', m.el);
+  const paint = () => {
+    $$('[data-kpk]', m.el).forEach(b => b.setAttribute('aria-pressed', b.dataset.kpk === src));
+    if (!L) { box.innerHTML = typeof loadFx === 'function' ? loadFx('Đang đọc danh sách…', { c: 'doc' }) : 'Đang tải…'; return; }
+    const f = fold(q.trim()), rows = [];
+    if (src === 'kgs') (L.list || []).forEach(x => { if (!f || fold(x.name + ' ' + x.code + ' ' + x.tutor).indexOf(f) >= 0) rows.push({ code: x.id, cls: x.code, name: x.name, sub: [x.code, x.tutor, x.n + ' buổi'].filter(Boolean).join(' · ') }); });
+    else (L.list || []).forEach(c => c.st.forEach(st => { if (!f || fold(st.name + ' ' + c.cls).indexOf(f) >= 0) rows.push({ code: st.code, cls: c.cls, name: st.name, sub: c.cls + ' · ' + st.n + ' buổi · gần nhất ' + ktDm(st.last) }); }));
+    box.innerHTML = rows.length ? '<div class="kt-card">' + rows.slice(0, 300).map((r, i) => '<button type="button" class="kt-pfs" data-kpr="' + i + '">' + ktAv(r.name) + '<span class="kt-rn"><b>' + esc(r.name) + '</b><small>' + esc(r.sub) + '</small></span><span class="sp"></span><i class="bi bi-chevron-right kt-chev"></i></button>').join('') + '</div>' : '<div class="kt-empty"><i class="bi bi-search"></i><div>Không thấy học sinh khớp.</div></div>';
+    $$('[data-kpr]', box).forEach(b => { b.onclick = () => { const r = rows[Number(b.dataset.kpr)]; KT.chat.stu = { src: src, code: r.code, cls: r.cls, name: r.name }; KT.stuR = null; ktChatSave(); m.close(); onChange(); }; });
+  };
+  const load = async () => { L = null; paint(); const S = ktSpanGet('prof', 180);
+    try { L = src === 'kgs' ? await rpc('ktProfKgsList', {}, { quiet: true }) : await rpc('ktProfList', { fr: S.fr, to: S.to }, { quiet: true }); } catch (e) { box.innerHTML = ktErrCard(e); return; } paint(); };
+  $$('[data-kpk]', m.el).forEach(b => { b.onclick = () => { if (src === b.dataset.kpk) return; src = b.dataset.kpk; load(); }; });
+  $('[data-kpq]', m.el).oninput = e => { q = e.target.value; paint(); };
+  load();
+}
+/* ══════ (1.84.5) KHOẢNG NGÀY: mẫu 1 / 3 / 6 tháng / 1 năm hoặc khoảng cụ thể — nhớ cho lần mở sau (mỗi màn một khoá) ══════ */
+const KT_SPANS = [[30, '1 tháng gần nhất'], [90, '3 tháng gần nhất'], [180, '6 tháng gần nhất'], [365, '1 năm gần nhất'], ['c', 'Khoảng cụ thể…']];
+function ktSpanGet(k, def) { const o = lsGet('ktSpan:' + k, null) || { d: def }, to = ktToday(); if (o.d === 'c' && o.fr && o.to) return { d: 'c', fr: o.fr, to: o.to }; const d = Number(o.d) || def; return { d: d, fr: ktAdd(to, -d), to: to }; }
+function ktSpanHtml(k, S) {
+  return '<span class="kt-span" data-kspan="' + k + '"><select class="kt-sel" aria-label="Khoảng ngày">' + KT_SPANS.map(x => '<option value="' + x[0] + '"' + (String(S.d) === String(x[0]) ? ' selected' : '') + '>' + x[1] + '</option>').join('') + (KT_SPANS.some(x => String(x[0]) === String(S.d)) ? '' : '<option value="' + S.d + '" selected>' + S.d + ' ngày gần nhất</option>') + '</select>' +
+    (S.d === 'c' ? '<span class="kt-day" style="padding:3px 10px"><input type="date" data-ksf value="' + S.fr + '" class="kt-dt" aria-label="Từ ngày"><span class="kt-sub">→</span><input type="date" data-kst value="' + S.to + '" class="kt-dt" aria-label="Đến ngày"></span>' : '') + '</span>';
+}
+function ktSpanBind(root, k, def, cb) {
+  const box = $('[data-kspan="' + k + '"]', root); if (!box) return;
+  $('select', box).onchange = e => { const v = e.target.value, S0 = ktSpanGet(k, def); lsSet('ktSpan:' + k, v === 'c' ? { d: 'c', fr: S0.fr, to: S0.to } : { d: Number(v) });
+    const S = ktSpanGet(k, def); box.outerHTML = ktSpanHtml(k, S); ktSpanBind(root, k, def, cb); cb(S); };
+  const f = $('[data-ksf]', box), t = $('[data-kst]', box);
+  if (f && t) f.onchange = t.onchange = () => { if (!f.value || !t.value) return; lsSet('ktSpan:' + k, { d: 'c', fr: f.value <= t.value ? f.value : t.value, to: f.value <= t.value ? t.value : f.value }); cb(ktSpanGet(k, def)); };
+}
 
 /* ── VĂN PHONG ── */
 async function ktStyleView(B) {
