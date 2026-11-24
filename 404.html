@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T03:33:31.327Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T07:30:26.662Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5448,6 +5448,26 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
   .cd-sess .cl-row.next, .cd-sess .cl-row.today{ padding-left:15px !important }
   .cl-rf .cl-fold{ align-items:flex-start } .cl-rf .cl-fold > i{ margin-top:2px; flex-shrink:0 }
 }
+/* ═════ (1.85) PANEL DỮ LIỆU của khung chat (App.html › axpOpen) — Trợ lý chuyên môn · Trợ lý chung ═════ */
+.axp{ position:fixed; z-index:60; top:0; right:0; bottom:0; width:clamp(340px, 34vw, 520px); background:var(--surface); border-left:1px solid var(--border);
+      box-shadow:-18px 0 44px -28px rgba(16,24,40,.45); display:flex; flex-direction:column; overflow:hidden }
+.axp-h{ display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid var(--border); flex:none }
+.axp-tabs{ display:flex; gap:4px; flex:1; min-width:0; overflow:auto }
+.axp-tab{ display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:999px; border:1px solid transparent; background:none; color:var(--muted); font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap }
+.axp-tab.on{ background:color-mix(in oklab, var(--primary) 9%, var(--surface)); color:var(--primary); border-color:color-mix(in oklab, var(--primary) 25%, transparent) }
+.axp-b{ flex:1; overflow:auto; padding:12px 14px 20px; display:flex; flex-direction:column; gap:10px }
+.axp-ttl{ margin:0; font-size:13px; font-weight:600; line-height:1.4 }
+.axp-sub{ color:var(--muted); font-size:12.5px; line-height:1.5; margin:0; display:flex; gap:6px }
+.axp-ds{ display:flex; flex-direction:column; gap:6px }
+.axp-r{ display:flex; gap:10px; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:1px dashed var(--border) }
+.axp-r span{ color:var(--muted); flex:none } .axp-r b{ text-align:right; overflow-wrap:anywhere; font-weight:600 }
+.axp-h6{ margin:10px 0 2px; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted) }
+.axp-l{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:4px; font-size:12.5px; line-height:1.5 } .axp-l li{ overflow-wrap:anywhere }
+.axp-card{ border:1px solid var(--border); border-radius:12px; padding:9px 11px; display:flex; flex-direction:column; gap:3px }
+.axp-card b{ font-size:13px } .axp-card small{ font-size:11.5px; color:var(--muted) }
+/* màn rộng: thu nội dung lại cho panel nằm CẠNH khung chat (không che) · màn hẹp: panel mở đè toàn màn */
+@media (min-width:901px){ body.axp-on #views{ padding-right:clamp(340px, 34vw, 520px) } }
+@media (max-width:900px){ .axp{ width:100%; border-left:0 } }
 </style>
 
   <style>
@@ -8595,6 +8615,7 @@ const NAV_DEF = [
   /* Quản trị Kiến Task (1.43): một tab gom Phân quyền · Thống kê bảng · Cài đặt (nhắc việc, dữ liệu mẫu) — mục con hiện theo quyền */
   { r: 'asst', t: 'Trợ lý chung', i: 'bi-robot', g: 'lib', cap: ['ai.admin', 'ai.log', 'settings.manage'], m: /^asst(\/v:.*)?$/ },      // (1.81.1) module Trợ lý: Trợ lý chung (Flow · hỏi · giao việc) — AssistView.html › viewAsst
   { r: 'asst/office', t: 'Văn phòng AI', i: 'bi-buildings', g: 'lib', cap: ['ai.admin', 'ai.log', 'settings.manage'], m: /^asst\/office/ },      // (1.82.6) mỗi agent một phòng 2.5D (OfficeView.html)
+  { r: 'asst/health', t: 'Sức khoẻ AI', i: 'bi-activity', g: 'lib', cap: ['ai.admin', 'ai.log', 'settings.manage'], m: /^asst\/health/ },      // (1.85) kênh AI đang dùng (Gemini API · Gemini web · flow), hạn mức, tỉ lệ trả lời, lỗi gần nhất
   { r: 'asst/set', t: 'Cài đặt AI', i: 'bi-sliders', g: 'lib', cap: 'settings.manage', m: /^asst\/set/ },      // (1.82.18) Cài đặt Trợ lý AI (kết nối, tự chạy, gán bài, yêu cầu, Gemini web…) — chuyển từ Kiến CM › Trợ lý chuyên môn
   { r: 'asst/subs', t: 'Các trợ lý', i: 'bi-diagram-3', g: 'lib', cap: ['ai.admin', 'ai.log', 'settings.manage'], m: /^asst\/subs/ },      // bộ não từng trợ lý con
   /* (1.84) Ứng dụng Kiến Trẻ — nhận xét buổi học kientre.click (KienTreView.html · KienTre.gs) */
@@ -9074,7 +9095,7 @@ const BN_FILL = { 'bi-bell': 1, 'bi-grid-3x3-gap': 1, 'bi-megaphone': 1, 'bi-peo
 const BN_LABEL = { today: 'Tổng quan', classes: 'Buổi học', 'classes/list': 'Lớp', 'classes/todo': 'Buổi học', 'classes/tutors': 'Gia sư', 'classes/reqs': 'Yêu cầu', 'classes/notes': 'Yêu cầu', 'classes/room': 'Phòng học', 'classes/inbox': 'Tin nhắn', 'classes/stats': 'Thống kê',
   programs: 'C.trình', guide: 'H.dẫn', home: 'Tổng quan', library: 'Thư viện', recent: 'Mới', links: 'Link', compose: 'Phiếu Toán', 'compose/van': 'Phiếu Văn', syllabus: 'Syllabus', tasks: 'Bảng', 'tasks/backlog': 'Kế hoạch', 'tasks/time': 'Timeline', 'tasks/mine': 'Của tôi', 'tasks/cal': 'Lịch', 'tasks/sum': 'Báo cáo',
   activity: 'Hoạt động', sources: 'Nguồn', users: 'Tài khoản', 'users/roles': 'Vai trò', 'users/apps': 'Phân quyền', 'users/invites': 'Lời mời', xapps: 'Ứng dụng', info: 'Tin', settings: 'Cài đặt', apps: 'Apps',
-  asst: 'Trợ lý', 'asst/office': 'Văn phòng', 'asst/set': 'Cài đặt', 'asst/subs': 'Các trợ lý', kt: 'Nhận xét', 'kt/ask': 'Trợ lý', 'kt/learned': 'Đã học', 'kt/prof': 'Hồ sơ', 'kt/jobs': 'Việc AI', 'kt/style': 'Văn phong', 'kt/conn': 'Kết nối' };      // (1.82.37) nhãn ngắn một dòng — bỏ chữ “AI / chung” thay vì cắt “…”
+  asst: 'Trợ lý', 'asst/office': 'Văn phòng', 'asst/set': 'Cài đặt', 'asst/subs': 'Các trợ lý', 'asst/health': 'Sức khoẻ', kt: 'Nhận xét', 'kt/ask': 'Trợ lý', 'kt/learned': 'Đã học', 'kt/prof': 'Hồ sơ', 'kt/jobs': 'Việc AI', 'kt/style': 'Văn phong', 'kt/conn': 'Kết nối' };      // (1.82.37) nhãn ngắn một dòng — bỏ chữ “AI / chung” thay vì cắt “…”
 function bnShort(t) { return ({ 'Tổng quan': 'Tổng quan', 'Lớp gia sư': 'Lớp', 'Thư viện': 'Thư viện', 'Chương trình': 'Chương trình', 'Link tạm': 'Link', 'Mới cập nhật': 'Mới' })[t] || t; }
 function buildBottom(items) {
   let bn = $('#bnav');
@@ -9416,6 +9437,54 @@ function skeleton(key) {
 }
 function miniLoader(text) {
   return '<div class="skv-mini" aria-busy="true"><span class="sr-only">' + esc(text || 'Đang tải…') + '</span><i class="sk"></i><i class="sk"></i><i class="sk"></i><i class="sk"></i></div>';
+}
+/* ══ (1.85) PANEL DỮ LIỆU dùng chung cho các khung chat (Trợ lý chuyên môn, Trợ lý chung) ══
+   Khung chat chỉ để đọc câu trả lời; dữ liệu máy chủ đã lọc và gửi cho AI xem ở panel bên phải.
+   Khung chat Kiến Trẻ có panel riêng gắn liền bố cục hai cột (KienTreView › ktSideOpen) — cùng kiểu hiển thị. */
+const AXP = { tabs: null, tab: '', ttl: '' };
+function axpHost() {
+  let el = document.getElementById('axpHost');
+  if (!el) { el = document.createElement('aside'); el.id = 'axpHost'; el.className = 'axp'; el.hidden = true; el.setAttribute('aria-label', 'Dữ liệu đã gửi AI'); document.body.appendChild(el); }
+  return el;
+}
+function axpClose() { const el = axpHost(); el.hidden = true; el.innerHTML = ''; document.body.classList.remove('axp-on'); AXP.tabs = null; }
+/** tabs = [{ k, i, t, html(), bind(el) }] */
+function axpOpen(tabs, tab, ttl) { AXP.tabs = (tabs || []).filter(Boolean); AXP.tab = tab || (AXP.tabs[0] || {}).k; AXP.ttl = ttl || ''; axpPaint(); }
+function axpPaint() {
+  const el = axpHost(), T = AXP.tabs; if (!T || !T.length) return axpClose();
+  const cur = T.find(x => x.k === AXP.tab) || T[0];
+  el.hidden = false; document.body.classList.add('axp-on');
+  el.innerHTML = '<div class="axp-h"><div class="axp-tabs">' + T.map(t => '<button type="button" class="axp-tab' + (t.k === cur.k ? ' on' : '') + '" data-axpt="' + t.k + '"><i class="bi ' + (t.i || 'bi-dot') + '"></i><span>' + esc(t.t) + '</span></button>').join('') +
+    '</div><button class="ibtn" data-axpx aria-label="Đóng bảng dữ liệu" title="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
+    '<div class="axp-b">' + (AXP.ttl ? '<p class="axp-ttl">' + esc(AXP.ttl) + '</p>' : '') + (cur.html ? cur.html() : '') + '</div>';
+  $$('[data-axpt]', el).forEach(b => { b.onclick = () => { AXP.tab = b.dataset.axpt; axpPaint(); }; });
+  const x = $('[data-axpx]', el); if (x) x.onclick = axpClose;
+  if (cur.bind) cur.bind(el);
+}
+const AXP_ENG = { api: 'Gemini API', gweb: 'Gemini web', flow: 'Flow qua mail' };
+/** “Dữ liệu đã gửi AI” của MỘT lượt chat: kênh, thời gian, các phần máy chủ đã gom, tệp kèm theo (m.ctx do máy chủ ghi lúc soạn thư) */
+function axpCtxHtml(m) {
+  if (!m) return '<p class="axp-sub">Chọn một câu trả lời để xem dữ liệu đã gửi.</p>';
+  const row = (k, v) => v == null || v === '' ? '' : '<div class="axp-r"><span>' + esc(k) + '</span><b>' + esc(String(v)) + '</b></div>';
+  const L = String(m.ctx || '').split('\n').map(s => s.replace(/^·\s*/, '').trim()).filter(Boolean);
+  const files = (m.files || []).filter(f => f && (f.n || f.name));
+  return '<div class="axp-ds">' +
+    row('Kênh đã dùng', AXP_ENG[m.eng] || (m.flow ? String(m.flow).split('<')[0].trim() : '')) +
+    row('Trả lời sau', m.ms ? (m.ms < 60000 ? Math.round(m.ms / 1000) + ' giây' : Math.round(m.ms / 60000) + ' phút') : '') +
+    row('Lúc', m.at ? String(m.at).slice(11, 16) + ' · ' + String(m.at).slice(8, 10) + '/' + String(m.at).slice(5, 7) : '') +
+    (L.length ? '<h6 class="axp-h6">Máy chủ đã gom và gửi</h6><ul class="axp-l">' + L.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '') +
+    (files.length ? '<h6 class="axp-h6">Tệp kèm theo (' + files.length + ')</h6><ul class="axp-l">' + files.map(f => '<li>' + esc(f.n || f.name) + (f.err ? ' — không đọc được' : '') + '</li>').join('') + '</ul>' : '') +
+    (!L.length && !files.length ? '<p class="axp-sub">Lượt này không ghi lại phần dữ liệu đã gửi.</p>' : '') +
+    '<p class="axp-sub"><i class="bi bi-info-circle"></i> Chỉ những phần ghi ở đây mới được gửi cho AI — thư không chứa toàn bộ dữ liệu trung tâm.</p></div>';
+}
+/* (1.85) Ô CHỌN KÊNH AI trong khung chat (Kiến Trẻ, Trợ lý chuyên môn, Trợ lý chung…) — E = boot.eng (AiEngine.gs › aiEngOpts_).
+   Chỉ hiện khi Quản trị bật “Cho người hỏi chọn kênh” ở Trợ lý › Sức khoẻ AI; để trống = theo cài đặt chung. */
+function aiEngSel(E, cur, id) {
+  if (!E || !E.pick || !(E.list || []).length) return '';
+  const dung = (E.list.find(x => x.id === E.dung) || {}).t || 'theo cài đặt';
+  return '<select id="' + (id || 'aiEngSel') + '" class="ai-engsel" aria-label="Kênh AI" title="Kênh gọi AI cho lượt hỏi này">' +
+    '<option value=""' + (cur ? '' : ' selected') + '>Kênh: tự động · ' + esc(dung) + '</option>' +
+    E.list.map(x => '<option value="' + x.id + '"' + (cur === x.id ? ' selected' : '') + (x.ok ? '' : ' disabled') + '>' + esc(x.t) + (x.ok ? '' : ' — chưa sẵn sàng') + '</option>').join('') + '</select>';
 }
 setInterval(() => { $$('.ld-tip span').forEach(s => { s.style.opacity = 0; setTimeout(() => { s.textContent = TIPS[Math.floor(Math.random() * TIPS.length)]; s.style.opacity = 1; }, 250); }); }, 3600);
 
@@ -21673,7 +21742,7 @@ async function apPreview(x) {
    · log: nhật ký (mở tức thì) · cfg: kết nối, chế độ trợ lý, lịch chạy theo giờ, hỏi gia sư, thư mục Drive cho AI
    Kết nối bằng MAIL tới flow (máy chủ lo) — giao diện không nhắc tới flow / thư; aiWatch hỏi lại (aiPoll) mỗi ~3 giây.
    ══════════════════════════════════════════════════════════════ */
-const AI = { b: null, tab: '', dash: null, chat: { cid: '', mode: 'gen', conv: '', msgs: [], files: [], drive: [], busy: false, convs: null }, as: { days: 0, scan: null, sel: new Set(), plans: [], run: null, hist: null, q: '', apply: '', text: '' }, rq: { plans: [], hist: null }, lg: { q: '', kind: '', who: '', list: null } };
+const AI = { b: null, tab: '', dash: null, eng: lsGet('aiEngPick', ''), chat: { cid: '', mode: 'gen', conv: '', msgs: [], files: [], drive: [], busy: false, convs: null }, as: { days: 0, scan: null, sel: new Set(), plans: [], run: null, hist: null, q: '', apply: '', text: '' }, rq: { plans: [], hist: null }, lg: { q: '', kind: '', who: '', list: null } };
 /* (1.77.11) giao diện như ứng dụng chat: thanh bên của AI (Cuộc trò chuyện mới · công cụ · Đã hỏi) + khung chat không đóng hộp; Hỏi AI đứng đầu, mở trang là vào chat */
 const AI_TABS = [
   { k: 'chat', t: 'Hỏi AI', i: 'bi-robot', ok: () => AI.b.can.tutor },
@@ -22282,7 +22351,9 @@ function aiChatView(body, arg) {
       '<div class="row"><input type="file" id="aiFile" multiple hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.heic,.txt,.csv,.md,.docx,.doc,.xlsx,.xls,.pptx,.ppt,image/*,application/pdf">' +
         '<button class="ibtn" id="aiAtt" title="Đính kèm tệp (PDF, ảnh, Word, Excel, PowerPoint — tối đa ' + B.limits.files + ' tệp, mỗi tệp ' + B.limits.fileMb + ' MB)" aria-label="Đính kèm"><i class="bi bi-paperclip"></i></button>' +
         '<button class="ibtn" id="aiDrv" title="' + (B.folder ? 'Chọn tệp trong thư mục Drive dành cho AI' : 'Tệp trên Drive: dán link vào ô chat') + '" aria-label="Tệp trên Drive"><i class="bi bi-google"></i></button>' +
-        '<button class="ibtn" id="aiSkB" title="Kỹ năng (gõ /)" aria-label="Kỹ năng"><i class="bi bi-slash-square"></i></button><span class="sp" style="flex:1"></span>' +
+        '<button class="ibtn" id="aiSkB" title="Kỹ năng (gõ /)" aria-label="Kỹ năng"><i class="bi bi-slash-square"></i></button>' +
+        aiEngSel(B.eng, AI.eng || '', 'aiEngC') +      /* (1.85) kênh AI cho lượt hỏi này */
+        '<span class="sp" style="flex:1"></span>' +
         '<button class="ax-send" id="aiSend" aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div></div>' +
     '<div class="ax-foot small ax-muted">Trợ lý AI có thể nhầm — kiểm lại trước khi gán bài hay gửi cho gia sư.</div></div>';
   aiPickBind($('#aiPick', body), B.classes, C.cid, id => { C.cid = id; C.conv = ''; C.msgs = []; $('.ax-pick-b', body).innerHTML = aiPickLabel(B.classes.find(c => c.id === id)); aiPaintMsgs(body); aiConvs(body); });
@@ -22310,6 +22381,7 @@ function aiChatView(body, arg) {
     const sl = e.target.closest('[data-slash]'); if (sl) return aiSlashPick(body, sl.dataset.slash);
     const fu = e.target.closest('[data-fu]'); if (fu) { e.preventDefault(); if (C.busy || C.ro) return; ta.value = fu.dataset.fu; return aiSend(body); }      // (1.77.12) bấm gợi ý / Tiếp tục → gửi luôn
     const cp = e.target.closest('[data-copy]'); if (cp) { const bb = cp.closest('.ax-bb').cloneNode(true); bb.querySelectorAll('.ax-meta, .ax-fu, .ax-do, .ax-nho').forEach(x => x.remove()); try { await navigator.clipboard.writeText(bb.innerText.trim()); toast('Đã chép', 'ok', 1500); } catch (er) { toast('Không chép được', 'err'); } return; }
+    const ax = e.target.closest('[data-axd]'); if (ax) { e.preventDefault(); return aiSidePanel(Number(ax.dataset.axd)); }      // (1.85) panel dữ liệu đã gửi AI
     if (e.target.closest('[data-skcfg]')) return go('asst/set');
     const sg = e.target.closest('[data-sug]'); if (sg) { ta.value = sg.dataset.sug; ta.focus(); ta.oninput(); const k = ta.value.indexOf('…'); if (k >= 0) ta.setSelectionRange(k, k + 1); return; }      // (1.80.34) mẫu có chỗ trống “…” → chọn sẵn để gõ đè
     const rf = e.target.closest('[data-rmf]'); if (rf) { C.files.splice(Number(rf.dataset.rmf), 1); return aiPaintFiles(body); }
@@ -22570,12 +22642,26 @@ function aiPaintMsgs(body) {
       '<div class="ax-meta">' + 'Trợ lý AI' +
       (isL && !m.grade ? '<span class="ax-acts"><button class="fu2" data-fu="Tiếp tục — bổ sung phần còn thiếu của câu trả lời trên." title="AI viết tiếp"><i class="bi bi-arrow-return-right"></i>Tiếp tục</button><button class="fu2" data-fu="Giải thích chi tiết hơn, kèm ví dụ cụ thể." title="Yêu cầu chi tiết hơn"><i class="bi bi-zoom-in"></i>Chi tiết hơn</button></span>' : '') +
       (!m.grade ? '<button class="tdel" data-copy title="Sao chép câu trả lời"><i class="bi bi-copy"></i> Chép</button>' : '') +
+      (m.ctx ? '<button class="tdel" data-axd="' + i + '" title="Xem dữ liệu máy chủ đã gửi cho AI"><i class="bi bi-funnel"></i> Dữ liệu</button>' : '') +      /* (1.85) panel dữ liệu */
       (m.rid ? '<button class="tdel" data-tdel="' + esc(m.rid) + '" title="Xoá câu hỏi và câu trả lời này"><i class="bi bi-trash3"></i> Xoá</button>' : '') + '</div></div></div>';
   }).join('');
   h.querySelectorAll('.ax-m.fresh .ax-bb > *, .ax-m.fresh .ax-bb li').forEach((el, k) => { el.style.animationDelay = Math.min(k * 0.08, 2.4).toFixed(2) + 's'; });      // (1.80.34) câu trả lời hiện dần từng đoạn như đang gõ
   h.scrollTop = h.scrollHeight;
 }
-function aiChatOut(o) { return Object.assign(o.status === 'ok' ? { text: o.text, grade: o.grade, refs: o.refs, ms: o.ms } : { err: o.err || 'Trợ lý AI chưa trả lời được — thử lại sau ít phút' }, { rid: o.id }); }
+/** (1.85) PANEL DỮ LIỆU của khung chat Trợ lý chuyên môn: những gì máy chủ đã gom gửi AI · nút / tài liệu trong câu trả lời · việc phòng đã tự chạy */
+function aiSidePanel(i) {
+  const C = AI.chat, m = C.msgs[i]; if (!m) return;
+  const refs = m.refs || {}, keys = Object.keys(refs);
+  const tabs = [
+    { k: 'ds', i: 'bi-funnel', t: 'Dữ liệu đã gửi AI', html: () => axpCtxHtml(m) },
+    keys.length ? { k: 'rf', i: 'bi-link-45deg', t: 'Tài liệu nhắc tới (' + keys.length + ')', html: () => '<div class="axp-ds">' + keys.slice(0, 60).map(k => {
+      const r = refs[k] || {}; return '<div class="axp-card"><b>' + esc(r.n || r.name || k) + '</b><small>' + esc(r.b ? 'Trang bé' : r.p || r.t || k) + '</small></div>'; }).join('') + '</div>' } : null,
+    (m.auto || []).length ? { k: 'au', i: 'bi-robot', t: 'Việc đã tự chạy', html: () => '<div class="axp-ds">' + m.auto.map(a => '<div class="axp-card"><b>' + esc(a.t || a.toT || 'Việc AI') + '</b><small>' + esc(a.st || '') + '</small></div>').join('') + '</div>' } : null
+  ];
+  axpOpen(tabs, 'ds', (C.msgs[i - 1] || {}).text ? 'Câu hỏi: ' + aiCut(C.msgs[i - 1].text, 120) : '');
+}
+function aiChatOut(o) { return Object.assign(o.status === 'ok' ? { text: o.text, grade: o.grade, refs: o.refs, ms: o.ms } : { err: o.err || 'Trợ lý AI chưa trả lời được — thử lại sau ít phút' },
+  { rid: o.id, ctx: o.ctx || '', eng: o.eng || '', flow: o.flow || '', at: o.at || '', files: o.files || [] }); }      // (1.85) giữ phần dữ liệu đã gửi để mở ở panel
 /** (1.77.4) bấm nút hành động trong câu trả lời → máy chủ kiểm lại + làm luôn; cập nhật nút (đã làm) */
 async function aiDoRun(btn, rid, repaint) {
   if (S.me && S.me.preview) return toast('Đang xem thử — không làm', 'warn');
@@ -22620,7 +22706,8 @@ async function aiSend(body) {
   C.msgs.push({ me: 1, text: text, files: files.map(f => ({ n: f.name })).concat(drive.map(d => ({ n: d.n, drive: 1 }))) }, { wait: 1, t0: new Date().toISOString() }); C.files = []; C.drive = []; ta.value = ''; ta.oninput();
   aiPaintFiles(body); aiPaintMsgs(body); C.busy = true; const btn = $('#aiSend', body); if (btn) btn.disabled = true;
   try {
-    const r = await rpc('aiChat', { cid: C.cid, text: text, files: files, drive: drive.map(d => d.id), conv: C.conv, mode: C.mode }, { quiet: true });
+    const eg = $('#aiEngC'); if (eg) { AI.eng = eg.value; lsSet('aiEngPick', AI.eng); }      // (1.85) kênh AI người hỏi chọn
+    const r = await rpc('aiChat', { cid: C.cid, text: text, files: files, drive: drive.map(d => d.id), conv: C.conv, mode: C.mode, eng: AI.eng || '' }, { quiet: true });
     C.conv = r.conv; AI.chat.convs = null;
     try { const pn = location.pathname; if (r.conv && /ai\/chat\/?$/.test(pn)) history.replaceState(history.state, '', pn.replace(/\/?$/, '/v:' + r.conv)); } catch (e) {}      // (1.80.20) tải lại trang vẫn mở đúng cuộc hỏi này
     const w = C.msgs[C.msgs.length - 1]; Object.assign(w, { id: r.id }); C.msgs[C.msgs.length - 2].rid = r.id;
@@ -23318,6 +23405,50 @@ function aiCfgView(body) {
 
 <style>
 .as-set{ max-width:1180px; margin:0 auto; padding-bottom:24px }      /* (1.82.18) Cài đặt Trợ lý AI trong module Trợ lý */
+/* ═════ (1.85) SỨC KHOẺ AI — kênh đang nhận việc, hạn mức, tỉ lệ trả lời, lỗi gần nhất ═════ */
+.ah{ max-width:1180px; margin:0 auto; padding-bottom:28px; display:flex; flex-direction:column; gap:14px }
+.ah-head{ display:flex; align-items:center; gap:16px; flex-wrap:wrap } .ah-head h3{ margin:0; font-size:17px } .ah-sub{ color:var(--muted); font-size:12.5px; line-height:1.5 }
+.ah-head p{ margin:3px 0 0 } .ah-head > div:first-child{ flex:1; min-width:240px }
+.ah-now{ display:flex; flex-direction:column; gap:1px; padding:9px 16px; border-radius:14px; border:1px solid var(--border); background:var(--surface); min-width:220px }
+.ah-now small{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted) } .ah-now b{ font-size:16px } .ah-now span{ font-size:12px; color:var(--muted) }
+.ah-now.ok{ border-color:color-mix(in oklab, var(--ok) 40%, var(--border)) } .ah-now.ok b{ color:var(--ok) }
+.ah-now.no, .ah-now.off{ border-color:color-mix(in oklab, var(--danger) 35%, var(--border)) } .ah-now.no b, .ah-now.off b{ color:var(--danger) }
+.ah-modes{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:8px }
+.ah-mode{ text-align:left; padding:9px 13px; border-radius:12px; border:1px solid var(--border); background:var(--surface); cursor:pointer; display:flex; flex-direction:column; gap:1px }
+.ah-mode b{ font-size:13.5px } .ah-mode small{ font-size:11.5px; color:var(--muted); line-height:1.4 }
+.ah-mode.on{ border-color:var(--primary); background:color-mix(in oklab, var(--primary) 7%, var(--surface)) } .ah-mode.on b{ color:var(--primary) } .ah-mode:disabled{ opacity:.6; cursor:default }
+.ah-opts{ display:flex; gap:18px; flex-wrap:wrap } .ah-sw{ display:flex; align-items:center; gap:7px; font-size:13px; cursor:pointer } .ah-sw input{ accent-color:var(--primary) }
+.ah-cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:10px }
+.ah-c{ border:1px solid var(--border); border-radius:14px; padding:12px 14px; background:var(--surface); display:flex; flex-direction:column; gap:9px }
+.ah-c.ok{ border-color:color-mix(in oklab, var(--ok) 28%, var(--border)) } .ah-c.no{ border-color:color-mix(in oklab, var(--danger) 28%, var(--border)) }
+.ah-ch{ display:flex; align-items:center; gap:10px } .ah-ch > i{ font-size:20px; color:var(--primary); flex:none } .ah-ch > div{ flex:1; min-width:0; display:flex; flex-direction:column }
+.ah-ch b{ font-size:14.5px } .ah-ch small{ font-size:11.5px; color:var(--muted) }
+.ah-badge{ font-size:11px; font-weight:600; padding:3px 9px; border-radius:99px; flex:none }
+.ah-badge.ok{ background:color-mix(in oklab, var(--ok) 12%, var(--surface)); color:var(--ok) } .ah-badge.no{ background:color-mix(in oklab, var(--danger) 10%, var(--surface)); color:var(--danger) }
+.ah-badge.off{ background:color-mix(in oklab, var(--border) 50%, var(--surface)); color:var(--muted) }
+.ah-kpi{ display:grid; grid-template-columns:repeat(4, 1fr); gap:6px } .ah-kpi > div{ background:color-mix(in oklab, var(--border) 24%, var(--surface)); border-radius:10px; padding:6px 4px; text-align:center }
+.ah-kpi b{ display:block; font-size:16px; line-height:1.15 } .ah-kpi small{ font-size:10.5px; color:var(--muted) }
+.ah-cap{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; font-size:12.5px } .ah-cap label{ display:flex; align-items:center; gap:6px; color:var(--muted) }
+.ah-cap input{ width:78px; padding:4px 7px; border-radius:8px; border:1px solid var(--border); background:var(--bg, var(--surface)); color:inherit; font-size:12.5px }
+.ah-cf{ display:flex; align-items:center; gap:8px; flex-wrap:wrap } .ah-cf .sp{ flex:1 }
+.ah-warn, .ah-err{ margin:0; font-size:12.5px; line-height:1.45; display:flex; gap:6px; align-items:flex-start } .ah-warn{ color:var(--warn, #B45309) } .ah-err{ color:var(--danger); overflow-wrap:anywhere }
+.ah-box{ border:1px solid var(--border); border-radius:14px; padding:12px 14px; background:var(--surface) }
+.ah-bh{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:6px } .ah-bh b{ font-size:14px }
+.ah-lg{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted) } .ah-lg i{ width:9px; height:9px; border-radius:3px; display:inline-block; margin-left:7px }
+.ah-lg i.api, .ah-chart i.api{ background:var(--primary) } .ah-lg i.gweb, .ah-chart i.gweb{ background:var(--ok) } .ah-lg i.flow, .ah-chart i.flow{ background:var(--warn, #B45309) }
+.ah-chart{ display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:5px; align-items:end; height:108px }
+.ah-chart > div{ display:flex; flex-direction:column; align-items:center; gap:3px; height:100% } .ah-chart small{ font-size:10px; color:var(--muted) }
+.ah-bar{ flex:1; width:100%; max-width:34px; display:flex; flex-direction:column; justify-content:flex-end; border-radius:6px; overflow:hidden; background:color-mix(in oklab, var(--border) 35%, transparent) }
+.ah-chart i{ display:block; width:100%; min-height:2px }
+.ah-uf{ display:flex; flex-direction:column; gap:5px } .ah-uf > div{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 10px; font-size:12.5px; align-items:baseline }
+.ah-uf i{ grid-column:1 / -1; height:5px; border-radius:99px; background:var(--primary); display:block }
+.ah-tb{ width:100%; border-collapse:collapse; font-size:12.5px; margin-top:4px } .ah-tb th, .ah-tb td{ text-align:left; padding:5px 8px; border-bottom:1px solid var(--border); vertical-align:top }
+.ah-tb th{ font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted) } .ah-tb td small{ display:block; color:var(--muted); font-size:11px }
+.ah-foot{ text-align:center; margin:2px 0 0 }
+@media (max-width:640px){ .ah-kpi{ grid-template-columns:repeat(2, 1fr) } .ah-chart{ height:90px } }
+/* ô chọn kênh AI trong các khung chat */
+.ai-engsel{ font-size:12px; padding:3px 7px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--muted); max-width:210px; cursor:pointer }
+.ai-engsel:hover{ color:var(--ink) } .br-ask + .ai-engsel{ margin-top:6px; align-self:flex-start }
 /* ═════ (1.81) MODULE TRỢ LÝ — robot · bé AI đang làm · rà soát lộ trình · bộ não · Trợ lý Kiến Task · check-in (máy chủ: Assist.gs) ═════ */
 .as-bot{ position:relative; display:inline-grid; place-items:center; flex:none; border-radius:50%; vertical-align:middle }
 .as-bot.xs{ width:40px; height:40px; font-size:19px } .as-bot.sm{ width:52px; height:52px; font-size:23px }      /* (1.81.1) to hơn một chút */ .as-bot.md{ width:78px; height:78px; font-size:32px; margin:0 auto 12px; display:grid } .as-bot.lg{ width:104px; height:104px; font-size:42px }
@@ -23429,6 +23560,7 @@ body[data-asrun]:not([data-asrun=""]) .as-bot.xs .pc{ animation:asGlow 1.6s ease
 .tka-hi b{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .tka-hi small{ font-size:11px; color:var(--muted) }
 .tka-hi:hover{ background:var(--surface-3) } .tka-hi.on{ border-color:color-mix(in oklab, var(--primary) 45%, transparent); background:color-mix(in oklab, var(--primary) 8%, transparent); color:var(--ink) }
 .tka-hi.cv-ld b::after{ content:""; display:inline-block; width:9px; height:9px; margin-left:6px; vertical-align:-1px; border-radius:50%; border:2px solid color-mix(in oklab, var(--primary) 30%, transparent); border-top-color:var(--primary); animation:axSpin .7s linear infinite }
+.tka-am-d{ margin-top:6px; font-size:12px }      /* (1.85) nút mở panel dữ liệu dưới câu trả lời */
 .tka-am-f{ margin:6px 0 0 44px; font-size:12px; color:var(--muted) } .tka-lk{ border:0; background:none; padding:0; font:inherit; color:var(--primary); cursor:pointer } .tka-lk:hover{ text-decoration:underline }
 .tka-top{ display:flex; gap:14px; align-items:center; margin-bottom:12px } .tka-top .t{ flex:1; min-width:0 } .tka-top b{ font-size:16px; display:block } .tka-top small{ color:var(--muted); font-size:12.5px }
 .tka-k{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:12px }
@@ -23659,6 +23791,7 @@ function asbPaint(body) {
           '<div class="br-tl">' + tools.map(t => '<span class="' + (t.on ? 'on' : '') + (tUse(t) ? ' use' : '') + '" title="' + esc(t.n) + '"><i class="bi ' + (ASB_TI[t.k] || 'bi-plug') + '"></i></span>').join('') + '</div>' +
           '<div class="br-now" id="brNow" aria-live="polite"></div>' +
           '<div class="br-ask"><textarea class="ta" id="brQ" rows="1" placeholder="' + (hub ? 'Hỏi hoặc giao việc…' : 'Hỏi trợ lý…') + '" title="' + esc('Hỏi ' + as.t.replace(/^Trợ lý /, 'trợ lý ') + (hub ? ' hoặc giao việc' : '')) + '"></textarea><button type="button" class="ax-send" id="brGo" aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>' +
+          (typeof aiEngSel === 'function' ? aiEngSel(AI && AI.b && AI.b.eng, (typeof AI !== 'undefined' && AI.eng) || '', 'brEng') : '') +      /* (1.85) kênh AI */
           (D.memOk ? '<button type="button" class="btn sm ghost br-addb" data-badd><i class="bi bi-plus-lg"></i>Thêm vào trợ lý</button>' : '') +
           (st.o.tabs ? '<button type="button" class="btn sm ghost br-addb" data-bopen="' + k + '"><i class="bi bi-box-arrow-up-right"></i>Mở ở ' + esc(ASB_SUB[k] ? ASB_SUB[k].at : '') + '</button>' : '') + '</div>' +
         '<div class="br-col r">' + R.join('') + '</div></div>' +
@@ -23693,14 +23826,28 @@ async function asbAsk(body, text) {
   if (ta) { ta.value = ''; ta.style.height = 'auto'; }
   const w = { wait: 1, t0: new Date().toISOString() }; Q.msgs.push({ me: 1, text: text }, w); asbThread(body); asbFlow(body, true); setTimeout(asstPulse, 1500);
   const got = o => { delete w.wait; if (o.status === 'ok') { w.text = o.text; w.refs = o.refs; } else w.err = o.err || 'Trợ lý chưa trả lời được';
+    w.ctx = o.ctx || ''; w.eng = o.eng || ''; w.ms = o.ms || 0; w.at = o.at || ''; w.files = o.files || [];      // (1.85) phần dữ liệu đã gửi — xem ở panel
     if (body.isConnected) { asbThread(body); asbFlow(body, Q.msgs.some(m => m.wait)); if (k === 'gen') { asbHist(body, 1); asbLoad(body).catch(() => {}); } } setTimeout(asstPulse, 800); };
-  try { const r = await rpc('aiChat', { mode: ASB_MODE[k], text: text, conv: Q.conv }, { quiet: true }); Q.conv = r.conv || Q.conv; if (AI_WAIT.test(r.status)) aiWatch(r.id, got); else got(r); }
+  const eg = $('#brEng', body); if (eg && typeof AI !== 'undefined') { AI.eng = eg.value; lsSet('aiEngPick', AI.eng); }      // (1.85) kênh AI người hỏi chọn
+  try { const r = await rpc('aiChat', { mode: ASB_MODE[k], text: text, conv: Q.conv, eng: (typeof AI !== 'undefined' && AI.eng) || '' }, { quiet: true }); Q.conv = r.conv || Q.conv; if (AI_WAIT.test(r.status)) aiWatch(r.id, got); else got(r); }
   catch (e) { delete w.wait; w.err = e.message || String(e); asbThread(body); asbFlow(body, false); }
 }
 function asbThread(body) {
   const h = $('#brTh', body); if (!h) return; const k = body._asb.k, Q = ASQ[k] || { msgs: [] };
-  h.innerHTML = Q.msgs.length ? Q.msgs.map(m => m.me ? '<div class="tka-qm">' + esc(m.text) + '</div>' : '<div class="tka-am">' + asstBot('xs', !!m.wait) + '<div class="b">' + (m.wait ? (m.open ? aiThink('open', '', ['Đang mở cuộc trò chuyện', 'Đang tải các câu đã hỏi']) : aiThink(k === 'task' ? 'task' : 'chat', m.t0)) : m.err ? '<span class="muted">' + esc(m.err) + '</span>' : aiMd(m.text || '', m.refs || {})) + '</div></div>').join('') +
+  h.innerHTML = Q.msgs.length ? Q.msgs.map((m, i) => m.me ? '<div class="tka-qm">' + esc(m.text) + '</div>' : '<div class="tka-am">' + asstBot('xs', !!m.wait) + '<div class="b">' + (m.wait ? (m.open ? aiThink('open', '', ['Đang mở cuộc trò chuyện', 'Đang tải các câu đã hỏi']) : aiThink(k === 'task' ? 'task' : 'chat', m.t0)) : m.err ? '<span class="muted">' + esc(m.err) + '</span>' : aiMd(m.text || '', m.refs || {})) +
+    (m.ctx && !m.wait ? '<div class="tka-am-d"><button type="button" class="tka-lk" data-asd="' + i + '"><i class="bi bi-funnel"></i> Dữ liệu đã gửi AI</button></div>' : '') + '</div></div>').join('') +
     (Q.msgs.some(m => m.wait) ? '' : '<div class="tka-am-f"><button type="button" class="tka-lk" data-bnew>Hỏi chuyện mới</button></div>') : '';
+  $$('[data-asd]', h).forEach(b => { b.onclick = () => asbSidePanel(k, Number(b.dataset.asd)); });      // (1.85) panel dữ liệu bên phải
+}
+/** (1.85) PANEL DỮ LIỆU của khung chat Trợ lý chung / Trợ lý Kiến Task */
+function asbSidePanel(k, i) {
+  const Q = ASQ[k] || { msgs: [] }, m = Q.msgs[i]; if (!m) return;
+  const giv = ((ASB.d && ASB.d.given) || []).filter(g => g.conv && g.conv === Q.conv);
+  const tabs = [
+    { k: 'ds', i: 'bi-funnel', t: 'Dữ liệu đã gửi AI', html: () => axpCtxHtml(m) },
+    giv.length ? { k: 'gv', i: 'bi-send-check', t: 'Việc đã giao (' + giv.length + ')', html: () => '<div class="axp-ds">' + giv.map(g => '<div class="axp-card"><b>' + esc(g.t || g.toT || 'Việc') + '</b><small>' + esc([g.toT, g.st].filter(Boolean).join(' · ')) + '</small></div>').join('') + '</div>' } : null
+  ];
+  axpOpen(tabs, 'ds', (Q.msgs[i - 1] || {}).text ? 'Câu hỏi: ' + aiCut(Q.msgs[i - 1].text, 120) : '');
 }
 /** LUỒNG DỮ LIỆU: đang trả lời → đường nối từ bộ suy nghĩ + lần lượt từng công cụ chạy vào trợ lý, chữ “Đang đọc …” dưới robot */
 function asbFlow(body, on) {
@@ -23744,14 +23891,15 @@ async function asbOpen(body, conv) {
 /** module Trợ lý: asst = Trợ lý chung · asst/v:<cuộc> mở lại cuộc cũ · asst/office = Văn phòng AI · asst/subs = Các trợ lý (Xưởng agent | Bộ não)
     (1.82.7) ba trang con DỰNG MỘT LẦN rồi giữ trong cùng khung — chuyển qua lại chỉ ẩn / hiện, không tải lại (trước: mỗi lần chuyển dựng lại + chờ máy chủ) */
 async function viewAsst(arg, v) {
-  const PG = { hub: ['Trợ lý chung', 'bi-robot'], office: ['Văn phòng AI', 'bi-buildings'], subs: ['Các trợ lý', 'bi-diagram-3'], set: ['Cài đặt Trợ lý AI', 'bi-sliders'] }, built = {};
-  v.innerHTML = '<div data-asp="hub" hidden></div><div data-asp="office" hidden></div><div data-asp="subs" hidden></div><div data-asp="set" hidden></div>';
+  const PG = { hub: ['Trợ lý chung', 'bi-robot'], office: ['Văn phòng AI', 'bi-buildings'], subs: ['Các trợ lý', 'bi-diagram-3'], set: ['Cài đặt Trợ lý AI', 'bi-sliders'], health: ['Sức khoẻ AI', 'bi-activity'] }, built = {};
+  v.innerHTML = '<div data-asp="hub" hidden></div><div data-asp="office" hidden></div><div data-asp="subs" hidden></div><div data-asp="set" hidden></div><div data-asp="health" hidden></div>';
   const box = k => v.querySelector('[data-asp="' + k + '"]');
   const show = a => {
-    a = String(a || ''); const k = /^office/.test(a) ? 'office' : /^subs/.test(a) ? 'subs' : /^set/.test(a) ? 'set' : 'hub';
+    a = String(a || ''); const k = /^office/.test(a) ? 'office' : /^subs/.test(a) ? 'subs' : /^set/.test(a) ? 'set' : /^health/.test(a) ? 'health' : 'hub';
     setTitle(PG[k][0], PG[k][1], [{ t: 'Trợ lý', r: 'asst' }], v);
-    ['hub', 'office', 'subs', 'set'].forEach(x => { box(x).hidden = x !== k; });
+    ['hub', 'office', 'subs', 'set', 'health'].forEach(x => { box(x).hidden = x !== k; });
     const el = box(k);
+    if (k === 'health') { if (!built.health) { built.health = 1; asstHealthPage(el); } else if (el._re) el._re(); return; }      // (1.85) Sức khoẻ AI — kênh đang dùng, hạn mức, lỗi
     if (k === 'set') { if (!built.set) { built.set = 1; asstCfgPage(el); } else if (el._re) el._re(); return; }      // (1.82.18) Cài đặt Trợ lý AI (chuyển từ Kiến CM › Trợ lý chuyên môn)
     if (k === 'hub') { const oc = /^v:/.test(a) ? a.slice(2) : '';
       if (!built.hub) { built.hub = 1; el.innerHTML = '<div id="asB"></div>'; asstBrainView($('#asB', el), { k: 'gen', hub: 1 }); }
@@ -23772,6 +23920,77 @@ async function viewAsst(arg, v) {
   };
   v._onArg = a => { show(a); };
   show(arg);
+}
+/* ══ (1.85) SỨC KHOẺ AI — kênh nào đang nhận việc (Gemini API · Gemini web · flow qua mail), còn bao nhiêu hạn mức,
+   tỉ lệ trả lời được, thời gian trả lời, lỗi gần nhất. Thiết lập kênh ở đây dùng chung cho TOÀN hệ thống. ══ */
+const AH = { d: null, t: 0 };
+function ahKey() { return 'aiHealth:' + (S.me && S.me.email || ''); }
+function ahAgo(iso) { if (!iso) return 'chưa có lượt nào'; const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  return isNaN(m) ? '' : m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : m < 1440 ? Math.round(m / 60) + ' giờ trước' : Math.round(m / 1440) + ' ngày trước'; }
+function ahState(e) { return e.down ? ['no', 'Đang tạm nghỉ'] : !e.ok ? ['off', 'Chưa sẵn sàng'] : e.cap && e.left === 0 ? ['no', 'Hết hạn mức hôm nay'] : ['ok', 'Sẵn sàng']; }
+function asstHealthPage(el) {
+  el.innerHTML = '<div id="ahB" class="ah"></div>'; const body = $('#ahB', el);
+  const pull = async (quiet) => { try { const d = await rpc('aiHealth', {}, { quiet: true }); AH.d = d; AH.t = Date.now(); lsSet(ahKey(), d); if (body.isConnected) paint(); }
+    catch (e) { if (!AH.d) body.innerHTML = '<div class="ax-card"><div class="empty">' + esc(e.message || e) + '</div></div>'; else if (!quiet) fail(e); } };
+  const paint = () => { const D = AH.d; if (!D) { body.innerHTML = '<div class="ax-card"><div class="ax-cb" style="padding:40px">' + miniLoader('Đang đọc sức khoẻ AI…') + '</div></div>'; return; }
+    body.innerHTML = ahHtml(D); ahBind(body, D, pull); };
+  const c = lsGet(ahKey(), null); if (c && c.engs) AH.d = c;
+  paint(); pull(1);
+  el._re = () => { if (Date.now() - AH.t > 30000) pull(1); };
+}
+function ahHtml(D) {
+  const cfg = D.cfg, can = D.can.cfg, dung = D.engs.find(e => e.id === D.dung);
+  const modes = [['auto', 'Tự động', 'Theo thứ tự ưu tiên, tự bỏ kênh hết hạn mức hoặc đang lỗi']].concat(D.engs.map(e => [e.id, e.t, 'Luôn gửi qua ' + e.t]));
+  const head = '<div class="ah-head"><div><h3>Kênh đang nhận việc</h3><p class="ah-sub">Thiết lập ở đây dùng chung cho mọi nơi gọi AI: Kiến CM, Kiến Task, Kiến Trẻ, Văn phòng AI.</p></div>' +
+    '<div class="ah-now ' + (dung ? ahState(dung)[0] : 'off') + '"><small>Lượt tới sẽ đi</small><b>' + esc(dung ? dung.t : 'Chưa có kênh nào') + '</b>' +
+    (D.seq.length > 1 ? '<span>dự phòng: ' + esc(D.seq.slice(1).map(x => (D.engs.find(e => e.id === x) || {}).t || x).join(' → ')) + '</span>' : '<span>không có kênh dự phòng</span>') + '</div></div>';
+  const mode = '<div class="ah-modes">' + modes.map(m => '<button type="button" class="ah-mode' + (cfg.mode === m[0] ? ' on' : '') + '" data-ahmode="' + m[0] + '"' + (can ? '' : ' disabled') + ' title="' + esc(m[2]) + '"><b>' + esc(m[1]) + '</b><small>' + esc(m[2]) + '</small></button>').join('') + '</div>' +
+    '<div class="ah-opts">' + ahSw('fb', 'Tự chuyển kênh khi lỗi', cfg.fb, can) + ahSw('pick', 'Cho người hỏi chọn kênh trong khung chat', cfg.pick, can) + '</div>';
+  const cards = '<div class="ah-cards">' + D.engs.map((e, i) => { const st = ahState(e), pos = D.seq.indexOf(e.id);
+    return '<div class="ah-c ' + st[0] + '"><div class="ah-ch"><i class="bi ' + e.i + '"></i><div><b>' + esc(e.t) + '</b><small>' + esc(e.info || e.d) + '</small></div>' +
+      '<span class="ah-badge ' + st[0] + '">' + esc(st[1]) + '</span></div>' +
+      (e.down ? '<p class="ah-warn"><i class="bi bi-pause-circle"></i> Nghỉ thêm ' + e.down.phut + ' phút sau lỗi: ' + esc(e.down.msg || '') + ' <button class="kt-lnk" data-ahup="' + e.id + '">Dùng lại ngay</button></p>'
+        : !e.ok ? '<p class="ah-warn"><i class="bi bi-exclamation-circle"></i> ' + esc(e.why) + '</p>' : '') +
+      '<div class="ah-kpi"><div><b>' + e.today + '</b><small>lượt hôm nay</small></div><div><b>' + e.n + '</b><small>' + D.days + ' ngày</small></div>' +
+        '<div><b>' + (e.rate == null ? '–' : e.rate + '%') + '</b><small>trả lời được</small></div><div><b>' + (e.sec == null ? '–' : e.sec < 60 ? e.sec + 's' : Math.round(e.sec / 60) + 'p') + '</b><small>trung vị</small></div></div>' +
+      '<div class="ah-cap"><label>Hạn mức/ngày<input type="number" min="0" max="100000" step="10" value="' + (e.cap || 0) + '" data-ahcap="' + e.id + '"' + (can ? '' : ' disabled') + '></label>' +
+        '<span class="ah-sub">' + (e.cap ? 'đã dùng ' + e.used + '/' + e.cap + ' · còn ' + e.left : '0 = không giới hạn · đã dùng ' + e.used) + '</span></div>' +
+      '<div class="ah-cf"><span class="ah-sub">' + (pos === 0 ? 'đang dùng' : pos > 0 ? 'dự phòng ' + pos : 'không trong hàng') + ' · lượt gần nhất ' + esc(ahAgo(e.lastAt)) + '</span>' +
+        (can ? '<span class="sp"></span>' + (i > 0 ? '<button class="kt-lnk" data-ahtop="' + e.id + '" title="Ưu tiên kênh này"><i class="bi bi-arrow-up-short"></i> Ưu tiên</button>' : '') +
+          '<button class="btn sm" data-ahtest="' + e.id + '"' + (e.ok ? '' : ' disabled') + '><i class="bi bi-send"></i> Thử ngay</button>' : '') + '</div>' +
+      (e.lastErr ? '<p class="ah-err" title="' + esc(e.lastErr) + '"><i class="bi bi-exclamation-triangle"></i> ' + esc(e.lastErr) + '</p>' : '') + '</div>'; }).join('') + '</div>';
+  // biểu đồ cột chồng: số lượt mỗi ngày theo kênh
+  const max = Math.max.apply(null, D.byDay.map(d => d.api + d.gweb + d.flow).concat([1]));
+  const chart = '<div class="ah-box"><div class="ah-bh"><b>Lượt hỏi ' + D.days + ' ngày</b><span class="ah-lg"><i class="api"></i>Gemini API<i class="gweb"></i>Gemini web<i class="flow"></i>Flow</span></div>' +
+    '<div class="ah-chart">' + D.byDay.map(d => { const tot = d.api + d.gweb + d.flow, h = p => Math.round(p * 100 / max);
+      return '<div title="' + ktDm2(d.d) + ': ' + tot + ' lượt (API ' + d.api + ' · web ' + d.gweb + ' · flow ' + d.flow + ')"><span class="ah-bar">' +
+        (d.flow ? '<i class="flow" style="height:' + h(d.flow) + '%"></i>' : '') + (d.gweb ? '<i class="gweb" style="height:' + h(d.gweb) + '%"></i>' : '') + (d.api ? '<i class="api" style="height:' + h(d.api) + '%"></i>' : '') +
+        '</span><small>' + ktDm2(d.d).slice(0, 5) + '</small></div>'; }).join('') + '</div></div>';
+  const uf = D.uf ? '<div class="ah-box"><div class="ah-bh"><b>Gọi ra ngoài hôm nay</b><span class="ah-sub">' + D.uf.today.n.toLocaleString('vi-VN') + ' / ' + D.uf.cap.toLocaleString('vi-VN') + ' lượt (hạn mức Google mỗi ngày)</span></div>' +
+    '<div class="ah-uf">' + Object.keys(D.uf.areas).filter(a => D.uf.today.by[a]).sort((a, b) => D.uf.today.by[b] - D.uf.today.by[a]).map(a =>
+      '<div><span>' + esc(D.uf.areas[a]) + '</span><b>' + D.uf.today.by[a].toLocaleString('vi-VN') + '</b><i style="width:' + Math.max(2, Math.round(D.uf.today.by[a] * 100 / Math.max(1, D.uf.today.n))) + '%"></i></div>').join('') + '</div></div>' : '';
+  const cho = '<div class="ah-box"><div class="ah-bh"><b>Đang chờ trả lời</b><span class="ah-sub">' + D.cho.n + ' lượt' + (D.cho.lau ? ' · ' + D.cho.lau + ' lượt quá 15 phút' : '') + '</span></div>' +
+    (D.errs.length ? '<table class="ah-tb"><thead><tr><th>Lúc</th><th>Kênh</th><th>Việc</th><th>Lỗi</th></tr></thead><tbody>' +
+      D.errs.map(x => '<tr><td>' + esc(ahAgo(x.at)) + '</td><td>' + esc((AH.d.engs.find(e => e.id === x.eng) || {}).t || x.eng) + '</td><td>' + esc(x.kind) + '<small>' + esc(x.who) + '</small></td><td class="ah-sub">' + esc(x.err) + '</td></tr>').join('') +
+      '</tbody></table>' : '<p class="ah-sub" style="margin:8px 0 0"><i class="bi bi-check-circle"></i> Không có lượt lỗi nào trong ' + D.days + ' ngày qua.</p>') + '</div>';
+  return head + mode + cards + chart + uf + cho + '<p class="ah-sub ah-foot">Số liệu từ nhật ký Trợ lý AI ' + ktDm2(D.fr) + ' → ' + ktDm2(D.to) + ' · cập nhật ' + esc(ahAgo(D.at)) +
+    (D.can.cfg ? ' · <a href="#" data-ahset>Cài đặt AI (khoá, flow, Gemini web)</a>' : '') + '</p>';
+}
+function ahSw(k, t, on, can) { return '<label class="ah-sw"><input type="checkbox" data-ahsw="' + k + '"' + (on ? ' checked' : '') + (can ? '' : ' disabled') + '><span>' + esc(t) + '</span></label>'; }
+function ktDm2(d) { d = String(d || ''); return d.slice(8, 10) + '/' + d.slice(5, 7); }
+function ahBind(body, D, pull) {
+  const save = async patch => { try { const d = await rpc('aiEngCfgSave', patch, { quiet: true }); AH.d = d; AH.t = Date.now(); lsSet(ahKey(), d); body.innerHTML = ahHtml(d); ahBind(body, d, pull); toast('Đã lưu kênh AI', 'ok'); }
+    catch (e) { fail(e); } };
+  $$('[data-ahmode]', body).forEach(b => { b.onclick = () => save({ mode: b.dataset.ahmode }); });
+  $$('[data-ahsw]', body).forEach(c => { c.onchange = () => save({ [c.dataset.ahsw]: c.checked ? 1 : 0 }); });
+  $$('[data-ahcap]', body).forEach(i => { i.onchange = () => save({ cap: { [i.dataset.ahcap]: Math.max(0, Number(i.value) || 0) } }); });
+  $$('[data-ahtop]', body).forEach(b => { b.onclick = () => { const id = b.dataset.ahtop; save({ order: [id].concat(D.cfg.order.filter(x => x !== id)) }); }; });
+  $$('[data-ahup]', body).forEach(b => { b.onclick = () => save({}); });      // lưu lại → kênh được thử lại ở lượt sau (dấu nghỉ hết khi thử thành công)
+  $$('[data-ahtest]', body).forEach(b => { b.onclick = async () => { const id = b.dataset.ahtest; b.disabled = true; b.innerHTML = '<i class="bi bi-arrow-repeat"></i> Đang thử…';
+    try { const r = await rpc('aiEngTest', { eng: id }, { quiet: true });
+      toast(r.status === 'ok' ? 'Kênh ' + id + ' trả lời: ' + (r.reply || 'OK') : r.status === 'err' ? 'Kênh lỗi: ' + (r.err || '') : 'Đã gửi thư thử — chờ trả lời (xem lại sau ít phút)', r.status === 'err' ? 'bad' : 'ok', 6000);
+    } catch (e) { fail(e); } finally { pull(1); } }; });
+  const st = $('[data-ahset]', body); if (st) st.onclick = e => { e.preventDefault(); go('asst/set'); };
 }
 /** (1.82.18) CÀI ĐẶT TRỢ LÝ AI trong module Trợ lý — cùng aiCfgView (AiView.html); bản lưu trên máy vẽ ngay, bản mới tải ngầm rồi thay */
 function asstCfgPage(el) {
@@ -24051,9 +24270,11 @@ async function tkaOpen(conv) {
 }
 function tkaPaintA() {
   const h = $('#tkaA'); if (!h) return;
-  h.innerHTML = TKQ.msgs.map(m => m.me ? '<div class="tka-qm">' + esc(m.text) + '</div>' : '<div class="tka-am">' + asstBot('xs', !!m.wait) + '<div class="b">' + (m.wait ? (m.open ? aiThink('open', '', ['Đang mở cuộc trò chuyện', 'Đang tải các câu đã hỏi']) : aiThink('task', m.t0)) : m.err ? '<span class="muted">' + esc(m.err) + '</span>' : (typeof aiMd === 'function' ? aiMd(m.text || '', m.refs || {}) : esc(m.text || ''))) + '</div></div>').join('') +
+  h.innerHTML = TKQ.msgs.map((m, i) => m.me ? '<div class="tka-qm">' + esc(m.text) + '</div>' : '<div class="tka-am">' + asstBot('xs', !!m.wait) + '<div class="b">' + (m.wait ? (m.open ? aiThink('open', '', ['Đang mở cuộc trò chuyện', 'Đang tải các câu đã hỏi']) : aiThink('task', m.t0)) : m.err ? '<span class="muted">' + esc(m.err) + '</span>' : (typeof aiMd === 'function' ? aiMd(m.text || '', m.refs || {}) : esc(m.text || ''))) +
+    (m.ctx && !m.wait ? '<div class="tka-am-d"><button type="button" class="tka-lk" data-tkd="' + i + '"><i class="bi bi-funnel"></i> Dữ liệu đã gửi AI</button></div>' : '') + '</div></div>').join('') +
     (TKQ.msgs.length && !TKQ.opening ? '<div class="tka-am-f"><button class="tka-lk" data-tkqnew>Hỏi chuyện mới</button></div>' : '');
-  h.onclick = e => { if (e.target.closest('[data-tkqnew]')) { TKQ.conv = ''; TKQ.msgs = []; tkaPaintA(); tkaHistPaint(); const q = $('#tkaQ'); return q && q.focus(); } };
+  h.onclick = e => { const d = e.target.closest('[data-tkd]'); if (d) { const m = TKQ.msgs[Number(d.dataset.tkd)]; return axpOpen([{ k: 'ds', i: 'bi-funnel', t: 'Dữ liệu đã gửi AI', html: () => axpCtxHtml(m) }], 'ds', ''); }      // (1.85) panel dữ liệu
+    if (e.target.closest('[data-tkqnew]')) { TKQ.conv = ''; TKQ.msgs = []; tkaPaintA(); tkaHistPaint(); const q = $('#tkaQ'); return q && q.focus(); } };
 }
 async function tkaAsk(text) {
   text = String(text || '').trim(); const q = $('#tkaQ'); if (!text) return q && q.focus();
@@ -24061,7 +24282,9 @@ async function tkaAsk(text) {
   if (TKQ.msgs.some(m => m.wait)) return toast('Trợ lý đang trả lời câu trước…', 'info');
   if (q) { q.value = ''; q.style.height = 'auto'; }
   const w = { wait: 1, t0: new Date().toISOString() }; TKQ.msgs.push({ me: 1, text: text }, w); tkaPaintA(); const A = $('#tkaA'); if (A) A.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  const got = o => { delete w.wait; if (o.status === 'ok') { w.text = o.text; w.refs = o.refs; } else w.err = o.err || 'Trợ lý chưa trả lời được'; tkaPaintA(); tkaHist(1); };
+  const got = o => { delete w.wait; if (o.status === 'ok') { w.text = o.text; w.refs = o.refs; } else w.err = o.err || 'Trợ lý chưa trả lời được';
+    w.ctx = o.ctx || ''; w.eng = o.eng || ''; w.ms = o.ms || 0; w.at = o.at || ''; w.files = o.files || [];      // (1.85) phần dữ liệu đã gửi — xem ở panel
+    tkaPaintA(); tkaHist(1); };
   try { const r = await rpc('aiChat', { mode: 'task', text: text, conv: TKQ.conv }, { quiet: true }); TKQ.conv = r.conv || TKQ.conv;
     if (typeof AI_WAIT !== 'undefined' && AI_WAIT.test(r.status)) aiWatch(r.id, got); else got(r); }
   catch (e) { delete w.wait; w.err = e.message || String(e); tkaPaintA(); }
@@ -29141,6 +29364,35 @@ function svMemoV(b) {
 .kt-cmp b{ white-space:nowrap } .kt-cmp .btn{ white-space:nowrap }
 .kt-md{ font-size:14.5px; line-height:1.65; color:var(--ink) } .kt-md table{ border-collapse:collapse; margin:8px 0; font-size:13px; display:block; overflow-x:auto } .kt-md td, .kt-md th{ border:1px solid var(--border); padding:5px 9px } .kt-md th{ background:var(--surface-2) }
 /* chat — kiểu Claude */
+/* (1.85) chat + panel dữ liệu song song */
+.kt-chatw{ display:flex; gap:16px; align-items:flex-start; width:100% }
+.kt-chatw > .kt-chat{ flex:1; min-width:0; margin:0 auto }
+.kt-side{ position:sticky; top:8px; flex:0 0 clamp(360px, 38vw, 520px); max-height:calc(100dvh - 110px); overflow:auto; border:1px solid var(--border); border-radius:16px; background:var(--surface); display:flex; flex-direction:column }
+.kt-sh{ position:sticky; top:0; z-index:2; display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--surface) }
+.kt-stabs{ display:flex; gap:4px; flex:1; min-width:0; overflow:auto }
+.kt-stab{ display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:999px; border:1px solid transparent; background:none; color:var(--muted); font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap }
+.kt-stab.on{ background:color-mix(in oklab, var(--primary) 9%, var(--surface)); color:var(--primary); border-color:color-mix(in oklab, var(--primary) 25%, transparent) }
+.kt-sb{ padding:12px 14px 18px; display:flex; flex-direction:column; gap:12px }
+.kt-sb .kt-grps{ gap:12px } .kt-sb .kt-gb{ grid-template-columns:minmax(0,1fr) }
+.kt-open{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:9px 13px; border-radius:13px; border:1px dashed var(--border); background:var(--surface); cursor:pointer; color:inherit }
+.kt-open:hover{ border-color:var(--primary); border-style:solid } .kt-open > span{ flex:1; min-width:0; display:flex; flex-direction:column }
+.kt-open b{ font-size:13.5px } .kt-open small{ font-size:11.5px; color:var(--muted); line-height:1.4 } .kt-open > i:first-child{ font-size:17px; color:var(--primary) }
+.kt-ds{ display:flex; flex-direction:column; gap:6px } .kt-dsr{ display:flex; gap:10px; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:1px dashed var(--border) }
+.kt-dsr span{ color:var(--muted) } .kt-dsr b{ text-align:right; overflow-wrap:anywhere }
+.kt-dsh{ margin:10px 0 2px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted) }
+.kt-dsg{ border:1px solid var(--border); border-radius:11px; padding:8px 10px; display:flex; flex-direction:column; gap:4px } .kt-dsg b{ font-size:13px } .kt-dsg small{ font-size:11.5px; color:var(--muted) }
+.kt-hist{ display:flex; flex-direction:column; gap:5px }
+.kt-hr{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 8px; text-align:left; padding:8px 11px; border-radius:11px; border:1px solid var(--border); background:var(--surface); cursor:pointer; color:inherit }
+.kt-hr b{ font-size:13px; font-weight:600; line-height:1.35; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical }
+.kt-hr small{ font-size:11.5px; color:var(--muted) } .kt-hr i{ grid-row:1 / span 2; align-self:center; color:var(--muted); font-size:13px; padding:4px }
+.kt-hr i:hover{ color:var(--danger) } .kt-hr.on{ border-color:var(--primary); background:color-mix(in oklab, var(--primary) 6%, var(--surface)) }
+.kt-hfoot{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:8px } .kt-hfoot > :last-child{ margin-left:auto }
+.kt-hopt{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted) }
+.kt-hopt select{ height:26px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--ink); font-size:12px; padding:0 6px }
+@media (max-width:1080px){
+  .kt-side{ position:fixed; inset:0; z-index:60; flex:none; max-height:none; border-radius:0; border:0 }
+  body.kt-sideon .kt-comp{ display:none }
+}
 .kt-chat{ display:flex; flex-direction:column; gap:0; max-width:780px; margin:0 auto; width:100%; min-height:calc(100dvh - 150px) }
 .kt-msgs{ flex:1; display:flex; flex-direction:column; gap:26px; padding:8px 0 24px }
 .kt-hello{ flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:10px; padding:28px 0 }
@@ -29169,6 +29421,22 @@ function svMemoV(b) {
 .kt-covr{ display:grid; grid-template-columns:minmax(0, 1fr) 42px; grid-template-areas:'t p' 'b b'; column-gap:8px; row-gap:3px; font-size:12.5px } .kt-covr .t{ grid-area:t; line-height:1.35; overflow-wrap:anywhere } .kt-covr .p{ grid-area:p; text-align:right; font-variant-numeric:tabular-nums; color:var(--muted) }
 .kt-covr .b{ grid-area:b; height:7px; border-radius:99px; background:color-mix(in oklab, var(--border) 70%, transparent); overflow:hidden } .kt-covr .b i{ display:block; height:100%; border-radius:99px }
 .kt-covr.ok .b i{ background:var(--ok) } .kt-covr.mid .b i{ background:var(--warn, #B45309) } .kt-covr.no .b i{ background:var(--danger) }
+/* (1.85) thanh kéo ngưỡng “nên ra” · dòng rủi ro · biểu đồ học sinh × số bài chưa học · bảng chủ đề đầy đủ */
+.kt-sld{ display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; border:1px solid var(--border); border-radius:14px; padding:10px 14px; background:var(--surface) }
+.kt-sldr{ display:flex; gap:18px; flex-wrap:wrap; flex:1; min-width:0 } .kt-sldr label{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--muted); min-width:190px; flex:1 }
+.kt-sldr label b{ color:var(--ink); font-variant-numeric:tabular-nums } .kt-sldr input[type=range]{ width:100%; accent-color:var(--brand-600, var(--primary)); cursor:pointer }
+.kt-sldb{ display:flex; align-items:center; gap:8px; flex:none }
+@media (max-width:760px){ .kt-sld{ flex-direction:column; align-items:stretch } .kt-sldr{ flex-direction:column; gap:10px } .kt-sldb{ justify-content:flex-end } }
+.kt-risk{ display:flex; align-items:flex-start; gap:7px; margin:0; padding:8px 11px; border-radius:11px; font-size:13px; line-height:1.45 }
+.kt-risk.ok{ background:color-mix(in oklab, var(--ok) 8%, var(--surface)); color:var(--ok) } .kt-risk.mid{ background:color-mix(in oklab, var(--warn, #B45309) 10%, var(--surface)); color:var(--warn, #B45309) } .kt-risk.no{ background:color-mix(in oklab, var(--danger) 9%, var(--surface)); color:var(--danger) }
+.kt-risk b{ font-weight:700 }
+.kt-dist{ border:1px solid var(--border); border-radius:12px; padding:10px 12px } .kt-distb{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; align-items:end; height:104px; margin-top:6px }
+.kt-distb > div{ display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:3px; height:100% } .kt-distb i{ display:block; width:100%; max-width:46px; border-radius:7px 7px 3px 3px; min-height:3px }
+.kt-distb b{ font-size:14px; line-height:1 } .kt-distb small{ font-size:11px; color:var(--muted) }
+.kt-distb .ok i{ background:var(--ok) } .kt-distb .mid i{ background:var(--warn, #B45309) } .kt-distb .no i{ background:var(--danger) }
+.kt-tb{ width:100%; border-collapse:collapse; font-size:12.5px } .kt-tb th, .kt-tb td{ text-align:left; padding:5px 8px; border-bottom:1px solid var(--border); vertical-align:top }
+.kt-tb th{ font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); font-weight:600 }
+.kt-tb tr.ok td:nth-child(3){ color:var(--ok); font-weight:600 } .kt-tb tr.mid td:nth-child(3){ color:var(--warn, #B45309); font-weight:600 } .kt-tb tr.no td:nth-child(3){ color:var(--danger) }
 .kt-gd > summary{ cursor:pointer; font-size:13px; font-weight:600; color:var(--brand-600, var(--primary)); list-style:none } .kt-gd > summary::before{ content:'▸ ' } .kt-gd[open] > summary::before{ content:'▾ ' } .kt-gd[open] > summary{ margin-bottom:10px } .kt-gd .kt-grpl{ margin-bottom:10px }
 @media (max-width:720px){ .kt-gb{ grid-template-columns:minmax(0, 1fr) } .kt-gk b{ font-size:18px } .kt-gk > div{ flex-direction:column; gap:0; padding:6px 10px } }
 .kt-flw{ display:flex; flex-direction:column; margin-top:12px; border-top:1px solid var(--border) } .kt-flr{ display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--border); flex-wrap:wrap }      /* (1.84.7) Cài đặt › AI & flow */
@@ -29283,7 +29551,7 @@ function svMemoV(b) {
 </style>
 <script>
 /* ══════════ (1.84) ỨNG DỤNG KIẾN TRẺ — route kt · kt/ask · kt/learned · kt/style · kt/conn ══════════ */
-const KT = { b: null, day: '', teacher: lsGet('ktTea', ''), d: null, ed: {}, ai: {}, push: {}, op: {}, sj: lsGet('ktSj', 'MATH'), ln: null, open: {}, pick: {}, sel: {}, chat: lsGet('ktChat', { conv: '', msgs: [] }), ask: { sj: lsGet('ktAskSj', ''), span: lsGet('ktAskSpan', 150) } };
+const KT = { b: null, day: '', teacher: lsGet('ktTea', ''), d: null, ed: {}, ai: {}, push: {}, op: {}, sj: lsGet('ktSj', 'MATH'), ln: null, open: {}, pick: {}, sel: {}, chat: lsGet('ktChat', { conv: '', msgs: [] }), ask: { sj: lsGet('ktAskSj', ''), span: lsGet('ktAskSpan', 150), eng: lsGet('ktAskEng', '') } };
 const KT_TABS = [['ask', 'bi-chat-square-text', 'Trợ lý'], ['', 'bi-chat-heart', 'Nhận xét'], ['learned', 'bi-journal-check', 'Lớp đã học'], ['prof', 'bi-person-vcard', 'Hồ sơ học sinh'], ['jobs', 'bi-activity', 'Việc AI'], ['style', 'bi-feather', 'Văn phong'], ['conn', 'bi-plug', 'Kết nối']];
 const KT_FL = [['td', 'Thái độ học tập'], ['bt', 'Bài tập trên lớp'], ['yeu', 'Kiến thức còn yếu'], ['nx', 'Nhận xét chung']];
 const KT_AVC = ['#4F46E5', '#0EA5E9', '#14B8A6', '#F59E0B', '#EC4899', '#8B5CF6', '#22C55E', '#EF4444'];
@@ -29480,21 +29748,110 @@ function ktPushRun(s, L) {
   }).catch(e => { items.forEach(it => { delete KT.push[KT.day + '|' + s.cls + '|' + it.code]; }); ktRepaintSess(s); if (e.code === 'KTAUTH') toast(e.message, 'err', 0, 'kt/conn'); else fail(e); });
 }
 
+/* ══ (1.85) PANEL DỮ LIỆU SONG SONG — khung chat chỉ để đọc câu trả lời; mọi số liệu đã lọc xem ở đây
+   (Phân tích · Phạm vi dữ liệu đã gửi AI · Lịch sử trò chuyện). Trên điện thoại panel mở đè toàn màn. ══ */
+const KT_SIDE = { on: 0, mi: -1, tab: 'an' };
+function ktSideEl() { return document.getElementById('ktSide'); }
+function ktSideClose() { KT_SIDE.on = 0; const el = ktSideEl(); if (el) { el.hidden = true; el.innerHTML = ''; } document.body.classList.remove('kt-sideon'); }
+function ktSideOpen(mi, tab) {
+  const el = ktSideEl(); if (!el) return;
+  KT_SIDE.on = 1; if (mi != null && mi >= 0) KT_SIDE.mi = mi; if (tab) KT_SIDE.tab = tab;
+  el.hidden = false; document.body.classList.add('kt-sideon'); ktSidePaint();
+}
+function ktSidePaint() {
+  const el = ktSideEl(); if (!el || !KT_SIDE.on) return;
+  const m = KT.chat.msgs[KT_SIDE.mi], T = [['an', 'bi-clipboard-data', 'Phân tích'], ['ds', 'bi-funnel', 'Dữ liệu đã gửi AI'], ['ls', 'bi-clock-history', 'Lịch sử']];
+  let tab = KT_SIDE.tab; if (!m && tab !== 'ls') tab = 'ls';
+  el.innerHTML = '<div class="kt-sh"><div class="kt-stabs">' + T.map(t => '<button type="button" class="kt-stab' + (tab === t[0] ? ' on' : '') + '" data-kst="' + t[0] + '"><i class="bi ' + t[1] + '"></i><span>' + t[2] + '</span></button>').join('') + '</div>' +
+    '<button class="kt-ico" data-ktsx aria-label="Đóng bảng" title="Đóng"><i class="bi bi-x-lg"></i></button></div><div class="kt-sb">' +
+    (tab === 'ls' ? ktHistHtml() : tab === 'ds' ? ktScopeHtml(m) : ktAnHtml(m)) + '</div>';
+  const x = $('[data-ktsx]', el); if (x) x.onclick = ktSideClose;
+  $$('[data-kst]', el).forEach(b => { b.onclick = () => { KT_SIDE.tab = b.dataset.kst; ktSidePaint(); }; });
+  const w = $('[data-kgw]', el); if (w && m && m.grp) ktScBind(w, m);
+  ktHistBind(el);
+}
+/** tab Phân tích — thanh kéo ngưỡng + thẻ từng nhóm (phạm vi đề), hoặc nhắc khi lượt hỏi không có số liệu nhóm */
+function ktAnHtml(m) {
+  if (!m) return '<p class="kt-sub">Chọn một câu trả lời rồi bấm “Mở bảng phân tích”.</p>';
+  if (m.grp && m.grp.length) return ktGrpHtml(m.grp, m.cut, m.parts);
+  if (m.mx && m.mx.rows && m.mx.rows.length) return '<p class="kt-sub">Lượt này có bảng topic × lớp — bấm nút “Bảng topic” dưới câu trả lời để mở.</p>';
+  return '<p class="kt-sub">Lượt hỏi này không có bảng phân tích (chỉ có câu trả lời của Trợ lý).</p>';
+}
+/** tab Dữ liệu đã gửi AI — đúng phạm vi máy chủ đã lọc trước khi gửi thư (để biết AI đã “nhìn thấy” những gì) */
+function ktScopeHtml(m) {
+  const s = m && m.scope; if (!s) return '<p class="kt-sub">Lượt hỏi này chưa ghi phạm vi dữ liệu.</p>';
+  const row = (k, v) => v == null || v === '' ? '' : '<div class="kt-dsr"><span>' + esc(k) + '</span><b>' + esc(String(v)) + '</b></div>';
+  const g = m.grp || [];
+  return '<div class="kt-ds">' +
+    (s.hep ? '<p class="kt-risk mid"><i class="bi bi-funnel"></i><span>Câu hỏi nhắc tên học sinh / lớp cụ thể nên máy chủ CHỈ gửi ' + s.n + ' lớp liên quan (trong ' + (s.nAll || s.n) + ' lớp) — thư ngắn, AI không bị cắt dữ liệu.</span></p>'
+      : '<p class="kt-risk ok"><i class="bi bi-check2-circle"></i><span>Gửi đủ phạm vi đã chọn, không phải thu hẹp.</span></p>') +
+    row('Môn', (s.mon || []).join(', ')) + row('Khối / nhóm lớp', s.khoi) + row('Số lớp gửi đi', s.n + (s.hep && s.nAll ? ' / ' + s.nAll : '')) +
+    row('Số học sinh', s.nHs || (g.length ? g.reduce((a, x) => a + x.nHs, 0) : '')) + row('Khoảng ngày', ktDm(s.fr) + ' → ' + ktDm(s.to)) +
+    row('Mốc tính bài', s.cut ? 'các buổi trước ' + ktDm(s.cut) : '') + row('Lượt điểm danh đã đọc', s.att || '') + row('Học sinh nhận ra trong câu hỏi', (s.hs || []).join(', ')) +
+    (g.length ? '<h6 class="kt-dsh">Từng nhóm lớp</h6>' + g.map(x => '<div class="kt-dsg"><b>' + esc(x.ten) + '</b><small>' + x.nHs + ' học sinh · ' + x.lop.length + ' lớp · ' + (x.rows || []).length + ' chủ đề' +
+      ((x.nodata || []).length ? ' · ' + x.nodata.length + ' lớp chưa ghi tài liệu (không tính)' : '') + '</small><div class="kt-grpl">' + x.lop.map(c => '<span class="kt-pill">' + esc(c) + '</span>').join('') + '</div></div>').join('') : '') +
+    '<p class="kt-sub" style="margin-top:10px"><i class="bi bi-info-circle"></i> Dữ liệu gửi AI là JSON rút từ lịch học và danh sách lớp trên kientre.click — không gửi toàn bộ dữ liệu trung tâm.</p></div>';
+}
+/* ── LỊCH SỬ TRÒ CHUYỆN (lưu trên máy, tự xoá sau KT_HIST_DAYS2 ngày cho nhẹ bộ nhớ) ── */
+const KT_HIST_MAX = 40, KT_HIST_OPT = [7, 30, 90, 0];
+function ktHistDays() { const v = Number(lsGet('ktHistDays', 30)); return KT_HIST_OPT.indexOf(v) >= 0 ? v : 30; }
+function ktHistAll() { const L = lsGet('ktChats', []); return Array.isArray(L) ? L : []; }
+function ktHistClean(L) {
+  const d = ktHistDays(), lim = d ? Date.now() - d * 86400000 : 0;
+  return L.filter(c => c && c.msgs && c.msgs.length && new Date(c.at || 0).getTime() > lim).slice(0, KT_HIST_MAX);
+}
+/** lưu cuộc đang mở vào lịch sử (gọi mỗi lần chat đổi) */
+function ktHistSave() {
+  const c = KT.chat; if (!c || !(c.msgs || []).length) return;
+  const key = c.conv || 'tam', u = (c.msgs.filter(m => m.role === 'u')[0] || {}).text || 'Cuộc trò chuyện';
+  let L = ktHistAll().filter(x => x.conv !== key);
+  L.unshift({ conv: key, at: new Date().toISOString(), t: String(u).slice(0, 90), n: c.msgs.length, stu: c.stu ? c.stu.name : '', msgs: c.msgs.slice(-24) });
+  try { lsSet('ktChats', ktHistClean(L)); } catch (e) { try { lsSet('ktChats', ktHistClean(L).slice(0, 10)); } catch (e2) {} }
+}
+function ktHistHtml() {
+  const L = ktHistClean(ktHistAll()), d = ktHistDays();
+  const opt = '<label class="kt-hopt">Tự xoá sau <select data-kthn>' + KT_HIST_OPT.map(x => '<option value="' + x + '"' + (x === d ? ' selected' : '') + '>' + (x ? x + ' ngày' : 'không tự xoá') + '</option>').join('') + '</select></label>';
+  if (!L.length) return '<p class="kt-sub">Chưa có cuộc trò chuyện nào được lưu. Lịch sử giữ trên máy này.</p>' + opt;
+  return '<div class="kt-hist">' + L.map(c => '<button type="button" class="kt-hr' + (c.conv === KT.chat.conv ? ' on' : '') + '" data-kth="' + esc(c.conv) + '"><b>' + esc(c.t) + '</b>' +
+    '<small>' + esc(ktAgo(c.at)) + ' · ' + c.n + ' tin' + (c.stu ? ' · ' + esc(c.stu) : '') + '</small><i class="bi bi-trash3" data-kthd="' + esc(c.conv) + '" title="Xoá cuộc này"></i></button>').join('') +
+    '</div><div class="kt-hfoot"><span class="kt-sub"><i class="bi bi-hdd"></i> ' + L.length + ' cuộc lưu trên máy này</span>' + opt + '<a href="#" class="kt-sub" data-kthc>Xoá tất cả</a></div>';
+}
+function ktAgo(iso) { const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  return isNaN(m) ? '' : m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : m < 1440 ? Math.round(m / 60) + ' giờ trước' : Math.round(m / 1440) + ' ngày trước'; }
+function ktHistBind(el) {
+  $$('[data-kth]', el).forEach(b => { b.onclick = e => {
+    if (e.target.closest('[data-kthd]')) { const k = e.target.closest('[data-kthd]').dataset.kthd; lsSet('ktChats', ktHistAll().filter(x => x.conv !== k)); return ktSidePaint(); }
+    const c = ktHistAll().find(x => x.conv === b.dataset.kth); if (!c) return;
+    KT.chat = { conv: c.conv === 'tam' ? '' : c.conv, msgs: c.msgs, stu: KT.chat.stu || null }; ktChatSave();
+    if (typeof KT.chatPaint === 'function') KT.chatPaint(); ktSidePaint(); toast('Đã mở lại cuộc trò chuyện', 'ok'); }; });
+  const ca = $('[data-kthc]', el); if (ca) ca.onclick = ev => { ev.preventDefault(); lsSet('ktChats', []); ktSidePaint(); toast('Đã xoá lịch sử trò chuyện trên máy này', 'ok'); };
+  const dn = $('[data-kthn]', el); if (dn) dn.onchange = () => { lsSet('ktHistDays', Number(dn.value)); lsSet('ktChats', ktHistClean(ktHistAll())); ktSidePaint(); };
+}
+
 /* ── HỎI DỮ LIỆU (chat kiểu Claude) ── */
 const KT_SUGS = [['bi-journal-text', 'Các lớp 5 môn Toán đã học những bài nào?'], ['bi-intersect', 'Lấy các bài học giống nhau của các lớp 5 (5A, 5B…)'], ['bi-bar-chart', 'So sánh % bài tập về nhà của các lớp 4 môn Toán, vẽ biểu đồ'], ['bi-person-lines-fill', 'Phân tích tình hình học Toán của một học sinh (gõ họ tên) — BTVN, nhận xét, chuyên cần']];
-function ktChatSave() { const c = KT.chat; c.msgs = c.msgs.slice(-30); lsSet('ktChat', c); }
+function ktChatSave() { const c = KT.chat; c.msgs = c.msgs.slice(-30); lsSet('ktChat', c); try { ktHistSave(); } catch (e) {} }      // (1.85) + lưu vào lịch sử trò chuyện (tự xoá sau 30 ngày)
 function ktAskView(B) {
   const SJ = (KT.b && KT.b.sj) || {}, spans = [[30, '1 tháng'], [90, '3 tháng'], [150, '5 tháng'], [300, 'Năm học']];
-  B.innerHTML = '<div class="kt-chat"><div id="ktStuBox" class="kt-stubox"></div><div class="kt-msgs" id="ktMsgs"></div><div class="kt-comp"><textarea id="ktQ" rows="1" placeholder="Hỏi Trợ lý về lớp, học sinh, bài đã học, BTVN…" aria-label="Câu hỏi"></textarea>' +
+  /* (1.85) khung chat + PANEL DỮ LIỆU SONG SONG: khung chat chỉ giữ câu trả lời và bảng kết quả; bảng phân tích,
+     thanh kéo ngưỡng, biểu đồ, danh sách học sinh nằm ở panel bên phải (điện thoại: mở đè toàn màn). */
+  B.innerHTML = '<div class="kt-chatw"><div class="kt-chat"><div id="ktStuBox" class="kt-stubox"></div><div class="kt-msgs" id="ktMsgs"></div><div class="kt-comp"><textarea id="ktQ" rows="1" placeholder="Hỏi Trợ lý về lớp, học sinh, bài đã học, BTVN…" aria-label="Câu hỏi"></textarea>' +
     '<div class="kt-acts"><select id="ktAsj" aria-label="Môn"><option value="">Môn: tự nhận</option>' + Object.keys(SJ).map(k => '<option value="' + k + '"' + (KT.ask.sj === k ? ' selected' : '') + '>' + esc(SJ[k]) + '</option>').join('') + '</select>' +
     '<select id="ktAsp" aria-label="Khoảng ngày">' + spans.map(x => '<option value="' + x[0] + '"' + (Number(KT.ask.span) === x[0] ? ' selected' : '') + '>' + x[1] + ' gần đây</option>').join('') + '</select>' +
-    '<button class="kt-lnk" id="ktStuBtn" aria-label="Chọn học sinh"><i class="bi bi-person-plus"></i><span class="kt-nw"> Chọn học sinh</span></button><button class="kt-lnk" id="ktNew" title="Cuộc mới" aria-label="Cuộc mới"><i class="bi bi-plus-lg"></i><span class="kt-nw"> Cuộc mới</span></button><span class="sp"></span><button class="kt-send" id="ktSend" aria-label="Gửi" disabled><i class="bi bi-arrow-up"></i></button></div></div></div>';
+    aiEngSel(KT.b && KT.b.eng, KT.ask.eng, 'ktAeng') +      /* (1.85) kênh AI cho lượt hỏi này */
+    '<button class="kt-lnk" id="ktStuBtn" aria-label="Chọn học sinh"><i class="bi bi-person-plus"></i><span class="kt-nw"> Chọn học sinh</span></button>' +
+    '<button class="kt-lnk" id="ktHist" title="Lịch sử trò chuyện" aria-label="Lịch sử trò chuyện"><i class="bi bi-clock-history"></i><span class="kt-nw"> Lịch sử</span></button>' +
+    '<button class="kt-lnk" id="ktNew" title="Cuộc mới" aria-label="Cuộc mới"><i class="bi bi-plus-lg"></i><span class="kt-nw"> Cuộc mới</span></button><span class="sp"></span><button class="kt-send" id="ktSend" aria-label="Gửi" disabled><i class="bi bi-arrow-up"></i></button></div></div>' +
+    '<aside class="kt-side" id="ktSide" hidden aria-label="Dữ liệu đã lọc"></aside></div>';
   const M = $('#ktMsgs', B), Q = $('#ktQ', B), SEND = $('#ktSend', B);
   const fit = () => { Q.style.height = 'auto'; Q.style.height = Math.min(180, Q.scrollHeight) + 'px'; SEND.disabled = !Q.value.trim(); };
   Q.oninput = fit; Q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (Q.value.trim()) ask(Q.value.trim()); } };
   $('#ktAsj', B).onchange = e => { KT.ask.sj = e.target.value; lsSet('ktAskSj', KT.ask.sj); };
   $('#ktAsp', B).onchange = e => { KT.ask.span = Number(e.target.value); lsSet('ktAskSpan', KT.ask.span); };
-  $('#ktNew', B).onclick = () => { KT.chat = { conv: '', msgs: [], stu: KT.chat.stu || null }; ktChatSave(); paint(); Q.focus(); };      // cuộc mới vẫn giữ học sinh đang chọn
+  const eg = $('#ktAeng', B); if (eg) eg.onchange = e => { KT.ask.eng = e.target.value; lsSet('ktAskEng', KT.ask.eng); };      // (1.85) kênh AI
+  $('#ktNew', B).onclick = () => { ktHistSave(); KT.chat = { conv: '', msgs: [], stu: KT.chat.stu || null }; lsSet('ktChat', KT.chat); paint(); Q.focus(); };      // cuộc mới vẫn giữ học sinh đang chọn (cuộc cũ vào Lịch sử)
+  $('#ktHist', B).onclick = () => { if (KT_SIDE.on && KT_SIDE.tab === 'ls') return ktSideClose(); ktSideOpen(KT_SIDE.mi, 'ls'); };      // (1.85) lịch sử trò chuyện ở panel
+  KT.chatPaint = () => { if (B.isConnected) paint(); };
   SEND.onclick = () => { if (Q.value.trim()) ask(Q.value.trim()); };
   const paint = () => {
     const L = KT.chat.msgs;
@@ -29505,7 +29862,7 @@ function ktAskView(B) {
     M.innerHTML = L.map((m, i) => m.role === 'u' ? '<div class="kt-mu">' + esc(m.text) + '</div>' :
       '<div class="kt-ma" data-kmi="' + i + '">' + ktBot('xs', m.st === 'wait') + '<div>' +
         (m.scope ? '<div class="kt-scope"><span class="kt-pill">' + esc((m.scope.mon || []).join(', ')) + '</span><span class="kt-pill">' + esc(/^(Lớp|Khối)/.test(m.scope.khoi) ? m.scope.khoi : 'Khối ' + m.scope.khoi) + '</span><span class="kt-pill">' + m.scope.n + ' lớp</span><span class="kt-pill">' + ktDm(m.scope.fr) + ' → ' + ktDm(m.scope.to) + '</span>' + (m.scope.cut ? '<span class="kt-pill warn">Mốc ' + ktDm(m.scope.cut) + '</span>' : '') + (m.scope.att ? '<span class="kt-pill">' + m.scope.att + ' lượt điểm danh</span>' : '') + ((m.scope.hs || []).length ? '<span class="kt-pill ai"><i class="bi bi-person"></i> ' + esc(m.scope.hs.join(', ')) + '</span>' : '') + '</div>' : '') +
-        (m.grp && m.grp.length ? ktGrpHtml(m.grp, m.cut, m.parts) : '') + (m.parts ? '' : m.st === 'wait' ? ktThink(['Đang đọc lịch các lớp từ kientre.click', 'Đang đọc điểm danh, BTVN, nhận xét', 'Đang so sánh và tính số liệu', 'Đang soạn câu trả lời']) : m.st === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(m.text) + '</span></div>' : m.prof ? ktProfSumHtml(m.prof, m.src) : '<div class="kt-md kt-ans">' + ktMdC(m.text) + '</div>') +
+        (m.grp && m.grp.length ? ktGrpChat(m.grp, m.cut, m.parts, i) : '') + (m.parts ? '' : m.st === 'wait' ? ktThink(['Đang đọc lịch các lớp từ kientre.click', 'Đang đọc điểm danh, BTVN, nhận xét', 'Đang so sánh và tính số liệu', 'Đang soạn câu trả lời']) : m.st === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(m.text) + '</span></div>' : m.prof ? ktProfSumHtml(m.prof, m.src) : '<div class="kt-md kt-ans">' + ktMdC(m.text) + '</div>') +
         (m.st !== 'wait' ? '<div class="kt-mact">' + ((m.text || m.prof || m.parts) && m.st !== 'err' ? '<button data-kcp><i class="bi bi-clipboard"></i> Chép</button>' : '') + (m.prof ? '<button data-kmpdf><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' : '') + (ktWantMx(m) && m.mx && m.mx.rows && m.mx.rows.length ? '<button data-kmx><i class="bi bi-grid-3x3"></i> Bảng topic · ' + m.mx.cols.length + ' lớp × ' + m.mx.rows.length + ' bài</button>' : '') + (ktWantMx(m) && m.mx && m.mx.common && m.mx.common.length ? '<button data-kcm><i class="bi bi-intersect"></i> ' + m.mx.common.length + ' bài chung</button>' : '') + '</div>' : '') +
       '</div></div>').join('');
     $$('[data-kmi]', M).forEach(el => { const m = L[Number(el.dataset.kmi)];
@@ -29514,7 +29871,7 @@ function ktAskView(B) {
       if (m.prof) { const c0 = $('[data-kcp]', el); if (c0) c0.onclick = () => navigator.clipboard.writeText(ktProfText(KT.stuR || { stu: { name: '' }, fr: '', to: '', n: 0, nCmt: 0 }, m.prof)).then(() => toast('Đã chép báo cáo', 'ok')); }
       const cp = m.prof ? null : $('[data-kcp]', el); if (cp && m.parts) cp.onclick = () => navigator.clipboard.writeText(m.grp.map(g => ktGrpText(g, m.cut, (m.parts.find(x => x.k === g.k) || {}).res)).join('\n\n────────\n\n')).then(() => toast('Đã chép kết quả', 'ok'));
       else if (cp) cp.onclick = () => navigator.clipboard.writeText(String(m.text || '').replace(/```(?:chart|json)?[\s\S]*?```/g, '').replace(/\{\s*"type"[^\n]*"series"[^\n]*\}/g, '').trim()).then(() => toast('Đã chép', 'ok'));
-      $$('[data-kgc]', el).forEach(b => { b.onclick = () => navigator.clipboard.writeText(ktGrpText(m.grp[Number(b.dataset.kgc)], m.cut, ((m.parts || []).find(x => x.k === m.grp[Number(b.dataset.kgc)].k) || {}).res)).then(() => toast('Đã chép phạm vi ' + m.grp[Number(b.dataset.kgc)].ten, 'ok')); });
+      const op = $('[data-ktside]', el); if (op) op.onclick = () => ktSideOpen(Number(op.dataset.ktside), 'an');      // (1.85) mở panel phân tích bên phải
       const mx = $('[data-kmx]', el); if (mx) mx.onclick = () => ktMatrixDlg(m.mx, 'Bảng topic · ' + (m.scope ? (m.scope.mon || []).join(', ') + ' · khối ' + m.scope.khoi : ''));
       const cm = $('[data-kcm]', el); if (cm) cm.onclick = () => ktMatrixDlg(m.mx, 'Bài chung của ' + m.mx.cols.length + ' lớp', true); });
     const last = M.lastElementChild; if (last) last.scrollIntoView({ block: 'end', behavior: 'smooth' });
@@ -29523,7 +29880,7 @@ function ktAskView(B) {
     Q.value = ''; fit();
     const c = KT.chat, um = { role: 'u', text: q }, am = { role: 'a', st: 'wait', text: '', q: q }; c.msgs.push(um, am); ktChatSave(); paint();
     try {
-      const r = await rpc('ktAsk', { q: q, conv: c.conv, stu: c.stu || null, sj: KT.ask.sj, fr: ktAdd(ktToday(), -Number(KT.ask.span || 150)), to: ktToday() }, { quiet: true });
+      const r = await rpc('ktAsk', { q: q, conv: c.conv, stu: c.stu || null, sj: KT.ask.sj, eng: KT.ask.eng, fr: ktAdd(ktToday(), -Number(KT.ask.span || 150)), to: ktToday() }, { quiet: true });
       c.conv = r.conv; am.scope = r.scope; am.mx = r.mx; am.stu = r.stu || '';
       if (r.parts) {      // (1.84.8) phạm vi đề: mỗi nhóm lớp một thư AI — gom về tin nhắn này
         am.grp = r.grp || null; am.cut = r.cut || ''; am.parts = r.parts.map(x => ({ id: x.log.id, k: x.k, st: 'wait' })); ktChatSave(); paint();
@@ -29583,43 +29940,159 @@ function ktPartWatch(m, pt, lg, repaint) {
 }
 /** (1.84.8) PHẠM VI RA ĐỀ — KẾT QUẢ CUỐI CÙNG trước (bảng tổng hợp), rồi thẻ từng nhóm: số Nên ra / Cân nhắc / Không nên ra, kết luận của AI,
     chủ đề đưa vào đề (chip), thêm nếu học bù, lớp cần chú ý, biểu đồ độ phủ chủ đề; danh sách đầy đủ gập lại. P = kết quả AI từng nhóm (mỗi nhóm một thư) */
-function ktGrpHtml(G, cut, P) {
-  const sh = c => String(c).replace(/^K\d+/, ''), lops = L => L.length > 6 ? L.slice(0, 6).map(sh).join(', ') + ' … +' + (L.length - 6) + ' lớp' : L.map(sh).join(', ');
+/* ══ (1.85) PHẠM VI ĐỀ THEO HỌC SINH — thanh kéo ngưỡng, giao diện tự tính lại, không hỏi lại máy chủ ══
+   g.rows = [{ t, bien, no, k, n, p }] xếp theo % học sinh đã học · g.hs = [{ n, l, m: [chỉ số chủ đề em còn thiếu] }]. */
+const KT_SC_DEF = { hi: 95, lo: 20 };
+function ktScGet() { const o = lsGet('ktScope', null) || {}; return { hi: Math.min(100, Math.max(50, Number(o.hi) || KT_SC_DEF.hi)), lo: Math.min(60, Math.max(0, o.lo == null ? KT_SC_DEF.lo : Number(o.lo))) }; }
+function ktScSet(o) { lsSet('ktScope', o); }
+/** chia chủ đề theo ngưỡng hiện tại + đo rủi ro: ra đề theo “Nên ra” thì bao nhiêu em gặp bài chưa học */
+function ktScCalc(g, N) {
+  const rows = g.rows || [], hs = g.hs || [], nen = [], can = [], bo = [];
+  rows.forEach((r, j) => { const o = { t: r.t, bien: r.bien || [], p: r.p, k: r.k, n: r.n, j: j }; (r.p >= N.hi ? nen : r.p >= N.lo ? can : bo).push(o); });
+  const inDe = {}; nen.forEach(o => { inDe[o.j] = 1; });
+  const miss = hs.map(h => (h.m || []).filter(j => inDe[j]));
+  const risk = [], dist = [0, 0, 0, 0];
+  hs.forEach((h, i) => { const k = miss[i].length; dist[Math.min(3, k)]++; if (k) risk.push({ n: h.n, l: h.l, k: k, t: miss[i].slice(0, 4).map(j => rows[j].t) }); });
+  risk.sort((a, b) => b.k - a.k);
+  const chuaOf = j => hs.map((h, i) => ({ h: h, has: (h.m || []).indexOf(j) >= 0 })).filter(x => x.has).map(x => x.h);
+  return { nen: nen, can: can, bo: bo, risk: risk, dist: dist, nHs: hs.length, chuaOf: chuaOf, def: N.hi === KT_SC_DEF.hi && N.lo === KT_SC_DEF.lo };
+}
+function ktScCls(p, N) { return p >= N.hi ? 'ok' : p >= N.lo ? 'mid' : 'no'; }
+/** thanh kéo ngưỡng (chung cho mọi nhóm) + nút xuất báo cáo */
+function ktScBar(N, nG) {
+  return '<div class="kt-sld"><div class="kt-sldr"><label><span>Nên ra khi <b data-kslv="hi">' + N.hi + '%</b> học sinh đã học</span>' +
+    '<input type="range" min="50" max="100" step="1" value="' + N.hi + '" data-ksld="hi" aria-label="Ngưỡng nên ra"></label>' +
+    '<label><span>Bỏ qua chủ đề dưới <b data-kslv="lo">' + N.lo + '%</b></span>' +
+    '<input type="range" min="0" max="60" step="1" value="' + N.lo + '" data-ksld="lo" aria-label="Ngưỡng bỏ qua"></label></div>' +
+    '<div class="kt-sldb"><button class="kt-lnk" data-kscrs title="Về mặc định ' + KT_SC_DEF.hi + '% / ' + KT_SC_DEF.lo + '%"><i class="bi bi-arrow-counterclockwise"></i> Mặc định</button>' +
+    '<button class="btn sm pri" data-kscpdf><i class="bi bi-file-earmark-pdf"></i> Báo cáo PDF</button></div></div>';
+}
+/** bảng “Kết quả cuối cùng” — vẽ lại mỗi lần kéo thanh ngưỡng */
+function ktGrpSum(G, C, P, cut) {
   const part = k => (P || []).find(x => x.k === k) || null, nDone = (P || []).filter(x => x.st !== 'wait').length;
-  const deOf = (g, R) => R && R.deXuat && R.deXuat.length ? R.deXuat : g.nenRa.map(t => t.t);
-  const themOf = (g, R) => R && R.themNeuBu && R.themNeuBu.length ? R.themNeuBu.map(x => ({ t: x.t, lop: x.lop.length ? x.lop : ((g.canNhac.find(c => c.t === x.t) || {}).chua || []) })) : g.canNhac.slice(0, 5).map(c => ({ t: c.t, lop: c.chua }));
-  const li = t => '<li title="' + esc([t.t].concat(t.bien || []).join(' · ')) + '">' + esc(t.t) + ((t.bien || []).length ? ' <span class="kt-sub">+' + t.bien.length + ' bài cùng chủ đề</span>' : '') + (t.chua ? '<small title="' + esc(t.chua.join(', ')) + '">' + t.k + '/' + t.n + ' lớp đã học · chưa học: ' + esc(lops(t.chua)) + '</small>' : '') + '</li>';
-  const lists = g => '<div class="kt-grpc"><div><div class="ok"><h6><i class="bi bi-check-circle-fill"></i> Nên ra · ' + g.nenRa.length + '</h6>' + (g.nenRa.length ? '<ol>' + g.nenRa.map(li).join('') + '</ol>' : '<p class="kt-sub">Chưa có chủ đề nào mọi lớp đều đã học.</p>') + '</div>' +
-    ((g.canNhac || []).length ? '<div class="mid"><h6><i class="bi bi-exclamation-circle-fill"></i> Cân nhắc · ' + g.canNhac.length + '</h6><ol>' + g.canNhac.map(li).join('') + '</ol></div>' : '') + '</div>' +
-    '<div class="no"><h6><i class="bi bi-x-circle-fill"></i> Không nên ra · ' + g.khongNenRa.length + '</h6>' + (g.khongNenRa.length ? '<ol>' + g.khongNenRa.map(li).join('') + '</ol>' : '<p class="kt-sub">Không có.</p>') + '</div></div>';
-  // kết quả cuối cùng — mỗi nhóm một dòng
-  const sum = G.length > 1 ? '<div class="kt-gsum"><div class="kt-gsh"><b><i class="bi bi-flag"></i> Kết quả cuối cùng</b><span class="kt-sub">' + G.length + ' nhóm lớp' + (P ? ' · mỗi nhóm một thư AI · ' + nDone + '/' + P.length + ' xong' : '') + (cut ? ' · tính các buổi trước ' + ktDm(cut) : '') + '</span></div>' +
-    '<div class="kt-scroll"><table><thead><tr><th>Nhóm lớp</th><th>Đưa vào đề</th><th>Thêm nếu học bù</th><th>Lớp chậm nhất</th></tr></thead><tbody>' + G.map(g => { const p = part(g.k), R = p && p.res, de = deOf(g, R), th = themOf(g, R);
-      return '<tr><td><b>' + esc(g.ten) + '</b><small>' + g.lop.length + ' lớp</small></td><td>' + (de.length ? '<b class="ok">' + de.length + ' chủ đề</b><small>' + esc(de.slice(0, 3).join(' · ')) + (de.length > 3 ? ' …' : '') + '</small>' : '<b class="no">Chưa có chủ đề chung</b>') + '</td>' +
-        '<td>' + (th.length ? '<b class="mid">' + th.length + '</b><small>' + esc(th.slice(0, 2).map(x => x.t).join(' · ')) + '</small>' : '<span class="kt-sub">—</span>') + '</td><td>' + (g.cham && g.cham[0] ? '<b>' + esc(sh(g.cham[0].lop)) + '</b><small>thiếu ' + g.cham[0].thieu + ' chủ đề</small>' : '<span class="kt-sub">—</span>') + (p && p.st === 'wait' ? '<small><i class="bi bi-arrow-repeat kt-spin"></i> AI đang xét</small>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div></div>' : '';
-  return '<div class="kt-grps">' + sum + G.map((g, i) => { const p = part(g.k), R = p && p.res, de = deOf(g, R), th = themOf(g, R);
-    // biểu đồ độ phủ: thanh HTML (chữ rõ trên điện thoại) — xanh = mọi lớp đã học · cam = ≥ 70% (cân nhắc) · đỏ = còn nhiều lớp chưa học
-    const chart = (g.phu || []).length > 1 ? '<div class="kt-cov"><div class="kt-covh"><b>Độ phủ chủ đề</b><span class="kt-sub">% lớp trong nhóm đã học</span></div>' + g.phu.map(x => '<div class="kt-covr ' + (x.p >= 100 ? 'ok' : x.p >= 70 ? 'mid' : 'no') + '"><span class="t" title="' + esc(x.t) + '">' + esc(x.t) + '</span><span class="b"><i style="width:' + Math.max(2, x.p) + '%"></i></span><span class="p">' + x.p + '%</span></div>').join('') + '</div>' : '';
-    return '<div class="kt-gc">' +
-      '<div class="kt-gch"><div class="kt-t"><b>' + esc(g.ten) + '</b><span class="kt-sub">' + g.lop.length + ' lớp · so theo chủ đề, không bắt đúng tên tài liệu' + ((g.nodata || []).length ? ' · ' + g.nodata.length + ' lớp chưa ghi tài liệu (không tính)' : '') + '</span></div><span class="sp"></span>' +
-        (p && p.st === 'wait' ? '<span class="kt-wait"><i class="bi bi-arrow-repeat"></i> AI đang xét nhóm này</span>' : p && p.st === 'err' ? '<span class="kt-pill warn" title="' + esc(p.err || '') + '">AI chưa trả lời — số liệu vẫn đúng</span>' : '') +
-        '<button class="kt-lnk" data-kgc="' + i + '"><i class="bi bi-clipboard"></i> Chép</button></div>' +
-      (g.lop.length ? '<div class="kt-gk"><div class="ok"><b>' + g.nenRa.length + '</b><small>Nên ra</small></div><div class="mid"><b>' + (g.canNhac || []).length + '</b><small>Cân nhắc</small></div><div class="no"><b>' + g.khongNenRa.length + '</b><small>Không nên ra</small></div></div>' +
-        (R && R.ketLuan ? '<p class="kt-gl">' + esc(R.ketLuan) + '</p>' : '') +
-        '<div class="kt-gb"><div class="kt-gcol">' +
-          '<div class="kt-gs"><h6 class="ok"><i class="bi bi-check-circle-fill"></i> Đưa vào đề' + (R && R.deXuat && R.deXuat.length ? '' : ' <span class="kt-sub">(mọi lớp đã học)</span>') + '</h6>' + (de.length ? '<div class="kt-gch2">' + de.map(t => '<span>' + esc(t) + '</span>').join('') + '</div>' : '<p class="kt-sub">Chưa có chủ đề mọi lớp đều đã học — ra theo mục “Thêm nếu học bù” sau khi các lớp học bù, hoặc tách đề theo cơ sở.</p>') + '</div>' +
-          (th.length ? '<div class="kt-gs"><h6 class="mid"><i class="bi bi-exclamation-circle-fill"></i> Thêm nếu học bù kịp</h6><ul class="kt-gli">' + th.map(x => '<li><span>' + esc(x.t) + '</span><small>bù: ' + esc(lops(x.lop)) + '</small></li>').join('') + '</ul></div>' : '') +
-          ((g.cham || []).length ? '<div class="kt-gs"><h6 class="no"><i class="bi bi-hourglass-split"></i> Lớp cần chú ý</h6><ul class="kt-gli">' + g.cham.slice(0, 3).map(c => '<li><span>' + esc(sh(c.lop)) + '</span><small>thiếu ' + c.thieu + ' chủ đề: ' + esc(c.chuDe.slice(0, 3).join(', ')) + (c.thieu > 3 ? '…' : '') + '</small></li>').join('') + '</ul></div>' : '') +
-          (R && R.luuY ? '<p class="kt-sub" style="margin:0"><i class="bi bi-info-circle"></i> ' + esc(R.luuY) + '</p>' : '') +
-        '</div><div class="kt-gcol">' + chart + '</div></div>' +
-        '<details class="kt-gd"><summary>Xem đầy đủ danh sách · ' + (g.nenRa.length + (g.canNhac || []).length + g.khongNenRa.length) + ' chủ đề · ' + g.lop.length + ' lớp</summary><div class="kt-grpl">' + g.lop.map(c => '<span class="kt-pill" title="' + esc(c) + '">' + esc(c) + '</span>').join('') + '</div>' + lists(g) + '</details>'
-        : '<div class="kt-sub">Không thấy lớp nào có dữ liệu tài liệu trong nhóm này ở khoảng ngày đã chọn' + ((g.nodata || []).length ? ' (' + g.nodata.length + ' lớp chưa ghi tài liệu: ' + esc(lops(g.nodata)) + ')' : '') + '.</div>') + '</div>'; }).join('') + '</div>';
+  // AI chỉ xét ở ngưỡng mặc định → kéo thanh khác thì dùng số liệu app tính (nói rõ trên thẻ)
+  const deOf = (g, R, c) => c.def && R && R.deXuat && R.deXuat.length ? R.deXuat : c.nen.map(x => x.t);
+  return '<div class="kt-gsum"><div class="kt-gsh"><b><i class="bi bi-flag"></i> Kết quả cuối cùng</b><span class="kt-sub">' + G.length + ' nhóm lớp · tính theo từng học sinh (gộp cả lớp cũ của em)' + (P ? ' · ' + nDone + '/' + P.length + ' nhóm AI đã xét' : '') + (cut ? ' · các buổi trước ' + ktDm(cut) : '') + '</span></div>' +
+    '<div class="kt-scroll"><table><thead><tr><th>Nhóm lớp</th><th>Đưa vào đề</th><th>Cần học bù</th><th>Rủi ro nếu ra đề</th></tr></thead><tbody>' + G.map((g, i) => { const p = part(g.k), R = p && p.res, c = C[i], de = deOf(g, R, c);
+      const rp = c.nHs ? Math.round(c.risk.length * 100 / c.nHs) : 0;
+      return '<tr><td><b>' + esc(g.ten) + '</b><small>' + g.nHs + ' học sinh · ' + g.lop.length + ' lớp</small></td>' +
+        '<td>' + (de.length ? '<b class="ok">' + de.length + ' chủ đề</b><small>' + esc(de.slice(0, 3).join(' · ')) + (de.length > 3 ? ' …' : '') + '</small>' : '<b class="no">Chưa có chủ đề đạt ngưỡng</b>') + '</td>' +
+        '<td>' + (c.can.length ? '<b class="mid">' + c.can.length + ' chủ đề</b><small>' + esc(c.can.slice(0, 2).map(x => x.t).join(' · ')) + '</small>' : '<span class="kt-sub">—</span>') + '</td>' +
+        '<td>' + (c.risk.length ? '<b class="' + (rp >= 10 ? 'no' : 'mid') + '">' + c.risk.length + ' em</b><small>' + rp + '% số em gặp bài chưa học</small>' : '<b class="ok">0 em</b><small>mọi em đều đã học</small>') + (p && p.st === 'wait' ? '<small><i class="bi bi-arrow-repeat kt-spin"></i> AI đang xét</small>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div></div>';
+}
+/** (1.85) TRONG KHUNG CHAT: chỉ bảng kết quả + nút mở panel — thanh kéo, thẻ từng nhóm, biểu đồ, danh sách em ở panel bên phải */
+function ktGrpChat(G, cut, P, mi) {
+  const N = ktScGet(), C = G.map(g => ktScCalc(g, N)), nHs = G.reduce((a, g) => a + g.nHs, 0), nRisk = C.reduce((a, c) => a + c.risk.length, 0);
+  return '<div class="kt-grps"><div data-kgsum>' + ktGrpSum(G, C, P, cut) + '</div>' +
+    '<button type="button" class="kt-open" data-ktside="' + mi + '"><i class="bi bi-layout-sidebar-inset-reverse"></i><span><b>Mở bảng phân tích</b><small>' + G.length + ' nhóm · ' + nHs + ' học sinh · thanh kéo ngưỡng, biểu đồ, ' + nRisk + ' em cần chú ý, xuất PDF</small></span><i class="bi bi-chevron-right"></i></button></div>';
+}
+/** nội dung PANEL: thanh kéo + thẻ từng nhóm (vẽ lại tại chỗ khi kéo) */
+function ktGrpHtml(G, cut, P, N) {
+  N = N || ktScGet(); const C = G.map(g => ktScCalc(g, N)), part = k => (P || []).find(x => x.k === k) || null;
+  return '<div class="kt-grps" data-kgw>' + ktScBar(N, G.length) +
+    G.map((g, i) => '<div class="kt-gc" data-kgi="' + i + '">' + ktGrpCard(g, C[i], part(g.k), N, cut, i) + '</div>').join('') + '</div>';
+}
+/** kéo thanh ngưỡng → vẽ lại bảng tổng hợp + các thẻ nhóm ngay trên máy (số liệu đã có sẵn, không hỏi lại máy chủ) */
+function ktScBind(w, m) {
+  const G = m.grp || [], P = m.parts, part = k => (P || []).find(x => x.k === k) || null;
+  const repaint = N => { const C = G.map(g => ktScCalc(g, N));
+    $$('[data-kslv]', w).forEach(b => { b.textContent = N[b.dataset.kslv] + '%'; });
+    $$('[data-kgsum]').forEach(sm => { sm.innerHTML = ktGrpSum(G, C, P, m.cut); });      // bảng kết quả trong khung chat cũng đổi theo ngưỡng
+    $$('[data-kgi]', w).forEach(el => { const i = Number(el.dataset.kgi); el.innerHTML = ktGrpCard(G[i], C[i], part(G[i].k), N, m.cut, i); ktGrpCardBind(el, m, i); }); };
+  $$('[data-ksld]', w).forEach(inp => { inp.oninput = () => { const N = ktScGet(), k = inp.dataset.ksld; N[k] = Number(inp.value);
+    if (N.lo >= N.hi) { if (k === 'lo') N.lo = Math.max(0, N.hi - 1); else N.hi = Math.min(100, N.lo + 1); }
+    ktScSet(N); repaint(N); }; });
+  const rs = $('[data-kscrs]', w); if (rs) rs.onclick = () => { ktScSet(KT_SC_DEF); $$('[data-ksld]', w).forEach(i => { i.value = KT_SC_DEF[i.dataset.ksld]; }); repaint(ktScGet()); };
+  const pd = $('[data-kscpdf]', w); if (pd) pd.onclick = () => ktScopePdf(m, ktScGet());
+  $$('[data-kgi]', w).forEach(el => ktGrpCardBind(el, m, Number(el.dataset.kgi)));
+}
+function ktGrpCardBind(el, m, i) {
+  const b = $('[data-kgc]', el); if (b) b.onclick = () => navigator.clipboard.writeText(ktGrpText(m.grp[i], m.cut, ((m.parts || []).find(x => x.k === m.grp[i].k) || {}).res)).then(() => toast('Đã chép phạm vi ' + m.grp[i].ten, 'ok'));
+}
+/** một thẻ nhóm — vẽ lại riêng khi kéo thanh ngưỡng */
+function ktGrpCard(g, c, p, N, cut, i) {
+  const R = p && p.res, sh = x => String(x).replace(/^K\d+/, ''), de = c.def && R && R.deXuat && R.deXuat.length ? R.deXuat : c.nen.map(x => x.t);
+  const them = c.can.slice(0, 8).map(x => ({ t: x.t, p: x.p, hs: c.chuaOf(x.j) }));
+  const rp = c.nHs ? Math.round(c.risk.length * 100 / c.nHs) : 0;
+  const bar = (x, cls) => '<div class="kt-covr ' + cls + '"><span class="t" title="' + esc(x.t) + '">' + esc(x.t) + '</span><span class="b"><i style="width:' + Math.max(2, x.p) + '%"></i></span><span class="p">' + x.p + '%</span></div>';
+  const cov = (g.rows || []).slice(0, 16);
+  const chart = cov.length > 1 ? '<div class="kt-cov"><div class="kt-covh"><b>Độ phủ chủ đề</b><span class="kt-sub">% học sinh trong nhóm đã học</span></div>' + cov.map(x => bar(x, ktScCls(x.p, N))).join('') + '</div>' : '';
+  const D = c.dist, dmax = Math.max.apply(null, D.concat([1]));
+  const dist = c.nHs ? '<div class="kt-dist"><div class="kt-covh"><b>Học sinh × số bài chưa học</b><span class="kt-sub">nếu ra đề theo “Đưa vào đề”</span></div><div class="kt-distb">' +
+    ['0 bài', '1 bài', '2 bài', '≥ 3 bài'].map((lb, j) => '<div class="' + (j === 0 ? 'ok' : j === 1 ? 'mid' : 'no') + '"><i style="height:' + Math.round(Math.max(3, D[j] * 100 / dmax)) + '%"></i><b>' + D[j] + '</b><small>' + lb + '</small></div>').join('') + '</div></div>' : '';
+  return '<div class="kt-gch"><div class="kt-t"><b>' + esc(g.ten) + '</b><span class="kt-sub">' + g.nHs + ' học sinh · ' + g.lop.length + ' lớp · gom theo lịch sử chuyển lớp của từng em' + ((g.nodata || []).length ? ' · ' + g.nodata.length + ' lớp chưa ghi tài liệu (không tính)' : '') + '</span></div><span class="sp"></span>' +
+    (p && p.st === 'wait' ? '<span class="kt-wait"><i class="bi bi-arrow-repeat"></i> AI đang xét nhóm này</span>' : p && p.st === 'err' ? '<span class="kt-pill warn" title="' + esc(p.err || '') + '">AI chưa trả lời — số liệu vẫn đúng</span>' : '') +
+    '<button class="kt-lnk" data-kgc="' + i + '"><i class="bi bi-clipboard"></i> Chép</button></div>' +
+    (!g.nHs ? '<div class="kt-sub">Không thấy học sinh nào đang học ở nhóm lớp này trong khoảng ngày đã chọn.</div>' :
+      '<div class="kt-gk"><div class="ok"><b>' + c.nen.length + '</b><small>Nên ra</small></div><div class="mid"><b>' + c.can.length + '</b><small>Cân nhắc</small></div>' +
+        '<div class="no" title="Chủ đề dưới ' + N.lo + '% học sinh đã học"><b>' + c.bo.length + '</b><small>Bỏ qua</small></div></div>' +
+      (c.risk.length ? '<p class="kt-risk ' + (rp >= 10 ? 'no' : 'mid') + '"><i class="bi bi-shield-exclamation"></i><span>Ra đề theo danh sách này thì <b>' + c.risk.length + ' em</b> (' + rp + '%) gặp bài chưa học — nên cho học bù hoặc nâng ngưỡng.</span></p>'
+        : '<p class="kt-risk ok"><i class="bi bi-shield-check"></i><span>Mọi em trong nhóm đều đã học các chủ đề đưa vào đề.</span></p>') +
+      (R && R.ketLuan ? '<p class="kt-gl">' + esc(R.ketLuan) + (c.def ? '' : ' <span class="kt-sub">(AI xét ở ngưỡng ' + KT_SC_DEF.hi + '% — số liệu trên tính theo ngưỡng bạn đang chọn)</span>') + '</p>' : '') +
+      (R && R.baoCao && R.baoCao.can ? '<p class="kt-risk mid"><i class="bi bi-file-earmark-text"></i><span>Nên xuất báo cáo để phản biện: ' + esc(R.baoCao.vi || 'quyết định này dễ bị chất vấn') + '</span></p>' : '') +
+      '<div class="kt-gb"><div class="kt-gcol">' +
+        '<div class="kt-gs"><h6 class="ok"><i class="bi bi-check-circle-fill"></i> Đưa vào đề <span class="kt-sub">(≥ ' + N.hi + '% học sinh đã học)</span></h6>' +
+          (de.length ? '<div class="kt-gch2">' + de.map(t => '<span>' + esc(t) + '</span>').join('') + '</div>' : '<p class="kt-sub">Chưa chủ đề nào đạt ngưỡng — hạ thanh kéo để xem chủ đề gần đạt, cho số ít em học bù, hoặc tách đề theo cơ sở.</p>') + '</div>' +
+        (them.length ? '<div class="kt-gs"><h6 class="mid"><i class="bi bi-exclamation-circle-fill"></i> Cân nhắc · cần học bù</h6><ul class="kt-gli">' +
+          them.map(x => '<li><span>' + esc(x.t) + ' <span class="kt-sub">' + x.p + '%</span></span><small>' + x.hs.length + ' em chưa học: ' + esc(x.hs.slice(0, 5).map(h => h.n + ' (' + sh(h.l) + ')').join(', ')) + (x.hs.length > 5 ? ' …' : '') + '</small></li>').join('') + '</ul></div>' : '') +
+        (c.risk.length ? '<div class="kt-gs"><h6 class="no"><i class="bi bi-person-exclamation"></i> Học sinh cần chú ý</h6><ul class="kt-gli">' +
+          c.risk.slice(0, 5).map(h => '<li><span>' + esc(h.n) + ' <span class="kt-sub">' + esc(sh(h.l)) + '</span></span><small>thiếu ' + h.k + ' bài: ' + esc(h.t.join(', ')) + (h.k > h.t.length ? '…' : '') + '</small></li>').join('') + '</ul></div>' : '') +
+        ((g.lopCham || []).length ? '<div class="kt-gs"><h6 class="no"><i class="bi bi-hourglass-split"></i> Lớp chậm nhất</h6><ul class="kt-gli">' +
+          g.lopCham.slice(0, 3).map(x => '<li><span>' + esc(sh(x.lop)) + '</span><small>' + x.hs + ' em · trung bình thiếu ' + x.thieu + ' chủ đề</small></li>').join('') + '</ul></div>' : '') +
+        (R && R.luuY ? '<p class="kt-sub" style="margin:0"><i class="bi bi-info-circle"></i> ' + esc(R.luuY) + '</p>' : '') +
+      '</div><div class="kt-gcol">' + chart + dist + '</div></div>' +
+      '<details class="kt-gd"><summary>Xem đầy đủ · ' + (g.rows || []).length + ' chủ đề · ' + g.nHs + ' học sinh · ' + g.lop.length + ' lớp</summary>' +
+        '<div class="kt-grpl">' + g.lop.map(x => '<span class="kt-pill" title="' + esc(x) + '">' + esc(x) + '</span>').join('') + '</div>' +
+        '<div class="kt-scroll"><table class="kt-tb"><thead><tr><th>Chủ đề</th><th>Đã học</th><th>%</th><th>Em chưa học</th></tr></thead><tbody>' +
+          (g.rows || []).map((r, j) => '<tr class="' + ktScCls(r.p, N) + '"><td>' + esc(r.t) + ((r.bien || []).length ? ' <span class="kt-sub">+' + r.bien.length + ' bài cùng chủ đề</span>' : '') + '</td><td>' + r.k + '/' + r.n + '</td><td>' + r.p + '%</td>' +
+            '<td class="kt-sub">' + (r.k === r.n ? '—' : esc(c.chuaOf(j).slice(0, 6).map(h => h.n).join(', ')) + (r.n - r.k > 6 ? ' … +' + (r.n - r.k - 6) : '')) + '</td></tr>').join('') + '</tbody></table></div></details>');
 }
 
 
-function ktGrpText(g, cut, R) { const L = (h, A, x) => '\n\n' + h + ' (' + A.length + '):\n' + A.map((t, i) => (i + 1) + '. ' + t.t + (x && t.chua ? ' — chưa học: ' + t.chua.join(', ') : '')).join('\n');
-  return g.ten + ' (' + g.lop.length + ' lớp: ' + g.lop.join(', ') + ')' + (cut ? ' — tính các buổi trước ' + ktDm(cut) : '') + (R && R.ketLuan ? '\n' + R.ketLuan : '') + (R && R.deXuat && R.deXuat.length ? '\n\nĐƯA VÀO ĐỀ (' + R.deXuat.length + '):\n' + R.deXuat.map((t, i) => (i + 1) + '. ' + t).join('\n') : '') +
-    L('NÊN RA', g.nenRa) + ((g.canNhac || []).length ? L('CÂN NHẮC (≥ 70% lớp đã học)', g.canNhac, 1) : '') + L('KHÔNG NÊN RA', g.khongNenRa, 1); }
+function ktGrpText(g, cut, R, N) { N = N || ktScGet(); const c = ktScCalc(g, N), de = c.def && R && R.deXuat && R.deXuat.length ? R.deXuat : c.nen.map(x => x.t);
+  const L = (h, A) => '\n\n' + h + ' (' + A.length + '):\n' + A.map((x, i) => (i + 1) + '. ' + x.t + ' — ' + x.k + '/' + x.n + ' em (' + x.p + '%)').join('\n');
+  return g.ten + ' — ' + g.nHs + ' học sinh / ' + g.lop.length + ' lớp (' + g.lop.join(', ') + ')' + (cut ? ' — tính các buổi trước ' + ktDm(cut) : '') +
+    '\nNgưỡng: nên ra ≥ ' + N.hi + '% · bỏ qua < ' + N.lo + '%' + (R && R.ketLuan ? '\n' + R.ketLuan : '') +
+    (de.length ? '\n\nĐƯA VÀO ĐỀ (' + de.length + '):\n' + de.map((t, i) => (i + 1) + '. ' + t).join('\n') : '\n\nChưa có chủ đề nào đạt ngưỡng.') +
+    L('CÂN NHẮC · CẦN HỌC BÙ', c.can) + (c.risk.length ? '\n\nHỌC SINH CẦN CHÚ Ý (' + c.risk.length + ' em):\n' + c.risk.slice(0, 20).map(h => '- ' + h.n + ' (' + h.l + '): thiếu ' + h.k + ' bài — ' + h.t.join(', ')).join('\n') : '\n\nMọi em đều đã học các chủ đề đưa vào đề.'); }
+/* ══ (1.85) BÁO CÁO PHẠM VI ĐỀ (PDF A4) — để giải trình / phản biện: ai quyết định ra bài nào, dựa trên bao nhiêu em đã học,
+   em nào cần học bù, rủi ro nếu ra đề ngay. Dùng khung in chung rptPdf (bộ màu mail + logo diều). ══ */
+function ktScopePdf(m, N) {
+  const G = m.grp || []; if (!G.length) return toast('Chưa có số liệu phạm vi đề', 'warn');
+  N = N || ktScGet(); const C = G.map(g => ktScCalc(g, N)), sh = x => String(x).replace(/^K\d+/, '');
+  const part = k => (m.parts || []).find(x => x.k === k) || null;
+  const nHs = G.reduce((a, g) => a + g.nHs, 0), nLop = G.reduce((a, g) => a + g.lop.length, 0), nRisk = C.reduce((a, c) => a + c.risk.length, 0);
+  const sec = G.map((g, i) => { const c = C[i], p = part(g.k), R = p && p.res, de = c.def && R && R.deXuat && R.deXuat.length ? R.deXuat : c.nen.map(x => x.t);
+    const rp = c.nHs ? Math.round(c.risk.length * 100 / c.nHs) : 0;
+    const them = c.can.slice(0, 10).map(x => ({ t: x.t, p: x.p, hs: c.chuaOf(x.j) }));
+    return '<section class="flow"><h2>' + esc(g.ten) + ' · ' + g.nHs + ' học sinh · ' + g.lop.length + ' lớp</h2>' +
+      (R && R.ketLuan ? '<p class="ktr-lead">' + esc(R.ketLuan) + '</p>' : '') +
+      '<p class="mu"><b>Lớp trong nhóm:</b> ' + esc(g.lop.map(sh).join(' · ')) + '</p>' +
+      '<table><thead><tr><th>Đưa vào đề (≥ ' + N.hi + '% em đã học)</th><th>% em đã học</th></tr></thead><tbody>' +
+        (de.length ? de.map(t => { const r = (g.rows || []).find(x => x.t === t) || {}; return '<tr><td>' + esc(t) + '</td><td class="n">' + (r.p != null ? r.k + '/' + r.n + ' · ' + r.p + '%' : '—') + '</td></tr>'; }).join('')
+          : '<tr><td colspan="2">Chưa có chủ đề nào đạt ngưỡng ' + N.hi + '% — cần hạ ngưỡng và cho học bù, hoặc tách đề theo cơ sở.</td></tr>') + '</tbody></table>' +
+      (them.length ? '<h3>Cân nhắc · cần học bù trước khi kiểm tra</h3><table><thead><tr><th>Chủ đề</th><th>%</th><th>Học sinh chưa học</th></tr></thead><tbody>' +
+        them.map(x => '<tr><td>' + esc(x.t) + '</td><td class="n">' + x.p + '%</td><td>' + esc(x.hs.slice(0, 10).map(h => h.n + ' (' + sh(h.l) + ')').join(', ')) + (x.hs.length > 10 ? ' … +' + (x.hs.length - 10) : '') + '</td></tr>').join('') + '</tbody></table>' : '') +
+      (c.risk.length ? '<h3>Học sinh sẽ gặp bài chưa học (' + c.risk.length + ' em · ' + rp + '%)</h3><table><thead><tr><th>Học sinh</th><th>Lớp</th><th>Thiếu</th><th>Chủ đề</th></tr></thead><tbody>' +
+        c.risk.slice(0, 25).map(h => '<tr><td>' + esc(h.n) + '</td><td>' + esc(sh(h.l)) + '</td><td class="n">' + h.k + '</td><td>' + esc(h.t.join(', ')) + (h.k > h.t.length ? '…' : '') + '</td></tr>').join('') +
+        (c.risk.length > 25 ? '<tr><td colspan="4" class="mu">… và ' + (c.risk.length - 25) + ' em nữa</td></tr>' : '') + '</tbody></table>'
+        : '<p class="mu">Mọi em trong nhóm đều đã học các chủ đề đưa vào đề.</p>') +
+      ((g.lopCham || []).length ? '<h3>Lớp chậm nhất</h3><table><thead><tr><th>Lớp</th><th>Số em</th><th>Trung bình thiếu</th></tr></thead><tbody>' +
+        g.lopCham.slice(0, 6).map(x => '<tr><td>' + esc(sh(x.lop)) + '</td><td class="n">' + x.hs + '</td><td class="n">' + x.thieu + ' chủ đề</td></tr>').join('') + '</tbody></table>' : '') +
+      (R && R.baoCao && R.baoCao.can && R.baoCao.vi ? '<p class="mu"><b>Điểm dễ bị chất vấn:</b> ' + esc(R.baoCao.vi) + '</p>' : '') + '</section>'; }).join('');
+  const cach = '<section class="ktr-bx"><h2>Căn cứ tính</h2><ul>' +
+    '<li>Mẫu số là <b>học sinh</b>, không phải lớp: lớp hay được tách / ghép nên một em có thể đã học chủ đề đó ở lớp cũ. Mỗi em được gom chủ đề của mọi buổi có tên em trong danh sách lớp, ở tất cả lớp em từng học trong khoảng ngày.</li>' +
+    '<li>Em <b>vắng buổi</b> đó vẫn tính là đã học (lớp đã dạy bài) — danh sách vắng xem ở phần điểm danh.</li>' +
+    '<li>Chủ đề so theo <b>họ chủ đề</b> (tên tài liệu bỏ số thứ tự, tiền tố lớp, đuôi đáp án), không bắt đúng từng tên tệp.</li>' +
+    '<li>Ngưỡng đang dùng: <b>đưa vào đề ≥ ' + N.hi + '%</b> · bỏ qua chủ đề dưới ' + N.lo + '%. Đổi ngưỡng ngay trên màn hình rồi xuất lại báo cáo.</li>' +
+    '<li>Lớp chưa ghi tài liệu buổi học không được tính vào mẫu số.</li></ul></section>';
+  rptPdf({ kicker: 'Phạm vi đề kiểm tra' + ((m.scope && m.scope.mon || []).length ? ' · ' + m.scope.mon.join(', ') : ''), title: G.map(g => g.ten).join(' · '),
+    sub: [nHs + ' học sinh', nLop + ' lớp', m.scope ? ktDm(m.scope.fr) + ' → ' + ktDm(m.scope.to) : '', m.cut ? 'tính các buổi trước ' + ktDm(m.cut) : ''].filter(Boolean).join(' · '),
+    badge: { k: 'Ngưỡng', v: '≥ ' + N.hi + '%' },
+    kpi: [{ n: G.length, t: 'nhóm lớp' }, { n: nHs, t: 'học sinh' }, { n: nLop, t: 'lớp' }, { n: C.reduce((a, c) => a + c.nen.length, 0), t: 'chủ đề đưa vào đề' }, { n: C.reduce((a, c) => a + c.can.length, 0), t: 'chủ đề cần học bù' }, { n: nRisk, t: 'em cần chú ý' }],
+    body: sec + cach, file: 'Pham vi de - ' + G.map(g => g.ten).join(', ') + ' - ' + (m.scope ? m.scope.to : ''),
+    foot: 'Tổng hợp từ lịch học và danh sách lớp trên kientre.click · tính theo từng học sinh (đã gộp lớp cũ của em).' });
+}
 function ktMatrixC(list) {      // như ktMatrix_ ở máy chủ
   const T = {}, fold = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   list.forEach(c => c.items.forEach(it => { if (!it.done) return; const raw = String(it.t || it.lc || '').trim(); if (!raw) return; const nm = ktTopicName(raw), no = (/^\s*(\d{1,3})\s*[_.\-:)]/.exec(raw) || [])[1], k = fold(nm); if (!k) return;
@@ -29922,9 +30395,10 @@ function ktMdJ(s, o) {
 }
 /** (1.84.6) biểu tượng Trợ lý Kiến Trẻ = agent có vòng xoay (asstBot của module Trợ lý) — busy: vòng quay nhanh khi đang trả lời */
 function ktBot(sz, busy) { return typeof asstBot === 'function' ? asstBot(sz, busy) : '<span class="kt-av2" aria-hidden="true"></span>'; }
-/** (1.84.6) Bảng topic chỉ hiện khi câu hỏi về bài / topic / phạm vi đề — hỏi về một học sinh (BTVN, tình hình học…) thì không */
+/** (1.84.6) Bảng topic chỉ hiện khi câu hỏi về bài / topic — (1.85) câu hỏi về PHẠM VI ĐỀ không còn bảng topic × lớp:
+    lớp bị tách / ghép nên cột “lớp” cho kết quả sai; phần phạm vi đề đã tính theo từng học sinh ở thẻ nhóm bên trên. */
 const KT_MX_RE = /topic|chủ đề|chu de|bài chung|bai chung|đã học|da hoc|học (tới|đến|toi|den)|bài nào|bai nao|những bài|các bài|cac bai|mock|ra đề|ra de|\bđề\b|nội dung|noi dung|chương trình|chuong trinh|lộ trình|lo trinh|giáo trình|tài liệu/i;
-function ktWantMx(m) { return !!(m && !m.stu && (m.grp && m.grp.length || m.q && KT_MX_RE.test(m.q))); }
+function ktWantMx(m) { return !!(m && !m.stu && !(m.grp && m.grp.length) && m.q && KT_MX_RE.test(m.q)); }
 /** logo con diều (Brand.html › --kite) → data URL cho <img> (ảnh luôn in được, không phụ thuộc “đồ hoạ nền”) */
 function ktLogo() { try { const v = getComputedStyle(document.documentElement).getPropertyValue('--kite').trim(), m = /url\(["']?(data:[^"')]+)["']?\)/.exec(v); return m ? m[1] : ''; } catch (e) { return ''; } }
 /** KHUNG BÁO CÁO A4 (in → Lưu thành PDF) — cùng bộ màu với mail của app: đầu xanh đậm #1E3A6E + vạch cam #EE5B27, thẻ số #F5F7FB.
