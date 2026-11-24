@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T02:35:06.097Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T02:57:50.862Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -23202,7 +23202,8 @@ function aiCfgView(body) {
       '<div class="ax-inl" style="margin-top:6px">' + (saved(f.id) ? '<button class="btn xs ghost" data-ftest="' + f.id + '"><i class="bi bi-send"></i>Gửi thư thử</button>' : '<small class="ax-muted">Lưu flow rồi gửi thư thử</small>') + '<span class="small" data-fres="' + esc(f.id || '') + '"></span></div></div>').join('')
       : '<div class="empty small" style="padding:18px"><i class="bi bi-diagram-3"></i>Chưa có flow nào — thêm flow hoặc bấm “Thêm flow dựng sẵn”.</div>';
   }
-  function flowsRead() { return $$('.ai-flow', body).map(el => { const i = Number(el.dataset.fi), f = F[i] || {}, v = k => ($('[data-fk="' + k + '"]', el) || {}).value || '';
+  /* (1.84.8) chỉ các dòng flow ([data-fi]) — thẻ kỹ năng / mẫu câu khác cũng dùng lớp ai-flow → lỗi “checked of null”, không lưu được flow */
+  function flowsRead() { return $$('.ai-flow[data-fi]', body).map(el => { const i = Number(el.dataset.fi), f = F[i] || {}, v = k => ($('[data-fk="' + k + '"]', el) || {}).value || '';
     return { id: f.id, name: v('name').trim(), to: v('to').trim(), token: v('token').trim(), url: v('url').trim(), on: $('[data-fk="on"]', el).checked ? 1 : 0,
       kinds: $$('[data-fkind]', el).filter(x => x.checked).map(x => x.dataset.fkind), roles: $$('[data-frole]', el).filter(x => x.checked).map(x => x.dataset.frole) }; }); }
   flowsPaint();
@@ -30115,7 +30116,7 @@ async function ktFlowView(B) {
   const fname = id => { const f = D.flows.find(x => x.id === id); return f ? f.name + (f.to ? ' · ' + f.to : '') : ''; };
   const paint = () => {
     const note = D.gem ? ['bi-lightning-charge', 'Đang dùng Gemini trực tiếp — trả lời ngay, KHÔNG qua flow. Flow bên dưới chỉ dùng khi tắt Gemini.'] : !D.on ? ['bi-power', 'Trợ lý AI đang tắt — bật ở Trợ lý › Cài đặt AI.'] : !D.box ? ['bi-envelope-exclamation', 'Chưa nối hộp thư flow — việc AI chưa gửi đi được. Nối ở Trợ lý › Cài đặt AI.'] : ['bi-envelope-check', 'Việc AI gửi thư tới flow mail đã chọn, đọc thư trả lời.'];
-    B.innerHTML = '<div class="card" style="padding:18px"><div class="kt-t" style="margin-bottom:10px"><b style="font-size:15px"><i class="bi bi-diagram-3"></i> Flow AI của Kiến Trẻ</b><span class="kt-sub">Mỗi loại việc dùng một flow mail. Để “Tự chọn” = flow nhận việc Hỏi đáp' + (D.auto ? ' (hiện là <strong>' + esc(D.auto.name) + '</strong>)' : '') + '.</span></div>' +
+    B.innerHTML = '<div class="card" style="padding:18px"><div class="kt-t" style="margin-bottom:10px"><b style="font-size:15px"><i class="bi bi-diagram-3"></i> Flow AI của Kiến Trẻ</b><span class="kt-sub">Mỗi loại việc dùng một flow mail. Để “Tự chọn” = flow nhận việc “Kiến Trẻ” (không có thì flow Hỏi AI)' + (D.auto ? ' (hiện là <strong>' + esc(D.auto.name) + '</strong>)' : '') + '.</span></div>' +
       '<div class="kt-mat"><i class="bi ' + note[0] + '"></i><span>' + note[1] + '</span></div>' +
       '<div class="kt-flw">' + D.jobs.map(j => '<div class="kt-flr"><div class="kt-rn"><b>' + esc(j.t) + '</b><small>' + (j.id ? 'Đang dùng: ' + esc(fname(j.id)) + (j.off ? ' — <span class="kt-warn">flow đang tắt, tạm dùng Tự chọn</span>' : '') : 'Tự chọn' + (D.auto ? ': ' + esc(D.auto.name) : '')) +
         (D.chain[j.room] ? ' · phòng ' + (j.room === 'kgsm' ? 'Quản lý KGS' : 'Quản lý kientre.click') + ' đang lắp chuỗi ' + D.chain[j.room] + ' bước (chuỗi được ưu tiên)' : '') + '</small></div><span class="sp"></span>' +
