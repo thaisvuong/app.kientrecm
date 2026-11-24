@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T08:51:15.915Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T11:44:35.622Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -29368,10 +29368,18 @@ function svMemoV(b) {
 .kt-chatw{ display:flex; gap:16px; align-items:flex-start; width:100% }
 .kt-chatw > .kt-chat{ flex:1; min-width:0; margin:0 auto }
 /* (1.85.1) KHUNG TRỢ LÝ KIỂU CLAUDE — thanh lịch sử bên trái · khung chat giữa · panel phân tích bên phải (chỉ mở khi cần, không đè chat) */
-.kt:has(> .kt-ask), .kt:has(> .kt > .kt-ask){ max-width:1560px }
+.kt:has(.kt-ask){ max-width:none }      /* (1.85.2) mọi lớp .kt bọc ngoài (có tới 3 lớp) đều bỏ giới hạn 1040px — trước chỉ bỏ 2 lớp trong nên cả khung bị dồn giữa */
 .kt-ask{ display:flex; gap:20px; align-items:flex-start; width:100%; min-width:0 }
 .kt-ask > .kt-chat{ flex:1; min-width:0 }
 .kt-rail{ position:sticky; top:8px; flex:0 0 264px; height:calc(100dvh - 110px); display:flex; flex-direction:column; gap:8px; padding:4px 10px 10px 0; border-right:1px solid var(--border); min-width:0 }
+/* (1.85.2) thanh lịch sử GHIM SÁT MÉP TRÁI vùng nội dung, cao hết màn (như Claude) · khung chat 780px ra GIỮA phần còn lại · không còn khoảng trống thừa hai bên */
+@media (min-width:901px){
+  .view:has(.kt-ask){ padding:0 }      /* bỏ lề vùng nội dung (lề mỗi giao diện một khác) → thanh lịch sử chạm mép trái, cao hết màn */
+  .kt-ask{ gap:0 }
+  .kt-rail{ top:0; flex:0 0 272px; height:calc(100dvh - var(--tb-h, 64px) - 2px); padding:14px 12px 12px; background:var(--surface); border-right:1px solid var(--border) }
+  .kt-ask > .kt-chat{ max-width:820px; margin:0 auto; padding:var(--sp-4) 20px 0; box-sizing:border-box; min-height:calc(100dvh - var(--tb-h, 64px) - 2px) }
+  .kt-ask > .kt-side{ margin:var(--sp-4) var(--sp-4) 0 0; top:var(--sp-4) }
+}
 .kt-ask.rail-off > .kt-rail{ display:none }
 .kt-rhd{ display:flex; align-items:center; gap:6px }
 .kt-rnew{ flex:1; min-width:0; display:flex; align-items:center; gap:9px; height:38px; padding:0 12px; border-radius:11px; border:1px solid var(--border); background:var(--surface); color:var(--ink); font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:var(--sh-1) }
@@ -29563,6 +29571,19 @@ function svMemoV(b) {
 .kt-ans table{ border-collapse:separate !important; border-spacing:0; border:1px solid var(--border); border-radius:12px; overflow:hidden; display:block; overflow-x:auto; width:max-content; max-width:100% }
 .kt-ans th{ background:var(--surface-2) !important; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); text-align:left; border:0 !important; border-bottom:1px solid var(--border) !important }
 .kt-ans td{ border:0 !important; border-bottom:1px solid var(--border) !important; font-size:13px } .kt-ans tr:last-child td{ border-bottom:0 !important } .kt-ans tr:nth-child(even) td{ background:color-mix(in oklab, var(--surface-2) 55%, transparent) }
+/* (1.85.2) câu trả lời gọn kiểu Claude: dòng phạm vi thành một dòng chữ nhỏ ngăn bằng “·” · số liệu đậm nhẹ, không nền xanh · tiêu đề nhỏ · mục con lùi vào */
+.kt-ma .kt-scope{ gap:0; align-items:center; row-gap:4px; font-size:12px; color:var(--muted) }
+.kt-ma .kt-scope .kt-pill:not(.ai):not(.warn){ background:none; padding:0; font-size:12px; font-weight:500; color:var(--muted) }
+.kt-ma .kt-scope .kt-pill:not(.ai):not(.warn) + .kt-pill:not(.ai):not(.warn)::before{ content:"·"; margin:0 7px; font-weight:700; opacity:.7 }
+.kt-ma .kt-scope .kt-pill.ai, .kt-ma .kt-scope .kt-pill.warn{ margin-left:10px }
+.kt-md.kt-ans{ font-size:15px; line-height:1.7; gap:0 }
+.kt-ans > :first-child{ margin-top:0 }
+.kt-ans h1, .kt-ans h2, .kt-ans h3, .kt-ans h4{ font-size:15.5px; font-weight:700; margin:14px 0 6px; line-height:1.4 } .kt-ans h3::before{ display:none }
+.kt-ans p{ margin:0 0 10px }
+.kt-ans ul, .kt-ans ol{ margin:0 0 10px; padding-left:22px } .kt-ans li{ margin:4px 0; padding-left:2px } .kt-ans li::marker{ color:var(--muted) }
+.kt-ans li.sub{ margin-left:22px; list-style-type:circle }
+.kt-ans strong, .kt-ans b{ font-weight:650 }
+.kt-ans .ax-num{ background:none; padding:0; color:var(--ink); font-weight:650 }
 .kt-ans blockquote{ margin:6px 0; padding:6px 12px; border-left:3px solid var(--brand-400); background:var(--surface-2); border-radius:0 10px 10px 0 }
 .kt-sjs{ display:flex; gap:6px; align-items:center; flex-wrap:wrap } .kt-sjs > .kt-sub{ font-weight:700; margin-right:4px }
 .kt-pfl{ font-size:14.5px; line-height:1.7; border-left:3px solid var(--ok); padding-left:14px } .kt-pfl p{ margin:0 0 10px }
@@ -29974,8 +29995,8 @@ function ktAskView(B) {
       $$('[data-ksg]', M).forEach(b => { b.onclick = () => ask(b.dataset.ksg); }); return; }
     M.innerHTML = L.map((m, i) => m.role === 'u' ? '<div class="kt-mu">' + esc(m.text) + '</div>' :
       '<div class="kt-ma" data-kmi="' + i + '">' + ktBot('xs', m.st === 'wait') + '<div>' +
-        (m.scope ? '<div class="kt-scope"><span class="kt-pill">' + esc((m.scope.mon || []).join(', ')) + '</span><span class="kt-pill">' + esc(/^(Lớp|Khối)/.test(m.scope.khoi) ? m.scope.khoi : 'Khối ' + m.scope.khoi) + '</span><span class="kt-pill">' + m.scope.n + ' lớp</span><span class="kt-pill">' + ktDm(m.scope.fr) + ' → ' + ktDm(m.scope.to) + '</span>' + (m.scope.cut ? '<span class="kt-pill warn">Mốc ' + ktDm(m.scope.cut) + '</span>' : '') + (m.scope.att ? '<span class="kt-pill">' + m.scope.att + ' lượt điểm danh</span>' : '') + ((m.scope.hs || []).length ? '<span class="kt-pill ai"><i class="bi bi-person"></i> ' + esc(m.scope.hs.join(', ')) + '</span>' : '') + '</div>' : '') +
-        (m.grp && m.grp.length ? ktGrpChat(m.grp, m.cut, m.parts, i) : '') + (m.parts ? '' : m.st === 'wait' ? ktThink(['Đang đọc lịch các lớp từ kientre.click', 'Đang đọc điểm danh, BTVN, nhận xét', 'Đang so sánh và tính số liệu', 'Đang soạn câu trả lời']) : m.st === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(m.text) + '</span></div>' : m.prof ? ktProfSumHtml(m.prof, m.src) : '<div class="kt-md kt-ans">' + ktMdC(m.text) + '</div>') +
+        (m.scope ? '<div class="kt-scope"><span class="kt-pill">' + esc((m.scope.mon || []).join(', ')) + '</span><span class="kt-pill">' + esc(/^(Lớp|Khối)/.test(m.scope.khoi) ? m.scope.khoi : 'Khối ' + m.scope.khoi) + '</span>' + (m.scope.n > 1 ? '<span class="kt-pill">' + m.scope.n + ' lớp</span>' : '') + '<span class="kt-pill">' + ktDm(m.scope.fr) + ' → ' + ktDm(m.scope.to) + '</span>' + (m.scope.cut ? '<span class="kt-pill warn">Mốc ' + ktDm(m.scope.cut) + '</span>' : '') + (m.scope.att ? '<span class="kt-pill">' + m.scope.att + ' lượt điểm danh</span>' : '') + ((m.scope.hs || []).length ? '<span class="kt-pill ai"><i class="bi bi-person"></i> ' + esc(m.scope.hs.join(', ')) + '</span>' : '') + '</div>' : '') +
+        (m.grp && m.grp.length ? ktGrpChat(m.grp, m.cut, m.parts, i) : '') + (m.parts ? '' : m.st === 'wait' ? ktThink(['Đang đọc lịch các lớp từ kientre.click', 'Đang đọc điểm danh, BTVN, nhận xét', 'Đang so sánh và tính số liệu', 'Đang soạn câu trả lời']) : m.st === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(m.text) + '</span></div>' : m.prof ? ktProfSumHtml(m.prof, m.src) : '<div class="kt-md kt-ans">' + ktAnsMd(m.text) + '</div>') +
         (m.st !== 'wait' ? '<div class="kt-mact">' + ((m.text || m.prof || m.parts) && m.st !== 'err' ? '<button data-kcp><i class="bi bi-clipboard"></i> Chép</button>' : '') + (m.prof ? '<button data-kmpdf><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' : '') + (ktWantMx(m) && m.mx && m.mx.rows && m.mx.rows.length ? '<button data-kmx><i class="bi bi-grid-3x3"></i> Bảng topic · ' + m.mx.cols.length + ' lớp × ' + m.mx.rows.length + ' bài</button>' : '') + (ktWantMx(m) && m.mx && m.mx.common && m.mx.common.length ? '<button data-kcm><i class="bi bi-intersect"></i> ' + m.mx.common.length + ' bài chung</button>' : '') + '</div>' : '') +
       '</div></div>').join('');
     $$('[data-kmi]', M).forEach(el => { const m = L[Number(el.dataset.kmi)];
@@ -30492,6 +30513,20 @@ function ktMdC(t, o) {
     let h = ''; try { h = ktChartSvg(JSON.parse(ktJsonQ(m[1])), o); } catch (e) {} out.push(h || ''); last = re.lastIndex; }
   if (last < t.length) out.push(ktMdJ(t.slice(last), o));
   return out.join('');
+}
+/** (1.85.2) CÂU TRẢ LỜI TRONG KHUNG CHAT gọn kiểu Claude — chỉ dùng ở khung chat, KHÔNG đụng ktMd / aiMd dùng chung:
+    gạch đầu dòng chỉ có chữ đậm (“- **Nhận xét qua các buổi học:**”) → tiêu đề nhỏ · mục lùi đầu dòng → mục con (trước bị dàn phẳng cùng cấp) */
+function ktAnsMd(t) {
+  let fence = 0, top = 0;      // top: đã có gạch đầu dòng cấp 1 ngay trên (ý con dưới một tiêu đề thì giữ cấp 1, không lùi)
+  const s = String(t || '').replace(/\r/g, '').split('\n').map(l => {
+    if (/^\s*```/.test(l)) { fence = !fence; return l; } if (fence || !l.trim()) return l;
+    const h = /^\s*(?:[-*•]|\d+[.)])?\s*\*\*([^*]{2,90}?)\*\*\s*:?\s*$/.exec(l);
+    if (h) { top = 0; return '#### ' + h[1].replace(/\s*:\s*$/, ''); }
+    const sub = /^(?: {2,}|\t+)[-*•]\s+(.*)$/.exec(l);
+    if (sub) return top ? '- \u2063' + sub[1] : '- ' + sub[1];
+    top = /^(?:[-*•]|\d+[.)])\s+/.test(l) ? 1 : 0; return l;
+  }).join('\n');
+  return ktMdC(s).replace(/<li>\u2063/g, '<li class="sub">');
 }
 /** ngoặc kép cong “ ” → " (AI hay đổi khi viết tiếng Việt) */
 function ktJsonQ(s) { return String(s).replace(/[\u201C\u201D]/g, '"'); }
