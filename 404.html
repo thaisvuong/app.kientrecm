@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T02:57:50.862Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T03:33:31.327Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -13933,10 +13933,21 @@ function archCard(B) {
   const load = () => { ac.innerHTML = head + '<div class="card-b">' + miniLoader('Đang tải…') + '</div>'; rpc('archInfo', {}, { quiet: true }).then(I => { if (ac.isConnected) paint(I, null); }).catch(e => { ac.innerHTML = head + '<div class="card-b small">' + esc(e.message) + '</div>'; }); };
   load();
 }
+/** (1.84.10) LƯỢT GỌI RA NGOÀI (UrlFetch) hôm nay theo phần — hết hạn mức ngày là mọi thứ gọi ra ngoài đều lỗi “urlfetch” */
+function sysUfHtml(u) {
+  if (!u || !u.today) return '';
+  const T = u.today, Y = u.yday, A = u.areas, keys = Object.keys(A).filter(k => T.by[k] || (Y && Y.by[k])).sort((a, b) => (T.by[b] || 0) - (T.by[a] || 0)), pct = Math.min(100, Math.round(T.n * 100 / (u.cap || 20000)));
+  return '<div class="sys-row" style="align-items:flex-start"><i class="bi bi-speedometer2"></i><div class="sb2" style="flex:1;min-width:0"><b>Lượt gọi ra ngoài hôm nay · ' + T.n.toLocaleString('vi-VN') + ' / ~' + (u.cap || 20000).toLocaleString('vi-VN') + '</b>' +
+    '<small>Hạn mức UrlFetch của Apps Script theo ngày — hết là kientre.click, KGS, Gemini, Gmail, Zalo… cùng lỗi. Hôm qua: ' + (Y ? Y.n.toLocaleString('vi-VN') : '–') + ' lượt (đếm từ bản 1.84.10).</small>' +
+    '<div style="height:7px;border-radius:99px;background:var(--line,#e5e7eb);overflow:hidden;margin:8px 0 6px"><i style="display:block;height:100%;width:' + pct + '%;background:' + (pct >= 80 ? 'var(--danger,#dc2626)' : pct >= 50 ? 'var(--warn,#b45309)' : 'var(--ok,#16a34a)') + '"></i></div>' +
+    (keys.length ? '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:3px 14px;font-size:12.5px">' + keys.map(k => '<span>' + esc(A[k]) + '</span><b style="text-align:right">' + (T.by[k] || 0).toLocaleString('vi-VN') + '</b><span class="muted" style="text-align:right">hôm qua ' + ((Y && Y.by[k]) || 0).toLocaleString('vi-VN') + '</span>').join('') + '</div>' : '<small class="muted">Chưa có lượt nào được đếm hôm nay.</small>') +
+    '</div></div>';
+}
 function setSystem(B, cfg, setCfg) {
   const row = (ic, t, d, act) => '<div class="sys-row"><i class="bi ' + ic + '"></i><div class="sb2"><b>' + t + '</b><small>' + d + '</small></div>' + (act || '') + '</div>';
   B.innerHTML = '<div class="card"><div class="card-h"><h2><i class="bi bi-cpu"></i>Hệ thống</h2></div><div class="card-b">' +
     row('bi-person-badge', 'Tài khoản chạy app', esc(cfg.runAs) + ' — mọi thao tác đọc Drive dùng quyền của tài khoản này; thư mục nguồn phải được chia sẻ cho nó.') +
+    sysUfHtml(cfg.uf) +
     row('bi-table', 'Kho dữ liệu', esc(cfg.sheetUrl), '<a class="btn sm" target="_blank" href="' + esc(cfg.sheetUrl) + '"><i class="bi bi-box-arrow-up-right"></i>Mở</a>') +
     row('bi-folder2', 'Thư mục chính', 'Chứa kho dữ liệu và bộ đệm PDF chuyển đổi từ Word / PowerPoint', '<a class="btn sm" target="_blank" href="' + esc(cfg.rootUrl) + '"><i class="bi bi-box-arrow-up-right"></i>Mở</a>') +
     row('bi-code-slash', 'Dự án Apps Script', esc(cfg.ver), '<a class="btn sm" target="_blank" href="' + esc(cfg.scriptUrl) + '"><i class="bi bi-box-arrow-up-right"></i>Mở</a>') +
@@ -21426,6 +21437,7 @@ async function apPreview(x) {
 .ai-kv{ display:grid; grid-template-columns:120px 1fr; gap:6px 12px; font-size:13px } .ai-kv > span:nth-child(odd){ color:var(--muted); font-weight:700 }
 /* cài đặt */
 .ai-cfg{ display:flex; flex-direction:column; gap:14px }
+.ai-gwck{ margin-top:12px; padding:12px; border:1px dashed var(--line, var(--border)); border-radius:12px } .ai-gwck .t{ display:flex; flex-direction:column; gap:3px } .ai-gwck .t small{ line-height:1.55 }      /* (1.84.10) */
 .ai-gwx{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:12px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2) } .ai-gwx .t{ flex:1 1 220px; min-width:0 } .ai-gwx .t b{ display:block; font-size:13px } .ai-gwx .t small{ display:block; font-size:12px; color:var(--muted) }
 .ai-opt{ display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-top:1px solid color-mix(in oklab, var(--border) 60%, transparent) } .ai-opt:first-child{ border-top:0; padding-top:0 }
 .ai-opt > div{ flex:1; min-width:0 } .ai-opt > select, .ai-opt > .sel{ width:auto; flex:none; max-width:45% } .ai-opt b{ display:block; color:var(--ink); font-weight:600 } .ai-opt small{ color:var(--muted) }
@@ -23056,11 +23068,32 @@ function aiGwHow() {
     '<div class="small ax-muted" style="margin-top:10px">Chrome không tự cập nhật tiện ích cài kiểu “Load unpacked”; tiện ích tự xem bản mới mỗi 6 giờ.</div>', foot: [{ t: 'Đóng', cls: 'ghost' }] });
 }
 /* (1.82.14) GEMINI WEB — tiện ích Chrome “Gemini Bridge” (webapp/extension/gemini-bridge) hỏi Gemini bằng phiên đăng nhập của Chrome; mã kết nối tạo + chép ở đây (cùng kiểu mã KGS Sync) */
+/** (1.84.10) PHIÊN GEMINI TRÊN MÁY CHỦ — máy chủ tự hỏi khi tắt Chrome; mọi lượt của một cuộc hỏi đi tiếp trong cùng đoạn chat Gemini */
+function aiGwCkHtml(k) {
+  const t = v => v ? new Date(v).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
+  const st = !k.has ? '<span style="color:var(--warn)"><i class="bi bi-circle"></i> Chưa có phiên</span> — tiện ích (bản 1.3.0) tự gửi khi Chrome mở, hoặc dán tay bên dưới.'
+    : k.off ? '<span style="color:var(--warn)"><i class="bi bi-pause-circle"></i> Đang tạm dừng</span> — chỉ tiện ích hỏi.'
+    : k.err ? '<span style="color:var(--danger)"><i class="bi bi-x-circle-fill"></i> Phiên lỗi:</span> ' + esc(k.err)
+    : '<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> Đang dùng</span>' + (k.ok ? ' · hỏi được lần cuối ' + esc(t(k.ok)) : ' · chưa hỏi lần nào');
+  return '<div class="ai-gwck" id="aiGwCk"><div class="t"><b><i class="bi bi-hdd-network"></i> Phiên Gemini trên máy chủ — chạy cả khi tắt Chrome</b>' +
+    '<small>' + st + (k.has ? '<br>Lưu lúc ' + esc(t(k.at)) + ' · ' + (k.via === 'tiện ích' ? 'tiện ích gửi' : 'dán tay') + ' · ' + k.n + ' cookie' + (k.rot ? ' · tự làm mới phiên lúc ' + esc(t(k.rot)) : '') : '') +
+    '<br>Mọi lượt của một cuộc hỏi (kể cả “mỗi nhóm lớp một thư”) đi tiếp trong <b>cùng một đoạn chat</b> Gemini để giữ ngữ cảnh; thư dài được chia nhiều phần gửi liền.</small></div>' +
+    '<div class="ax-inl" style="margin-top:8px;flex-wrap:wrap">' + (k.has ? '<button class="btn sm" id="aiGwCkTest"><i class="bi bi-send"></i>Hỏi thử</button><button class="btn sm ghost" id="aiGwCkPause">' + (k.off ? '<i class="bi bi-play"></i>Dùng lại' : '<i class="bi bi-pause"></i>Tạm dừng') + '</button><button class="btn sm ghost" id="aiGwCkDel"><i class="bi bi-trash3"></i>Xoá phiên</button>' : '') +
+      '<span id="aiGwCkRes" class="small"></span></div>' +
+    '<details style="margin-top:8px"><summary class="small" style="cursor:pointer;color:var(--primary)"><i class="bi bi-clipboard-plus"></i> Dán phiên tay — hướng dẫn</summary>' +
+      '<ol class="small" style="margin:8px 0;padding-left:18px;line-height:1.6"><li>Trên Chrome đã đăng nhập <b>gemini.google.com</b> (nên dùng tài khoản Google riêng), mở trang đó, bấm <b>F12</b> (Mac: <b>⌥⌘I</b>).</li>' +
+      '<li>Tab <b>Network</b> → tải lại trang (F5) → bấm dòng đầu tiên <b>app</b> → mục <b>Request Headers</b> → chuột phải dòng <b>cookie</b> → <b>Copy value</b>.</li>' +
+      '<li>Hoặc tab <b>Application</b> › <b>Cookies</b> › <b>https://gemini.google.com</b>: chọn hết bảng (⌘A / Ctrl+A), chép, dán — app tự đọc bảng.</li>' +
+      '<li>Bắt buộc có <b>__Secure-1PSID</b> và <b>__Secure-1PSIDTS</b>. Phiên chỉ lưu trên máy chủ, không về trình duyệt. Đăng xuất Google trên Chrome đó là phiên hết dùng được.</li></ol>' +
+      '<textarea class="inp mono" id="aiGwCkIn" rows="3" placeholder="__Secure-1PSID=…; __Secure-1PSIDTS=…; …" style="width:100%"></textarea>' +
+      '<div class="ax-inl" style="margin-top:6px"><button class="btn sm pri" id="aiGwCkSave"><i class="bi bi-check2"></i>Lưu phiên</button><label class="small">Tài khoản Google số <input class="inp" id="aiGwCkAcct" type="number" min="0" max="9" value="0" style="width:56px"></label><span class="small ax-muted">0 = tài khoản mặc định (/u/0/)</span></div></details></div>';
+}
 function aiGwCard(sw, card) {
   const g = AI.b.gw, ago = g.ext ? Math.round((Date.now() - new Date(g.ext).getTime()) / 1000) : -1, live = ago >= 0 && ago < 120;
   const when = g.ext ? new Date(g.ext).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
   const st = !g.on ? 'Đang tắt — AI dùng ' + (g.api ? 'Gemini API' : 'flow qua mail') + '.'
     : g.api ? '<span style="color:var(--warn)"><i class="bi bi-exclamation-triangle"></i> Gemini API đang bật nên được dùng trước</span> — tắt Gemini API (cuối trang) để dùng Gemini web.'
+    : g.ck && g.ck.has && !g.ck.err && !g.ck.off ? '<span style="color:var(--ok)"><i class="bi bi-hdd-network"></i> Máy chủ tự hỏi bằng phiên đã lưu</span> — tắt Chrome vẫn chạy' + (live ? ' · tiện ích cũng đang kết nối' : '') + '.'
     : live ? '<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> Tiện ích đang kết nối</span> (hỏi máy chủ ' + (ago < 5 ? 'vừa xong' : ago + ' giây trước') + ')'
     : g.ext ? '<span style="color:var(--warn)"><i class="bi bi-plug"></i> Tiện ích hỏi máy chủ lần cuối lúc ' + esc(when) + '</span> — mở Chrome có tiện ích thì AI mới trả lời được.'
     : '<span style="color:var(--warn)"><i class="bi bi-plug"></i> Chưa có tiện ích nào kết nối</span> — cài tiện ích rồi dán mã kết nối bên dưới.';
@@ -23069,10 +23102,11 @@ function aiGwCard(sw, card) {
     (g.code ? '<div style="margin-top:8px"><b class="small">Mã kết nối cho tiện ích</b><div class="ax-inl" style="margin-top:6px"><input class="inp mono" id="aiGwCode" readonly value="' + esc(g.code) + '" style="flex:1 1 240px">' +
       '<button class="btn sm" id="aiGwCopy"><i class="bi bi-clipboard"></i>Chép</button><button class="btn sm ghost" id="aiGwKey"><i class="bi bi-arrow-repeat"></i>Đổi mã</button>' +
       '<button class="btn sm ghost" id="aiGwRef" title="Làm mới trạng thái kết nối"><i class="bi bi-arrow-clockwise"></i></button></div></div>' : '') +
+    aiGwCkHtml(g.ck || {}) +
     '<div class="ai-gwx" id="aiGwX"><div class="t"><b><i class="bi bi-puzzle"></i> Tiện ích Gemini Bridge</b><small id="aiGwV">' + (g.extV ? 'Máy đang kết nối dùng bản ' + esc(g.extV) : 'Chưa biết bản đang dùng') + ' · đang xem bản mới nhất…</small></div>' +
       '<a class="btn sm pri" href="' + GW_EXT.zip + '" target="_blank" rel="noopener" download><i class="bi bi-download"></i>Tải tiện ích (.zip)</a><button type="button" class="btn sm ghost" id="aiGwHow"><i class="bi bi-question-circle"></i>Cách cài / cập nhật</button></div>' +
     '<div class="small ax-muted" style="margin-top:10px;line-height:1.55">Cài tiện ích <b>Gemini Bridge</b> (bấm <b>Cách cài</b>) trên một Chrome <b>không bị tổ chức chặn tiện ích</b>, đăng nhập <b>gemini.google.com</b>, dán mã kết nối vào tiện ích. Có bản mới thì biểu tượng tiện ích hiện <b>↑</b> và popup có nút tải. ' +
-      'Chrome phải đang mở thì AI mới trả lời; mỗi câu khoảng 10–60 giây. Không gửi kèm tệp gốc (PDF / ảnh) — chỉ phần chữ đã đọc sẵn. ' +
+      'Không có phiên trên máy chủ thì Chrome phải đang mở AI mới trả lời; mỗi câu khoảng 10–60 giây. Không gửi kèm tệp gốc (PDF / ảnh) — chỉ phần chữ đã đọc sẵn. ' +
       '<span style="color:var(--warn)">Đây là phiên đăng nhập web, không phải API chính thức: Google có thể đổi cách hoạt động hoặc giới hạn tài khoản — nên dùng một tài khoản Google riêng.</span></div>');
 }
 function aiSnapCard(c, sw, card) {
@@ -23228,6 +23262,14 @@ function aiCfgView(body) {
     const gs = e.target.closest('#aiGemS'); if (gs) { gs.disabled = true; rpc('aiGemSave', { key: ($('#aiGemK') || {}).value || '', model: ($('#aiGemM') || {}).value || '' }).then(r => { AI.b.gem = Object.assign(AI.b.gem, r); toast('Đã lưu cài đặt Gemini', 'ok'); aiCfgView(body); }).catch(fail).finally(() => { gs.disabled = false; }); return; }
     if (e.target.closest('#aiGwRef')) { try { AI.b.gw = await rpc('aiGwSave', {}, { quiet: true }); aiCfgView(body); } catch (er) { toast(er.message, 'err'); } return; }      // (1.82.14) trạng thái tiện ích (aiBoot giữ 60 giây)
     if (e.target.closest('#aiGwHow')) return aiGwHow();      // (1.82.18) cách cài / cập nhật tiện ích
+    /* (1.84.10) phiên Gemini trên máy chủ */
+    const gck = async (p, msg) => { try { AI.b.gw = await rpc('aiGwCk', p, { quiet: true }); if (msg) toast(msg, 'ok'); aiCfgView(body); return AI.b.gw; } catch (er) { toast(er.message, 'err', 6000); return null; } };
+    if (e.target.closest('#aiGwCkSave')) { const v = ($('#aiGwCkIn', body) || {}).value || ''; if (!v.trim()) return toast('Dán dòng cookie trước', 'warn'); return gck({ ck: v, acct: Number(($('#aiGwCkAcct', body) || {}).value) || 0 }, 'Đã lưu phiên — bấm Hỏi thử để kiểm'); }
+    if (e.target.closest('#aiGwCkDel')) { if (!await ask('Xoá phiên Gemini trên máy chủ? Sau đó chỉ tiện ích (Chrome đang mở) hỏi được Gemini web.', { ok: 'Xoá', danger: true })) return; return gck({ off: 1 }, 'Đã xoá phiên'); }
+    if (e.target.closest('#aiGwCkPause')) return gck({ pause: AI.b.gw.ck && AI.b.gw.ck.off ? 0 : 1 });
+    const gt = e.target.closest('#aiGwCkTest'); if (gt) { gt.disabled = true; const out = $('#aiGwCkRes', body); if (out) out.textContent = 'Đang hỏi Gemini…';
+      try { const r = await rpc('aiGwCk', { test: 1 }, { quiet: true }), T = r.test || {}; AI.b.gw = r; if (out) out.innerHTML = T.ok ? '<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> Gemini trả lời sau ' + (T.ms / 1000).toFixed(1) + ' giây: “' + esc(T.text) + '”</span>' : '<span style="color:var(--danger)"><i class="bi bi-x-circle-fill"></i> ' + esc(T.err) + '</span>'; }
+      catch (er) { if (out) out.innerHTML = '<span style="color:var(--danger)">' + esc(er.message) + '</span>'; } gt.disabled = false; return; }
     if (e.target.closest('#aiGwCopy')) return copyText(($('#aiGwCode') || {}).value || '', 'Đã chép mã kết nối — dán vào tiện ích Gemini Bridge');      // (1.82.14)
     if (e.target.closest('#aiGwKey')) { if (!await ask('Tạo mã kết nối mới? Mã cũ hết dùng được — tiện ích trên các máy phải dán mã mới.', { ok: 'Tạo mã mới' })) return;
       try { AI.b.gw = await rpc('aiGwSave', { key: 1 }, { quiet: true }); toast('Đã tạo mã kết nối mới', 'ok'); aiCfgView(body); } catch (er) { toast(er.message, 'err'); } return; }
