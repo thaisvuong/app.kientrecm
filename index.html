@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T07:33:25.934Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T08:24:09.332Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -8619,7 +8619,7 @@ const NAV_DEF = [
   { r: 'asst/set', t: 'Cài đặt AI', i: 'bi-sliders', g: 'lib', cap: 'settings.manage', m: /^asst\/set/ },      // (1.82.18) Cài đặt Trợ lý AI (kết nối, tự chạy, gán bài, yêu cầu, Gemini web…) — chuyển từ Kiến CM › Trợ lý chuyên môn
   { r: 'asst/subs', t: 'Các trợ lý', i: 'bi-diagram-3', g: 'lib', cap: ['ai.admin', 'ai.log', 'settings.manage'], m: /^asst\/subs/ },      // bộ não từng trợ lý con
   /* (1.84) Ứng dụng Kiến Trẻ — nhận xét buổi học kientre.click (KienTreView.html · KienTre.gs) */
-  { r: 'kt/ask', t: 'Trợ lý', i: 'bi-chat-square-text', g: 'lib', cap: 'kt.use', m: /^kt\/ask/ },      // (1.84.5) đổi tên từ Hỏi dữ liệu, lên đầu — dùng nhiều nhất
+  { r: 'kt/ask', t: 'Trợ lý', i: 'bi-stars', g: 'lib', cap: 'kt.use', m: /^kt\/ask/ },      // (1.84.5) đổi tên từ Hỏi dữ liệu, lên đầu — dùng nhiều nhất
   { r: 'kt', t: 'Nhận xét', i: 'bi-chat-heart', g: 'lib', cap: 'kt.use', m: /^kt$/ },
   { r: 'kt/learned', t: 'Lớp đã học', i: 'bi-journal-check', g: 'lib', cap: 'kt.use', m: /^kt\/learned/ },
   { r: 'kt/prof', t: 'Hồ sơ học sinh', i: 'bi-person-vcard', g: 'lib', cap: 'kt.use', m: /^kt\/prof/ },      // (1.84.3) nhận xét cũ → AI tóm tắt → PDF bàn giao gia sư mới
@@ -29367,7 +29367,50 @@ function svMemoV(b) {
 /* (1.85) chat + panel dữ liệu song song */
 .kt-chatw{ display:flex; gap:16px; align-items:flex-start; width:100% }
 .kt-chatw > .kt-chat{ flex:1; min-width:0; margin:0 auto }
-.kt-side{ position:sticky; top:8px; flex:0 0 clamp(360px, 38vw, 520px); max-height:calc(100dvh - 110px); overflow:auto; border:1px solid var(--border); border-radius:16px; background:var(--surface); display:flex; flex-direction:column }
+/* (1.85.1) KHUNG TRỢ LÝ KIỂU CLAUDE — thanh lịch sử bên trái · khung chat giữa · panel phân tích bên phải (chỉ mở khi cần, không đè chat) */
+.kt:has(> .kt-ask), .kt:has(> .kt > .kt-ask){ max-width:1560px }
+.kt-ask{ display:flex; gap:20px; align-items:flex-start; width:100%; min-width:0 }
+.kt-ask > .kt-chat{ flex:1; min-width:0 }
+.kt-rail{ position:sticky; top:8px; flex:0 0 264px; height:calc(100dvh - 110px); display:flex; flex-direction:column; gap:8px; padding:4px 10px 10px 0; border-right:1px solid var(--border); min-width:0 }
+.kt-ask.rail-off > .kt-rail{ display:none }
+.kt-rhd{ display:flex; align-items:center; gap:6px }
+.kt-rnew{ flex:1; min-width:0; display:flex; align-items:center; gap:9px; height:38px; padding:0 12px; border-radius:11px; border:1px solid var(--border); background:var(--surface); color:var(--ink); font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:var(--sh-1) }
+.kt-rnew:hover{ border-color:var(--brand-400, var(--primary)) } .kt-rnew i{ color:var(--brand-600, var(--primary)); font-size:15px }
+.kt-icb{ width:34px; height:34px; border-radius:9px; border:0; background:none; color:var(--muted); display:grid; place-items:center; cursor:pointer; flex:none; font-size:16px }
+.kt-icb:hover{ background:var(--surface-2); color:var(--ink) }
+.kt-rq{ display:flex; align-items:center; gap:8px; height:34px; padding:0 11px; border-radius:10px; background:var(--surface-2); color:var(--muted); font-size:13px }
+.kt-rq input{ flex:1; min-width:0; border:0 !important; outline:none; background:transparent !important; box-shadow:none !important; color:var(--ink); font:inherit; font-size:13px; padding:0 }
+.kt-rlist{ flex:1; min-height:0; overflow:auto; display:flex; flex-direction:column; gap:1px; margin-right:-6px; padding-right:6px }
+.kt-rg{ font-size:11.5px; font-weight:600; color:var(--muted); padding:12px 10px 4px }
+.kt-ri{ position:relative; display:flex; align-items:center; gap:4px; width:100%; text-align:left; height:34px; padding:0 4px 0 10px; border-radius:9px; border:0; background:none; color:var(--ink-2); font:inherit; font-size:13px; cursor:pointer }
+.kt-ri > span{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; -webkit-mask-image:linear-gradient(90deg, #000 82%, transparent); mask-image:linear-gradient(90deg, #000 82%, transparent) }      /* một dòng, mờ dần ở cuối — không cắt “…” */
+.kt-ri > i{ flex:none; width:26px; height:26px; border-radius:7px; display:grid; place-items:center; color:var(--muted); font-size:12.5px; opacity:0 }
+.kt-ri:hover{ background:var(--surface-2); color:var(--ink) } .kt-ri:hover > i, .kt-ri:focus-visible > i{ opacity:1 } .kt-ri > i:hover{ color:var(--danger); background:var(--surface) }
+.kt-ri.on{ background:color-mix(in oklab, var(--brand-600, var(--primary)) 10%, var(--surface)); color:var(--ink); font-weight:600 }
+.kt-rnone{ font-size:12.5px; color:var(--muted); padding:14px 10px; line-height:1.5 }
+.kt-rf{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:11.5px; color:var(--muted); padding:8px 4px 0; border-top:1px solid var(--border) }
+.kt-rf select{ height:24px; border-radius:7px; border:1px solid var(--border); background:var(--surface); color:var(--ink-2); font-size:11.5px; padding:0 4px }
+.kt-rf a{ margin-left:auto; color:var(--muted) } .kt-rf a:hover{ color:var(--danger) }
+.kt-rbd{ display:none }
+.kt-chd{ display:flex; align-items:center; gap:4px; min-height:38px; margin-bottom:2px }
+.kt-chd .kt-ctt{ flex:1; min-width:0; font-size:14px; font-weight:600; color:var(--ink-2); white-space:nowrap; overflow:hidden; -webkit-mask-image:linear-gradient(90deg, #000 85%, transparent); mask-image:linear-gradient(90deg, #000 85%, transparent); padding-left:4px }
+.kt-ask:not(.rail-off) .kt-chd [data-krtg], .kt-ask:not(.rail-off) .kt-chd [data-krnew]{ display:none }
+/* thanh soạn câu hỏi — MỘT hàng: chip Phạm vi · chip Học sinh │ kênh AI · nút gửi */
+.kt-cbar{ display:flex; align-items:center; gap:6px; min-width:0 }
+.kt-cbar .sp{ flex:1 }
+.kt-chip{ display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 11px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--ink-2); font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; min-width:0 }
+.kt-chip:hover{ background:var(--surface-2); color:var(--ink) } .kt-chip > i{ font-size:13px; color:var(--muted) } .kt-chip .bi-chevron-down{ font-size:10px }
+.kt-chip.on{ background:color-mix(in oklab, var(--brand-600, var(--primary)) 10%, var(--surface)); border-color:color-mix(in oklab, var(--brand-600, var(--primary)) 35%, var(--border)); color:var(--ink) } .kt-chip.on > i{ color:var(--brand-600, var(--primary)) }
+.kt-eng{ display:inline-flex; align-items:center; gap:4px; color:var(--muted); font-size:12.5px; min-width:0 }
+.kt-eng select{ height:32px; max-width:170px; field-sizing:content; border:0 !important; background:transparent !important; box-shadow:none !important; color:var(--ink-2); font:inherit; font-size:12.5px; font-weight:600; padding:0 2px; cursor:pointer; border-radius:8px }
+.kt-eng select:hover{ background:var(--surface-2) !important }
+.kt-pop{ position:absolute; z-index:20; bottom:calc(100% + 8px); left:10px; width:min(360px, calc(100% - 20px)); background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:0 18px 44px -18px rgba(16,24,40,.45); padding:12px 14px 14px; display:flex; flex-direction:column; gap:10px }
+.kt-pop h6{ margin:0; font-size:11.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.04em }
+.kt-pop .kt-popr{ display:flex; flex-wrap:wrap; gap:6px }
+.kt-pop .kt-popr button{ height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--ink-2); font:inherit; font-size:12.5px; cursor:pointer }
+.kt-pop .kt-popr button:hover{ background:var(--surface-2) }
+.kt-pop .kt-popr button[aria-pressed="true"]{ background:var(--brand-700); border-color:var(--brand-700); color:#fff; font-weight:600 }
+.kt-side{ position:sticky; top:8px; flex:0 0 clamp(340px, 32vw, 480px); max-height:calc(100dvh - 110px); overflow:auto; border:1px solid var(--border); border-radius:16px; background:var(--surface); display:flex; flex-direction:column }
 .kt-sh{ position:sticky; top:0; z-index:2; display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--surface) }
 .kt-stabs{ display:flex; gap:4px; flex:1; min-width:0; overflow:auto }
 .kt-stab{ display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:999px; border:1px solid transparent; background:none; color:var(--muted); font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap }
@@ -29389,9 +29432,23 @@ function svMemoV(b) {
 .kt-hfoot{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:8px } .kt-hfoot > :last-child{ margin-left:auto }
 .kt-hopt{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted) }
 .kt-hopt select{ height:26px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--ink); font-size:12px; padding:0 6px }
-@media (max-width:1080px){
-  .kt-side{ position:fixed; inset:0; z-index:60; flex:none; max-height:none; border-radius:0; border:0 }
-  body.kt-sideon .kt-comp{ display:none }
+@media (max-width:1180px){      /* (1.85.1) panel phân tích = ngăn kéo bên phải có nền mờ — không chèn ép, không đè mất khung chat khi đóng */
+  .kt-side{ position:fixed; top:0; right:0; bottom:0; left:auto; width:min(480px, 100%); z-index:65; flex:none; max-height:none; border-radius:16px 0 0 16px; border:0; box-shadow:-18px 0 48px -20px rgba(16,24,40,.45) }
+  body.kt-sideon .kt-sbd{ display:block; position:fixed; inset:0; z-index:64; background:rgba(15,23,42,.32) }
+}
+@media (max-width:560px){ .kt-side{ border-radius:0 } body.kt-sideon .kt-comp{ display:none } }
+.kt-sbd{ display:none }
+@media (max-width:900px){      /* thanh lịch sử thành ngăn kéo bên trái */
+  .kt-rail{ position:fixed; top:0; left:0; bottom:0; height:auto; z-index:300; width:min(300px, 86vw); background:var(--surface); padding:12px 12px calc(96px + var(--sab, 0px)); border-right:0; box-shadow:18px 0 48px -20px rgba(16,24,40,.45); transform:translateX(-105%); transition:transform .2s ease }
+  .kt-ask.rail-off > .kt-rail{ display:flex }
+  .kt-ask.rail-m > .kt-rail{ transform:none }
+  .kt-ask.rail-m > .kt-rbd{ display:block; position:fixed; inset:0; z-index:299; background:rgba(15,23,42,.32) }
+  .kt-ask .kt-chd [data-krtg], .kt-ask .kt-chd [data-krnew]{ display:grid !important }
+}
+@media (max-width:600px){      /* điện thoại: chip chỉ còn biểu tượng (học sinh đã chọn thì hiện tên) · kênh AI chữ nhỏ */
+  #ktScope > span, #ktScope > .bi-chevron-down, #ktStuBtn:not(.on) > span{ display:none }
+  .kt-chip{ padding:0 10px } .kt-eng > i{ display:none } .kt-eng select{ font-size:13px !important; max-width:118px }
+  .kt-comp textarea{ font-size:16px }
 }
 .kt-chat{ display:flex; flex-direction:column; gap:0; max-width:780px; margin:0 auto; width:100%; min-height:calc(100dvh - 150px) }
 .kt-msgs{ flex:1; display:flex; flex-direction:column; gap:26px; padding:8px 0 24px }
@@ -29455,7 +29512,8 @@ function svMemoV(b) {
 .kt-scope{ display:flex; gap:6px; flex-wrap:wrap } .kt-mact{ display:flex; gap:4px; flex-wrap:wrap; margin-left:-6px }
 .kt-mact button{ border:0; background:none; color:var(--muted); font-size:12.5px; font-weight:600; padding:5px 8px; border-radius:8px; cursor:pointer; display:inline-flex; gap:5px; align-items:center; white-space:nowrap }
 .kt-mact button:hover{ background:var(--surface-2); color:var(--ink) }
-.kt-comp{ position:sticky; bottom:10px; z-index:3; background:var(--surface); border:1px solid var(--border); border-radius:22px; box-shadow:0 8px 28px -14px rgba(16,24,40,.35); padding:10px 10px 8px 16px; display:flex; flex-direction:column; gap:8px }
+.kt-comp{ position:sticky; bottom:10px; z-index:3; background:var(--surface); border:1px solid var(--border); border-radius:22px; box-shadow:0 8px 28px -14px rgba(16,24,40,.35); padding:12px 10px 8px 14px; display:flex; flex-direction:column; gap:6px }
+.kt-comp textarea{ padding-left:4px !important }
 .kt-comp textarea{ border:0 !important; outline:none; resize:none; background:transparent !important; box-shadow:none !important; width:100%; color:var(--ink); font:inherit; font-size:15px; line-height:1.5; max-height:180px; min-height:26px; padding:4px 0 }
 .kt-comp .kt-acts select{ height:30px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--ink-2); font-size:12px; font-weight:600; padding:0 8px }
 .kt-send{ width:36px; height:36px; border-radius:50%; border:0; background:var(--brand-700); color:#fff; display:grid; place-items:center; cursor:pointer; flex:none } .kt-send:disabled{ opacity:.4; cursor:default }
@@ -29552,7 +29610,7 @@ function svMemoV(b) {
 <script>
 /* ══════════ (1.84) ỨNG DỤNG KIẾN TRẺ — route kt · kt/ask · kt/learned · kt/style · kt/conn ══════════ */
 const KT = { b: null, day: '', teacher: lsGet('ktTea', ''), d: null, ed: {}, ai: {}, push: {}, op: {}, sj: lsGet('ktSj', 'MATH'), ln: null, open: {}, pick: {}, sel: {}, chat: lsGet('ktChat', { conv: '', msgs: [] }), ask: { sj: lsGet('ktAskSj', ''), span: lsGet('ktAskSpan', 150), eng: lsGet('ktAskEng', '') } };
-const KT_TABS = [['ask', 'bi-chat-square-text', 'Trợ lý'], ['', 'bi-chat-heart', 'Nhận xét'], ['learned', 'bi-journal-check', 'Lớp đã học'], ['prof', 'bi-person-vcard', 'Hồ sơ học sinh'], ['jobs', 'bi-activity', 'Việc AI'], ['style', 'bi-feather', 'Văn phong'], ['conn', 'bi-plug', 'Kết nối']];
+const KT_TABS = [['ask', 'bi-stars', 'Trợ lý'], ['', 'bi-chat-heart', 'Nhận xét'], ['learned', 'bi-journal-check', 'Lớp đã học'], ['prof', 'bi-person-vcard', 'Hồ sơ học sinh'], ['jobs', 'bi-activity', 'Việc AI'], ['style', 'bi-feather', 'Văn phong'], ['conn', 'bi-plug', 'Kết nối']];
 const KT_FL = [['td', 'Thái độ học tập'], ['bt', 'Bài tập trên lớp'], ['yeu', 'Kiến thức còn yếu'], ['nx', 'Nhận xét chung']];
 const KT_AVC = ['#4F46E5', '#0EA5E9', '#14B8A6', '#F59E0B', '#EC4899', '#8B5CF6', '#22C55E', '#EF4444'];
 function ktToday() { const d = new Date(Date.now() + 7 * 3600e3); return d.toISOString().slice(0, 10); }
@@ -29588,7 +29646,7 @@ function ktErrCard(e, retry) { return '<div class="kt-card kt-empty"><i class="b
 function ktDayView(B) {
   if (!KT.b.me) {      // (1.84.4) chưa nối tài khoản giáo viên — nói rõ cần gì, không nhảy sang tab khác
     B.innerHTML = '<div class="kt-card kt-empty"><i class="bi bi-chat-heart"></i><div><b>Chưa nối tài khoản giáo viên kientre.click</b></div><div class="kt-sub" style="max-width:460px">Nhận xét đẩy sang kientre.click mang tên tài khoản giáo viên của bạn — nối một lần bằng tiện ích Kiến Connect hoặc dán phiên tay (có hướng dẫn từng bước).</div>' +
-      '<div class="kt-acts" style="justify-content:center"><button class="btn pri sm" onclick="go(\'kt/conn\')"><i class="bi bi-plug"></i> Kết nối tài khoản</button>' + (KT.b.office ? '<button class="btn sm" onclick="go(\'kt/ask\')"><i class="bi bi-chat-square-text"></i> Trợ lý</button>' : '') + '</div></div>';
+      '<div class="kt-acts" style="justify-content:center"><button class="btn pri sm" onclick="go(\'kt/conn\')"><i class="bi bi-plug"></i> Kết nối tài khoản</button>' + (KT.b.office ? '<button class="btn sm" onclick="go(\'kt/ask\')"><i class="bi bi-stars"></i> Trợ lý</button>' : '') + '</div></div>';
     return;
   }
   KT.day = KT.day || ktToday();
@@ -29629,7 +29687,7 @@ function ktPaintDay(D) {
   if (d.pick) { if (stat) stat.innerHTML = ''; D.innerHTML = '<div class="kt-card kt-empty"><i class="bi bi-person-badge"></i><div>Tài khoản <b>' + esc(d.conn.name || d.conn.email) + '</b> là tài khoản văn phòng — chọn giáo viên ở ô bên trên để xem buổi học của giáo viên đó.</div></div>'; return; }
   const nAll = d.sess.reduce((a, s) => a + s.st.filter(st => !ktAbs(st)).length, 0), nDone = d.sess.reduce((a, s) => a + s.st.filter(st => !ktAbs(st) && ktDone(s, st)).length, 0);
   if (stat) stat.innerHTML = d.sess.length ? '<span><b>' + d.sess.length + '</b>buổi</span><span><b>' + nDone + '/' + nAll + '</b>đã nhận xét</span>' : '';
-  if (!d.sess.length) { D.innerHTML = '<div class="kt-card kt-empty"><i class="bi bi-calendar2-x"></i><div>Không có buổi học nào ' + ktThu(d.day) + ' ' + ktDm(d.day) + ' của <b>' + esc(d.teacher) + '</b> trên kientre.click.</div></div>'; return; }
+  if (!d.sess.length) { D.innerHTML = '<div class="kt-card kt-empty"><i class="bi bi-calendar2-x"></i><div>Không có buổi học nào ' + ktThu(d.day) + ' ' + ktDm(d.day) + ' của <b>' + esc(d.teacher) + '</b> trên kientre.click.' + (d.teaOk === 0 ? '<br><small class="kt-sub">Chưa tìm thấy tên “' + esc(d.teacher) + '” trong danh sách giáo viên của kientre.click — app đã đọc cả ngày và lọc theo họ tên (không theo thứ tự chữ). Nếu bên đó ghi tên khác, sửa tên tài khoản Google hoặc báo giáo vụ.</small>' : '') + '</div></div>'; return; }
   D.innerHTML = (KT.b && !KT.b.ai ? '<div class="kt-sub"><i class="bi bi-info-circle"></i> Trợ lý AI chưa bật — vẫn nhận xét tay và đẩy được.</div>' : '') + d.sess.map((s, i) => ktSessHtml(s, i)).join('');
   d.sess.forEach((s, i) => ktBindSess(D, s, i));
 }
@@ -29752,23 +29810,25 @@ function ktPushRun(s, L) {
    (Phân tích · Phạm vi dữ liệu đã gửi AI · Lịch sử trò chuyện). Trên điện thoại panel mở đè toàn màn. ══ */
 const KT_SIDE = { on: 0, mi: -1, tab: 'an' };
 function ktSideEl() { return document.getElementById('ktSide'); }
-function ktSideClose() { KT_SIDE.on = 0; const el = ktSideEl(); if (el) { el.hidden = true; el.innerHTML = ''; } document.body.classList.remove('kt-sideon'); }
+function ktSideClose() { KT_SIDE.on = 0; const el = ktSideEl(); if (el) { el.hidden = true; el.innerHTML = ''; } document.body.classList.remove('kt-sideon');
+  const A = document.querySelector('.kt-ask'); if (A && A._railAuto) { A._railAuto = 0; ktRailSet(1); } }
 function ktSideOpen(mi, tab) {
   const el = ktSideEl(); if (!el) return;
   KT_SIDE.on = 1; if (mi != null && mi >= 0) KT_SIDE.mi = mi; if (tab) KT_SIDE.tab = tab;
+  // (1.85.1) màn chưa đủ rộng cho cả 3 cột → tạm ẩn thanh lịch sử để khung chat không bị chèn ép (đóng panel thì hiện lại)
+  const A = document.querySelector('.kt-ask'); if (A && window.innerWidth > 1180 && window.innerWidth < 1500 && !A.classList.contains('rail-off')) { A._railAuto = 1; ktRailSet(0, 1); }
   el.hidden = false; document.body.classList.add('kt-sideon'); ktSidePaint();
 }
 function ktSidePaint() {
   const el = ktSideEl(); if (!el || !KT_SIDE.on) return;
-  const m = KT.chat.msgs[KT_SIDE.mi], T = [['an', 'bi-clipboard-data', 'Phân tích'], ['ds', 'bi-funnel', 'Dữ liệu đã gửi AI'], ['ls', 'bi-clock-history', 'Lịch sử']];
-  let tab = KT_SIDE.tab; if (!m && tab !== 'ls') tab = 'ls';
+  const m = KT.chat.msgs[KT_SIDE.mi], T = [['an', 'bi-clipboard-data', 'Phân tích'], ['ds', 'bi-funnel', 'Dữ liệu đã gửi AI']];      // (1.85.1) Lịch sử chuyển sang thanh bên trái
+  let tab = KT_SIDE.tab === 'ds' ? 'ds' : 'an';
   el.innerHTML = '<div class="kt-sh"><div class="kt-stabs">' + T.map(t => '<button type="button" class="kt-stab' + (tab === t[0] ? ' on' : '') + '" data-kst="' + t[0] + '"><i class="bi ' + t[1] + '"></i><span>' + t[2] + '</span></button>').join('') + '</div>' +
     '<button class="kt-ico" data-ktsx aria-label="Đóng bảng" title="Đóng"><i class="bi bi-x-lg"></i></button></div><div class="kt-sb">' +
-    (tab === 'ls' ? ktHistHtml() : tab === 'ds' ? ktScopeHtml(m) : ktAnHtml(m)) + '</div>';
+    (tab === 'ds' ? ktScopeHtml(m) : ktAnHtml(m)) + '</div>';
   const x = $('[data-ktsx]', el); if (x) x.onclick = ktSideClose;
   $$('[data-kst]', el).forEach(b => { b.onclick = () => { KT_SIDE.tab = b.dataset.kst; ktSidePaint(); }; });
   const w = $('[data-kgw]', el); if (w && m && m.grp) ktScBind(w, m);
-  ktHistBind(el);
 }
 /** tab Phân tích — thanh kéo ngưỡng + thẻ từng nhóm (phạm vi đề), hoặc nhắc khi lượt hỏi không có số liệu nhóm */
 function ktAnHtml(m) {
@@ -29804,28 +29864,61 @@ function ktHistClean(L) {
 function ktHistSave() {
   const c = KT.chat; if (!c || !(c.msgs || []).length) return;
   const key = c.conv || 'tam', u = (c.msgs.filter(m => m.role === 'u')[0] || {}).text || 'Cuộc trò chuyện';
-  let L = ktHistAll().filter(x => x.conv !== key);
+  let L = ktHistAll().filter(x => x.conv !== key && !(c.conv && x.conv === 'tam'));      // (1.85.1) bản lưu tạm trước khi máy chủ trả mã cuộc → thay bằng bản có mã (không nhân đôi)
   L.unshift({ conv: key, at: new Date().toISOString(), t: String(u).slice(0, 90), n: c.msgs.length, stu: c.stu ? c.stu.name : '', msgs: c.msgs.slice(-24) });
   try { lsSet('ktChats', ktHistClean(L)); } catch (e) { try { lsSet('ktChats', ktHistClean(L).slice(0, 10)); } catch (e2) {} }
 }
-function ktHistHtml() {
-  const L = ktHistClean(ktHistAll()), d = ktHistDays();
-  const opt = '<label class="kt-hopt">Tự xoá sau <select data-kthn>' + KT_HIST_OPT.map(x => '<option value="' + x + '"' + (x === d ? ' selected' : '') + '>' + (x ? x + ' ngày' : 'không tự xoá') + '</option>').join('') + '</select></label>';
-  if (!L.length) return '<p class="kt-sub">Chưa có cuộc trò chuyện nào được lưu. Lịch sử giữ trên máy này.</p>' + opt;
-  return '<div class="kt-hist">' + L.map(c => '<button type="button" class="kt-hr' + (c.conv === KT.chat.conv ? ' on' : '') + '" data-kth="' + esc(c.conv) + '"><b>' + esc(c.t) + '</b>' +
-    '<small>' + esc(ktAgo(c.at)) + ' · ' + c.n + ' tin' + (c.stu ? ' · ' + esc(c.stu) : '') + '</small><i class="bi bi-trash3" data-kthd="' + esc(c.conv) + '" title="Xoá cuộc này"></i></button>').join('') +
-    '</div><div class="kt-hfoot"><span class="kt-sub"><i class="bi bi-hdd"></i> ' + L.length + ' cuộc lưu trên máy này</span>' + opt + '<a href="#" class="kt-sub" data-kthc>Xoá tất cả</a></div>';
+/* (1.85.1) THANH LỊCH SỬ BÊN TRÁI (kiểu Claude): Cuộc trò chuyện mới · tìm · nhóm Hôm nay / Hôm qua / 7 ngày / 30 ngày / Cũ hơn · xoá từng cuộc.
+   Desktop: cột cố định, ẩn / hiện bằng nút (nhớ trên máy) · ≤900px: ngăn kéo bên trái. */
+const KT_RAIL = { q: '' };
+function ktFoldQ(s) { return typeof fold === 'function' ? fold(String(s || '')) : String(s || '').toLowerCase(); }
+function ktAgoGrp(iso) { const t = new Date(iso).getTime(), d0 = new Date(); d0.setHours(0, 0, 0, 0); const D = (d0.getTime() - t) / 86400000;
+  return isNaN(t) ? 'Cũ hơn' : t >= d0.getTime() ? 'Hôm nay' : D <= 1 ? 'Hôm qua' : D <= 7 ? '7 ngày qua' : D <= 30 ? '30 ngày qua' : 'Cũ hơn'; }
+function ktRailHtml() {
+  const all = ktHistClean(ktHistAll()), d = ktHistDays(), f = ktFoldQ(KT_RAIL.q.trim()), cur = KT.chat.msgs.length ? (KT.chat.conv || 'tam') : '';
+  const L = f ? all.filter(c => ktFoldQ(c.t + ' ' + (c.stu || '')).indexOf(f) >= 0) : all;
+  let g0 = '', list = '';
+  L.forEach(c => { const g = ktAgoGrp(c.at); if (g !== g0) { g0 = g; list += '<div class="kt-rg">' + g + '</div>'; }
+    list += '<button type="button" class="kt-ri' + (c.conv === cur ? ' on' : '') + '" data-kth="' + esc(c.conv) + '" title="' + esc(c.t + (c.stu ? ' · ' + c.stu : '') + ' · ' + ktAgo(c.at)) + '"><span>' + esc(c.t) + '</span>' +
+      '<i class="bi bi-trash3" data-kthd="' + esc(c.conv) + '" role="button" aria-label="Xoá cuộc này" title="Xoá cuộc này"></i></button>'; });
+  return '<div class="kt-rhd"><button type="button" class="kt-rnew" data-krnew><i class="bi bi-pencil-square"></i><span>Cuộc trò chuyện mới</span></button>' +
+      '<button type="button" class="kt-icb" data-krtg title="Ẩn lịch sử" aria-label="Ẩn thanh lịch sử"><i class="bi bi-layout-sidebar"></i></button></div>' +
+    '<label class="kt-rq"><i class="bi bi-search"></i><input data-krq placeholder="Tìm cuộc trò chuyện" value="' + esc(KT_RAIL.q) + '" aria-label="Tìm cuộc trò chuyện"></label>' +
+    '<div class="kt-rlist">' + (list || '<div class="kt-rnone">' + (f ? 'Không có cuộc nào khớp.' : 'Chưa có cuộc trò chuyện nào. Câu hỏi của bạn sẽ hiện ở đây.') + '</div>') + '</div>' +
+    '<div class="kt-rf"><span title="Lịch sử chỉ lưu trên máy này"><i class="bi bi-hdd"></i> Tự xoá sau</span><select data-kthn aria-label="Tự xoá lịch sử sau">' +
+      KT_HIST_OPT.map(x => '<option value="' + x + '"' + (x === d ? ' selected' : '') + '>' + (x ? x + ' ngày' : 'không xoá') + '</option>').join('') + '</select>' +
+      (all.length ? '<a href="#" data-kthc>Xoá hết</a>' : '') + '</div>';
 }
+function ktRailPaint() {
+  const el = document.getElementById('ktRail'); if (!el) return;
+  const foc = document.activeElement && document.activeElement.matches && document.activeElement.matches('[data-krq]');
+  el.innerHTML = ktRailHtml(); ktHistBind(el);
+  if (foc) { const i = $('[data-krq]', el); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
+}
+/** on = 1 hiện / 0 ẩn · tam = không ghi nhớ (panel phân tích tự ẩn giúp) · ≤900px: mở / đóng ngăn kéo */
+function ktRailSet(on, tam) {
+  const A = document.querySelector('.kt-ask'); if (!A) return;
+  if (window.innerWidth <= 900) { A.classList.toggle('rail-m', !!on); return; }
+  A.classList.toggle('rail-off', !on); if (!tam) { A._railAuto = 0; lsSet('ktRail', on ? 1 : 0); }
+}
+function ktRailToggle() { const A = document.querySelector('.kt-ask'); if (!A) return; ktRailSet(window.innerWidth <= 900 ? !A.classList.contains('rail-m') : A.classList.contains('rail-off')); }
 function ktAgo(iso) { const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
   return isNaN(m) ? '' : m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : m < 1440 ? Math.round(m / 60) + ' giờ trước' : Math.round(m / 1440) + ' ngày trước'; }
 function ktHistBind(el) {
   $$('[data-kth]', el).forEach(b => { b.onclick = e => {
-    if (e.target.closest('[data-kthd]')) { const k = e.target.closest('[data-kthd]').dataset.kthd; lsSet('ktChats', ktHistAll().filter(x => x.conv !== k)); return ktSidePaint(); }
+    const del = e.target.closest('[data-kthd]');
+    if (del) { const k = del.dataset.kthd; lsSet('ktChats', ktHistAll().filter(x => x.conv !== k));
+      if (KT.chat.msgs.length && (KT.chat.conv || 'tam') === k && typeof KT.newChat === 'function') return KT.newChat(1);
+      return ktRailPaint(); }
     const c = ktHistAll().find(x => x.conv === b.dataset.kth); if (!c) return;
-    KT.chat = { conv: c.conv === 'tam' ? '' : c.conv, msgs: c.msgs, stu: KT.chat.stu || null }; ktChatSave();
-    if (typeof KT.chatPaint === 'function') KT.chatPaint(); ktSidePaint(); toast('Đã mở lại cuộc trò chuyện', 'ok'); }; });
-  const ca = $('[data-kthc]', el); if (ca) ca.onclick = ev => { ev.preventDefault(); lsSet('ktChats', []); ktSidePaint(); toast('Đã xoá lịch sử trò chuyện trên máy này', 'ok'); };
-  const dn = $('[data-kthn]', el); if (dn) dn.onchange = () => { lsSet('ktHistDays', Number(dn.value)); lsSet('ktChats', ktHistClean(ktHistAll())); ktSidePaint(); };
+    ktSideClose(); KT.chat = { conv: c.conv === 'tam' ? '' : c.conv, msgs: c.msgs, stu: KT.chat.stu || null }; ktChatSave();
+    if (typeof KT.chatPaint === 'function') KT.chatPaint();
+    ktRailPaint(); if (window.innerWidth <= 900) ktRailSet(0); }; });
+  const ca = $('[data-kthc]', el); if (ca) ca.onclick = ev => { ev.preventDefault(); if (!window.confirm('Xoá toàn bộ lịch sử trò chuyện trên máy này?')) return; lsSet('ktChats', []); ktRailPaint(); toast('Đã xoá lịch sử trò chuyện', 'ok'); };
+  const dn = $('[data-kthn]', el); if (dn) dn.onchange = () => { lsSet('ktHistDays', Number(dn.value)); lsSet('ktChats', ktHistClean(ktHistAll())); ktRailPaint(); };
+  const q = $('[data-krq]', el); if (q) q.oninput = () => { KT_RAIL.q = q.value; ktRailPaint(); };
+  const nw = $('[data-krnew]', el); if (nw) nw.onclick = () => { if (typeof KT.newChat === 'function') KT.newChat(); };
+  const tg = $('[data-krtg]', el); if (tg) tg.onclick = () => ktRailToggle();
 }
 
 /* ── HỎI DỮ LIỆU (chat kiểu Claude) ── */
@@ -29833,28 +29926,48 @@ const KT_SUGS = [['bi-journal-text', 'Các lớp 5 môn Toán đã học những
 function ktChatSave() { const c = KT.chat; c.msgs = c.msgs.slice(-30); lsSet('ktChat', c); try { ktHistSave(); } catch (e) {} }      // (1.85) + lưu vào lịch sử trò chuyện (tự xoá sau 30 ngày)
 function ktAskView(B) {
   const SJ = (KT.b && KT.b.sj) || {}, spans = [[30, '1 tháng'], [90, '3 tháng'], [150, '5 tháng'], [300, 'Năm học']];
-  /* (1.85) khung chat + PANEL DỮ LIỆU SONG SONG: khung chat chỉ giữ câu trả lời và bảng kết quả; bảng phân tích,
-     thanh kéo ngưỡng, biểu đồ, danh sách học sinh nằm ở panel bên phải (điện thoại: mở đè toàn màn). */
-  B.innerHTML = '<div class="kt-chatw"><div class="kt-chat"><div id="ktStuBox" class="kt-stubox"></div><div class="kt-msgs" id="ktMsgs"></div><div class="kt-comp"><textarea id="ktQ" rows="1" placeholder="Hỏi Trợ lý về lớp, học sinh, bài đã học, BTVN…" aria-label="Câu hỏi"></textarea>' +
-    '<div class="kt-acts"><select id="ktAsj" aria-label="Môn"><option value="">Môn: tự nhận</option>' + Object.keys(SJ).map(k => '<option value="' + k + '"' + (KT.ask.sj === k ? ' selected' : '') + '>' + esc(SJ[k]) + '</option>').join('') + '</select>' +
-    '<select id="ktAsp" aria-label="Khoảng ngày">' + spans.map(x => '<option value="' + x[0] + '"' + (Number(KT.ask.span) === x[0] ? ' selected' : '') + '>' + x[1] + ' gần đây</option>').join('') + '</select>' +
-    aiEngSel(KT.b && KT.b.eng, KT.ask.eng, 'ktAeng') +      /* (1.85) kênh AI cho lượt hỏi này */
-    '<button class="kt-lnk" id="ktStuBtn" aria-label="Chọn học sinh"><i class="bi bi-person-plus"></i><span class="kt-nw"> Chọn học sinh</span></button>' +
-    '<button class="kt-lnk" id="ktHist" title="Lịch sử trò chuyện" aria-label="Lịch sử trò chuyện"><i class="bi bi-clock-history"></i><span class="kt-nw"> Lịch sử</span></button>' +
-    '<button class="kt-lnk" id="ktNew" title="Cuộc mới" aria-label="Cuộc mới"><i class="bi bi-plus-lg"></i><span class="kt-nw"> Cuộc mới</span></button><span class="sp"></span><button class="kt-send" id="ktSend" aria-label="Gửi" disabled><i class="bi bi-arrow-up"></i></button></div></div>' +
-    '<aside class="kt-side" id="ktSide" hidden aria-label="Dữ liệu đã lọc"></aside></div>';
-  const M = $('#ktMsgs', B), Q = $('#ktQ', B), SEND = $('#ktSend', B);
+  /* (1.85.1) KHUNG KIỂU CLAUDE: thanh lịch sử bên trái · khung chat giữa · panel phân tích bên phải (chỉ mở khi bấm, màn hẹp là ngăn kéo).
+     Thanh soạn câu hỏi một hàng: chip Phạm vi (môn + khoảng ngày, mở bảng nhỏ) · chip Học sinh │ kênh AI · nút gửi. Cuộc mới / Lịch sử nằm ở thanh trái. */
+  const wide = window.innerWidth > 900, railOn = wide && lsGet('ktRail', 1) ? 1 : 0;
+  B.innerHTML = '<div class="kt-ask' + (railOn ? '' : ' rail-off') + '"><aside class="kt-rail" id="ktRail" aria-label="Lịch sử trò chuyện"></aside><div class="kt-rbd" data-krbd></div>' +
+    '<div class="kt-chat"><div class="kt-chd"><button type="button" class="kt-icb" data-krtg title="Lịch sử trò chuyện" aria-label="Mở lịch sử trò chuyện"><i class="bi bi-layout-sidebar"></i></button>' +
+      '<button type="button" class="kt-icb" data-krnew title="Cuộc trò chuyện mới" aria-label="Cuộc trò chuyện mới"><i class="bi bi-pencil-square"></i></button><span class="kt-ctt" id="ktCtt"></span></div>' +
+    '<div id="ktStuBox" class="kt-stubox"></div><div class="kt-msgs" id="ktMsgs"></div><div class="kt-comp"><textarea id="ktQ" rows="1" placeholder="Hỏi Trợ lý về lớp, học sinh, bài đã học, BTVN…" aria-label="Câu hỏi"></textarea>' +
+    '<div class="kt-cbar"><button type="button" class="kt-chip" id="ktScope" aria-haspopup="true" title="Môn và khoảng ngày dữ liệu"></button>' +
+    '<button type="button" class="kt-chip" id="ktStuBtn" aria-label="Chọn học sinh"><i class="bi bi-person-plus"></i><span>Học sinh</span></button><span class="sp"></span>' +
+    (aiEngSel(KT.b && KT.b.eng, KT.ask.eng, 'ktAeng') ? '<label class="kt-eng" title="Kênh gọi AI cho lượt hỏi này"><i class="bi bi-lightning-charge"></i>' + aiEngSel(KT.b && KT.b.eng, KT.ask.eng, 'ktAeng') + '</label>' : '') +      /* (1.85) kênh AI */
+    '<button class="kt-send" id="ktSend" aria-label="Gửi" disabled><i class="bi bi-arrow-up"></i></button></div></div></div>' +
+    '<aside class="kt-side" id="ktSide" hidden aria-label="Bảng phân tích"></aside><div class="kt-sbd" data-ksbd></div></div>';
+  const M = $('#ktMsgs', B), Q = $('#ktQ', B), SEND = $('#ktSend', B), SC = $('#ktScope', B), CT = $('#ktCtt', B);
   const fit = () => { Q.style.height = 'auto'; Q.style.height = Math.min(180, Q.scrollHeight) + 'px'; SEND.disabled = !Q.value.trim(); };
   Q.oninput = fit; Q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (Q.value.trim()) ask(Q.value.trim()); } };
-  $('#ktAsj', B).onchange = e => { KT.ask.sj = e.target.value; lsSet('ktAskSj', KT.ask.sj); };
-  $('#ktAsp', B).onchange = e => { KT.ask.span = Number(e.target.value); lsSet('ktAskSpan', KT.ask.span); };
-  const eg = $('#ktAeng', B); if (eg) eg.onchange = e => { KT.ask.eng = e.target.value; lsSet('ktAskEng', KT.ask.eng); };      // (1.85) kênh AI
-  $('#ktNew', B).onclick = () => { ktHistSave(); KT.chat = { conv: '', msgs: [], stu: KT.chat.stu || null }; lsSet('ktChat', KT.chat); paint(); Q.focus(); };      // cuộc mới vẫn giữ học sinh đang chọn (cuộc cũ vào Lịch sử)
-  $('#ktHist', B).onclick = () => { if (KT_SIDE.on && KT_SIDE.tab === 'ls') return ktSideClose(); ktSideOpen(KT_SIDE.mi, 'ls'); };      // (1.85) lịch sử trò chuyện ở panel
+  // chip Phạm vi: “Toán · 3 tháng” → bảng nhỏ chọn môn + khoảng ngày (thay 2 ô chọn rời)
+  const scLbl = () => { const sp = spans.find(x => x[0] === Number(KT.ask.span)) || [0, KT.ask.span + ' ngày'];
+    SC.innerHTML = '<i class="bi bi-sliders2"></i><span>' + esc(KT.ask.sj && SJ[KT.ask.sj] ? SJ[KT.ask.sj] : 'Môn tự nhận') + ' · ' + esc(sp[1]) + '</span><i class="bi bi-chevron-down"></i>'; };
+  const popClose = () => { const p0 = $('.kt-pop', B); if (p0) p0.remove(); document.removeEventListener('mousedown', popOut, true); SC.setAttribute('aria-expanded', 'false'); };
+  const popOut = e => { if (!e.target.closest('.kt-pop') && !e.target.closest('#ktScope')) popClose(); };
+  SC.onclick = () => { if ($('.kt-pop', B)) return popClose();
+    const P = document.createElement('div'); P.className = 'kt-pop'; P.setAttribute('role', 'dialog'); P.setAttribute('aria-label', 'Phạm vi dữ liệu');
+    const draw = () => { P.innerHTML = '<h6>Môn</h6><div class="kt-popr">' + [['', 'Tự nhận theo câu hỏi']].concat(Object.keys(SJ).map(k => [k, SJ[k]])).map(x => '<button type="button" data-kps="' + x[0] + '" aria-pressed="' + (KT.ask.sj === x[0]) + '">' + esc(x[1]) + '</button>').join('') + '</div>' +
+      '<h6>Khoảng ngày</h6><div class="kt-popr">' + spans.map(x => '<button type="button" data-kpd="' + x[0] + '" aria-pressed="' + (Number(KT.ask.span) === x[0]) + '">' + esc(x[1]) + ' gần đây</button>').join('') + '</div>';
+      $$('[data-kps]', P).forEach(b => { b.onclick = () => { KT.ask.sj = b.dataset.kps; lsSet('ktAskSj', KT.ask.sj); scLbl(); draw(); }; });
+      $$('[data-kpd]', P).forEach(b => { b.onclick = () => { KT.ask.span = Number(b.dataset.kpd); lsSet('ktAskSpan', KT.ask.span); scLbl(); draw(); }; }); };
+    draw(); $('.kt-comp', B).appendChild(P); SC.setAttribute('aria-expanded', 'true'); setTimeout(() => document.addEventListener('mousedown', popOut, true), 0); };
+  B.addEventListener('keydown', e => { if (e.key === 'Escape') popClose(); });
+  scLbl();
+  const eg = $('#ktAeng', B); if (eg) { if (eg.options[0]) eg.options[0].textContent = 'Tự động'; eg.onchange = e => { KT.ask.eng = e.target.value; lsSet('ktAskEng', KT.ask.eng); }; }      // (1.85) kênh AI · nhãn ngắn
+  KT.newChat = quiet => { ktHistSave(); ktSideClose(); KT.chat = { conv: '', msgs: [], stu: KT.chat.stu || null }; lsSet('ktChat', KT.chat); if (B.isConnected) { paint(); ktRailPaint(); if (window.innerWidth <= 900) ktRailSet(0); if (!quiet) Q.focus(); } };      // cuộc mới vẫn giữ học sinh đang chọn (cuộc cũ vào Lịch sử)
+  $$('.kt-chd [data-krtg]', B).forEach(b => { b.onclick = () => ktRailToggle(); });
+  $$('.kt-chd [data-krnew]', B).forEach(b => { b.onclick = () => KT.newChat(); });
+  $('[data-krbd]', B).onclick = () => ktRailSet(0);
+  $('[data-ksbd]', B).onclick = () => ktSideClose();
+  ktRailPaint();
   KT.chatPaint = () => { if (B.isConnected) paint(); };
   SEND.onclick = () => { if (Q.value.trim()) ask(Q.value.trim()); };
   const paint = () => {
-    const L = KT.chat.msgs;
+    const L = KT.chat.msgs, u0 = L.find(m => m.role === 'u');
+    CT.textContent = u0 ? u0.text : ''; CT.title = u0 ? u0.text : '';      // (1.85.1) tên cuộc đang mở (một dòng, mờ dần ở cuối)
+    const rk = (KT.chat.conv || 'tam') + '|' + L.length; if (B._rk !== rk) { B._rk = rk; ktRailPaint(); }
     if (!L.length) { M.innerHTML = '<div class="kt-hello">' + ktBot('md') + '<h2>Trợ lý Kiến Trẻ</h2><p>Hỏi về các lớp trên kientre.click: bài (topic) đã học, bài chung giữa các lớp, tình hình học của một học sinh / một lớp theo môn, bài tập về nhà, chuyên cần — có biểu đồ khi cần.</p>' +
       (!(KT.b.office || (KT.b.me && KT.b.me.office)) ? '<p class="kt-err" style="justify-content:center"><i class="bi bi-plug"></i> Cần phiên giáo vụ — quản lý dán ở tab Kết nối.</p>' : '') +
       '<div class="kt-sugs">' + (KT.chat.stu ? [['bi-clipboard-data', 'Tóm tắt tình hình học của ' + KT.chat.stu.name + ' theo từng môn'], ['bi-exclamation-diamond', 'Em đang yếu phần nào? Dẫn ngày cụ thể'], ['bi-envelope-heart', 'Viết nhận xét chi tiết gửi phụ huynh của ' + KT.chat.stu.name], ['bi-graph-up', 'BTVN của em thay đổi thế nào? Vẽ biểu đồ']] : KT_SUGS).map(x => '<button class="kt-sug" data-ksg="' + esc(x[1]) + '"><i class="bi ' + x[0] + '"></i><span>' + esc(x[1]) + '</span></button>').join('') + '</div></div>';
@@ -30457,7 +30570,7 @@ const RPT_CSS = '#ktPrint{ display:none }' +
 
 /* ── (1.84.5) VIỆC AI — mọi lượt AI của Kiến Trẻ (nhận xét · hỏi dữ liệu · đề mock test · phân tích hồ sơ · hỏi nhận xét KGS): đang chạy / xong / lỗi.
    Máy chủ giữ kết quả (AiLog) nên chuyển tab, tắt máy vẫn còn — bấm một dòng để xem lại kết quả hoặc mở lại đúng chỗ. ── */
-const KT_JOB_I = { ktnx: 'bi-chat-heart', ktask: 'bi-chat-square-text', ktde: 'bi-file-earmark-text', kths: 'bi-person-vcard', fbask: 'bi-table' };
+const KT_JOB_I = { ktnx: 'bi-chat-heart', ktask: 'bi-stars', ktde: 'bi-file-earmark-text', kths: 'bi-person-vcard', fbask: 'bi-table' };
 function ktJobsView(B) {
   B.innerHTML = '<div class="kt-top"><span class="kt-stat" id="ktJs"></span><span class="sp"></span><button class="kt-ico" id="ktJr" aria-label="Tải lại"><i class="bi bi-arrow-clockwise"></i></button></div><div id="ktJl" class="kt"></div>';
   const V = $('#ktJl', B);
@@ -30510,9 +30623,10 @@ async function ktStuLoad(force) {
   KT.stuRk = ktStuKey(s); return KT.stuR;
 }
 /** thanh học sinh trên đầu khung chat: chưa chọn → nút Chọn học sinh · đã chọn → dashboard gọn (mở / gập) */
+function ktCall_c(n) { const w = String(n || '').trim().split(/\s+/); return w.length > 2 ? w.slice(-2).join(' ') : w.join(' '); }      // tên gọi ngắn trên chip
 function ktStuBar(box, onChange) {
   const s = KT.chat.stu;
-  { const sb = $('#ktStuBtn'); if (sb) { sb.innerHTML = s ? '<i class="bi bi-person-check"></i><span class="kt-nw"> ' + esc(s.name) + '</span>' : '<i class="bi bi-person-plus"></i><span class="kt-nw"> Chọn học sinh</span>'; sb.setAttribute('aria-label', s ? 'Đổi học sinh (' + s.name + ')' : 'Chọn học sinh'); sb.title = s ? 'Đổi học sinh' : 'Hỏi về một học sinh: dashboard, hỏi liên tục, lập báo cáo'; sb.onclick = () => ktStuPick(onChange); } }
+  { const sb = $('#ktStuBtn'); if (sb) { sb.classList.toggle('on', !!s); sb.innerHTML = s ? '<i class="bi bi-person-check"></i><span>' + esc(ktCall_c(s.name)) + '</span>' : '<i class="bi bi-person-plus"></i><span>Học sinh</span>'; sb.setAttribute('aria-label', s ? 'Đổi học sinh (' + s.name + ')' : 'Chọn học sinh'); sb.title = s ? 'Đổi học sinh' : 'Hỏi về một học sinh: dashboard, hỏi liên tục, lập báo cáo'; sb.onclick = () => ktStuPick(onChange); } }
   if (!s) { box.innerHTML = ''; box.hidden = true; return; }      // (1.84.7) chưa chọn → chỉ là nút ở thanh soạn câu hỏi, không chiếm đầu trang
   box.hidden = false;
   const R = KT.stuR && KT.stuRk === ktStuKey(s) ? KT.stuR : null, open = lsGet('ktStuOpen', 1);
