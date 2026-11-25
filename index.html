@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-25T15:37:13.752Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-25T15:44:10.021Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -35672,9 +35672,12 @@ function tkPri(t) { const pr = TK_PRI[t.priority] || TK_PRI.med; return '<i clas
 function tkStCls(p, id) { return ksCls(p ? p.cols : [], p ? p.cols.findIndex(c => c.id === id) : -1); }      // (1.56.6) cột có màu tự chọn (c.k) → màu đó — App.html › ksCls
 /* GỘP CHUNG nhiều bảng: cột riêng của từng bảng quy về 4 BƯỚC chung — cột đầu = Cần làm · cột hoàn thành = Hoàn thành · cột có chữ “duyệt / review / kiểm” = Chờ duyệt · còn lại = Đang làm */
 const TK_STAGE = [['todo', 'Cần làm'], ['doing', 'Đang làm'], ['review', 'Chờ duyệt'], ['done', 'Hoàn thành']];
-function tkStageOf(p, colId) { const i = p.cols.findIndex(c => c.id === colId), c = p.cols[i] || {}; return c.done ? 'done' : tkCxl(c) ? 'cxl' : i <= 0 ? 'todo' : /review|duy[eệ]t|ki[eể]m|ch[oờ] /i.test(c.id + ' ' + (c.t || '') + ' ') ? 'review' : 'doing'; }
+/** (1.87.3) cột mang tên Cần làm / Backlog / To do… là bước Cần làm dù không đứng đầu bảng (máy chủ: TASK_TODO) */
+const TK_TODO = /^\s*(cần làm|việc cần làm|chưa làm|chưa bắt đầu|backlog|to[\s-]?do|not started)(?![\p{L}\p{N}])/iu;
+function tkStageOf(p, colId) { const i = p.cols.findIndex(c => c.id === colId), c = p.cols[i] || {}; return c.done ? 'done' : tkCxl(c) ? 'cxl' : i <= 0 || TK_TODO.test(c.t || '') ? 'todo' : /review|duy[eệ]t|ki[eể]m|chờ /i.test(c.id + ' ' + (c.t || '') + ' ') ? 'review' : 'doing'; }
 /** kéo thẻ sang một bước khi đang gộp → cột tương ứng của chính bảng chứa việc đó */
-function tkColOfStage(p, st) { const c = p.cols.find(x => tkStageOf(p, x.id) === st); if (c) return c.id; const k = TK_STAGE.findIndex(x => x[0] === st), alt = p.cols.filter(x => !x.done && !tkCxl(x));      // (1.87.2) cột huỷ không nhận việc của bước khác; bảng không có cột huỷ → việc huỷ nằm ở cột hoàn thành (đã đóng)
+/** cột của bảng p ứng với bước st — trùng tên cột (t) thì lấy cột đó, không thì cột đầu tiên của bước */
+function tkColOfStage(p, st, t) { const M = p.cols.filter(x => tkStageOf(p, x.id) === st), nt = String(t || '').trim().toLowerCase(), c = (nt && M.find(x => String(x.t || '').trim().toLowerCase() === nt)) || M[0]; if (c) return c.id; const k = TK_STAGE.findIndex(x => x[0] === st), alt = p.cols.filter(x => !x.done && !tkCxl(x));      // (1.87.2) cột huỷ không nhận việc của bước khác; bảng không có cột huỷ → việc huỷ nằm ở cột hoàn thành (đã đóng)
   return st === 'done' || st === 'cxl' ? (p.cols.find(x => x.done) || p.cols[p.cols.length - 1]).id : (alt[Math.min(k, alt.length - 1)] || p.cols[0]).id; }
 function tkStPill(t) { const c = tkCol(t), p = tkProj(t.projectId), first = p && p.cols[0].id === c.id; return '<span class="tk-st ' + tkStCls(p, c.id) + (c.done ? ' d' : first ? '' : ' w') + '">' + esc(c.t) + '</span>'; }
 /* BA CẤP (từ 1.29, 19-10-2026 — bỏ Story): Epic (mảng lớn) › Task (việc) › Sub-task (bước nhỏ của một task — cũng là việc đầy đủ: người phụ trách, hạn, trạng thái, bình luận).
@@ -36129,7 +36132,7 @@ function tkMirSync() {
     if (tkShareOf(o) !== t.projectId && !(o.parentId && tkById('m' + o.parentId)) && !(o.epicId && tkById('m' + o.epicId))) return void gone.add(t);      // chủ bảng thôi hiện task này
     const pp = tkProj(o.projectId), tb = tkProj(t.projectId), col = pp && pp.cols.find(c => c.id === o.status);
     ['title', 'desc', 'priority', 'type', 'assignee', 'due', 'start', 'sMin', 'dMin', 'dl', 'labels', 'updatedAt', 'doneAt', 'nc'].forEach(k => { t[k] = o[k]; }); t.assignees = tkWho(o).slice();
-    if (pp && tb) { t.status = tkColOfStage(tb, tkStageOf(pp, o.status)); t.mir.col = col ? col.t : t.mir.col; t.mir.done = col && col.done ? 1 : 0; } });
+    if (pp && tb) { t.status = tkColOfStage(tb, tkStageOf(pp, o.status), col && col.t); t.mir.col = col ? col.t : t.mir.col; t.mir.done = col && col.done ? 1 : 0; } });
   if (gone.size) d.tasks = d.tasks.filter(t => !gone.has(t));
 }
 function tkCard(t, drag, i, o) {
