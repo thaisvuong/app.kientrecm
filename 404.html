@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-24T11:44:35.622Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-25T12:47:50.066Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -7196,7 +7196,7 @@ function workHide() {
 
 /* lệnh tách theo ứng dụng: tự kèm ứng dụng đang mở */
 const APP_SCOPED = { annList: 1, annSave: 1, infoGet: 1, infoSave: 1 };
-const RPC_READ = /^(bootstrap|index|ping|stats|taskBoot|taskGet|taskPeek|notifList|annList|infoGet|classList|classInbox|classChat|classChatMany|classTree|classLessons|reqList|listUsers|listSources|listLinks|getRoles|getSettings|accessList|activity|audit|tutorPermsGet)$/;
+const RPC_READ = /^(bootstrap|index|ping|stats|taskBoot|taskReport|taskGet|taskPeek|notifList|annList|infoGet|classList|classInbox|classChat|classChatMany|classTree|classLessons|reqList|listUsers|listSources|listLinks|getRoles|getSettings|accessList|activity|audit|tutorPermsGet)$/;
 function rpc(fn, payload, opt) {
   opt = opt || {};
   if (APP_SCOPED[fn]) payload = Object.assign({ app: S.mod || '' }, payload);
@@ -34191,6 +34191,632 @@ KIỂM TRA CUỐI NĂM & TỔNG KẾT:
 </style>
 
 <style>
+/* ══════════ (1.85.3) BÁO CÁO KIẾN TASK — đầu trang chọn kỳ · hộp chọn nhiều · báo cáo thành viên ══════════
+   Chỉ dùng token màu của app; hai chế độ sáng / tối đặt ở các biến --rp-* ngay dưới. */
+:root{ --rp-e:#F3663D; --rp-t:#204983; --rp-s:#8FB0DE; --rp-ok:#2E9E62; --rp-tint:#EEF3FB; --rp-line:#DDE5F1 }
+html[data-mode="dark"]{ --rp-e:#FF8A5F; --rp-t:#6E9BE6; --rp-s:#3F5F94; --rp-ok:#43C285; --rp-tint:#1A2438; --rp-line:#2A3448 }
+.tkr{ display:flex; flex-direction:column; gap:16px; min-width:0 }
+/* đầu trang */
+.tkr-hd{ background:var(--surface); border-radius:var(--r-l); box-shadow:var(--sh-1) }
+.tkr-h1{ display:flex; align-items:center; gap:12px; padding:16px 20px 0; min-width:0 }
+.tkr-date{ display:flex; align-items:center; gap:12px; min-width:0; padding:6px 12px 6px 6px; border:0; border-radius:14px; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; transition:background var(--t-fast) }
+.tkr-date:hover, .tkr-date[aria-expanded="true"]{ background:var(--rp-tint) } .tkr-date:focus-visible{ outline:2px solid var(--primary); outline-offset:2px }
+.tkr-date .ic{ flex:none; width:46px; height:46px; border-radius:12px; overflow:hidden; display:flex; flex-direction:column; background:var(--rp-tint); color:var(--primary); text-align:center; font-variant-numeric:tabular-nums }
+.tkr-date .ic small{ flex:0 0 15px; font:700 9.5px/15px var(--font-sans); letter-spacing:.04em; background:var(--orange); color:#fff } .tkr-date .ic b{ flex:1; font:800 19px/31px var(--font-sans) }
+.tkr-date .tx{ min-width:0; display:block } .tkr-date .tx b{ display:block; font-size:22px; line-height:28px; font-weight:700; letter-spacing:-.015em; white-space:nowrap; font-variant-numeric:tabular-nums } .tkr-date .tx b em{ font-style:normal; font-weight:400; color:var(--muted); padding:0 4px }
+.tkr-date .tx small{ display:block; font-size:12.5px; line-height:17px; color:var(--muted); white-space:nowrap } .tkr-date > .bi{ color:var(--muted); font-size:13px }
+.tkr-nav{ display:inline-flex; gap:4px; flex:none } .tkr-nav button{ width:34px; height:34px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink-2); cursor:pointer; display:grid; place-items:center } .tkr-nav button:hover:not(:disabled){ background:var(--rp-tint); color:var(--primary); border-color:var(--primary) } .tkr-nav button:disabled{ opacity:.4; cursor:default }
+.tkr-pre{ margin-left:auto; display:flex; gap:4px; min-width:0; overflow-x:auto; scrollbar-width:none } .tkr-pre::-webkit-scrollbar{ display:none }
+.tkr-pre button{ flex:none; height:34px; padding:0 12px; border:0; border-radius:10px; background:none; font:600 12.5px var(--font-sans); color:var(--ink-2); cursor:pointer; white-space:nowrap } .tkr-pre button:hover{ background:var(--rp-tint) } .tkr-pre button.on{ background:var(--primary); color:var(--on-primary) }
+/* dải ngày: mỗi vạch một ngày (hoặc tuần) của kỳ — cao theo số việc xong, bấm để thu hẹp về ngày đó */
+.tkr-strip{ display:flex; align-items:flex-end; gap:2px; height:44px; margin:12px 20px 0; border-bottom:1px solid var(--rp-line) }
+.tkr-strip button{ flex:1 1 0; min-width:0; height:100%; padding:0; border:0; background:none; display:flex; align-items:flex-end; justify-content:center; cursor:pointer; border-radius:4px 4px 0 0 } .tkr-strip button:hover{ background:var(--rp-tint) }
+.tkr-strip i{ display:block; width:100%; max-width:22px; min-height:2px; border-radius:3px 3px 0 0; background:var(--rp-s) } .tkr-strip .z i{ background:var(--rp-line) } .tkr-strip .we i{ opacity:.7 } .tkr-strip .now i{ background:var(--orange) } .tkr-strip .fu{ cursor:default } .tkr-strip .fu i{ background:transparent }
+.tkr-strip button:focus-visible{ outline:2px solid var(--primary); outline-offset:-2px }
+.tkr-sl span{ white-space:nowrap } .tkr-sl{ display:flex; justify-content:space-between; gap:12px; margin:4px 20px 0; font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums }
+.tkr-h2{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 20px 0 }
+.tkr-tabs{ display:inline-flex; gap:2px; padding:3px; border-radius:11px; background:var(--rp-tint) } .tkr-tabs button{ height:32px; padding:0 14px; border:0; border-radius:9px; background:none; font:600 13px var(--font-sans); color:var(--ink-2); cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:7px } .tkr-tabs button.on{ background:var(--surface); color:var(--primary); box-shadow:var(--sh-1) }
+.tkr-lv{ display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap } .tkr-lv > span{ font-size:12.5px; color:var(--muted) }
+.tkr-ck{ height:34px; display:inline-flex; align-items:center; gap:8px; padding:0 12px 0 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font:600 12.5px var(--font-sans); color:var(--muted); cursor:pointer; white-space:nowrap }
+.tkr-ck::before{ content:''; width:16px; height:16px; border-radius:5px; border:1.5px solid var(--border-strong); flex:none } .tkr-ck.on{ color:var(--ink); border-color:var(--c, var(--primary)); background:var(--surface) } .tkr-ck.on::before{ border-color:var(--c, var(--primary)); background:var(--c, var(--primary)) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 8.4 2.7 2.7L12 5.4'/%3E%3C/svg%3E") center / 100% no-repeat }
+.tkr-ck b{ font-weight:700; font-variant-numeric:tabular-nums } .tkr-ck:hover{ border-color:var(--c, var(--primary)) } .tkr-ck:focus-visible, .kfx-pill:focus-visible{ outline:2px solid var(--primary); outline-offset:2px }
+.tkr-h3{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:12px 20px 16px }
+.kfx-pill{ height:36px; max-width:260px; display:inline-flex; align-items:center; gap:8px; padding:0 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font:500 13px var(--font-sans); color:var(--ink-2); cursor:pointer; white-space:nowrap } .kfx-pill .bi{ font-size:14px; color:var(--muted) } .kfx-pill .bi-chevron-down{ font-size:10.5px }
+.kfx-pill:hover, .kfx-pill[aria-expanded="true"]{ border-color:var(--primary); color:var(--primary) } .kfx-pill.on{ border-color:var(--primary); background:var(--lightprimary); color:var(--primary); font-weight:600 } .kfx-pill.on .bi{ color:inherit }
+.kfx-pill em{ font-style:normal; min-width:20px; padding:0 6px; border-radius:99px; background:var(--primary); color:var(--on-primary); font:700 11px/19px var(--font-sans); text-align:center }
+.kfx-clr{ height:36px; padding:0 10px; border:0; border-radius:10px; background:none; font:600 12.5px var(--font-sans); color:var(--danger); cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap } .kfx-clr:hover{ background:var(--rp-tint) }
+.tkr-src{ margin-left:auto; display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); white-space:nowrap } .tkr-src button{ border:0; background:none; font:inherit; color:var(--primary); font-weight:600; cursor:pointer; padding:4px } .tkr-src .bi{ font-size:13px } .tkr-src .bad{ color:var(--warn) }
+/* thẻ số */
+.tkr .tk-kpi{ position:relative; text-align:left; border:0; font:inherit; color:var(--ink); min-width:0 } button.tk-kpi{ cursor:pointer } button.tk-kpi:hover{ box-shadow:var(--sh-2) } button.tk-kpi:focus-visible{ outline:2px solid var(--primary); outline-offset:2px }
+.tkr .tk-kpi.hot{ background:var(--peach) } .tkr-dl{ font-style:normal; font-weight:700 } .tkr-dl.up{ color:var(--rp-ok) } .tkr-dl.dn{ color:var(--orange-ink) }
+.tkr .tk-box h3{ margin-bottom:14px } .tkr .tk-box h3 .rt{ margin-left:auto; display:inline-flex; gap:2px; padding:2px; border-radius:9px; background:var(--rp-tint) } .tkr .tk-box h3 .rt button{ height:26px; padding:0 10px; border:0; border-radius:7px; background:none; font:600 12px var(--font-sans); color:var(--ink-2); cursor:pointer } .tkr .tk-box h3 .rt button.on{ background:var(--surface); color:var(--primary); box-shadow:var(--sh-1) }
+.tkr .tk-dash > .tk-box{ display:flex; flex-direction:column } .tkr .tk-box > .tk-vb{ flex:1 1 auto; min-height:190px; height:auto } .tkr .tk-box > .ch-rd, .tkr .tk-box > .ch-dn{ margin:auto }
+.tkr .tk-bar-r{ grid-template-columns:minmax(0, 160px) 1fr minmax(34px, auto) } .tkr .tk-bar-r.wd{ grid-template-columns:minmax(120px, 260px) 1fr minmax(96px, auto) } .tkr .tk-bar-r.wd span{ white-space:normal; line-height:1.35 }
+html[data-mode="dark"] .tkr .ch-rd polygon:first-child{ fill:var(--surface-2) } html[data-mode="dark"] .tkr .ch-rd polygon, html[data-mode="dark"] .tkr .ch-rd line{ stroke:var(--border) } html[data-mode="dark"] .tkr .ch-rd polygon:nth-last-of-type(1){ fill:rgba(110,155,230,.28); stroke:#6E9BE6 } html[data-mode="dark"] .tkr .ch-rd circle{ fill:#8FB4F0 } html[data-mode="dark"] .tkr :is(.ch-rd, .ch-dn) text, html[data-mode="dark"] .tkr .ch-dn tspan{ fill:var(--ink-2) }
+html[data-mode="dark"] .tkr .h0{ background:#1A2234 } html[data-mode="dark"] .tkr .h1{ background:#1F3154 } html[data-mode="dark"] .tkr .h2{ background:#27457A } html[data-mode="dark"] .tkr .h3{ background:#315CA3; color:#fff } html[data-mode="dark"] .tkr .h4{ background:#4379CE; color:#fff } html[data-mode="dark"] .tkr .h5{ background:#86B0F5; color:#0E1420 }
+.tkr-note{ margin-top:10px; font-size:12px; line-height:1.5; color:var(--muted) }
+/* bản đồ nhiệt người × cột (cuộn ngang trong khung, cột tên đứng yên) */
+.tkr-hm{ overflow-x:auto; margin:0 -4px; padding:0 4px 4px } .tkr-hm table{ width:100%; border-collapse:separate; border-spacing:3px } .tkr-hm th{ font-weight:500; font-size:11px; line-height:14px; color:var(--muted); padding:2px 4px; text-align:center; white-space:nowrap } .tkr-hm th.l{ text-align:left } .tkr-hm th.on{ color:var(--primary); font-weight:700 }
+.tkr-hm td{ padding:0; height:30px; min-width:38px; text-align:center } .tkr-hm td.l{ position:sticky; left:0; z-index:1; min-width:0; width:1%; padding:0 10px 0 0; background:var(--surface); text-align:left; white-space:nowrap; font-size:13px; color:var(--ink) } .tkr-hm td.l .in{ display:inline-flex; align-items:center; gap:8px; border:0; background:none; font:inherit; color:inherit; padding:0; cursor:pointer } .tkr-hm td.l .in:hover{ color:var(--primary) }
+.tkr-hm td > button, .tkr-hm td > i{ width:100%; height:30px; border:0; border-radius:6px; font:700 12px var(--font-sans); font-style:normal; display:grid; place-items:center; color:var(--ink); font-variant-numeric:tabular-nums } .tkr-hm td > button{ cursor:pointer } .tkr-hm td > button:hover{ box-shadow:0 0 0 2px var(--primary) } .tkr-hm td > button:focus-visible{ outline:2px solid var(--primary) } .tkr-hm td > .h4, .tkr-hm td > .h5{ color:#fff }
+.tkr-hm td.t{ width:1%; padding:0 10px; font-weight:700; font-size:13px; font-variant-numeric:tabular-nums; min-width:44px } .tkr-hm tr.sum td{ font-weight:700; color:var(--ink-2) } .tkr-hm tr.sum td.l{ font-size:12px; color:var(--muted); font-weight:600 }
+/* lịch nhiệt của kỳ */
+.tkr-cal{ display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:4px } .tkr-cal small{ font-size:11px; font-weight:600; color:var(--muted); text-align:center; padding-bottom:2px } .tkr-cal > button, .tkr-cal > i{ position:relative; height:42px; border:0; border-radius:7px; font:inherit; font-style:normal; color:var(--ink); display:grid; place-items:center } .tkr-cal > button{ cursor:pointer } .tkr-cal > button:hover{ box-shadow:0 0 0 2px var(--primary) } .tkr-cal em{ position:absolute; top:3px; left:6px; font-size:9.5px; font-style:normal; opacity:.75 } .tkr-cal b{ font-size:13px } .tkr-cal .now{ outline:2px solid var(--orange); outline-offset:1px } .tkr-cal .out{ background:none } .tkr-cal .h4, .tkr-cal .h5{ color:#fff }
+.tkr-gh{ overflow-x:auto } .tkr-gh .g{ display:grid; grid-auto-flow:column; grid-template-rows:16px repeat(7, minmax(15px, 1fr)); gap:3px; width:100%; min-width:min-content } .tkr-gh .g > *{ min-width:13px } .tkr-gh small{ font-size:10.5px; color:var(--muted); white-space:nowrap; overflow:visible; width:0 } .tkr-gh small.d{ width:auto; padding-right:4px; line-height:15px } .tkr-gh button, .tkr-gh i{ border:0; padding:0; border-radius:4px; min-height:15px } .tkr-gh button{ cursor:pointer } .tkr-gh button:hover{ box-shadow:0 0 0 2px var(--primary) }
+/* bảng thành viên */
+.tkr-tw{ overflow-x:auto; margin:0 -20px; padding:0 20px } .tkr-tb{ width:100%; border-collapse:collapse; font-size:13px } .tkr-tb th{ position:relative; padding:8px 10px; font-weight:600; font-size:12px; color:var(--muted); text-align:right; white-space:nowrap; border-bottom:1px solid var(--border) } .tkr-tb td:first-child, .tkr-tb th:first-child{ position:sticky; left:0; z-index:1; background:var(--surface) } .tkr-tb th.l, .tkr-tb td.l{ text-align:left } .tkr-tb th[data-rs]{ cursor:pointer; user-select:none } .tkr-tb th[data-rs]:hover, .tkr-tb th.on{ color:var(--primary) } .tkr-tb th .bi{ font-size:10px; margin-left:3px }
+.tkr-tb td{ padding:9px 10px; text-align:right; border-bottom:1px solid var(--border); white-space:nowrap; font-variant-numeric:tabular-nums; color:var(--ink-2) } .tkr-tb tbody tr[data-rm]{ cursor:pointer } .tkr-tb tbody tr[data-rm]:hover td{ background:var(--rp-tint) } .tkr-tb td.n0{ color:var(--border-strong) } .tkr-tb td b.big{ font-size:15px; color:var(--ink) } .tkr-tb tfoot td, .tkr-tb tfoot td:first-child{ border-bottom:0; font-weight:700; color:var(--ink); background:var(--rp-tint) } .tkr-tb tfoot td:first-child{ border-radius:10px 0 0 10px } .tkr-tb tfoot td:last-child{ border-radius:0 10px 10px 0 }
+.tkr-nm{ display:inline-flex; align-items:center; gap:10px; min-width:0 } .tkr-nm b{ font-weight:600; color:var(--ink) } .tkr-nm small{ display:block; font-size:11.5px; color:var(--muted) } .tkr-nm .av{ flex:none }
+.tkr-seg{ display:flex; gap:2px; width:100%; min-width:120px; height:12px } .tkr-seg i{ border-radius:3px; min-width:4px } .tkr-seg .e{ background:var(--rp-e) } .tkr-seg .t{ background:var(--rp-t) } .tkr-seg .s{ background:var(--rp-s) }
+.tkr-lg{ display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12px; color:var(--muted); margin-bottom:10px } .tkr-lg span{ display:inline-flex; align-items:center; gap:6px } .tkr-lg i{ width:10px; height:10px; border-radius:3px }
+.tkr-sp{ display:block; width:84px; height:22px }
+/* danh sách việc · hộp xem việc phía sau con số */
+.tkr-li{ display:flex; flex-direction:column } .tkr-li .tkr-it{ display:grid; grid-template-columns:20px minmax(0, 1fr) auto; gap:4px 10px; align-items:start; width:100%; padding:10px 8px; border:0; border-bottom:1px solid var(--border); border-radius:8px; background:none; font:inherit; color:var(--ink); text-align:left; cursor:pointer } .tkr-li .tkr-it:hover{ background:var(--rp-tint) } .tkr-li .tkr-it:last-child{ border-bottom:0 } .tkr-li .tkr-it b{ display:block; font-size:13.5px; font-weight:600; line-height:1.4; overflow-wrap:anywhere } .tkr-li .tkr-it .mt{ display:flex; flex-wrap:wrap; gap:2px 12px; margin-top:2px; font-size:12px; color:var(--muted) } .tkr-li .tkr-it .mt span{ display:inline-flex; align-items:center; gap:5px } .tkr-li .tkr-it .mt .bdn::before{ content:''; width:8px; height:8px; border-radius:50%; background:var(--bc, var(--rp-s)) } .tkr-li .tkr-it .rr{ text-align:right; font-size:12px; color:var(--muted); white-space:nowrap } .tkr-li .tkr-it .rr b{ font-size:12px; font-weight:600; color:var(--ink-2) } .tkr-li .tkr-it .rr b.ok{ color:var(--rp-ok) } .tkr-li .tkr-it .rr b.bad{ color:var(--orange-ink) }
+.tkr-more{ margin:10px auto 0; display:block }
+.tkr-ph{ display:flex; align-items:center; gap:14px; margin-bottom:14px } .tkr-ph .av{ width:46px; height:46px; font-size:16px } .tkr-ph h4{ margin:0; font-size:17px } .tkr-ph small{ color:var(--muted); font-size:12.5px }
+.tkr-g3{ display:grid; grid-template-columns:repeat(auto-fit, minmax(104px, 1fr)); gap:8px; margin-bottom:16px } .tkr-g3 div{ padding:10px 12px; border-radius:10px; background:var(--rp-tint) } .tkr-g3 b{ display:block; font-size:19px; font-variant-numeric:tabular-nums } .tkr-g3 span{ font-size:12px; color:var(--muted) }
+.tkr-sub{ margin:14px 0 6px; font-size:13px; font-weight:700; color:var(--ink) }
+.tkr-q{ display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px } .tkr-q button, .tkr-q div{ display:flex; gap:10px; align-items:flex-start; padding:12px; border:0; border-radius:10px; background:var(--rp-tint); font:inherit; font-size:12.5px; line-height:1.45; color:var(--ink-2); text-align:left } .tkr-q button{ cursor:pointer } .tkr-q button:hover{ box-shadow:0 0 0 2px var(--primary) } .tkr-q b{ font-size:17px; line-height:1.1; color:var(--ink); font-variant-numeric:tabular-nums; min-width:28px } .tkr-q .w b{ color:var(--orange-ink) }
+/* ── hộp nổi: chọn nhiều · bảng lọc · chọn ngày ── */
+.kfx-pop{ position:fixed; z-index:795; background:var(--surface); border:1px solid var(--border-strong); border-radius:14px; box-shadow:var(--sh-3); animation:popIn 160ms var(--spring); overflow:hidden; display:flex; flex-direction:column; max-width:calc(100vw - 16px); max-height:calc(100vh - 16px) }
+.kfx{ display:flex; flex-direction:column; min-height:0; min-width:0 } .kfx-t{ display:flex; align-items:center; gap:8px; padding:12px 14px 8px; font-size:13.5px; font-weight:700; color:var(--ink) } .kfx-t small{ font-weight:500; color:var(--muted); font-size:12px } .kfx-t button{ margin-left:auto; border:0; background:none; font:600 12px var(--font-sans); color:var(--primary); cursor:pointer; padding:4px 6px; border-radius:7px } .kfx-t button:hover{ background:var(--rp-tint) } .kfx-t button:disabled{ color:var(--border-strong); cursor:default; background:none }
+.kfx-q{ flex:none; display:flex; align-items:center; gap:8px; margin:0 12px 8px; height:36px; padding:0 11px; border:1px solid var(--border); border-radius:10px; color:var(--muted) } .kfx-q:focus-within{ border-color:var(--primary); box-shadow:0 0 0 3px var(--ring) } .kfx-q input{ flex:1; min-width:0; border:0; outline:0; background:none; font:13px var(--font-sans); color:var(--ink) }
+.kfx-k{ flex:none; display:flex; gap:6px; flex-wrap:wrap; padding:0 12px 8px } .kfx-k button{ height:28px; padding:0 10px; border:1px solid var(--border); border-radius:99px; background:none; font:600 12px var(--font-sans); color:var(--ink-2); cursor:pointer } .kfx-k button:hover{ border-color:var(--primary); color:var(--primary) } .kfx-k button.on{ background:var(--primary); border-color:var(--primary); color:var(--on-primary) }
+.kfx-l{ flex:1 1 auto; min-height:80px; overflow-y:auto; padding:0 6px 6px } .kfx-l .kfx-gh{ position:sticky; top:0; z-index:1; background:var(--surface) } .kfx-l .kfx-gh .kfx-o{ font-size:12px; font-weight:700; color:var(--muted); min-height:32px }
+.kfx-o{ display:flex; align-items:center; gap:10px; width:100%; min-height:38px; padding:5px 9px; border:0; border-radius:9px; background:none; font:13px var(--font-sans); color:var(--ink); text-align:left; cursor:pointer } .kfx-o:hover, .kfx-o:focus-visible{ background:var(--rp-tint); outline:none }
+.kfx-o .c{ flex:none; width:17px; height:17px; border-radius:5px; border:1.5px solid var(--border-strong); background:var(--surface) } .kfx-o.rd .c{ border-radius:50% } .kfx-o.on .c{ border-color:var(--primary); background:var(--primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 8.4 2.7 2.7L12 5.4'/%3E%3C/svg%3E") center / 100% no-repeat } .kfx-o.part .c{ border-color:var(--primary); background:linear-gradient(var(--primary), var(--primary)) center / 9px 2px no-repeat } .kfx-o.rd.on .c{ background:var(--surface); border:5px solid var(--primary) }
+.kfx-o .x{ flex:1; min-width:0; line-height:1.35; overflow-wrap:anywhere } .kfx-o .x small{ display:block; font-size:11.5px; color:var(--muted) } .kfx-o.on .x{ font-weight:600 } .kfx-o .n{ flex:none; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums } .kfx-o .dot{ flex:none; width:9px; height:9px; border-radius:50% } .kfx-o > .bi{ flex:none; color:var(--muted) } .kfx-o .av{ flex:none; width:24px; height:24px; font-size:9.5px }
+.kfx-l hr{ border:0; border-top:1px solid var(--border); margin:4px 8px } .kfx-0{ padding:16px; font-size:13px; color:var(--muted); text-align:center }
+.kfx-f{ display:flex; align-items:center; gap:8px; padding:9px 12px; border-top:1px solid var(--border) } .kfx-f small{ color:var(--muted); font-size:12px } .kfx-f .sp{ flex:1 } .kfx-sel{ width:330px; max-height:min(520px, calc(100vh - 24px)) }
+.kfx-panel{ width:560px; height:min(480px, calc(100vh - 32px)) } .kfx-panel .kfx-bd{ flex:1; min-height:0; display:grid; grid-template-columns:200px minmax(0, 1fr); border-top:1px solid var(--border) } .kfx-panel .kfx-nv{ overflow-y:auto; padding:6px 6px 12px; background:var(--surface-2); border-right:1px solid var(--border) } .kfx-panel .kfx-nv button{ display:flex; align-items:center; gap:10px; width:100%; min-height:44px; padding:5px 10px; border:0; border-radius:9px; background:none; font:13px var(--font-sans); color:var(--ink); text-align:left; cursor:pointer } .kfx-panel .kfx-nv button:hover{ background:var(--rp-tint) } .kfx-panel .kfx-nv button.on{ background:var(--surface); box-shadow:var(--sh-1); color:var(--primary); font-weight:600 } .kfx-panel .kfx-nv .bi{ flex:none; width:16px; text-align:center; color:var(--muted) } .kfx-panel .kfx-nv button.on .bi{ color:inherit } .kfx-panel .kfx-nv span{ flex:1; min-width:0 } .kfx-panel .kfx-nv small{ display:block; font-size:11.5px; font-weight:500; color:var(--primary); white-space:nowrap; overflow:hidden; text-overflow:clip } .kfx-panel .kfx-nv em{ font-style:normal; min-width:19px; padding:0 5px; border-radius:99px; background:var(--primary); color:var(--on-primary); font:700 10.5px/18px var(--font-sans); text-align:center }
+.kfx-panel .kfx-pn{ padding-top:10px; display:flex; flex-direction:column; min-height:0; min-width:0 } .kfx-dr{ display:flex; gap:8px; padding:6px 12px 10px } .kfx-dr label{ flex:1; font-size:11.5px; color:var(--muted) } .kfx-dr .inp{ width:100%; min-width:0; height:36px; margin-top:3px }
+.kfx-date{ display:grid; grid-template-columns:156px auto; } .kfx-date .kfx-ps{ padding:8px; border-right:1px solid var(--border); background:var(--surface-2); display:flex; flex-direction:column; gap:1px; overflow-y:auto } .kfx-date .kfx-ps button{ height:32px; padding:0 11px; border:0; border-radius:8px; background:none; font:500 13px var(--font-sans); color:var(--ink); text-align:left; cursor:pointer; white-space:nowrap } .kfx-date .kfx-ps button:hover{ background:var(--rp-tint) } .kfx-date .kfx-ps button.on{ background:var(--primary); color:var(--on-primary); font-weight:600 }
+.kfx-date .kfx-cl{ padding:12px 14px 12px; display:flex; flex-direction:column; gap:12px } .kfx-ms{ display:flex; gap:22px } .kfx-mo{ width:232px } .kfx-mo .kfx-mh{ display:flex; align-items:center; justify-content:center; height:32px; position:relative; font-weight:700; font-size:13.5px; color:var(--ink) } .kfx-mo .kfx-mh button{ position:absolute; top:1px; width:30px; height:30px; border:0; border-radius:8px; background:none; color:var(--ink-2); cursor:pointer } .kfx-mo .kfx-mh button:hover{ background:var(--rp-tint) } .kfx-mo .kfx-mh .pv{ left:0 } .kfx-mo .kfx-mh .nx{ right:0 }
+.kfx-mo .kfx-gd{ display:grid; grid-template-columns:repeat(7, 1fr); row-gap:2px } .kfx-mo .kfx-gd small{ height:26px; line-height:26px; text-align:center; font-size:11px; font-weight:600; color:var(--muted) } .kfx-mo .kfx-gd button{ height:33px; border:0; padding:0; background:none; font:500 12.5px var(--font-sans); color:var(--ink); cursor:pointer; font-variant-numeric:tabular-nums } .kfx-mo .kfx-gd button:hover{ box-shadow:inset 0 0 0 1.5px var(--primary); border-radius:9px } .kfx-mo .kfx-gd .in{ background:var(--lightprimary) } .kfx-mo .kfx-gd .a, .kfx-mo .kfx-gd .b{ background:var(--primary); color:var(--on-primary); font-weight:700 } .kfx-mo .kfx-gd .a{ border-radius:9px 0 0 9px } .kfx-mo .kfx-gd .b{ border-radius:0 9px 9px 0 } .kfx-mo .kfx-gd .a.b{ border-radius:9px } .kfx-mo .kfx-gd .td:not(.a):not(.b){ color:var(--orange-ink); font-weight:800 }
+.kfx-df{ display:flex; align-items:center; gap:8px; border-top:1px solid var(--border); padding-top:10px } .kfx-df .inp{ width:142px; height:36px } .kfx-df .sp{ flex:1 }
+.kfx-sheet{ padding:4px 0 var(--sab) !important; max-height:88dvh; display:flex; flex-direction:column; overflow:hidden !important } .kfx-sheet .kfx-sel, .kfx-sheet .kfx-panel{ width:auto } .kfx-sheet .kfx-panel{ height:72dvh } .kfx-sheet .kfx-o{ min-height:44px }
+@media (max-width:1100px){ .tkr-h1{ flex-wrap:wrap } .tkr-pre{ margin-left:0; flex:1 1 100% } }
+@media (max-width:820px){
+  .tkr{ gap:12px } .tkr-h1{ padding:12px 12px 0; gap:6px } .tkr-date{ flex:1; padding:4px; gap:10px } .tkr-date .ic{ width:40px; height:40px } .tkr-date .ic b{ font-size:16px; line-height:25px } .tkr-date .tx b{ font-size:15.5px; line-height:21px; letter-spacing:-.02em } .tkr-date .tx b em{ padding:0 1px } .tkr-date .tx small{ font-size:11.5px } .tkr-date > .bi{ display:none }
+  .tkr-strip{ margin:10px 12px 0; gap:1px; height:36px } .tkr-sl{ margin:3px 12px 0 } .tkr-h2{ padding:10px 12px 0 } .tkr-tabs{ width:100% } .tkr-tabs button{ flex:1; justify-content:center; padding:0 6px; font-size:12.5px } .tkr-tabs button .bi{ display:none } .tkr-lv > span{ display:none } .tkr-ck{ padding:0 9px 0 8px; gap:6px }
+  .tkr-h3{ padding:10px 12px 12px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none } .tkr-h3::-webkit-scrollbar{ display:none } .tkr-h3 > *{ flex:none } .tkr-src{ margin-left:0 }
+  .tkr .tk-bar-r.wd{ grid-template-columns:minmax(0, 1fr) auto; row-gap:4px } .tkr .tk-bar-r.wd .b{ grid-column:1 / -1; grid-row:2 } .tkr .tk-bar-r{ grid-template-columns:minmax(0, 132px) 1fr minmax(30px, auto) } .tkr-sl .lg, .kfx-df .sp{ display:none } .tkr-tb td, .tkr-tb th{ padding-left:8px; padding-right:8px } .tkr-tb .tkr-nm{ gap:0 } .tkr-tb .tkr-nm .av, .tkr-tb .tkr-nm .tk-noav{ display:none } .tkr-tb .tkr-nm b{ font-size:12.5px }
+  .tkr-tw{ margin:0 -16px; padding:0 16px } .tkr-li .tkr-it{ grid-template-columns:20px minmax(0, 1fr) } .tkr-li .tkr-it .rr{ grid-column:2; text-align:left } .tkr-cal > button, .tkr-cal > i{ height:38px } .tkr .tk-box h3 .rt{ margin-left:0 }
+  .kfx-panel .kfx-bd{ grid-template-columns:minmax(0, 1fr); grid-template-rows:auto minmax(0, 1fr) } .kfx-panel .kfx-nv{ display:flex; gap:6px; overflow-x:auto; border-right:0; border-bottom:1px solid var(--border); padding:8px 12px } .kfx-panel .kfx-nv button{ width:auto; flex:none; min-height:36px; border:1px solid var(--border); background:var(--surface) } .kfx-panel .kfx-nv small{ display:none }
+  .kfx-date{ grid-template-columns:minmax(0, 1fr); overflow-y:auto } .kfx-date .kfx-ps{ flex-direction:row; flex-wrap:wrap; border-right:0; gap:5px; padding:10px 14px } .kfx-date .kfx-ps button{ border:1px solid var(--border); background:var(--surface) } .kfx-mo{ width:100% } .kfx-mo .kfx-gd button{ height:38px } .kfx-df .inp{ flex:1; width:auto; min-width:0 } .kfx-df{ flex-wrap:wrap } .kfx-df .btn{ flex:1 1 100% }
+}
+</style>
+<script>
+/* ══════════════════════════════════════════════════════════════════════════════════════════
+   (1.85.3) BÁO CÁO KIẾN TASK — ba phần: ① hộp nổi dùng chung (chọn nhiều · bảng lọc · chọn ngày)
+   ② LÕI TÍNH (rpUnits → rpSnap → rpPeople: hàm thuần, thử ở tools/dev/test_task_report.js) ③ giao diện (rpView)
+   ══════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* ── ① HỘP NỔI ── máy tính: hộp cạnh nút · điện thoại: bảng trượt lên. Dùng chung menuEl nên Esc / mở menu khác tự đóng */
+function fxPop(anchor, html, o) {
+  o = o || {}; if (typeof busyEnd === 'function') busyEnd(); closeMenu();
+  const sm = matchMedia('(max-width:820px)').matches, el = document.createElement('div');
+  if (sm) { el.className = 'sheet-bg'; el.innerHTML = '<div class="sheet kfx-sheet" role="dialog" aria-label="' + esc(o.label || '') + '"><i class="sheet-grab"></i>' + html + '</div>'; }
+  else { el.className = 'kfx-pop'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', o.label || ''); el.innerHTML = html; }
+  document.body.appendChild(el); menuEl = el;
+  if (anchor && anchor.setAttribute) anchor.setAttribute('aria-expanded', 'true');
+  if (!sm) {
+    const r = anchor.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight, below = innerHeight - r.bottom - 14, above = r.top - 14;
+    el.style.left = Math.max(8, Math.min(o.left ? r.left : r.left + w + 8 > innerWidth ? r.right - w : r.left, innerWidth - w - 8)) + 'px';
+    if (h <= below) el.style.top = (r.bottom + 6) + 'px';
+    else if (h <= above) el.style.top = (r.top - h - 6) + 'px';
+    else el.style.top = Math.max(8, Math.min(r.bottom + 6, innerHeight - h - 8)) + 'px';
+  } else requestAnimationFrame(() => el.classList.add('on'));
+  const out = e => { if (!el.isConnected) return document.removeEventListener('mousedown', out, true); if (sm ? e.target === el : !el.contains(e.target)) close(); };
+  const close = () => { document.removeEventListener('mousedown', out, true); if (menuEl === el) menuEl = null; if (anchor && anchor.setAttribute) anchor.setAttribute('aria-expanded', 'false');
+    if (sm) { el.classList.remove('on'); setTimeout(() => el.remove(), 220); } else el.remove(); const f = o.onClose; o.onClose = null; if (f) f(); };
+  el._close = close; setTimeout(() => document.addEventListener('mousedown', out, true), 0);
+  return { el: el, close: close, sm: sm, $: s => el.querySelector(s), $$: s => [...el.querySelectorAll(s)] };
+}
+/** một dòng chọn · o = { v, t: chữ, d: dòng nhỏ, n: số bên phải, av: email, ic: icon, dot: màu } */
+function fxOpt(o, k, on, one) {
+  return '<button type="button" class="kfx-o' + (one ? ' rd' : '') + (on ? ' on' : '') + '" data-k="' + k + '" role="' + (one ? 'radio' : 'checkbox') + '" aria-checked="' + !!on + '"><span class="c" aria-hidden="true"></span>' +
+    (o.av !== undefined ? (o.av ? tkAv(o.av) : '<span class="tk-noav"><i class="bi bi-person"></i></span>') : o.dot ? '<span class="dot" style="background:' + esc(o.dot) + '"></span>' : o.ic ? '<i class="bi ' + esc(o.ic) + '"></i>' : '') +
+    '<span class="x">' + esc(o.t) + (o.d ? '<small>' + esc(o.d) + '</small>' : '') + '</span>' + (o.n !== undefined && o.n !== '' ? '<span class="n">' + esc(String(o.n)) + '</span>' : '') + '</button>';
+}
+/** danh sách chọn trong một khung (dùng ở hộp chọn nhiều và ở bảng lọc): gắn vào B, trả { draw }.
+    o = { opts, sel: [giá trị], one, quick: [{ t, v: [giá trị] }], onChange(vals), focus } — chọn nhiều: [] = tất cả */
+function fxList(B, o) {
+  const sel = new Set(o.sel || []), opts = o.opts, grp = opts.some(x => x.g), big = opts.length > 7;
+  B.innerHTML = (big ? '<div class="kfx-q"><i class="bi bi-search"></i><input type="text" placeholder="Tìm trong ' + opts.length + ' mục" aria-label="Tìm" autocomplete="off"></div>' : '') +
+    (o.quick && o.quick.length ? '<div class="kfx-k">' + o.quick.map((q, i) => '<button type="button" data-q="' + i + '">' + esc(q.t) + '</button>').join('') + '</div>' : '') + '<div class="kfx-l"></div>' + (o.foot || '');
+  const box = B.querySelector('.kfx-l'), q = B.querySelector('.kfx-q input'); let shown = [];
+  const same = L => L.length === sel.size && L.every(x => sel.has(x));
+  const draw = () => {
+    const w = q ? fold(q.value).trim().split(/\s+/).filter(Boolean) : []; shown = opts.map((x, i) => i).filter(i => w.every(z => fold(opts[i].t + ' ' + (opts[i].d || '') + ' ' + (opts[i].g || '')).indexOf(z) >= 0));
+    let g0 = null; box.innerHTML = shown.length ? shown.map(i => { const x = opts[i]; let h = '';
+      if (grp && x.g && x.g !== g0) { g0 = x.g; const G = shown.filter(j => opts[j].g === g0), n = G.filter(j => sel.has(opts[j].v)).length;
+        h = '<div class="kfx-gh"><button type="button" class="kfx-o' + (n === G.length ? ' on' : n ? ' part' : '') + '" data-g="' + esc(g0) + '" role="checkbox" aria-checked="' + (n === G.length ? 'true' : n ? 'mixed' : 'false') + '"><span class="c" aria-hidden="true"></span><span class="x">' + esc(g0) + '</span><span class="n">' + G.length + '</span></button></div>'; }
+      return h + fxOpt(x, i, sel.has(x.v), o.one); }).join('') : '<div class="kfx-0">Không có mục nào khớp</div>';
+    B.querySelectorAll('[data-q]').forEach(b => b.classList.toggle('on', same(o.quick[b.dataset.q].v)));
+    if (o.onDraw) o.onDraw(sel, shown);
+  };
+  let tm = 0; const emit = () => { const y = box.scrollTop; draw(); box.scrollTop = y; clearTimeout(tm); tm = setTimeout(() => o.onChange([...sel]), 60); };
+  B.onclick = e => {
+    const k = e.target.closest('[data-k]'), g = e.target.closest('[data-g]'), qk = e.target.closest('[data-q]');
+    if (k) { const v = opts[Number(k.dataset.k)].v; if (o.one) { sel.clear(); sel.add(v); } else if (sel.has(v)) sel.delete(v); else sel.add(v); return emit(); }
+    if (g) { const G = shown.filter(j => opts[j].g === g.dataset.g).map(j => opts[j].v), all = G.every(v => sel.has(v)); G.forEach(v => { if (all) sel.delete(v); else sel.add(v); }); return emit(); }
+    if (qk) { const L = o.quick[qk.dataset.q].v, on = same(L); sel.clear(); if (!on) L.forEach(v => sel.add(v)); return emit(); }
+  };
+  if (q) { q.oninput = draw; q.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); const b = box.querySelector('[data-k]'); if (b) b.click(); } }; if (o.focus && !matchMedia('(max-width:820px)').matches) setTimeout(() => q.focus(), 40); }
+  draw();
+  return { draw: draw, clear: () => { sel.clear(); emit(); }, all: () => { shown.forEach(i => sel.add(opts[i].v)); emit(); }, sel: sel };
+}
+/** HỘP CHỌN NHIỀU cạnh một nút · o = { title, opts, sel, quick, onChange, none: chữ khi chưa chọn gì } */
+function fxSelect(anchor, o) {
+  const P = fxPop(anchor, '<div class="kfx kfx-sel"><div class="kfx-t"><span>' + esc(o.title) + '</span><small></small><button type="button" data-clr>Bỏ chọn</button></div><div class="kfx" style="flex:1"></div></div>', { label: o.title, onClose: o.onClose });
+  const L = fxList(P.$('.kfx > .kfx'), { opts: o.opts, sel: o.sel, quick: o.quick, one: o.one, focus: 1, onChange: o.onChange, foot: o.one ? '' : '<div class="kfx-f"><button type="button" class="btn xs ghost" data-all>Chọn hết mục đang hiện</button><span class="sp"></span><button type="button" class="btn xs pri" data-ok>Xong</button></div>',
+    onDraw: s => { P.$('.kfx-t small').textContent = o.one ? '' : s.size ? 'đã chọn ' + s.size : o.none || 'tất cả'; P.$('[data-clr]').disabled = !s.size || !!o.one; P.$('[data-clr]').hidden = !!o.one; } });
+  P.el.addEventListener('click', e => { if (e.target.closest('[data-clr]')) L.clear(); else if (e.target.closest('[data-all]')) L.all(); else if (e.target.closest('[data-ok]')) P.close(); });
+  return P;
+}
+/** BẢNG LỌC nhiều trường: trái = các trường (kèm giá trị đang chọn) · phải = ô chọn nhiều / chọn một / khoảng ngày của trường đó. Áp dụng ngay khi chọn.
+    F = () => [{ k, t, i, type: 'multi' | 'one' | 'date', opts, quick, get: [giá trị], set(vals), def: giá trị mặc định của 'one', txt: chữ tóm tắt }] · o = { title, at, count(), clear() } */
+function fxPanel(anchor, F, o) {
+  let at = o.at || F()[0].k;
+  const P = fxPop(anchor, '<div class="kfx kfx-panel"><div class="kfx-t"><span>' + esc(o.title || 'Bộ lọc') + '</span><small></small><button type="button" data-clr>Xoá hết</button></div><div class="kfx-bd"><div class="kfx-nv" role="tablist"></div><div class="kfx-pn"></div></div>' +
+    '<div class="kfx-f"><small></small><span class="sp"></span><button type="button" class="btn xs pri" data-ok>Xong</button></div></div>', { label: o.title || 'Bộ lọc' });
+  const act = f => (f.type === 'one' ? f.get.length && f.get[0] !== (f.def || '') : f.get.length > 0);
+  const head = () => { const L = F(), n = L.filter(act).length; P.$('.kfx-t small').textContent = n ? n + ' bộ lọc đang bật' : 'chưa lọc'; P.$('[data-clr]').disabled = !n; const c = o.count ? o.count() : ''; P.$('.kfx-f small').textContent = c;
+    P.$('.kfx-nv').innerHTML = L.map(f => '<button type="button" role="tab" aria-selected="' + (f.k === at) + '" class="' + (f.k === at ? 'on' : '') + '" data-f="' + f.k + '"><i class="bi ' + f.i + '"></i><span>' + esc(f.t) + (act(f) && f.txt ? '<small>' + esc(f.txt) + '</small>' : '') + '</span>' + (act(f) && f.type !== 'one' && f.get.length > 1 ? '<em>' + f.get.length + '</em>' : act(f) ? '<em>•</em>' : '') + '</button>').join(''); };
+  const pane = () => { const f = F().find(x => x.k === at), B = P.$('.kfx-pn'); B.innerHTML = '<div class="kfx" style="flex:1"></div>'; const b = B.firstChild;
+    const put = v => { F().find(x => x.k === at).set(v); head(); };
+    if (f.type !== 'date') return void fxList(b, { opts: f.opts, sel: f.get.length || f.type !== 'one' ? f.get : [f.def || ''], one: f.type === 'one', quick: f.quick, focus: 1, onChange: put });
+    const cur = f.get[0] || '', r = cur[0] === 'r' ? cur.split(':') : [];
+    fxList(b, { opts: [{ v: '', t: 'Không lọc' }].concat(f.opts), sel: [cur[0] === 'r' ? 'r' : cur], one: 1, onChange: v => { put(v[0] ? [v[0]] : []); } });
+    b.insertAdjacentHTML('beforeend', '<div class="kfx-dr"><label>Từ ngày<input type="date" class="inp" data-da value="' + esc(r[1] || '') + '"></label><label>Đến ngày<input type="date" class="inp" data-db value="' + esc(r[2] || '') + '"></label></div>');
+    b.onchange = () => { const A = b.querySelector('[data-da]').value, Z = b.querySelector('[data-db]').value; put(A || Z ? ['r:' + (A && Z && A > Z ? Z + ':' + A : A + ':' + Z)] : []); b.querySelectorAll('.kfx-o').forEach(x => x.classList.remove('on')); }; };
+  P.el.addEventListener('click', e => { const f = e.target.closest('[data-f]'); if (f) { at = f.dataset.f; head(); return pane(); } if (e.target.closest('[data-clr]')) { o.clear(); head(); return pane(); } if (e.target.closest('[data-ok]')) P.close(); });
+  head(); pane(); return P;
+}
+
+/* ── KỲ BÁO CÁO ── mọi kỳ tính theo NGÀY (00:00 ngày đầu → hết ngày cuối, giờ máy) */
+const RP_PRE = [['d', 'Hôm nay'], ['y', 'Hôm qua'], ['w', 'Tuần này'], ['pw', 'Tuần trước'], ['m', 'Tháng này'], ['pm', 'Tháng trước'], ['q', 'Quý này'], ['pq', 'Quý trước'], ['yr', 'Năm nay'], ['7', '7 ngày qua'], ['30', '30 ngày qua'], ['90', '90 ngày qua'], ['all', 'Toàn bộ']];
+const rpD = s => { const p = String(s).split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+const rpAdd = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const rpDays = (a, b) => Math.round((rpD(b) - rpD(a)) / 864e5) + 1;      // số ngày, tính cả hai đầu (làm tròn: đổi giờ mùa không lệch)
+const rpDmy = s => s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4);
+/** ngày đầu / ngày cuối (yyyy-MM-dd) của một kỳ có sẵn · first = ngày tạo việc sớm nhất (cho “Toàn bộ”) */
+function rpPreset(k, td, first) {
+  const t = rpD(td), y = t.getFullYear(), m = t.getMonth(), mo = (t.getDay() + 6) % 7, Y = tkYmd, q = Math.floor(m / 3) * 3;
+  switch (k) {
+    case 'd': return [td, td]; case 'y': { const a = Y(rpAdd(t, -1)); return [a, a]; }
+    case 'w': return [Y(rpAdd(t, -mo)), Y(rpAdd(t, 6 - mo))]; case 'pw': return [Y(rpAdd(t, -mo - 7)), Y(rpAdd(t, -mo - 1))];
+    case 'm': return [Y(new Date(y, m, 1)), Y(new Date(y, m + 1, 0))]; case 'pm': return [Y(new Date(y, m - 1, 1)), Y(new Date(y, m, 0))];
+    case 'q': return [Y(new Date(y, q, 1)), Y(new Date(y, q + 3, 0))]; case 'pq': return [Y(new Date(y, q - 3, 1)), Y(new Date(y, q, 0))];
+    case 'yr': return [Y(new Date(y, 0, 1)), Y(new Date(y, 11, 31))]; case 'all': return [first && first < td ? first : td, td];
+  }
+  const n = Number(k); return n > 0 ? [Y(rpAdd(t, 1 - n)), td] : null;
+}
+/** tên gọi của một khoảng ngày: trọn tháng / quý / năm / tuần thì gọi theo tên */
+function rpName(a, b) {
+  const A = rpD(a), B = rpD(b), y = A.getFullYear(), m = A.getMonth(), Y = tkYmd;
+  if (a === b) return ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][A.getDay()];
+  if (A.getDate() === 1 && y === B.getFullYear()) {
+    if (b === Y(new Date(y, m + 1, 0))) return 'Tháng ' + (m + 1) + '/' + y;
+    if (m % 3 === 0 && b === Y(new Date(y, m + 3, 0))) return 'Quý ' + (m / 3 + 1) + '/' + y;
+    if (m === 0 && b === Y(new Date(y, 11, 31))) return 'Năm ' + y;
+  }
+  return A.getDay() === 1 && rpDays(a, b) === 7 ? 'Tuần ' + tkDmy(a) + '–' + tkDmy(b) : 'Khoảng ngày';
+}
+/** lùi / tới một kỳ: tháng → tháng liền kề, quý / năm cũng vậy, còn lại dời đúng số ngày của kỳ */
+function rpShift(a, b, d) {
+  const A = rpD(a), nm = rpName(a, b), y = A.getFullYear(), m = A.getMonth(), Y = tkYmd;
+  const n = /^Tháng/.test(nm) ? 1 : /^Quý/.test(nm) ? 3 : /^Năm/.test(nm) ? 12 : 0;
+  if (n) return [Y(new Date(y, m + n * d, 1)), Y(new Date(y, m + n * d + n, 0))];
+  const k = rpDays(a, b) * d; return [Y(rpAdd(A, k)), Y(rpAdd(rpD(b), k))];
+}
+/** kỳ liền trước để SO SÁNH: kỳ đang dở (gồm hôm nay) thì chỉ so với cùng số ngày đầu của kỳ trước */
+function rpPrev(a, b, td) {
+  const p = rpShift(a, b, -1); if (b <= td || a > td) return p;
+  const e = tkYmd(rpAdd(rpD(p[0]), rpDays(a, td) - 1)); return [p[0], e < p[1] ? e : p[1]];
+}
+/** HỘP CHỌN NGÀY: kỳ có sẵn bên trái · lịch hai tháng bên phải (bấm ngày đầu rồi ngày cuối) · ô gõ ngày · on(k, a, b) */
+function fxDate(anchor, R, on) {
+  const sm = matchMedia('(max-width:820px)').matches; let a = R.d0, b = R.d1, pick = '', ym = new Date(rpD(b).getFullYear(), rpD(b).getMonth() - (sm ? 0 : 1), 1); const td = tkToday();
+  if (b > td && a <= td) ym = new Date(rpD(td).getFullYear(), rpD(td).getMonth() - (sm ? 0 : 1), 1);
+  const P = fxPop(anchor, '<div class="kfx kfx-date"><div class="kfx-ps">' + RP_PRE.map(x => '<button type="button" data-p="' + x[0] + '"' + (x[0] === R.k ? ' class="on"' : '') + '>' + x[1] + '</button>').join('') + '</div><div class="kfx-cl"><div class="kfx-ms"></div>' +
+    '<div class="kfx-df"><input type="date" class="inp" data-a aria-label="Từ ngày"><span>–</span><input type="date" class="inp" data-b aria-label="Đến ngày"><span class="sp"></span><button type="button" class="btn sm pri" data-ok>Áp dụng</button></div></div></div>', { label: 'Chọn khoảng ngày', left: 1 });
+  const mon = (d, i) => { const y = d.getFullYear(), m = d.getMonth(), off = (d.getDay() + 6) % 7, n = new Date(y, m + 1, 0).getDate(), lo = pick || a, hi = pick || b;
+    return '<div class="kfx-mo"><div class="kfx-mh">' + (i === 0 ? '<button type="button" class="pv" data-m="-1" aria-label="Tháng trước"><i class="bi bi-chevron-left"></i></button>' : '') + '<span>Tháng ' + (m + 1) + '/' + y + '</span>' + (sm || i === 1 ? '<button type="button" class="nx" data-m="1" aria-label="Tháng sau"><i class="bi bi-chevron-right"></i></button>' : '') + '</div><div class="kfx-gd">' +
+      ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(x => '<small>' + x + '</small>').join('') + '<span></span>'.repeat(off) +
+      Array.from({ length: n }, (_, k) => { const s = tkYmd(new Date(y, m, k + 1)); return '<button type="button" data-d="' + s + '" class="' + (s > lo && s < hi ? 'in ' : '') + (s === lo ? 'a ' : '') + (s === hi ? 'b ' : '') + (s === td ? 'td' : '') + '" aria-label="' + rpDmy(s) + '">' + (k + 1) + '</button>'; }).join('') + '</div></div>'; };
+  const draw = () => { P.$('.kfx-ms').innerHTML = mon(ym, 0) + (sm ? '' : mon(new Date(ym.getFullYear(), ym.getMonth() + 1, 1), 1)); P.$('[data-a]').value = pick || a; P.$('[data-b]').value = pick || b; };
+  P.el.addEventListener('click', e => {
+    const p = e.target.closest('[data-p]'), m = e.target.closest('[data-m]'), d = e.target.closest('[data-d]');
+    if (p) { P.close(); return on(p.dataset.p); }
+    if (m) { ym = new Date(ym.getFullYear(), ym.getMonth() + Number(m.dataset.m), 1); return draw(); }
+    if (d) { const s = d.dataset.d; if (!pick) { pick = s; return draw(); } a = pick <= s ? pick : s; b = pick <= s ? s : pick; P.close(); return on('c', a, b); }
+    if (e.target.closest('[data-ok]')) { const x = P.$('[data-a]').value, y = P.$('[data-b]').value; if (!x || !y) return toast('Chọn đủ ngày đầu và ngày cuối', 'info'); P.close(); on('c', x <= y ? x : y, x <= y ? y : x); }
+  });
+  P.el.addEventListener('mouseover', e => { const d = e.target.closest('[data-d]'); if (!pick || !d) return; const s = d.dataset.d, lo = pick <= s ? pick : s, hi = pick <= s ? s : pick; P.$$('[data-d]').forEach(x => { const z = x.dataset.d; x.classList.toggle('in', z > lo && z < hi); x.classList.toggle('a', z === lo); x.classList.toggle('b', z === hi); }); });
+  draw();
+}
+
+/* ══════════ ② LÕI TÍNH ══════════
+   NGUYÊN TẮC (mọi con số của Báo cáo theo đúng các luật này):
+   1. MỖI VIỆC ĐẾM MỘT LẦN. Việc của bảng riêng được chia sẻ lên bảng chung (bản đồng bộ, mã “m…”) và việc gốc là MỘT — nhận ra bằng mã gốc; việc thuộc về cả hai bảng
+      (chọn bảng nào cũng thấy, chọn cả hai vẫn đếm một). Trạng thái lấy ở việc GỐC, không lấy ở cột quy đổi của bảng chung.
+   2. CẤP: Epic = loại epic · Sub-task = có task cha · còn lại là Task (bản đồng bộ lấy cha gốc do máy chủ gửi).
+   3. XONG TRONG KỲ = tới hết kỳ việc đang ở cột hoàn thành VÀ lần vào cột hoàn thành (doneAt; thiếu thì đọc nhật ký chuyển cột) nằm trong kỳ. Việc còn doneAt cũ nhưng đã ra khỏi cột hoàn thành không tính.
+      Không tìm được ngày → không gán bừa vào kỳ nào, báo ở “Độ tin cậy”.
+   4. KỲ ĐÃ QUA: trạng thái = trạng thái LÚC HẾT KỲ (dựng lại từ nhật ký chuyển cột), không phải trạng thái bây giờ. Quá hạn cũng xét tại lúc hết kỳ.
+   5. VIỆC TRONG KỲ = đã tạo trước khi kỳ kết thúc và chưa đóng (xong / huỷ) trước khi kỳ bắt đầu.
+   6. Bảng mẫu (dữ liệu thử) và việc chỉ hiện để biết ngữ cảnh (ctx) không tính. Việc đã lưu trữ VẪN tính.
+   7. Việc nhiều người: mỗi người được tính đủ một việc (hoặc chia đều nếu chọn) — dòng tổng luôn là số việc KHÔNG TRÙNG. */
+const RP_LV = [['epic', 'Epic', '--rp-e'], ['task', 'Task', '--rp-t'], ['sub', 'Sub-task', '--rp-s']];
+const RP_DONE = /^\s*(hoàn thành|đã hoàn thành|hoàn tất|xong|đã xong|done|completed?|finished?)(?![\p{L}\p{N}])/iu;
+const rpMs = x => { const n = x ? new Date(x).getTime() : 0; return isNaN(n) ? 0 : n; };
+/** D = dữ liệu taskBoot (TK.d) · X = taskReport (có thể chưa có) → danh sách việc KHÔNG TRÙNG */
+function rpUnits(D, X) {
+  const P = {}, U = {}, L = []; D.projects.forEach(p => { P[p.id] = p; });
+  const add = (t, arch) => {
+    const id = t.mir ? t.mir.id : t.id; let u = U[id];
+    if (!u) { u = U[id] = { id: id, t: null, m: null, bds: {}, arch: 0 }; L.push(u); }
+    if (t.mir) { if (!u.m) u.m = t; u.bds[t.projectId] = 1; u.bds[t.mir.pid] = 1; if (arch && !u.t) u.arch = 1; }
+    else if (!u.t) { u.t = t; u.bds[t.projectId] = 1; u.arch = arch ? 1 : 0; }
+  };
+  D.tasks.forEach(t => add(t, 0)); const live = {}; L.forEach(u => { live[u.id] = 1; });
+  ((X && X.extra) || []).forEach(t => { const id = t.mir ? t.mir.id : t.id; if (!t.mir && live[id] && U[id].t) return; add(t, 1); });      // vừa mở lại từ Lưu trữ → bản trên bảng thắng
+  const mp = (X && X.mp) || {}, strip = id => String(id || '').replace(/^m(?=TK)/, '');
+  L.forEach(u => {
+    const t = u.r = u.t || u.m, p = P[t.mir && !u.t ? t.mir.pid : t.projectId], mr = !u.t;
+    u.ctx = !!(u.t && u.t.ctx && !u.m); u.key = t.key; u.title = t.title; u.pri = t.priority || 'med'; u.type = t.type === 'story' ? 'task' : t.type || 'task'; u.who = tkWho(t).slice(); u.by = String(t.reporter || '').toLowerCase();
+    u.due = t.due || ''; u.lbl = t.labels || []; u.cre = rpMs(t.createdAt); u.dms = rpMs(t.doneAt); u.upd = rpMs(t.updatedAt) || u.cre; u.sp = t.sprintId || '';
+    u.par = mr && mp[u.id] ? mp[u.id][0] : strip(t.parentId); u.ep = mr && mp[u.id] ? mp[u.id][1] : strip(t.epicId);
+    u.home = mr ? t.mir.pid : t.projectId; u.p = p || null; u.demo = !!(p && p.demo);
+    u.homeName = p ? p.name : t.mir ? t.mir.board : 'Bảng khác'; u.scope = p ? (p.scope === 'personal' ? 'personal' : 'team') : t.mir && !t.mir.tm ? 'personal' : 'team'; u.owner = p ? p.createdBy : t.mir ? t.mir.owner : '';
+    const c = mr ? { t: t.mir.col || '', done: !!t.mir.done } : (p && p.cols.find(x => x.id === t.status)) || { t: t.status || '' };
+    u.st = c.t; u.done = !!c.done; u.cxl = !u.done && (c.x === 1 || TK_CXL.test(c.t || ''));
+    const h = X && X.h && X.h[u.id]; u.hs = h ? h.map(x => ({ ms: x[0] * 1000, f: X.T[x[1]], t: X.T[x[2]], e: X.E[x[3]] })) : [];
+  });
+  L.forEach(u => { const pa = u.par && U[u.par]; u.lv = u.type === 'epic' ? 'epic' : u.par && !(pa && pa.type === 'epic') ? 'sub' : 'task'; if (!u.ep && u.lv === 'sub' && pa) u.ep = pa.ep; if (u.lv === 'epic') u.ep = ''; });
+  L.forEach(u => { u.kids = 0; }); L.forEach(u => { if (u.ctx) return; if (u.lv === 'sub' && U[u.par]) U[u.par].kids++; if (u.lv !== 'epic' && u.ep && U[u.ep]) U[u.ep].kids++; });
+  L.U = U; L.P = P; return L;
+}
+/** cột tên `ti` (tại lúc ghi nhật ký) là hoàn thành / huỷ? — tra cột hiện có của bảng, cột đã đổi tên / xoá thì đoán theo tên */
+function rpFlag(u, ti) { const c = u.p && u.p.cols.find(x => x.t === ti); return c ? (c.done ? 'd' : TK_CXL.test(c.t) ? 'x' : '') : RP_DONE.test(ti) ? 'd' : TK_CXL.test(ti) ? 'x' : ''; }
+/** lần vào cột loại k ('d' hoàn thành · 'x' huỷ) gần nhất trước mốc E → { ms, e: người chuyển } */
+function rpEnter(u, E, k) { let o = null; u.hs.forEach(h => { if (h.ms < E && rpFlag(u, h.t) === k && rpFlag(u, h.f) !== k) o = h; }); return o; }
+/** trạng thái của việc tại mốc E (E ≥ now = hiện tại) → { t: tên cột, done, cxl, ms: lúc vào cột đóng (0 = không rõ) } · null = lúc đó chưa có việc này */
+function rpAt(u, E, now) {
+  if (u.cre && u.cre >= E) return null;
+  if (E >= now) { if (u.done) return { t: u.st, done: true, cxl: false, ms: u.dms || (rpEnter(u, E, 'd') || { ms: 0 }).ms };
+    return { t: u.st, done: false, cxl: u.cxl, ms: u.cxl ? (rpEnter(u, E, 'x') || { ms: u.upd }).ms : 0 }; }
+  const nx = u.hs.find(h => h.ms >= E);
+  if (nx) { const k = rpFlag(u, nx.f);
+    if (k === 'd') return { t: nx.f, done: true, cxl: false, ms: (rpEnter(u, E, 'd') || { ms: u.dms && u.dms < E ? u.dms : 0 }).ms };
+    return { t: nx.f, done: false, cxl: k === 'x', ms: k === 'x' ? (rpEnter(u, E, 'x') || { ms: u.cre }).ms : 0 }; }
+  if (u.done) { const ms = u.dms || (rpEnter(u, E, 'd') || { ms: 0 }).ms; if (ms && ms >= E) return { t: 'Chưa xong', done: false, cxl: false, ms: 0, guess: 1 }; return { t: u.st, done: true, cxl: false, ms: ms }; }      // xong sau kỳ mà không có nhật ký: biết chắc lúc đó chưa xong, không biết ở cột nào
+  if (u.cxl) { const x = rpEnter(u, now, 'x'), ms = x ? x.ms : u.upd; if (ms >= E) return { t: 'Chưa xong', done: false, cxl: false, ms: 0, guess: 1 }; return { t: u.st, done: false, cxl: true, ms: ms }; }
+  return { t: u.st, done: false, cxl: false, ms: 0 };
+}
+/** người chuyển việc sang hoàn thành (tính tới E); không có nhật ký → người tạo việc (tạo thẳng ở cột hoàn thành) */
+function rpMover(u, E) { const x = rpEnter(u, E, 'd'); return x ? x.e : u.by; }
+const rpIn = (a, v) => !a || !a.length || a.indexOf(v) >= 0;
+/** việc thuộc phạm vi lọc (chưa xét người, kỳ) · o = { b, lv, leaf, pri, ty, lbl, ep, by } (mảng rỗng = tất cả) */
+function rpScope(L, o) {
+  const sub = rpIn(o.lv, 'sub'), task = rpIn(o.lv, 'task');
+  return L.filter(u => {
+    if (u.ctx) return false; const bs = Object.keys(u.bds);
+    if (o.b && o.b.length) { if (!bs.some(x => o.b.indexOf(x) >= 0)) return false; }
+    else if (u.demo || !bs.some(x => L.P[x] && L.P[x].status === 'active' && !L.P[x].demo)) return false;
+    if (!rpIn(o.lv, u.lv)) return false;
+    if (o.leaf && u.kids && (u.lv === 'task' ? sub : u.lv === 'epic' ? sub || task : false)) return false;
+    return rpIn(o.pri, u.pri) && rpIn(o.ty, u.type) && (!o.lbl || !o.lbl.length || u.lbl.some(x => o.lbl.indexOf(x) >= 0)) && rpIn(o.by, u.by) && (!o.ep || !o.ep.length || o.ep.indexOf(u.lv === 'epic' ? u.id : u.ep || '') >= 0);
+  });
+}
+/** chụp kỳ [d0, d1] trên phạm vi S → { rows, due, nodate, E } · mỗi dòng là một việc không trùng */
+function rpSnap(S, d0, d1, now, o) {
+  const a = rpD(d0).getTime(), b = rpAdd(rpD(d1), 1).getTime(), E = Math.min(now, b), ed = tkYmd(new Date(E)), rows = [], due = []; let nodate = 0; const nd = [];
+  const pick = w => !o.w || !o.w.length || (w.length ? w.some(e => o.w.indexOf(e) >= 0) : o.w.indexOf('') >= 0);
+  S.forEach(u => {
+    if (u.due && u.due >= d0 && u.due <= d1 && !u.cxl && pick(u.who)) due.push(u);
+    const s = E > a ? rpAt(u, E, now) : null; if (!s) return;
+    const who = o.cr === 'mv' && s.done ? [rpMover(u, E)].filter(Boolean) : u.who; if (!pick(who)) return;
+    if (s.done && !s.ms) { nodate++; nd.push({ u: u, st: s, who: who }); return; }
+    if ((s.done || s.cxl) && s.ms < a) return;
+    const dn = s.done && s.ms >= a && s.ms < b, op = !s.done && !s.cxl;
+    const r = { u: u, st: s, who: who, dn: dn, open: op, cxl: s.cxl, made: u.cre >= a && u.cre < b, late: op && !!u.due && u.due < ed };
+    if (dn) { const dd = tkYmd(new Date(s.ms)); r.day = dd; r.tl = !u.due ? 'nd' : dd <= u.due ? 'on' : 'lt'; r.cyc = u.cre ? Math.max(0, (s.ms - u.cre) / 864e5) : null; }
+    rows.push(r);
+  });
+  return { rows: rows, due: due, nodate: nodate, nd: nd, E: E, a: a, b: b, d0: d0, d1: d1, past: b <= now };
+}
+/** số tổng của một lần chụp */
+function rpSum(X) {
+  const dn = X.rows.filter(r => r.dn), op = X.rows.filter(r => r.open), on = dn.filter(r => r.tl === 'on').length, lt = dn.filter(r => r.tl === 'lt').length, cy = dn.map(r => r.cyc).filter(x => x != null).sort((x, y) => x - y), n = { epic: 0, task: 0, sub: 0 };
+  dn.forEach(r => { n[r.u.lv]++; }); const base = X.rows.filter(r => !r.cxl).length;
+  return { all: X.rows.length, dn: dn.length, n: n, made: X.rows.filter(r => r.made).length, open: op.length, late: op.filter(r => r.late).length, on: on, lt: lt, nd: dn.length - on - lt, ot: on + lt ? on / (on + lt) : null, rate: base ? dn.length / base : null, base: base,
+    cyc: cy.length ? cy.reduce((x, y) => x + y, 0) / cy.length : null, med: cy.length ? (cy.length % 2 ? cy[(cy.length - 1) / 2] : (cy[cy.length / 2 - 1] + cy[cy.length / 2]) / 2) : null, cn: cy.length };
+}
+/** theo từng thành viên. split = chia đều việc nhiều người (1/n) · o.w đang lọc thì chỉ trả các người đó */
+function rpPeople(X, o) {
+  const M = {}, row = e => M[e] || (M[e] = { e: e, n: { epic: 0, task: 0, sub: 0 }, dn: 0, uq: 0, all: 0, open: 0, late: 0, on: 0, lt: 0, nd: 0, cy: [], team: 0, pers: 0, eps: {}, days: {}, rows: [] });
+  X.rows.forEach(r => { const W = r.who.length ? r.who : [''], k = o.split ? 1 / W.length : 1;
+    W.forEach(e => { if (o.w && o.w.length && o.w.indexOf(e) < 0) return; const m = row(e); m.rows.push(r); m.all += k; if (r.open) { m.open += k; if (r.late) m.late += k; }
+      if (r.dn) { m.n[r.u.lv] += k; m.dn += k; m.uq++; m[r.tl] += k; if (r.cyc != null) m.cy.push(r.cyc); if (r.u.scope === 'personal') m.pers += k; else m.team += k; if (r.u.lv !== 'epic' && r.u.ep) m.eps[r.u.ep] = (m.eps[r.u.ep] || 0) + k; m.days[r.day] = (m.days[r.day] || 0) + k; } }); });
+  return Object.keys(M).map(k => { const m = M[k]; m.cyc = m.cy.length ? m.cy.reduce((x, y) => x + y, 0) / m.cy.length : null; m.ot = m.on + m.lt ? m.on / (m.on + m.lt) : null; m.epn = Object.keys(m.eps).length; return m; });
+}
+/** chia kỳ thành các ô: ≤ 16 ngày → ngày · ≤ 18 tuần → tuần (T2–CN, cắt theo kỳ) · còn lại → tháng */
+function rpBuckets(d0, d1, max) {
+  const n = rpDays(d0, d1), out = []; const k = n <= (max || 16) ? 'd' : n <= 126 ? 'w' : 'm';
+  let d = rpD(d0); const end = rpD(d1);
+  while (d <= end && out.length < 400) { let z = k === 'd' ? d : k === 'w' ? rpAdd(d, 6 - (d.getDay() + 6) % 7) : new Date(d.getFullYear(), d.getMonth() + 1, 0); if (z > end) z = end;
+    const A = tkYmd(d), B = tkYmd(z); out.push({ a: A, b: B, l: k === 'm' ? 'T' + (d.getMonth() + 1) + (d.getMonth() === 0 ? '/' + d.getFullYear() : '') : tkDmy(A), t: k === 'd' ? rpDmy(A) : k === 'w' ? 'Tuần ' + tkDmy(A) + '–' + tkDmy(B) : 'Tháng ' + (d.getMonth() + 1) + '/' + d.getFullYear() }); d = rpAdd(z, 1); }
+  out.k = k; return out;
+}
+
+/* ══════════ ③ GIAO DIỆN ══════════ */
+const RP_DEF = { tab: 'ov', b: [], w: [], lv: ['epic', 'task', 'sub'], leaf: 0, split: 0, cr: 'pic', pri: [], ty: [], lbl: [], ep: [], by: [], cal: 'dn', hm: 'dn', sk: 'dn', sd: -1, li: 'dn' };
+const RP = { s: null, x: null, at: 0, ld: null, err: '', pj: null, n: 60 };
+function rpS() { if (!RP.s) { const o = lsGet('tkRp', null) || {}; RP.s = Object.assign({}, RP_DEF); Object.keys(RP_DEF).forEach(k => { if (o[k] !== undefined && typeof o[k] === typeof RP_DEF[k] && Array.isArray(o[k]) === Array.isArray(RP_DEF[k])) RP.s[k] = o[k]; }); if (!RP.s.lv.length) RP.s.lv = RP_DEF.lv.slice(); } return RP.s; }
+function rpSave(o) { Object.assign(rpS(), o); lsSet('tkRp', RP.s); }
+const rpNm = e => { if (!e) return 'Chưa giao'; const u = TK.d.users.find(x => x.email === e); if (u) return u.name; const n = RP.x && RP.x.names && RP.x.names[e]; return n || e; };
+const rpOff = e => !!e && !TK.d.users.some(x => x.email === e);
+const rpF = n => (n == null ? '—' : (Math.round(n * 10) / 10).toLocaleString('vi')), rpPc = r => (r == null ? '—' : Math.round(r * 100) + '%');
+/** nạp ngầm phần máy chủ (việc lưu trữ + nhật ký chuyển cột): màn vẽ ngay bằng dữ liệu trên máy, có rồi thì vẽ lại */
+function rpLoad(paint, force) {
+  if (RP.ld || (!force && RP.x && Date.now() - RP.at < 300000 && RP.at >= (TK.at || 0) - 60000) || (!force && RP.err && Date.now() - RP.at < 60000)) return;
+  const me = TK.d && TK.d.me;
+  RP.ld = rpc('taskReport', {}, { quiet: true }).then(x => { RP.x = x; RP.err = ''; RP.me = me; }).catch(e => { RP.err = String(e && e.message || e); console.warn('taskReport', e); }).finally(() => { RP.ld = null; RP.at = Date.now(); if (TK.ui) ptrIdle(() => paint()); });
+}
+/** thẻ ngày to ở đầu trang — dùng chung Báo cáo và Hiệu suất */
+function rpDateBtn(R) {
+  const d = rpD(R.d0), nm = rpName(R.d0, R.d1), pre = RP_PRE.find(x => x[0] === R.k), n = rpDays(R.d0, R.d1);
+  const sub = R.k === 'c' ? nm : pre ? pre[1] + (/^(m|pm|q|pq|yr)$/.test(R.k) ? ' · ' + nm : '') : nm;
+  return '<button type="button" class="tkr-date" data-rp-date aria-haspopup="dialog" aria-expanded="false" title="Đổi khoảng ngày"><span class="ic" aria-hidden="true"><small>TH ' + (d.getMonth() + 1) + '</small><b>' + d.getDate() + '</b></span><span class="tx"><b>' + (R.d0 === R.d1 ? rpDmy(R.d0) : (R.d0.slice(0, 4) === R.d1.slice(0, 4) ? tkDmy(R.d0) : rpDmy(R.d0)) + '<em>–</em>' + rpDmy(R.d1)) + '</b><small>' + esc(sub) + (/^(7|30|90|d|y)$/.test(R.k) || n === 1 ? '' : ' · ' + n + ' ngày') + '</small></span><i class="bi bi-chevron-down"></i></button>' +
+    '<span class="tkr-nav"><button type="button" data-rp-nav="-1" aria-label="Kỳ trước" title="Kỳ trước"><i class="bi bi-chevron-left"></i></button><button type="button" data-rp-nav="1" aria-label="Kỳ sau" title="Kỳ sau"' + (rpShift(R.d0, R.d1, 1)[0] > tkToday() ? ' disabled' : '') + '><i class="bi bi-chevron-right"></i></button></span>';
+}
+function rpPreBtns(R) { return '<div class="tkr-pre" role="group" aria-label="Kỳ có sẵn">' + [['d', 'Hôm nay'], ['w', 'Tuần này'], ['m', 'Tháng này'], ['pm', 'Tháng trước'], ['30', '30 ngày'], ['90', '90 ngày'], ['all', 'Toàn bộ']].map(x => '<button type="button" data-rp-pre="' + x[0] + '"' + (x[0] === R.k ? ' class="on" aria-pressed="true"' : '') + '>' + x[1] + '</button>').join('') + '</div>'; }
+/** đặt kỳ: k = kỳ có sẵn, hoặc 'c' + ngày đầu / cuối */
+function rpSetRng(k, a, b) { TK.rng = k; lsSet('tkRng', k); if (k === 'c') { TK.rngA = a; TK.rngB = b; lsSet('tkRngA', a); lsSet('tkRngB', b); } }
+/** bấm thẻ ngày / lùi / tới / kỳ có sẵn → true nếu đã xử lý */
+function rpDateClick(e, paint) {
+  const R = tkRng(), d = e.target.closest('[data-rp-date]'), n = e.target.closest('[data-rp-nav]'), p = e.target.closest('[data-rp-pre]');
+  if (d) { fxDate(d, R, (k, a, b) => { rpSetRng(k, a, b); paint(); }); return true; }
+  if (n) { const x = rpShift(R.d0, R.d1, Number(n.dataset.rpNav)), td = tkToday(), k = ['d', 'w', 'm', 'q', 'yr', 'y', 'pw', 'pm', 'pq'].find(z => { const y = rpPreset(z, td); return y[0] === x[0] && y[1] === x[1]; }); rpSetRng(k || 'c', x[0], x[1]); paint(); return true; }
+  if (p) { rpSetRng(p.dataset.rpPre); paint(); return true; }
+  return false;
+}
+/** một dòng việc trong danh sách · r = dòng của rpSnap */
+function rpItem(r, i) {
+  const u = r.u, P = TK.d.projects, also = Object.keys(u.bds).filter(x => x !== u.home).map(x => (P.find(p => p.id === x) || {}).name).filter(Boolean);
+  return '<button type="button" class="tkr-it" data-ri="' + i + '">' + tkLvIc(u.lv === 'epic' ? 'epic' : u.lv === 'sub' ? 'sub' : 'task') + '<span><b>' + esc(u.title) + '</b><span class="mt"><span>' + esc(u.key) + '</span><span class="bdn" style="--bc:' + esc((u.p && u.p.color) || '#8FB0DE') + '">' + esc(u.homeName) + (u.scope === 'personal' ? ' (riêng)' : '') + '</span>' +
+    (also.length ? '<span title="Cùng một việc, chỉ đếm một lần"><i class="bi bi-link-45deg"></i>cũng ở ' + esc(also.join(', ')) + '</span>' : '') + '<span>' + esc(r.who.length ? r.who.map(rpNm).join(', ') : 'Chưa giao') + '</span>' + (u.arch ? '<span><i class="bi bi-archive"></i>đã lưu trữ</span>' : '') + '</span></span>' +
+    '<span class="rr"><b class="' + (r.dn ? 'ok' : r.late ? 'bad' : '') + '">' + esc(r.st.t) + '</b>' + (r.dn ? 'xong ' + rpDmy(r.day) + (r.tl === 'lt' ? ' · trễ hạn' : r.tl === 'on' ? ' · đúng hạn' : '') : u.due ? 'hạn ' + rpDmy(u.due) : u.cre ? 'tạo ' + rpDmy(tkYmd(new Date(u.cre))) : '') + '</span></button>';
+}
+function rpOpen(u, ctx) {
+  const t = u.t && !u.arch ? tkById(u.id) : u.m && tkById(u.m.id);
+  if (t) return ctx.open(t);
+  toast(u.arch ? '“' + u.key + '” đã vào Lưu trữ — mở ở nút Lưu trữ trên thanh trên cùng' : 'Việc này không còn trên bảng', 'info', 4000);
+}
+/** hộp liệt kê đúng những việc đứng sau một con số */
+function rpDrill(title, sub, rows, ctx) {
+  rows = rows.slice().sort((x, y) => (y.st.ms || 0) - (x.st.ms || 0) || y.u.cre - x.u.cre); let n = 60;
+  const m = modal({ title: title, icon: 'bi-list-check', size: 'lg', body: '<p class="small muted" style="margin-bottom:8px">' + esc(fmtN(rows.length) + ' việc, không trùng' + (sub ? ' · ' + sub : '')) + '</p><div class="tkr-li"></div>' });
+  const B = m.$('.tkr-li'), draw = () => { B.innerHTML = rows.length ? rows.slice(0, n).map(rpItem).join('') + (rows.length > n ? '<button type="button" class="btn sm tkr-more" data-more>Xem thêm ' + fmtN(Math.min(100, rows.length - n)) + ' việc</button>' : '') : '<div class="kfx-0">Không có việc nào</div>'; }; draw();
+  B.onclick = e => { if (e.target.closest('[data-more]')) { n += 100; return draw(); } const b = e.target.closest('[data-ri]'); if (b) { const r = rows[Number(b.dataset.ri)]; m.close(); rpOpen(r.u, ctx); } };
+}
+/** tia nhỏ theo ô thời gian */
+function rpSpark(vals) { const mx = Math.max(1, ...vals), n = vals.length, w = 84, g = n > 30 ? .5 : 1.5, bw = Math.max(1, (w - g * (n - 1)) / n); return '<svg class="tkr-sp" viewBox="0 0 84 22" aria-hidden="true">' + vals.map((v, i) => '<rect x="' + (i * (bw + g)).toFixed(1) + '" y="' + (v ? 22 - Math.max(3, v / mx * 22) : 20.5).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (v ? Math.max(3, v / mx * 22) : 1.5).toFixed(1) + '" rx="1" fill="' + (v ? 'var(--rp-t)' : 'var(--rp-line)') + '"/>').join('') + '</svg>'; }
+
+/** ctx = { v, paint, C(), me, bar, setTitle, open(t), hxUnits(okP), activeSp(p), groups: nhóm bảng đã lưu, cur: bảng / nhóm đang chọn ở màn khác } */
+function rpView(ctx) {
+  const v = ctx.v, D = TK.d, st = rpS(), R = tkRng(), td = tkToday(), now = Date.now();
+  if (RP.me && RP.me !== D.me) { RP.x = null; RP.at = 0; }
+  if (RP.pj !== ctx.cur) { if (RP.pj !== null || /^(?!\*)/.test(ctx.cur || '*')) st.b = ctx.curIds.slice(); RP.pj = ctx.cur; }      // vừa đổi bảng ở màn khác → báo cáo theo bảng đó
+  rpLoad(ctx.paint);
+  const pAll = !!ctx.C().perfAll, L = rpUnits(D, RP.x), P = L.P;
+  st.b = st.b.filter(x => P[x]);
+  const o = Object.assign({}, st, pAll ? {} : { w: [] });
+  const lvAll = Object.assign({}, o, { lv: ['epic', 'task', 'sub'], leaf: 0 });
+  const S = rpScope(L, o), X = rpSnap(S, R.d0, R.d1, now, o), K = rpSum(X), pv = R.k === 'all' ? null : rpPrev(R.d0, R.d1, td), XP = pv ? rpSnap(S, pv[0], pv[1], now, o) : null, KP = XP ? rpSum(XP) : null;
+  const XA = rpSnap(rpScope(L, lvAll), R.d0, R.d1, now, o), lvN = rpSum(XA).n;
+  const nm = rpNm, who = r => (r.who.length ? r.who : ['']), upd = p => { rpSave(p); ctx.paint(); };
+  const box = (cls, title, body, sub, rt) => '<div class="tk-box ' + cls + '"><h3>' + title + (sub ? '<small>' + sub + '</small>' : '') + (rt || '') + '</h3>' + body + '</div>', none = '<div class="small muted">Chưa có dữ liệu trong kỳ này</div>';
+  const DR = [], dr = (title, rows, sub) => ' data-rp-dr="' + (DR.push([title, rows, sub]) - 1) + '"';
+  const pc = (n, m) => (m ? Math.round(n / m * 100) : 0), dn = X.rows.filter(r => r.dn), op = X.rows.filter(r => r.open), late = op.filter(r => r.late);
+  const atE = X.past ? 'lúc hết kỳ' : 'hiện tại';
+
+  /* ── đầu trang ── */
+  const inB = (b, f) => X.rows.filter(r => f(r) && r.day >= b.a && r.day <= b.b), sb = rpBuckets(R.d0, R.d1, 92), dayN = {}; dn.forEach(r => { dayN[r.day] = (dayN[r.day] || 0) + 1; });
+  const sN = sb.map(b => { if (b.a === b.b) return dayN[b.a] || 0; let n = 0; Object.keys(dayN).forEach(k => { if (k >= b.a && k <= b.b) n += dayN[k]; }); return n; }), sMx = Math.max(1, ...sN);
+  const strip = '<div class="tkr-strip" role="group" aria-label="Việc xong theo ' + ({ d: 'ngày', w: 'tuần', m: 'tháng' })[sb.k] + '">' + sb.map((b, i) => { const wd = rpD(b.a).getDay(), fu = b.a > td; return '<button type="button" class="' + (fu ? 'fu ' : '') + (sN[i] ? '' : 'z ') + (b.a <= td && b.b >= td ? 'now ' : '') + (b.a === b.b && (wd === 0 || wd === 6) ? 'we' : '') + '"' + (fu ? ' disabled' : ' data-rp-day="' + b.a + ':' + b.b + '"') + ' title="' + esc(b.t + ': xong ' + sN[i] + ' việc') + '" aria-label="' + esc(b.t + ': xong ' + sN[i] + ' việc') + '"><i style="height:' + (sN[i] ? Math.max(12, sN[i] / sMx * 100) : 4) + '%"></i></button>'; }).join('') + '</div>' +
+    '<div class="tkr-sl"><span>' + rpDmy(R.d0) + '</span><span><span class="lg">' + ({ d: 'việc xong mỗi ngày', w: 'việc xong mỗi tuần', m: 'việc xong mỗi tháng' })[sb.k] + (pv ? ' · ' : '') + '</span>' + (pv ? 'so với ' + (pv[0] === pv[1] ? rpDmy(pv[0]) : tkDmy(pv[0]) + '–' + rpDmy(pv[1])) : '') + '</span><span>' + rpDmy(R.d1) + '</span></div>';
+  const tabs = [['ov', 'Tổng quan', 'bi-grid-1x2'], ['mem', 'Thành viên', 'bi-people'], ['li', 'Danh sách việc', 'bi-list-ul']], tab = tabs.some(x => x[0] === st.tab) ? st.tab : 'ov';
+  const lvs = '<div class="tkr-lv" role="group" aria-label="Cấp việc được đếm"><span>Đếm</span>' + RP_LV.map(x => '<button type="button" class="tkr-ck' + (st.lv.indexOf(x[0]) >= 0 ? ' on' : '') + '" style="--c:var(' + x[2] + ')" data-rp-lv="' + x[0] + '" role="checkbox" aria-checked="' + (st.lv.indexOf(x[0]) >= 0) + '" title="' + lvN[x[0]] + ' ' + x[1] + ' xong trong kỳ">' + x[1] + '<b>' + fmtN(lvN[x[0]]) + '</b></button>').join('') + '</div>';
+  const pill = (k, ic, t, a, one) => '<button type="button" class="kfx-pill' + (a.length ? ' on' : '') + '" data-rp-f="' + k + '" aria-haspopup="dialog" aria-expanded="false"><i class="bi ' + ic + '"></i><span>' + esc(a.length === 1 && one ? one : t) + '</span>' + (a.length > 1 ? '<em>' + a.length + '</em>' : '') + '<i class="bi bi-chevron-down"></i></button>';
+  const epT = id => (id ? (L.U[id] ? L.U[id].title : 'Epic khác') : 'Không thuộc epic');
+  const calcN = (st.leaf ? 1 : 0) + (st.split ? 1 : 0) + (st.cr === 'mv' ? 1 : 0), fN = ['b', 'w', 'ep', 'ty', 'pri', 'lbl', 'by'].filter(k => o[k].length).length;
+  const pills = pill('b', 'bi-kanban', 'Bảng', st.b, st.b[0] && P[st.b[0]].name) + (pAll ? pill('w', 'bi-people', 'Thành viên', st.w, nm(st.w[0])) : '') + pill('ep', 'bi-lightning-charge', 'Epic', st.ep, st.ep.length ? (typeof aiCut === 'function' ? aiCut(epT(st.ep[0]), 24) : epT(st.ep[0]).slice(0, 24)) : '') + pill('ty', 'bi-ui-checks', 'Loại việc', st.ty, (TK_TYPE[st.ty[0]] || [])[0]) + pill('pri', 'bi-flag', 'Ưu tiên', st.pri, (TK_PRI[st.pri[0]] || [])[0]) + pill('lbl', 'bi-tag', 'Nhãn', st.lbl, st.lbl[0]) + pill('by', 'bi-person-plus', 'Người tạo', st.by, nm(st.by[0])) +
+    '<button type="button" class="kfx-pill' + (calcN ? ' on' : '') + '" data-rp-f="calc" aria-haspopup="dialog" aria-expanded="false"><i class="bi bi-calculator"></i><span>Cách đếm</span>' + (calcN ? '<em>' + calcN + '</em>' : '') + '<i class="bi bi-chevron-down"></i></button>' +
+    (fN ? '<button type="button" class="kfx-clr" data-rp-clr><i class="bi bi-x-lg"></i>Xoá lọc</button>' : '');
+  const src = '<span class="tkr-src">' + (RP.x && !RP.err ? (RP.ld ? '<span class="spin" aria-hidden="true"></span>' : '<i class="bi bi-check2-circle"></i>') + 'Tính lúc ' + pad(new Date(RP.at).getHours()) + ':' + pad(new Date(RP.at).getMinutes()) + '<button type="button" data-rp-re title="Lấy số liệu mới nhất">Làm mới</button>' : RP.err ? '<span class="bad"><i class="bi bi-exclamation-triangle"></i> Chưa tải được phần lưu trữ, nhật ký</span><button type="button" data-rp-re>Thử lại</button>' : '<i class="bi bi-arrow-repeat"></i>Đang đọc lưu trữ, nhật ký') + '</span>';
+  const head = '<section class="tkr-hd"><div class="tkr-h1">' + rpDateBtn(R) + rpPreBtns(R) + '</div>' + strip + '<div class="tkr-h2"><div class="tkr-tabs" role="tablist">' + tabs.map(x => '<button type="button" role="tab" aria-selected="' + (x[0] === tab) + '" class="' + (x[0] === tab ? 'on' : '') + '" data-rp-tab="' + x[0] + '"><i class="bi ' + x[2] + '"></i>' + x[1] + '</button>').join('') + '</div>' + lvs + src + '</div><div class="tkr-h3">' + pills + '</div></section>';
+
+  /* ── thẻ số ── */
+  const dl = (a, b, inv, f) => { if (b == null || a == null || !KP) return ''; const d = a - b; if (Math.abs(d) < .0005) return 'bằng kỳ trước'; const g = inv ? d < 0 : d > 0; return '<em class="tkr-dl ' + (g ? 'up' : 'dn') + '">' + (d > 0 ? '▲' : '▼') + ' ' + (f ? f(Math.abs(d)) : rpF(Math.abs(d))) + '</em> so kỳ trước'; };
+  const kpi = (cls, n, l, sub, rows, tt) => '<button type="button" class="tk-kpi ' + cls + '"' + dr(tt || l, rows) + '><b>' + n + '</b><small>' + l + '</small>' + (sub ? '<span>' + sub + '</span>' : '') + '</button>';
+  const kpis = '<div class="tk-kpis k6">' + kpi('ink', fmtN(K.dn), 'Hoàn thành', dl(K.dn, KP && KP.dn), dn, 'Hoàn thành trong kỳ') + kpi('', fmtN(K.made), 'Tạo mới', dl(K.made, KP && KP.made), X.rows.filter(r => r.made), 'Tạo mới trong kỳ') +
+    kpi('', rpPc(K.rate), 'Tỉ lệ hoàn thành', fmtN(K.dn) + '/' + fmtN(K.base) + ' việc trong kỳ', X.rows.filter(r => !r.cxl), 'Việc trong kỳ') + kpi('', rpPc(K.ot), 'Đúng hạn', K.ot == null ? 'không việc nào có hạn' : fmtN(K.on) + '/' + fmtN(K.on + K.lt) + ' việc có hạn', dn.filter(r => r.tl !== 'nd'), 'Việc xong có đặt hạn') +
+    kpi(late.length ? 'hot' : '', fmtN(K.open), 'Đang mở ' + atE, late.length ? fmtN(late.length) + ' quá hạn' : 'không việc nào quá hạn', late.length ? late.concat(op.filter(r => !r.late)) : op, 'Đang mở ' + atE) + kpi('', rpF(K.cyc), 'Ngày xử lý trung bình', K.cn ? 'trung vị ' + rpF(K.med) + ' · ' + fmtN(K.cn) + ' việc' : '', dn) + '</div>';
+
+  /* ── trạng thái: cột của mọi bảng gộp theo tên, cột đang làm trước, hoàn thành rồi huỷ sau ── */
+  const stN = {}; X.rows.forEach(r => { const k = r.st.t || 'Không rõ', z = stN[k] || (stN[k] = { n: 0, d: r.st.done, x: r.cxl, rows: [] }); z.n++; z.rows.push(r); });
+  const stO = Object.keys(stN).sort((a, b) => (stN[a].d ? 1 : stN[a].x ? 2 : 0) - (stN[b].d ? 1 : stN[b].x ? 2 : 0) || stN[b].n - stN[a].n);
+  /** bản đồ nhiệt người × cột: rows = [{ e, cells: [{ n, rows }], tot }] */
+  const heat = (cols, mk, o2) => { const M = {}; mk(M); const ks = Object.keys(M).sort((a, b) => M[b]._.length - M[a]._.length || nm(a).localeCompare(nm(b), 'vi')); if (!ks.length) return none; const mx = Math.max(1, ...ks.map(k => Math.max(...cols.map(c => (M[k][c.k] || []).length))));
+    const uq = c => { const s = new Set(); ks.forEach(k => (M[k][c] || []).forEach(r => s.add(r))); return [...s]; };
+    return '<div class="tkr-hm"><table><thead><tr><th class="l"></th>' + cols.map(c => '<th' + (c.on ? ' class="on"' : '') + ' title="' + esc(c.tt || c.t) + '">' + esc(c.t) + '</th>').join('') + '<th>Tổng</th></tr></thead><tbody>' + ks.map(k => '<tr><td class="l">' + (pAll && k ? '<button type="button" class="in" data-rp-m="' + esc(k) + '">' + tkAv(k) + esc(nm(k)) + '</button>' : '<span class="in">' + tkAv(k) + esc(nm(k)) + '</span>') + '</td>' +
+      cols.map(c => { const a = M[k][c.k] || []; return '<td>' + (a.length ? '<button type="button" class="h' + chLevel(a.length, mx) + '" title="' + esc(nm(k) + ' · ' + (c.tt || c.t) + ': ' + a.length + ' việc') + '"' + dr(nm(k) + ' · ' + (c.tt || c.t), a) + '>' + a.length + '</button>' : '<i class="h0"></i>') + '</td>'; }).join('') + '<td class="t">' + M[k]._.length + '</td></tr>').join('') +
+      '<tr class="sum"><td class="l">Không trùng</td>' + cols.map(c => '<td class="t">' + (uq(c.k).length || '') + '</td>').join('') + '<td class="t">' + uq('_').length + '</td></tr></tbody></table></div>'; };
+  const put = (M, e, k, r) => { const z = M[e] || (M[e] = { _: [] }); (z[k] = z[k] || []).push(r); z._.push(r); }, okW = e => !o.w.length || o.w.indexOf(e) >= 0, okM = e => (pAll ? okW(e) : e === D.me);
+  const matrix = heat(stO.map(k => ({ k: 's' + k, t: k })), M => X.rows.forEach(r => who(r).forEach(e => { if (okW(e)) put(M, e, 's' + (r.st.t || 'Không rõ'), r); })));
+  const hb = rpBuckets(R.d0, R.d1, 16), HMK = { dn: ['Hoàn thành', r => r.dn && r.day], made: ['Tạo mới', r => r.made && tkYmd(new Date(r.u.cre))], due: ['Đến hạn', null] }, rt = (k, L2) => '<span class="rt" role="group">' + L2.map(x => '<button type="button" data-rp-' + k + '="' + x[0] + '" class="' + (st[k] === x[0] ? 'on' : '') + '">' + x[1] + '</button>').join('') + '</span>';
+  const hmF = st.hm === 'made' ? 'made' : 'dn', pace = heat(hb.map((b, i) => ({ k: 'b' + i, t: b.l, tt: b.t, on: b.a <= td && b.b >= td })), M => X.rows.forEach(r => { const d = HMK[hmF][1](r); if (!d) return; const i = hb.findIndex(b => d >= b.a && d <= b.b); if (i < 0) return; (hmF === 'made' ? [r.u.by] : who(r)).forEach(e => { if (okM(e)) put(M, e, 'b' + i, r); }); }));
+
+  /* ── lịch nhiệt của kỳ: ≤ 42 ngày = lịch tuần · dài hơn = lưới tuần ── */
+  const calK = HMK[st.cal] ? st.cal : 'dn', byD = {}, addD = (d, r) => { (byD[d] = byD[d] || []).push(r); };
+  if (calK === 'due') X.due.forEach(u => { const s = rpAt(u, X.E, now) || { t: u.st, done: u.done, cxl: u.cxl, ms: 0 }; addD(u.due, { u: u, st: s, who: u.who, open: !s.done && !s.cxl, late: !s.done && u.due < td }); }); else X.rows.forEach(r => { const d = HMK[calK][1](r); if (d) addD(d, r); });
+  const cMx = Math.max(1, ...Object.keys(byD).map(k => byD[k].length)), nDay = rpDays(R.d0, R.d1), off0 = (rpD(R.d0).getDay() + 6) % 7, days = Array.from({ length: Math.min(nDay, 1100) }, (_, i) => tkYmd(rpAdd(rpD(R.d0), i)));
+  const cell = (k, big) => { const a = byD[k] || [], c = 'h' + chLevel(a.length, cMx) + (k === td ? ' now' : ''), t = rpDmy(k) + ': ' + a.length + ' việc ' + HMK[calK][0].toLowerCase(); return a.length ? '<button type="button" class="' + c + '" title="' + t + '"' + dr(HMK[calK][0] + ' · ' + rpDmy(k), a) + ' aria-label="' + t + '">' + (big ? '<em>' + k.slice(8) + '</em><b>' + a.length + '</b>' : '') + '</button>' : '<i class="' + c + '" title="' + t + '">' + (big ? '<em>' + k.slice(8) + '</em>' : '') + '</i>'; };
+  const cal = (nDay <= 42 ? '<div class="tkr-cal">' + ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(x => '<small>' + x + '</small>').join('') + '<i class="out"></i>'.repeat(off0) + days.map(k => cell(k, true)).join('') + '</div>'
+    : '<div class="tkr-gh"><div class="g"><small class="d"></small>' + ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(x => '<small class="d">' + x + '</small>').join('') + (() => { const A = Array(off0).fill('').concat(days); let h = '', mo = ''; for (let i = 0; i < A.length; i += 7) { const wk = A.slice(i, i + 7), f = wk.find(x => x && x.slice(8) <= '07') || (i === 0 && wk.find(Boolean)), m = f ? f.slice(0, 7) : ''; h += '<small>' + (m && m !== mo ? 'T' + Number(m.slice(5)) : '') + '</small>' + wk.map(x => (x ? cell(x) : '<i></i>')).join('') + '<i></i>'.repeat(7 - wk.length); if (m) mo = m; } return h; })() + '</div></div>') +
+    '<div class="ch-lg"><span>Ít</span><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><i class="h5"></i><span>Nhiều</span></div>';
+
+  /* ── thành viên ── */
+  const oM = pAll ? o : Object.assign({}, o, { w: [D.me] });      // không có quyền “Xem hiệu suất của mọi người” → bảng thành viên chỉ có mình
+  const ME = rpPeople(X, oM), MP = {}; if (XP) rpPeople(XP, oM).forEach(m => { MP[m.e] = m; });
+  const memV = { name: m => nm(m.e), epic: m => m.n.epic, task: m => m.n.task, sub: m => m.n.sub, dn: m => m.dn, d: m => m.dn - ((MP[m.e] || {}).dn || 0), ot: m => (m.ot == null ? -1 : m.ot), open: m => m.open, late: m => m.late, cyc: m => (m.cyc == null ? 1e9 : m.cyc), team: m => m.team, pers: m => m.pers, ep: m => m.epn }, sk = memV[st.sk] ? st.sk : 'dn';
+  const memS = ME.slice().sort((a, b) => (sk === 'name' ? nm(a.e).localeCompare(nm(b.e), 'vi') * st.sd : (memV[sk](a) - memV[sk](b)) * st.sd) || b.dn - a.dn || b.all - a.all || nm(a.e).localeCompare(nm(b.e), 'vi'));
+  const lvOn = RP_LV.filter(x => st.lv.indexOf(x[0]) >= 0), memMx = Math.max(1, ...ME.map(m => m.dn)), hb2 = rpBuckets(R.d0, R.d1, 31);
+  const memTbl = () => {
+    if (!ME.length) return none; const th = (k, t, l, tt) => '<th' + (l ? ' class="l' + (sk === k ? ' on' : '') + '"' : sk === k ? ' class="on"' : '') + ' data-rs="' + k + '" aria-sort="' + (sk === k ? (st.sd > 0 ? 'ascending' : 'descending') : 'none') + '" title="' + esc(tt || 'Sắp xếp theo ' + t.toLowerCase()) + '">' + t + (sk === k ? '<i class="bi bi-caret-' + (st.sd > 0 ? 'up' : 'down') + '-fill"></i>' : '') + '</th>', num = n => '<td' + (n ? '' : ' class="n0"') + '>' + (n ? rpF(n) : '0') + '</td>';
+    const sumLv = k => dn.filter(r => r.u.lv === k).length, tOn = K.ot, tEp = new Set(dn.filter(r => r.u.lv !== 'epic' && r.u.ep).map(r => r.u.ep)).size;
+    return '<div class="tkr-tw"><table class="tkr-tb"><thead><tr>' + th('name', 'Thành viên', 1) + th('dn', 'Tổng xong') + lvOn.map(x => th(x[0], x[1], 0, x[1] + ' hoàn thành trong kỳ')).join('') + '<th class="l" style="min-width:140px"></th>' + (KP ? th('d', 'So kỳ trước') : '') + '<th class="l">Nhịp</th>' + th('ot', 'Đúng hạn') + th('cyc', 'Ngày / việc') + th('open', 'Đang mở', 0, 'Việc đang mở ' + atE) + th('late', 'Quá hạn', 0, 'Việc quá hạn ' + atE) + th('team', 'Bảng chung') + th('pers', 'Bảng riêng') + th('ep', 'Góp epic', 0, 'Số epic có việc người này hoàn thành trong kỳ') + '</tr></thead><tbody>' +
+      memS.map(m => { const p = MP[m.e], d = m.dn - ((p || {}).dn || 0), by = hb2.map(b => Object.keys(m.days).reduce((s, k) => s + (k >= b.a && k <= b.b ? m.days[k] : 0), 0));
+        return '<tr data-rm="' + esc(m.e) + '" tabindex="0" title="Xem chi tiết ' + esc(nm(m.e)) + '"><td class="l"><span class="tkr-nm">' + tkAv(m.e) + '<span><b>' + esc(nm(m.e)) + '</b>' + (rpOff(m.e) ? '<small>tài khoản đã ngưng</small>' : '') + '</span></span></td>' + '<td><b class="big">' + rpF(m.dn) + '</b></td>' + lvOn.map(x => num(m.n[x[0]])).join('') + '<td class="l"><span class="tkr-seg" style="width:' + (m.dn ? Math.max(4, m.dn / memMx * 100) : 0) + '%;min-width:0">' + lvOn.map(x => (m.n[x[0]] ? '<i class="' + x[0][0] + '" style="flex:' + m.n[x[0]] + '" title="' + x[1] + ': ' + rpF(m.n[x[0]]) + '"></i>' : '')).join('') + '</span></td>' +
+          (KP ? '<td>' + (d ? '<em class="tkr-dl ' + (d > 0 ? 'up' : 'dn') + '">' + (d > 0 ? '+' : '−') + rpF(Math.abs(d)) + '</em>' : '<span class="muted">0</span>') + '</td>' : '') + '<td class="l">' + rpSpark(by) + '</td><td>' + rpPc(m.ot) + '</td><td>' + rpF(m.cyc) + '</td>' + num(m.open) + '<td' + (m.late ? '><b class="tk-late">' + rpF(m.late) + '</b>' : ' class="n0">0') + '</td>' + num(m.team) + num(m.pers) + num(m.epn) + '</tr>'; }).join('') +
+      '</tbody><tfoot><tr><td class="l">Tổng (không trùng)</td>' + '<td>' + fmtN(K.dn) + '</td>' + lvOn.map(x => '<td>' + fmtN(sumLv(x[0])) + '</td>').join('') + '<td></td>' + (KP ? '<td>' + (K.dn - KP.dn > 0 ? '+' : K.dn < KP.dn ? '−' : '') + fmtN(Math.abs(K.dn - KP.dn)) + '</td>' : '') + '<td></td><td>' + rpPc(tOn) + '</td><td>' + rpF(K.cyc) + '</td><td>' + fmtN(K.open) + '</td><td>' + fmtN(K.late) + '</td><td>' + fmtN(dn.filter(r => r.u.scope !== 'personal').length) + '</td><td>' + fmtN(dn.filter(r => r.u.scope === 'personal').length) + '</td><td>' + tEp + '</td></tr></tfoot></table></div>';
+  };
+  const multiN = dn.filter(r => r.who.length > 1).length, noWho = dn.filter(r => !r.who.length);
+  const memNote = '<div class="tkr-note">' + (multiN && !st.split ? multiN + ' việc xong có nhiều người phụ trách: mỗi người tính đủ một việc, nên cộng các dòng có thể lớn hơn dòng tổng. Muốn khớp tuyệt đối, bật “Chia đều việc nhiều người” ở Cách đếm. ' : '') + (st.cr === 'mv' ? 'Đang tính công cho người bấm chuyển việc sang cột hoàn thành. ' : noWho.length ? noWho.length + ' việc xong chưa giao cho ai — có thể đổi sang tính theo người bấm hoàn thành ở Cách đếm. ' : '') + 'Bấm một dòng để xem từng việc.</div>';
+  const lg = '<div class="tkr-lg">' + lvOn.map(x => '<span><i style="background:var(' + x[2] + ')"></i>' + x[1] + '</span>').join('') + '</div>';
+
+  /* ── tổng quan ── */
+  const vbars = (data, two) => { const mx = Math.max(1, ...data.map(d => Math.max(d.v[0] || 0, d.v[1] || 0))); return '<div class="tk-vb' + (two ? ' two' : '') + '">' + data.map(d => '<div class="c' + (d.on ? ' on' : '') + '" title="' + esc(d.t || '') + '"><div class="bars"><i style="height:' + (d.v[0] ? Math.max(4, d.v[0] / mx * 100) : 0) + '%"><em>' + (d.v[0] || '') + '</em></i>' + (two ? '<i class="b2" style="height:' + (d.v[1] ? Math.max(4, d.v[1] / mx * 100) : 0) + '%"><em>' + (d.v[1] || '') + '</em></i>' : '') + '</div><small>' + esc(d.l) + '</small></div>').join('') + '</div>'; };
+  const barR = (name, n, max, hot, tail, wide) => '<div class="tk-bar-r' + (wide ? ' wd' : '') + '"><span title="' + esc(name) + '">' + esc(name) + '</span><div class="b"><i' + (hot ? ' class="a"' : '') + ' style="width:' + (max ? Math.max(n ? 3 : 0, n / max * 100) : 0) + '%"></i></div><em>' + (tail != null ? tail : n) + '</em></div>';
+  const segBar = items => { const tot = items.reduce((x, y) => x + y[1], 0); return tot ? '<div class="tk-sg">' + items.filter(x => x[1]).map(x => '<i style="flex:' + x[1] + ';background:' + x[2] + '" title="' + esc(x[0]) + ': ' + x[1] + '"></i>').join('') + '</div><ul class="tk-sgl">' + items.map(x => '<li><i style="background:' + x[2] + '"></i><span>' + esc(x[0]) + '</span><b>' + x[1] + '</b><em>' + pc(x[1], tot) + '%</em></li>').join('') + '</ul>' : none; };
+  const okP = {}; (st.b.length ? st.b : D.projects.filter(p => p.status === 'active' && !p.demo).map(p => p.id)).forEach(id => { okP[id] = 1; });
+  const over = () => {
+    const tb = rpBuckets(R.d0, R.d1, 16), trend = tb.map(b => { const c = X.rows.filter(r => { if (!r.made) return false; const d = tkYmd(new Date(r.u.cre)); return d >= b.a && d <= b.b; }).length, n = inB(b, r => r.dn).length; return { l: b.l, v: [c, n], on: b.a <= td && b.b >= td, t: b.t + ': tạo ' + c + ' · xong ' + n }; });
+    const donut = chDonut(stO.map(k => ({ l: k, n: stN[k].n, col: stN[k].d ? '#2E9E62' : '' })).map((x, i, A) => x.col ? x : Object.assign(x, { col: CH_BLUE[A.filter((y, j) => j < i && !stN[y.l].d).length % CH_BLUE.length] })), ['Việc trong kỳ', fmtN(K.all)], n => n + ' việc');
+    const wDue = op.filter(r => r.u.due), cnt = {}; op.forEach(r => r.who.forEach(e => { cnt[e] = (cnt[e] || 0) + 1; })); const cv = Object.keys(cnt).map(k => cnt[k]), cmx = Math.max(0, ...cv), cav = cv.length ? cv.reduce((x, y) => x + y, 0) / cv.length : 0;
+    const AX = [{ l: 'Đúng hạn', v: K.on + K.lt + wDue.length ? (K.on + wDue.length - late.length) / (K.on + K.lt + wDue.length) : 1, t: K.lt + ' việc xong trễ · ' + late.length + ' đang quá hạn' }, { l: 'Đã giao người', v: X.rows.length ? X.rows.filter(r => r.u.who.length).length / X.rows.length : 1, t: X.rows.filter(r => !r.u.who.length).length + ' việc chưa giao' }, { l: 'Có hạn', v: X.rows.length ? X.rows.filter(r => r.u.due).length / X.rows.length : 1, t: X.rows.filter(r => !r.u.due).length + ' việc chưa đặt hạn' },
+      { l: 'Hoàn thành', v: K.rate || 0, t: K.dn + '/' + K.base + ' việc trong kỳ' }, { l: 'Xử lý nhanh', v: K.cyc == null ? 0 : Math.max(0, Math.min(1, 1 - (K.cyc - 2) / 12)), t: K.cyc == null ? 'chưa có việc xong trong kỳ' : 'trung bình ' + rpF(K.cyc) + ' ngày / việc' }, { l: 'Chia đều việc', v: cv.length > 1 && cmx ? Math.max(0, 1 - (cmx - cav) / cmx) : 1, t: 'người nhiều việc mở nhất: ' + cmx }], score = Math.round(AX.reduce((x, y) => x + y.v, 0) / AX.length * 100);
+    const PRC = { urgent: '#B93F12', high: '#F3663D', med: '#4A78BD', low: '#B9C9E2' }, tyK = Object.keys(TK_TYPE).filter(k => X.rows.some(r => r.u.type === k));
+    const wk = {}; op.forEach(r => who(r).forEach(e => { if (!okW(e)) return; const w = wk[e] || (wk[e] = { n: 0, l: 0 }); w.n++; if (r.late) w.l++; })); const wl = Object.keys(wk).sort((x, y) => wk[y].n - wk[x].n), wmx = Math.max(1, ...wl.map(k => wk[k].n));
+    const load = wl.slice(0, 12).map(k => '<div class="tk-bar-r"><span title="' + esc(nm(k)) + '">' + esc(nm(k)) + '</span><div class="b stk" style="width:' + Math.max(6, wk[k].n / wmx * 100) + '%"><i style="flex:' + (wk[k].n - wk[k].l) + '"></i>' + (wk[k].l ? '<i class="a" style="flex:' + wk[k].l + '"></i>' : '') + '</div><em>' + wk[k].n + (wk[k].l ? '<b>·' + wk[k].l + '</b>' : '') + '</em></div>').join('');
+    const AG = [['≤ 3 ngày', -1, 3], ['4–7 ngày', 3, 7], ['8–14 ngày', 7, 14], ['15–30 ngày', 14, 30], ['> 30 ngày', 30, 1e9]].map(g => [g[0], op.filter(r => { const a = (X.E - r.u.cre) / 864e5; return r.u.cre && a > g[1] && a <= g[2]; }).length, g[1] >= 14]), agMx = Math.max(1, ...AG.map(g => g[1]));
+    // epic: việc bên trong (không trùng, theo trạng thái lúc hết kỳ) · chỉ epic có việc xong trong kỳ hoặc còn mở
+    const inEp = {}; rpScope(L, lvAll).forEach(u => { if (u.lv === 'epic' || !u.ep) return; const s = rpAt(u, X.E, now); if (!s || s.cxl) return; const z = inEp[u.ep] || (inEp[u.ep] = { n: 0, d: 0, p: 0 }); z.n++; if (s.done) { z.d++; if (s.ms >= X.a && s.ms < X.b) z.p++; } });
+    const epK = Object.keys(inEp).filter(k => L.U[k] && (inEp[k].p || inEp[k].d < inEp[k].n)).sort((a, b) => inEp[b].p - inEp[a].p || inEp[b].n - inEp[a].n).slice(0, 10);
+    const bdM = {}; X.rows.forEach(r => { const k = r.u.home, z = bdM[k] || (bdM[k] = { t: r.u.homeName, s: r.u.scope, n: 0, d: 0, o: 0, l: 0 }); z.n++; if (r.dn) z.d++; if (r.open) z.o++; if (r.late) z.l++; }); const bdK = Object.keys(bdM).sort((a, b) => bdM[b].d - bdM[a].d || bdM[b].n - bdM[a].n), bdMx = Math.max(1, ...bdK.map(k => bdM[k].d));
+    const hot = late.slice().sort((x, y) => x.u.due.localeCompare(y.u.due)).slice(0, 6);
+    // đợt làm việc (burndown + kết quả) — theo đợt, không theo kỳ
+    const one = st.b.length === 1 ? P[st.b[0]] : null, sp = one ? ctx.activeSp(one) : null; let burn = '';
+    if (sp && sp.start && sp.end) { const S2 = D.tasks.filter(t => t.sprintId === sp.id && t.type !== 'epic'), total = S2.length, ds = []; for (let d = rpD(sp.start); tkYmd(d) <= sp.end && ds.length < 60; d = rpAdd(d, 1)) ds.push(tkYmd(d)); const W = 520, H = 150, XX = i => 10 + i * (W - 20) / Math.max(1, ds.length - 1), YY = n => 10 + (1 - n / Math.max(1, total)) * (H - 20), rem = ds.filter(d => d <= td).map(d => total - S2.filter(t => tkDone(t) && t.doneAt && tkYmd(new Date(t.doneAt)) <= d).length);
+      burn = box('w3', 'Việc còn lại của ' + esc(sp.name), '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto" role="img" aria-label="Việc còn lại theo ngày"><line x1="10" y1="' + YY(total) + '" x2="' + (W - 10) + '" y2="' + YY(0) + '" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="5 5"/>' + (rem.length ? '<polyline fill="none" stroke="var(--rp-t)" stroke-width="3" stroke-linejoin="round" points="' + rem.map((n, i) => XX(i) + ',' + YY(n)).join(' ') + '"/>' + rem.map((n, i) => '<circle cx="' + XX(i) + '" cy="' + YY(n) + '" r="3.5" fill="var(--rp-e)"/>').join('') : '') + '</svg><div class="small muted">Nét đứt = tiến độ lý tưởng · còn ' + (rem.length ? rem[rem.length - 1] : total) + '/' + total + '</div>', 'theo đợt, không theo kỳ'); }
+    const SPs = D.sprints.filter(x => okP[x.projectId] && x.status !== 'plan' && (!x.start || x.start <= R.d1) && (!x.end || x.end >= R.d0)).sort((x, y) => String(x.end || x.start || x.id).localeCompare(String(y.end || y.start || y.id))).slice(-8), vel = SPs.map(x => { const T = D.tasks.filter(t => t.sprintId === x.id && t.type !== 'epic'), d2 = T.filter(tkDone); return { l: x.name.replace(/^.*?(\d+)\s*$/, 'Đợt $1').slice(0, 9), v: [d2.length, T.length - d2.length], on: x.status === 'active', t: x.name + ': xong ' + d2.length + '/' + T.length }; });
+    /* thời gian thực hiện (1.38) + điểm đóng góp: trên đúng các việc không trùng của phạm vi bảng đang chọn */
+    const rawAll = rpScope(L, Object.assign({}, lvAll, { w: [] })), raw = rawAll.filter(u => !u.arch).map(u => u.r), sw1 = o.w.length === 1 ? o.w[0] : '', wOk = e => (o.w.length ? o.w.indexOf(e) >= 0 : pAll || e === D.me);
+    const LX = st.b.length || (o.w.length && !o.w.some(tkHr)) ? [] : ctx.hxUnits(okP), U0 = tkHrUnits(raw).concat(LX), hrOf = t => { const h = tkCred(t); return Object.keys(h).filter(e => wOk(e) && tkHr(e)).reduce((s, e) => s + h[e], 0); }, hrDn = U0.filter(t => t.doneAt && R.has(t.doneAt) && hrOf(t) > 0), hrTot = hrDn.reduce((s, t) => s + hrOf(t), 0), hrAll = o.w.length ? o.w.some(tkHr) : pAll ? D.users.some(u => u.hr) : tkHr(D.me);
+    const hrBy = {}; hrDn.forEach(t => { const h = tkCred(t); Object.keys(h).forEach(e => { if (wOk(e) && tkHr(e)) hrBy[e] = (hrBy[e] || 0) + h[e]; }); }); const hrK = Object.keys(hrBy).sort((a, b) => hrBy[b] - hrBy[a]), hrMx = Math.max(1, ...hrK.map(k => hrBy[k]));
+    const hrHtml = !hrAll ? '' : box('w3', 'Thời gian thực hiện', hrDn.length ? '<div class="tk-hr-tot"><b>' + esc(tkHrTxt(hrTot)) + '</b><small>' + hrDn.length + ' việc xong ' + R.in + '</small></div>' + hrK.map(k => '<div class="tk-bar-r tk-hr-p"><span title="' + esc(nm(k)) + '">' + esc(nm(k)) + '</span><div class="b"><i style="width:' + Math.max(3, hrBy[k] / hrMx * 100) + '%"></i></div><em>' + esc(tkHrTxt(hrBy[k])) + '</em></div>').join('') : '<div class="small muted">Chưa có giờ nào được ghi ở việc xong trong kỳ</div>', (o.w.length ? 'người đang lọc' : pAll ? 'cả nhóm' : 'của bạn') + ' · quy về giờ' + (LX.length ? ' · kể cả bảng bạn không mở được' : ''));
+    const parA = {}; L.forEach(u => { if (u.lv === 'sub') parA[u.par] = 1; }); const scL = rawAll.filter(u => !(u.arch && parA[u.id])).map(u => u.r), scHtml = pAll && scL.some(t => tkWho(t).length) ? tkScoreBox(scL, R.has, td, sw1) : '';
+    // độ tin cậy
+    const mirN = X.rows.filter(r => Object.keys(r.u.bds).length > 1), archN = X.rows.filter(r => r.u.arch), guess = X.rows.filter(r => r.st.guess), same = {}, dupR = []; X.rows.forEach(r => { const k = r.u.lv + '|' + fold(r.u.title).replace(/\s+/g, ' ').trim(); (same[k] = same[k] || []).push(r); }); Object.keys(same).forEach(k => { const a = same[k]; if (a.length > 1 && new Set(a.map(r => r.u.home)).size > 1) dupR.push.apply(dupR, a); });
+    const qi = (n, t, rows, w, title) => (rows && rows.length ? '<button type="button" class="' + (w ? 'w' : '') + '"' + dr(title || t, rows) + '><b>' + fmtN(n) + '</b><span>' + t + '</span></button>' : '<div><b>' + fmtN(n) + '</b><span>' + t + '</span></div>');
+    const qual = '<div class="tkr-q">' + qi(mirN.length, 'việc nằm ở cả bảng riêng và bảng chung, đã gộp làm một', mirN) + qi(archN.length, 'việc đã lưu trữ vẫn được tính', archN) + qi(X.nodate, 'việc ở cột hoàn thành nhưng không rõ ngày xong, chưa tính vào kỳ nào', X.nd.map(z => ({ u: z.u, st: z.st, who: z.who })), X.nodate) + qi(noWho.length, 'việc xong chưa giao cho ai', noWho, noWho.length) + qi(dupR.length, 'việc trùng tên ở các bảng khác nhau, nên xem lại có phải tạo hai lần', dupR, dupR.length) + (X.past ? qi(guess.length, 'việc xong sau kỳ, không còn nhật ký nên chỉ biết lúc đó chưa xong', guess) : '') + '</div>';
+    return kpis + '<div class="tk-dash">' +
+      box('w4', 'Tạo mới và hoàn thành', vbars(trend, true) + '<div class="tk-lg"><span><i></i>Tạo mới</span><span><i class="a"></i>Hoàn thành</span></div>', 'theo ' + ({ d: 'ngày', w: 'tuần', m: 'tháng' })[tb.k]) +
+      box('w2', 'Sức khoẻ bảng', chRadar(AX), 'điểm chung ' + score + '/100') +
+      box('w6', 'Ai đang làm gì', matrix, 'việc trong kỳ, trạng thái ' + atE) +
+      box('w3', 'Theo trạng thái', X.rows.length ? donut : none, atE) +
+      box('w3', 'Lịch ' + HMK[calK][0].toLowerCase(), cal, '', rt('cal', [['dn', 'Hoàn thành'], ['made', 'Tạo mới'], ['due', 'Đến hạn']])) +
+      box('w2', 'Cấp việc hoàn thành', segBar(RP_LV.filter(x => st.lv.indexOf(x[0]) >= 0).map(x => [x[1], K.n[x[0]], 'var(' + x[2] + ')']))) +
+      box('w2', 'Ưu tiên', segBar(Object.keys(TK_PRI).map(k => [TK_PRI[k][0], X.rows.filter(r => r.u.pri === k).length, PRC[k]])), 'việc trong kỳ') +
+      box('w2', 'Loại việc', segBar(tyK.map((k, i) => [TK_TYPE[k][0], X.rows.filter(r => r.u.type === k).length, CH_BLUE[i % CH_BLUE.length]])), 'việc trong kỳ') +
+      box('w3', 'Khối lượng đang mở theo người', load ? load + '<div class="tk-lg"><span><i></i>Trong hạn</span><span><i class="a"></i>Quá hạn</span></div>' : '<div class="small muted">Không còn việc mở</div>', atE) +
+      box('w3', 'Tuổi của việc đang mở', AG.map(g => barR(g[0], g[1], agMx, g[2])).join(''), 'từ ngày tạo đến ' + (X.past ? 'hết kỳ' : 'hôm nay')) + hrHtml + burn +
+      (vel.length ? box(burn ? 'w3' : 'w6', 'Kết quả các đợt', vbars(vel, true) + '<div class="tk-lg"><span><i></i>Đã xong</span><span><i class="a"></i>Chưa xong</span></div>', 'đợt có trong kỳ') : '') +
+      (epK.length ? box('w3', 'Tiến độ epic', epK.map(k => barR(L.U[k].title, inEp[k].d, inEp[k].n, false, inEp[k].d + '/' + inEp[k].n + (inEp[k].p ? ' · +' + inEp[k].p : ''), true)).join(''), 'task, sub-task xong · dấu + là trong kỳ') : '') +
+      box(epK.length ? 'w3' : 'w6', 'Cần chú ý', hot.length ? '<div class="tkr-li">' + hot.map((r, i) => rpItem(r, 'h' + i)).join('') + '</div>' : '<div class="small muted"><i class="bi bi-check2-circle"></i> Không có việc quá hạn</div>', hot.length ? 'quá hạn lâu nhất ' + atE : '') +
+      (bdK.length > 1 ? box('w6', 'So sánh các bảng', bdK.map(k => barR(bdM[k].t + (bdM[k].s === 'personal' ? ' (riêng)' : ''), bdM[k].d, bdMx, false, 'xong ' + bdM[k].d + '/' + bdM[k].n + (bdM[k].l ? '<b> · ' + bdM[k].l + ' trễ</b>' : ''), true)).join(''), 'xong / việc trong kỳ · mỗi việc tính ở bảng gốc') : '') +
+      (scHtml ? box('w6 tk-sc', 'Điểm đóng góp &amp; chia thưởng', scHtml, R.in + ' · cả nhóm') : '') + box('w6', 'Độ tin cậy của số liệu', qual, '') + '</div>';
+  };
+  const mem = () => kpis + '<div class="tk-dash">' + box('w6', pAll ? 'Thành viên hoàn thành bao nhiêu' : 'Việc của bạn', lg + memTbl() + memNote, lvOn.map(x => x[1]).join(' + ') + ' · ' + R.in, pAll ? '<button type="button" class="btn xs" style="margin-left:auto" data-rp-csv><i class="bi bi-download"></i>Tải bảng CSV</button>' : '') +
+    box('w6', 'Nhịp ' + HMK[hmF][0].toLowerCase() + ' theo người', pace, 'theo ' + ({ d: 'ngày', w: 'tuần', m: 'tháng' })[hb.k], rt('hm', [['dn', 'Hoàn thành'], ['made', 'Tạo việc']])) + box('w6', 'Ai đang làm gì', matrix, 'việc trong kỳ, trạng thái ' + atE) + '</div>';
+  const LIK = { dn: ['Hoàn thành', dn], made: ['Tạo mới', X.rows.filter(r => r.made)], open: ['Đang mở', op], late: ['Quá hạn', late], cxl: ['Đã huỷ', X.rows.filter(r => r.cxl)], all: ['Tất cả', X.rows] }, liK = LIK[st.li] ? st.li : 'dn', liR = LIK[liK][1].slice().sort((x, y) => (y.st.ms || 0) - (x.st.ms || 0) || y.u.cre - x.u.cre);
+  const list = () => box('w6', LIK[liK][0], liR.length ? '<div class="tkr-li">' + liR.slice(0, RP.n).map((r, i) => rpItem(r, i)).join('') + (liR.length > RP.n ? '<button type="button" class="btn sm tkr-more" data-rp-more>Xem thêm ' + fmtN(Math.min(100, liR.length - RP.n)) + ' việc</button>' : '') + '</div>' : none, fmtN(liR.length) + ' việc, không trùng', rt('li', Object.keys(LIK).map(k => [k, LIK[k][0]])));
+  const tb = $('.tkr-tw', v), keepX = tb ? tb.scrollLeft : 0, f3 = $('.tkr-h3', v), kf = f3 ? f3.scrollLeft : 0;
+  v.innerHTML = '<div class="tkr">' + head + (tab === 'mem' ? mem() : tab === 'li' ? list() : over()) + '</div>';
+  if (keepX && $('.tkr-tw', v)) $('.tkr-tw', v).scrollLeft = keepX; if (kf && $('.tkr-h3', v)) $('.tkr-h3', v).scrollLeft = kf;
+  tkDashFit(v);
+  const tit = st.b.length === 1 ? P[st.b[0]].name : st.b.length ? st.b.length + ' bảng' : 'Tất cả bảng';
+  ctx.setTitle(tit + (st.w.length && pAll ? ' · ' + (st.w.length === 1 ? nm(st.w[0]) : st.w.length + ' người') : ''));
+  tkPoolPaint(v, Number(lsGet('tkPool', 0)) || 0);
+  const pool = $('#tkPool', v); if (pool) { pool.onblur = () => { const n = Number(pool.value.replace(/\D/g, '')) || 0; pool.value = n ? n.toLocaleString('vi') : ''; }; pool.oninput = () => { const n = Number(pool.value.replace(/\D/g, '')) || 0; lsSet('tkPool', n); tkPoolPaint(v, n); }; }
+
+  /* ── hộp chọn của từng bộ lọc ── */
+  const cntBy = f => { const c = {}; X.rows.forEach(r => [].concat(f(r)).forEach(k => { c[k] = (c[k] || 0) + 1; })); return c; };
+  const openF = (k, a) => {
+    const on = vals => upd({ [k]: vals });
+    if (k === 'b') { const c = cntBy(r => Object.keys(r.u.bds)), G = p => (p.status !== 'active' ? 'Bảng đã lưu trữ' : p.demo ? 'Bảng dữ liệu mẫu' : p.scope !== 'personal' ? 'Bảng chung' : p.createdBy === D.me ? 'Bảng riêng của bạn' : 'Bảng riêng của người khác'), GO = ['Bảng chung', 'Bảng riêng của bạn', 'Bảng riêng của người khác', 'Bảng đã lưu trữ', 'Bảng dữ liệu mẫu'];
+      const A = D.projects.slice().sort((x, y) => GO.indexOf(G(x)) - GO.indexOf(G(y)) || String(x.name).localeCompare(String(y.name), 'vi')), act = A.filter(p => p.status === 'active' && !p.demo);
+      const q = [{ t: 'Chỉ bảng chung', v: act.filter(p => p.scope !== 'personal').map(p => p.id) }, { t: 'Chỉ bảng riêng', v: act.filter(p => p.scope === 'personal').map(p => p.id) }].concat(ctx.groups.map(g => ({ t: g.name, v: g.ids.filter(x => P[x]) }))).filter(x => x.v.length);
+      return fxSelect(a, { title: 'Bảng', none: 'mọi bảng chung và riêng', sel: st.b, quick: q, onChange: on, opts: A.map(p => ({ v: p.id, t: p.name, d: p.scope === 'personal' && p.createdBy !== D.me ? nm(p.createdBy) : '', g: G(p), dot: p.color || '#8FB0DE', n: st.b.length && st.b.indexOf(p.id) < 0 ? '' : c[p.id] || 0 })) }); }
+    if (k === 'w') { const c = {}; rpSnap(S, R.d0, R.d1, now, Object.assign({}, o, { w: [] })).rows.forEach(r => who(r).forEach(e => { c[e] = (c[e] || 0) + 1; })); st.w.forEach(e => { if (!(e in c)) c[e] = 0; }); D.users.forEach(u => { if (u.task && !(u.email in c)) c[u.email] = 0; });
+      const A = Object.keys(c).sort((x, y) => (x ? 1 : 0) - (y ? 1 : 0) || (c[y] > 0) - (c[x] > 0) || nm(x).localeCompare(nm(y), 'vi')); return fxSelect(a, { title: 'Thành viên', none: 'cả nhóm', sel: st.w, onChange: on, opts: A.map(e => ({ v: e, t: nm(e), d: rpOff(e) ? 'tài khoản đã ngưng' : '', av: e, n: c[e] ? c[e] + ' việc' : '' })) }); }
+    const all = rpScope(L, Object.assign({}, lvAll, { [k]: [] }));
+    if (k === 'ep') { const c = {}; all.forEach(u => { if (u.lv !== 'epic') c[u.ep || ''] = (c[u.ep || ''] || 0) + 1; else if (!(u.id in c)) c[u.id] = 0; }); return fxSelect(a, { title: 'Epic', none: 'mọi epic', sel: st.ep, onChange: on, opts: Object.keys(c).sort((x, y) => (x ? 1 : 0) - (y ? 1 : 0) || c[y] - c[x]).map(id => ({ v: id, t: epT(id), d: id && L.U[id] ? L.U[id].key + ' · ' + L.U[id].homeName : '', n: c[id] })) }); }
+    if (k === 'ty' || k === 'pri') { const M = k === 'ty' ? TK_TYPE : TK_PRI, c = {}; all.forEach(u => { const x = k === 'ty' ? u.type : u.pri; c[x] = (c[x] || 0) + 1; }); return fxSelect(a, { title: k === 'ty' ? 'Loại việc' : 'Ưu tiên', none: 'mọi loại', sel: st[k], onChange: on, opts: Object.keys(M).filter(x => k === 'pri' || c[x]).map(x => ({ v: x, t: M[x][0], ic: M[x][1], n: c[x] || 0 })) }); }
+    if (k === 'lbl') { const c = {}; all.forEach(u => u.lbl.forEach(x => { c[x] = (c[x] || 0) + 1; })); return Object.keys(c).length ? fxSelect(a, { title: 'Nhãn', none: 'mọi nhãn', sel: st.lbl, onChange: on, opts: Object.keys(c).sort((x, y) => c[y] - c[x]).map(x => ({ v: x, t: x, n: c[x] })) }) : toast('Chưa có việc nào gắn nhãn', 'info'); }
+    if (k === 'by') { const c = {}; all.forEach(u => { c[u.by] = (c[u.by] || 0) + 1; }); return fxSelect(a, { title: 'Người tạo', none: 'mọi người', sel: st.by, onChange: on, opts: Object.keys(c).filter(Boolean).sort((x, y) => c[y] - c[x]).map(e => ({ v: e, t: nm(e), av: e, n: c[e] })) }); }
+    if (k === 'calc') return fxSelect(a, { title: 'Cách đếm', none: 'theo mặc định', sel: [st.leaf ? 'leaf' : '', st.split ? 'split' : '', st.cr === 'mv' ? 'mv' : ''].filter(Boolean), onChange: L2 => upd({ leaf: L2.indexOf('leaf') >= 0 ? 1 : 0, split: L2.indexOf('split') >= 0 ? 1 : 0, cr: L2.indexOf('mv') >= 0 ? 'mv' : 'pic' }),
+      opts: [{ v: 'leaf', t: 'Không đếm cả cha lẫn con', d: 'Task có sub-task thì chỉ đếm sub-task; epic có việc bên trong thì chỉ đếm việc bên trong (khi các cấp đó đang được chọn)' }, { v: 'split', t: 'Chia đều việc nhiều người', d: 'Việc 2 người phụ trách: mỗi người 0,5 — cộng các dòng bằng đúng dòng tổng' }, { v: 'mv', t: 'Tính công cho người bấm hoàn thành', d: 'Thay cho người phụ trách — đọc từ nhật ký chuyển cột' }] });
+  };
+  /** hộp chi tiết một thành viên */
+  const memDlg = e => {
+    const m = ME.find(x => x.e === e) || rpPeople(rpSnap(S, R.d0, R.d1, now, Object.assign({}, o, { w: [] })), Object.assign({}, o, { w: [e] }))[0]; if (!m) return toast('Không có việc nào trong kỳ', 'info');
+    const rows = m.rows, d2 = rows.filter(r => r.dn), bd = {}; d2.forEach(r => { const z = bd[r.u.home] || (bd[r.u.home] = { t: r.u.homeName + (r.u.scope === 'personal' ? ' (riêng)' : ''), n: 0 }); z.n++; }); const bK = Object.keys(bd).sort((x, y) => bd[y].n - bd[x].n), eK = Object.keys(m.eps).sort((x, y) => m.eps[y] - m.eps[x]).slice(0, 8), bMx = Math.max(1, ...bK.map(k => bd[k].n)), eMx = Math.max(1, ...eK.map(k => m.eps[k]));
+    const SL = { dn: ['Đã xong', d2], open: ['Đang mở', rows.filter(r => r.open)], late: ['Quá hạn', rows.filter(r => r.late)] }; let sl = d2.length ? 'dn' : 'open', n = 40;
+    const M = modal({ title: 'Báo cáo thành viên', icon: 'bi-person-lines-fill', size: 'lg', body: '<div class="tkr-ph">' + tkAv(e) + '<div><h4>' + esc(nm(e)) + '</h4><small>' + esc(rpDmy(R.d0) + ' – ' + rpDmy(R.d1)) + (rpOff(e) ? ' · tài khoản đã ngưng' : '') + '</small></div></div>' +
+      '<div class="tkr-g3">' + RP_LV.map(x => '<div><b>' + rpF(m.n[x[0]]) + '</b><span>' + x[1] + ' xong</span></div>').join('') + '<div><b>' + rpPc(m.ot) + '</b><span>Đúng hạn</span></div><div><b>' + rpF(m.cyc) + '</b><span>Ngày / việc</span></div><div><b>' + rpF(m.open) + '</b><span>Đang mở</span></div><div><b>' + rpF(m.late) + '</b><span>Quá hạn</span></div></div>' +
+      (bK.length ? '<div class="tkr-sub">Xong ở bảng nào</div>' + bK.map(k => barR(bd[k].t, bd[k].n, bMx, false, null, true)).join('') : '') + (eK.length ? '<div class="tkr-sub">Góp vào epic</div>' + eK.map(k => barR(epT(k), m.eps[k], eMx, false, rpF(m.eps[k]), true)).join('') : '') +
+      '<div class="tkr-sub" style="display:flex;gap:8px;align-items:center">Từng việc<span class="tkr-tabs" style="margin-left:auto">' + Object.keys(SL).map(k => '<button type="button" data-sl="' + k + '">' + SL[k][0] + ' ' + SL[k][1].length + '</button>').join('') + '</span></div><div class="tkr-li"></div>' });
+    const B = M.$('.tkr-li'), draw = () => { const A = SL[sl][1]; A.sort((x, y) => (y.st.ms || 0) - (x.st.ms || 0) || y.u.cre - x.u.cre); M.$$('[data-sl]').forEach(b => b.classList.toggle('on', b.dataset.sl === sl)); B.innerHTML = A.length ? A.slice(0, n).map(rpItem).join('') + (A.length > n ? '<button type="button" class="btn sm tkr-more" data-more>Xem thêm</button>' : '') : '<div class="kfx-0">Không có việc nào</div>'; }; draw();
+    M.el.addEventListener('click', ev => { const s = ev.target.closest('[data-sl]'), i = ev.target.closest('[data-ri]'); if (s) { sl = s.dataset.sl; n = 40; draw(); } else if (ev.target.closest('[data-more]')) { n += 100; draw(); } else if (i) { const r = SL[sl][1][Number(i.dataset.ri)]; M.close(); rpOpen(r.u, ctx); } });
+  };
+  const csv = () => {
+    const q = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"', n1 = n => (n == null ? '' : String(Math.round(n * 100) / 100).replace('.', ',')), H = ['Thành viên', 'Email'].concat(lvOn.map(x => x[1] + ' xong'), ['Tổng xong', 'Kỳ trước', 'Đúng hạn', 'Trễ hạn', 'Không đặt hạn', 'Ngày / việc', 'Đang mở', 'Quá hạn', 'Xong ở bảng chung', 'Xong ở bảng riêng', 'Góp epic']);
+    const A = [['Báo cáo thành viên Kiến Task', rpDmy(R.d0) + ' - ' + rpDmy(R.d1), 'Bảng: ' + tit], [], H].concat(memS.map(m => [nm(m.e), m.e].concat(lvOn.map(x => n1(m.n[x[0]])), [n1(m.dn), n1((MP[m.e] || {}).dn || 0), n1(m.on), n1(m.lt), n1(m.nd), n1(m.cyc), n1(m.open), n1(m.late), n1(m.team), n1(m.pers), m.epn])), [['Tổng (không trùng)', ''].concat(lvOn.map(x => K.n[x[0]]), [K.dn, KP ? KP.dn : '', K.on, K.lt, K.nd, n1(K.cyc), K.open, K.late])]);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + A.map(r => r.map(q).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' })); a.download = 'Bao-cao-thanh-vien_' + R.d0 + '_' + R.d1 + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+  const root = $('.tkr', v);
+  root.onkeydown = e => { const t = e.target.closest && e.target.closest('tr[data-rm]'); if (t && e.key === 'Enter') { e.preventDefault(); memDlg(t.dataset.rm); } };
+  root.onclick = e => {
+    const c = s => e.target.closest(s); let x;
+    if (c('.tk-how') || c('#tkPool')) return; e.stopPropagation();
+    if (rpDateClick(e, ctx.paint)) return;
+    if ((x = c('[data-rp-day]'))) { const p = x.dataset.rpDay.split(':'); if (p[0] === R.d0 && p[1] === R.d1) return; rpSetRng('c', p[0], p[1]); return ctx.paint(); }
+    if ((x = c('[data-rp-tab]'))) { RP.n = 60; return upd({ tab: x.dataset.rpTab }); }
+    if ((x = c('[data-rp-lv]'))) { const k = x.dataset.rpLv, A = RP_LV.map(z => z[0]).filter(z => (z === k ? st.lv.indexOf(z) < 0 : st.lv.indexOf(z) >= 0)); if (!A.length) return toast('Giữ ít nhất một cấp để đếm', 'info'); return upd({ lv: A }); }
+    if ((x = c('[data-rp-f]'))) return openF(x.dataset.rpF, x);
+    if (c('[data-rp-clr]')) return upd({ b: [], w: [], ep: [], ty: [], pri: [], lbl: [], by: [] });
+    if (c('[data-rp-re]')) { RP.err = ''; tkRefresh().catch(() => {}); rpLoad(ctx.paint, true); return ctx.paint(); }
+    if ((x = c('[data-rp-cal]'))) return upd({ cal: x.dataset.rpCal });
+    if ((x = c('[data-rp-hm]'))) return upd({ hm: x.dataset.rpHm });
+    if ((x = c('[data-rp-li]'))) { RP.n = 60; return upd({ li: x.dataset.rpLi }); }
+    if (c('[data-rp-more]')) { RP.n += 100; return ctx.paint(); }
+    if (c('[data-rp-csv]')) return csv();
+    if ((x = c('[data-rp-dr]'))) { const d = DR[Number(x.dataset.rpDr)]; return d && rpDrill(d[0], d[2] || rpDmy(R.d0) + ' – ' + rpDmy(R.d1), d[1], ctx); }
+    if ((x = c('[data-rs]'))) return upd(st.sk === x.dataset.rs ? { sd: -st.sd } : { sk: x.dataset.rs, sd: x.dataset.rs === 'name' || x.dataset.rs === 'cyc' ? 1 : -1 });
+    if ((x = c('tr[data-rm]'))) return memDlg(x.dataset.rm);
+    if ((x = c('[data-rp-m]'))) return memDlg(x.dataset.rpM);
+    if ((x = c('[data-scw]'))) return upd({ w: st.w.length === 1 && st.w[0] === x.dataset.scw ? [] : [x.dataset.scw] });
+    if ((x = c('[data-ri]'))) { const i = x.dataset.ri, r = i[0] === 'h' ? late.slice().sort((p, q) => p.u.due.localeCompare(q.u.due))[Number(i.slice(1))] : liR[Number(i)]; if (r) rpOpen(r.u, ctx); }
+  };
+}
+</script>
+
+<style>
 /* ══════════ MODULE QUẢN LÝ TASK — một màu mực, cam chỉ cho việc cần chú ý ══════════ */
 .tk-view{ gap:14px }
 .tk-bar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
@@ -34874,7 +35500,7 @@ button.tk-loose{ margin-top:16px; padding:5px 8px 5px 4px; border:0; border-radi
    ══════════════════════════════════════════════════════════════ */
 /* (1.65.1) BỘ LỌC THÊM — bấm “+ Thêm bộ lọc” trong nút Bộ lọc: người tạo · hạn · ngày tạo · cập nhật · hoàn thành · ưu tiên · cột · nhãn · loại việc · đợt.
    TK.cf = [{ f: trường, v: giá trị }] (các bộ lọc cùng áp: phải khớp hết) · nhớ trên máy (tkCf). Ngày: 'today' · số ngày ('7', '30') · 'late' · 'none' · 'r:<từ>:<đến>' (khoảng). */
-const TK_CF = { by: ['Người tạo', 'bi-person-plus'], due: ['Hạn', 'bi-calendar-event'], cre: ['Ngày tạo', 'bi-calendar-plus'], upd: ['Cập nhật gần đây', 'bi-clock-history'], done: ['Ngày hoàn thành', 'bi-calendar-check'],
+const TK_CF = { who: ['Người phụ trách', 'bi-person'], ep: ['Epic', 'bi-lightning-charge'], by: ['Người tạo', 'bi-person-plus'], due: ['Hạn', 'bi-calendar-event'], cre: ['Ngày tạo', 'bi-calendar-plus'], upd: ['Cập nhật gần đây', 'bi-clock-history'], done: ['Ngày hoàn thành', 'bi-calendar-check'],
   pri: ['Ưu tiên', 'bi-flag'], st: ['Trạng thái (cột)', 'bi-columns-gap'], lbl: ['Nhãn', 'bi-tag'], ty: ['Loại việc', 'bi-ui-checks'], sp: ['Đợt làm việc', 'bi-flag-fill'] };
 const TK_CFD = { due: [['late', 'Quá hạn'], ['today', 'Hôm nay'], ['7', '7 ngày tới'], ['30', '30 ngày tới'], ['none', 'Chưa đặt hạn']], cre: [['today', 'Hôm nay'], ['7', '7 ngày qua'], ['30', '30 ngày qua']],
   upd: [['today', 'Hôm nay'], ['7', '7 ngày qua'], ['30', '30 ngày qua']], done: [['today', 'Hôm nay'], ['7', '7 ngày qua'], ['30', '30 ngày qua'], ['none', 'Chưa hoàn thành']] };
@@ -34889,6 +35515,8 @@ function tkCfDay(d, v, fut, td) {
 function tkCfOk(t, x, td) {
   if (Array.isArray(x.vs) && x.vs.length > 1) return x.vs.some(v => tkCfOk(t, { f: x.f, v: String(v) }, td));      // (1.69) chọn nhiều giá trị = khớp một trong số đó
   switch (x.f) {
+    case 'who': return x.v === 'none' ? !tkWho(t).length : tkWho(t).indexOf(x.v) >= 0;      // (1.85.3) chọn nhiều người phụ trách
+    case 'ep': { const pa = tkPar(t.parentId), ep = t.type === 'epic' ? t.id : t.epicId || (pa && pa.epicId) || ''; return x.v === 'none' ? !ep : ep === x.v; }
     case 'by': return String(t.reporter || '').toLowerCase() === x.v;
     case 'due': return x.v === 'late' ? !tkShut(t) && !!t.due && t.due < td : tkCfDay(t.due || '', x.v, true, td);
     case 'cre': return tkCfDay(tkDay(t.createdAt), x.v, false, td);
@@ -34907,17 +35535,17 @@ const tkCfDmy = d => d ? d.split('-').reverse().join('/') : '…';
 function tkCfTxt(x) {
   if (Array.isArray(x.vs) && x.vs.length > 1) return tkCfTxt({ f: x.f, v: String(x.vs[0]) }) + ' +' + (x.vs.length - 1);      // (1.69) “Người tạo: An +2”
   const F = TK_CF[x.f] || [x.f], o = (TK_CFD[x.f] || []).find(y => y[0] === x.v);
-  const v = o ? o[1] : x.v[0] === 'r' && TK_CFD[x.f] ? tkCfDmy(x.v.split(':')[1]) + ' – ' + tkCfDmy(x.v.split(':')[2]) : x.f === 'by' ? tkUser(x.v) : x.f === 'pri' ? (TK_PRI[x.v] || [x.v])[0] : x.f === 'ty' ? (TK_TYPE[x.v] || [x.v])[0]
+  const v = o ? o[1] : x.v[0] === 'r' && TK_CFD[x.f] ? tkCfDmy(x.v.split(':')[1]) + ' – ' + tkCfDmy(x.v.split(':')[2]) : x.f === 'who' ? (x.v === 'none' ? 'Chưa giao' : tkUser(x.v)) : x.f === 'ep' ? (x.v === 'none' ? 'Không thuộc epic' : (tkEpic(x.v) || { title: 'Epic' }).title) : x.f === 'by' ? tkUser(x.v) : x.f === 'pri' ? (TK_PRI[x.v] || [x.v])[0] : x.f === 'ty' ? (TK_TYPE[x.v] || [x.v])[0]
     : x.f === 'sp' ? (x.v === 'none' ? 'Chưa vào đợt' : ((TK.d && TK.d.sprints || []).find(s => s.id === x.v) || { name: x.v }).name) : x.v;
   return F[0] + ': ' + v;
 }
-const TK = { cf: [].concat(lsGet('tkCf', []) || []).filter(x => x && typeof x.f === 'string' && typeof x.v === 'string' && (x.vs === undefined || (Array.isArray(x.vs) && x.vs.every(v => typeof v === 'string')))), t0: '', zoom: lsGet('tkZoom', 'w'), rng: String(lsGet('tkRng', '') || lsGet('tkPer', 30) || '30'), rngA: String(lsGet('tkRngA', '') || ''), rngB: String(lsGet('tkRngB', '') || ''), d: null, proj: lsGet('tkProj', ''), q: '', who: '', quick: '', group: lsGet('tkGroup', ''), epic: '', at: 0, month: '', sort: { k: '', d: 1 }, tree: lsGet('tkTree', true) !== false, fold: lsGet('tkFold', {}) || {}, addAt: '', addTy: lsGet('tkAddTy', {}) || {}, add: {}, sel: {}, subOpen: {}, kidOpen: {}, kidTy: {}, pick: [].concat(lsGet('tkPick', []) || []), laneFold: lsGet('tkLaneFold', {}) || {}, selMode: false, cq: [], cqRun: false, ord: 0, ui: null, lv: { epic: 'epic', sub: 'sub' }[lsGet('tkLv2', 'task')] || 'task', loose: lsGet('tkLoose', true) !== false, merge: lsGet('tkMerge', false) === true };
+const TK = { cf: [].concat(lsGet('tkCf', []) || []).filter(x => x && typeof x.f === 'string' && typeof x.v === 'string' && (x.vs === undefined || (Array.isArray(x.vs) && x.vs.every(v => typeof v === 'string')))), t0: '', zoom: lsGet('tkZoom', 'w'), rng: String(lsGet('tkRng', '') || lsGet('tkPer', 30) || '30'), rngA: String(lsGet('tkRngA', '') || ''), rngB: String(lsGet('tkRngB', '') || ''), d: null, proj: lsGet('tkProj', ''), q: '', quick: '', group: lsGet('tkGroup', ''), epic: '', at: 0, month: '', sort: { k: '', d: 1 }, tree: lsGet('tkTree', true) !== false, fold: lsGet('tkFold', {}) || {}, addAt: '', addTy: lsGet('tkAddTy', {}) || {}, add: {}, sel: {}, subOpen: {}, kidOpen: {}, kidTy: {}, pick: [].concat(lsGet('tkPick', []) || []), laneFold: lsGet('tkLaneFold', {}) || {}, selMode: false, cq: [], cqRun: false, ord: 0, ui: null, lv: { epic: 'epic', sub: 'sub' }[lsGet('tkLv2', 'task')] || 'task', loose: lsGet('tkLoose', true) !== false, merge: lsGet('tkMerge', false) === true };
 const TK_PRI = { urgent: ['Khẩn', 'bi-chevron-double-up', 1], high: ['Cao', 'bi-chevron-up', 1], med: ['Vừa', 'bi-dash-lg', 0], low: ['Thấp', 'bi-chevron-down', 0] };
 const TK_TYPE = { task: ['Task', 'bi-check2-square'], bug: ['Lỗi', 'bi-bug'], idea: ['Ý tưởng', 'bi-lightbulb'], doc: ['Tài liệu', 'bi-file-earmark-text'], epic: ['Epic', 'bi-lightning-charge'] };
 function tkYmd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
 function tkToday() { return tkYmd(new Date()); }
 function tkDmy(s) { return s ? s.slice(8, 10) + '/' + s.slice(5, 7) : ''; }
-function tkUser(e) { const u = e && TK.d && TK.d.users.find(x => x.email === e); return u ? u.name : (e || ''); }
+function tkUser(e) { const u = e && TK.d && TK.d.users.find(x => x.email === e); return u ? u.name : (e && typeof RP !== 'undefined' && RP.x && RP.x.names && RP.x.names[e]) || e || ''; }      // (1.85.3) người đã ngưng tài khoản: tên do taskReport gửi
 function tkProj(id) { return TK.d && TK.d.projects.find(p => p.id === id); }
 function tkCol(t) { const p = tkProj(t.projectId); return (p && p.cols.find(c => c.id === t.status)) || { id: t.status, t: t.status }; }
 function tkDone(t) { return !!tkCol(t).done; }
@@ -35460,26 +36088,21 @@ function tkCard(t, drag, i, o) {
      điểm = trọng số ưu tiên (Thấp 1 · Vừa 2 · Cao 3 · Khẩn 4) × hệ số hạn (đúng hạn 1 · không đặt hạn 0,8 · trễ hạn 0,5) ÷ số người cùng phụ trách
    Trừ 1 điểm (÷ số người) cho mỗi việc ĐANG quá hạn. Điểm âm tính 0. Tỉ lệ thưởng = điểm người / tổng điểm cả nhóm. Đổi hệ số: sửa TK_SCORE. */
 const TK_SCORE = { w: { low: 1, med: 2, high: 3, urgent: 4 }, on: 1, nd: 0.8, late: 0.5, od: 1 };
-/** (1.56.7) KỲ BÁO CÁO (tab Báo cáo · Hiệu suất) — TK.rng: 'd' hôm nay · 'w' tuần này · 'pw' tuần trước · 'm' tháng này · 'pm' tháng trước · '7' / '30' / '90' ngày qua
-    · 'c' khoảng ngày (TK.rngA → TK.rngB). Trả { a, b: mốc [a, b) · has(x): ngày x nằm trong kỳ · in: cụm “trong kỳ” để ghép chữ · lab: tên kỳ khi chốt công · old: kỳ chạm tới việc đã vào Lưu trữ } */
-const TK_RNG = [['d', 'Hôm nay'], ['w', 'Tuần này'], ['pw', 'Tuần trước'], ['m', 'Tháng này'], ['pm', 'Tháng trước'], ['7', '7 ngày qua'], ['30', '30 ngày qua'], ['90', '90 ngày qua'], ['c', 'Khoảng ngày…']];
+/** (1.56.7 · 1.85.3) KỲ BÁO CÁO (tab Báo cáo · Hiệu suất) — TK.rng: kỳ có sẵn (RP_PRE ở TaskReport.html: hôm nay, hôm qua, tuần, tháng, quý, năm, 7 / 30 / 90 ngày, toàn bộ)
+    · 'c' khoảng ngày (TK.rngA → TK.rngB). MỌI kỳ tính theo NGÀY tròn (trước 1.85.3: “n ngày qua” tính theo giờ bấm → hai lần mở ra hai số).
+    Trả { k, d0, d1: ngày đầu / cuối · a, b: mốc [a, b) · has(x): ngày x nằm trong kỳ · in: cụm “trong kỳ” để ghép chữ · lab: tên kỳ khi chốt công · old: kỳ chạm tới việc đã vào Lưu trữ } */
 function tkRng() {
-  const k = TK_RNG.some(x => x[0] === TK.rng) ? TK.rng : '30', td = tkToday(), D0 = x => new Date(x + 'T00:00:00'), t0 = D0(td), add = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-  const dm = d => pad(d.getDate()) + '/' + pad(d.getMonth() + 1), dmy = d => dm(d) + '/' + d.getFullYear(), my = d => (d.getMonth() + 1) + '/' + d.getFullYear();
-  let a, b, inn, lab;
-  if (k === 'd') { a = t0; b = add(t0, 1); inn = 'hôm nay'; lab = 'Ngày ' + dmy(t0); }
-  else if (k === 'w' || k === 'pw') { a = add(t0, -((t0.getDay() + 6) % 7) - (k === 'pw' ? 7 : 0)); b = add(a, 7); inn = k === 'w' ? 'tuần này' : 'tuần trước'; lab = 'Tuần ' + dm(a) + '–' + dmy(add(b, -1)); }
-  else if (k === 'm' || k === 'pm') { a = new Date(t0.getFullYear(), t0.getMonth() - (k === 'pm' ? 1 : 0), 1); b = new Date(a.getFullYear(), a.getMonth() + 1, 1); inn = 'trong tháng ' + my(a); lab = 'Tháng ' + my(a); }
-  else if (k === 'c') { const x = TK.rngA || td, y = TK.rngB || td, lo = x <= y ? x : y, hi = x <= y ? y : x; a = D0(lo); b = add(D0(hi), 1); inn = lo === hi ? 'ngày ' + dm(a) : 'từ ' + dm(a) + ' đến ' + dm(add(b, -1)); lab = lo === hi ? 'Ngày ' + dmy(a) : dm(a) + '–' + dmy(add(b, -1)); }
-  else { const n = Number(k); a = new Date(Date.now() - n * 864e5); b = new Date(8.64e15); inn = 'trong ' + n + ' ngày qua'; lab = n + ' ngày đến ' + dmy(t0); }
+  const td = tkToday(), k = TK.rng === 'c' || rpPreset(TK.rng, td) ? TK.rng : '30'; let p, inn, lab;
+  if (k === 'c') { const x = TK.rngA || td, y = TK.rngB || td; p = x <= y ? [x, y] : [y, x]; }
+  else { let first = ''; if (k === 'all') { const t = (TK.d ? TK.d.tasks : []).concat((typeof RP !== 'undefined' && RP.x && RP.x.extra) || []).reduce((m, x) => (x.createdAt && (!m || x.createdAt < m) ? x.createdAt : m), ''); first = t ? tkYmd(new Date(t)) : ''; } p = rpPreset(k, td, first); }
+  const a = rpD(p[0]), b = rpAdd(rpD(p[1]), 1), my = (a.getMonth() + 1) + '/' + a.getFullYear(), rg = p[0] === p[1] ? 'ngày ' + tkDmy(p[0]) : 'từ ' + tkDmy(p[0]) + ' đến ' + tkDmy(p[1]), nm = rpName(p[0], p[1]);
+  inn = { d: 'hôm nay', y: 'hôm qua', w: 'tuần này', pw: 'tuần trước', m: 'trong tháng ' + my, pm: 'trong tháng ' + my, all: 'từ trước tới nay' }[k] || (/^(7|30|90)$/.test(k) ? 'trong ' + k + ' ngày qua' : /^(Quý|Năm|Tháng)/.test(nm) ? 'trong ' + nm.toLowerCase() : rg);
+  lab = /^(Tháng|Quý|Năm)/.test(nm) ? nm : /^Tuần/.test(nm) ? 'Tuần ' + tkDmy(p[0]) + '–' + rpDmy(p[1]) : p[0] === p[1] ? 'Ngày ' + rpDmy(p[0]) : /^(7|30|90)$/.test(k) ? k + ' ngày đến ' + rpDmy(p[1]) : tkDmy(p[0]) + '–' + rpDmy(p[1]);
   const A = a.getTime(), B = b.getTime();
-  return { k: k, a: A, b: B, in: inn, lab: lab, has: x => { const m = x ? new Date(x).getTime() : 0; return m >= A && m < B; }, old: A < Date.now() - 90 * 864e5 };
+  return { k: k, d0: p[0], d1: p[1], a: A, b: B, in: inn, lab: lab, has: x => { const m = x ? new Date(x).getTime() : 0; return m >= A && m < B; }, old: A < Date.now() - 90 * 864e5 };
 }
-/** ô chọn kỳ trên thanh công cụ (Báo cáo · Hiệu suất) */
-function tkRngCtl(R) {
-  return '<select class="sel tk-per" data-rng aria-label="Kỳ báo cáo" title="Khoảng thời gian tính “trong kỳ”">' + TK_RNG.map(x => '<option value="' + x[0] + '"' + (x[0] === R.k ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select>' +
-    (R.k === 'c' ? '<span class="tk-rd"><input type="date" class="inp" data-rnga value="' + esc(TK.rngA) + '" max="' + tkToday() + '" aria-label="Từ ngày"><span>–</span><input type="date" class="inp" data-rngb value="' + esc(TK.rngB) + '" max="' + tkToday() + '" aria-label="Đến ngày"></span>' : '');
-}
+/** đầu trang chọn kỳ (tab Hiệu suất) — cùng thẻ ngày với Báo cáo */
+function tkRngCtl(R) { return '<section class="tkr-hd" style="margin-bottom:16px"><div class="tkr-h1" style="padding-bottom:14px">' + rpDateBtn(R) + rpPreBtns(R) + '</div></section>'; }
 /** (1.56.7) chốt công: giờ đã chốt của e ở việc t · mã việc gốc để gửi máy chủ (bỏ tiền tố bản đồng bộ m / việc không mở được x) */
 function tkHlk(t, e) { return (t && t.hlk && t.hlk[e]) || null; }
 function tkRid(t) { return t.hx ? t.id.slice(1) : t.mir ? t.mir.id : t.id; }
@@ -35811,7 +36434,7 @@ async function viewTasks(arg, v) {
   const hxUnits = okP => (hxOn() ? tkHrUnits(D().tasks.filter(t => !okP[t.projectId] && (tkProj(t.projectId) || {}).status === 'active' && !(t.mir && tkProj(t.mir.pid)))).filter(t => Object.keys(tkCred(t)).length).concat(D().hx || []) : []);
   const match = t => {
     const w = fold(TK.q).split(/\s+/).filter(Boolean), td = tkToday();
-    return w.every(x => fold(t.key + ' ' + t.title + ' ' + t.labels.join(' ') + ' ' + tkWho(t).map(tkUser).join(' ') + (t.ref && t.ref.src === 'tutor' ? ' ' + (t.ref.clsName || '') + ' ' + (t.ref.prog || '') : '')).indexOf(x) >= 0) && (!TK.who || tkWho(t).indexOf(TK.who) >= 0) && (!TK.epic || t.epicId === TK.epic) &&
+    return w.every(x => fold(t.key + ' ' + t.title + ' ' + t.labels.join(' ') + ' ' + tkWho(t).map(tkUser).join(' ') + (t.ref && t.ref.src === 'tutor' ? ' ' + (t.ref.clsName || '') + ' ' + (t.ref.prog || '') : '')).indexOf(x) >= 0) && (!TK.epic || t.epicId === TK.epic) &&
       (!TK.cf.length || TK.cf.every(x => tkCfOk(t, x, td))) &&      // (1.65.1) bộ lọc thêm
       (!TK.quick || (TK.quick === 'me' ? tkWho(t).indexOf(D().me) >= 0 : TK.quick === 'late' ? !tkShut(t) && t.due && t.due < td : TK.quick === 'none' ? !tkWho(t).length : TK.quick === 'new' ? Date.now() - new Date(t.updatedAt || t.createdAt).getTime() < 2 * 864e5 : true));
   };
@@ -35878,7 +36501,7 @@ async function viewTasks(arg, v) {
   /* thanh công cụ MỘT dòng: chọn bảng · tìm · nút Bộ lọc (bấm mới hiện các lựa chọn, số trên nút = số bộ lọc đang bật) · Kanban / Bảng dữ liệu */
   const ktree = () => mode === 'board' && !!TK.tree && TK.lv !== 'epic';      // Kanban PHÂN CẤP: Task chia làn theo Epic · Sub-task chia làn theo Task cha (dùng chung công tắc Phân cấp / Phẳng với Bảng dữ liệu)
   const grpNow = () => (ktree() || (TK.group === 'parent' && TK.lv !== 'sub') || (TK.group === 'epic' && TK.lv === 'epic') ? '' : TK.group);      // nhóm theo task cha chỉ có nghĩa khi xem Sub-task
-  const fltN = () => (TK.quick ? 1 : 0) + (TK.who ? 1 : 0) + (TK.epic ? 1 : 0) + (grpNow() && mode === 'board' ? 1 : 0) + TK.cf.length;
+  const fltN = () => (TK.quick ? 1 : 0) + (TK.epic ? 1 : 0) + (grpNow() && mode === 'board' ? 1 : 0) + TK.cf.length;
   const bar = o => {
     o = o || {};
     const P = shown(), cnt = {}; D().tasks.forEach(t => { if (!tkShut(t) && t.type !== 'epic') cnt[t.projectId] = (cnt[t.projectId] || 0) + 1; });
@@ -35909,26 +36532,34 @@ async function viewTasks(arg, v) {
       .concat(mode === 'list' ? ['-', { t: TK.selMode ? 'Thoát chế độ chọn' : 'Chọn nhiều task', d: TK.selMode ? 'Bỏ chọn hết' : 'Tick nhiều task để xoá cùng lúc', i: TK.selMode ? 'bi-x-lg' : 'bi-check2-square', fn: () => { TK.selMode = !TK.selMode; TK.sel = {}; paint(); } }] : []);
     actSheet(L, 'Kiểu xem');
   };
-  const filterMenu = a => {
-    const people = D().users.filter(u => D().tasks.some(t => tkWho(t).indexOf(u.email) >= 0)), ck = on => (on ? 'bi-check-circle-fill' : 'bi-circle'), GR = { '': 'Không nhóm', who: 'Theo người', epic: 'Theo epic', parent: 'Theo task cha', pri: 'Theo ưu tiên' };
-    const tg = k => () => { TK.quick = TK.quick === k ? '' : k; paint(); }, again = items => () => openMenu($('[data-filter]', v) || a, items);
-    const L = [{ t: 'Của tôi', d: 'Việc đang giao cho tôi', i: ck(TK.quick === 'me'), fn: tg('me'), hidden: mode === 'mine' },
-      { t: 'Quá hạn', d: 'Chưa xong và đã qua hạn', i: ck(TK.quick === 'late'), fn: tg('late') },
-      { t: 'Chưa giao', d: 'Việc chưa có người phụ trách', i: ck(TK.quick === 'none'), fn: tg('none'), hidden: mode === 'mine' }, '-',
-      { t: 'Người phụ trách', d: TK.who ? tkUser(TK.who) : 'Mọi người', i: 'bi-person', hidden: mode === 'mine' || !people.length,
-        fn: again([{ t: 'Mọi người', i: ck(!TK.who), fn: () => { TK.who = ''; paint(); } }].concat(people.map(u => ({ t: u.name, i: ck(TK.who === u.email), fn: () => { TK.who = u.email; paint(); } })))) },
-      { t: 'Nhóm theo', d: GR[grpNow()] || GR[''], i: 'bi-layout-three-columns', hidden: mode !== 'board',
-        fn: again(Object.keys(GR).filter(k => k !== 'parent' || TK.lv === 'sub').map(k => ({ t: GR[k], i: ck(TK.group === k), fn: () => { TK.group = k; lsSet('tkGroup', k); paint(); } }))) },
-      { t: 'Epic', d: TK.epic && tkEpic(TK.epic) ? tkEpic(TK.epic).title : 'Mọi epic', i: 'bi-lightning-charge', hidden: !D().tasks.some(t => t.type === 'epic' && (!curProj() || t.projectId === curProj().id)),
-        fn: again([{ t: 'Mọi epic', i: ck(!TK.epic), fn: () => { TK.epic = ''; paint(); } }].concat(D().tasks.filter(t => t.type === 'epic' && (!curProj() || t.projectId === curProj().id)).map(e2 => ({ t: e2.title, d: e2.key, i: ck(TK.epic === e2.id), fn: () => { TK.epic = e2.id; paint(); } })))) }]
-      .concat(['-'], TK.cf.map((x, i) => ({ t: tkCfTxt(x), d: 'Bấm để đổi giá trị', i: 'bi-check-circle-fill', fn: () => cfPick(x.f, i, a) })),
-        [{ t: 'Thêm bộ lọc', d: 'Người tạo, hạn, ngày tạo, cập nhật, ưu tiên, nhãn…', i: 'bi-plus-lg', fn: () => cfAdd(a) }])
-      .concat(fltN() ? ['-', { t: 'Xoá mọi bộ lọc', i: 'bi-x-lg', fn: () => { TK.quick = TK.who = TK.epic = TK.group = ''; TK.cf = []; lsSet('tkCf', []); lsSet('tkGroup', ''); paint(); } }] : []);
-    openMenu(a, L);
+  /** (1.85.3) BẢNG LỌC: trái = các trường, phải = chọn NHIỀU giá trị (có ô tìm, số việc) — áp dụng ngay. Người phụ trách / Epic / Người tạo… là các mục của TK.cf (khớp một trong các giá trị đã chọn; giữa các trường phải khớp hết) */
+  const filterMenu = (a, at) => {
+    const GR = { '': 'Không nhóm', who: 'Theo người', epic: 'Theo epic', parent: 'Theo task cha', pri: 'Theo ưu tiên' }, QK = [['', 'Mọi việc', ''], ['me', 'Của tôi', 'Việc đang giao cho tôi'], ['late', 'Quá hạn', 'Chưa xong và đã qua hạn'], ['none', 'Chưa giao', 'Việc chưa có người phụ trách'], ['new', 'Mới cập nhật', 'Trong 2 ngày qua']];
+    const valsOf = f => [].concat(...TK.cf.filter(x => x.f === f).map(x => (Array.isArray(x.vs) && x.vs.length ? x.vs : [x.v])));
+    const setOf = (f, vals) => { const x = vals.length ? Object.assign({ f: f, v: String(vals[0]) }, vals.length > 1 ? { vs: vals.map(String) } : {}) : null, i = TK.cf.findIndex(y => y.f === f); TK.cf = TK.cf.filter((y, j) => y.f !== f || (x && j === i)); if (x) { const k = TK.cf.findIndex(y => y.f === f); if (k >= 0) TK.cf[k] = x; else TK.cf.push(x); } lsSet('tkCf', TK.cf); paintKeep(); };
+    const okP = {}; (isAll() ? shown() : [curProj()]).forEach(p => { if (p) okP[p.id] = 1; }); const base = D().tasks.filter(t => okP[t.projectId] && mirOk(t)), work = base.filter(t => t.type !== 'epic');
+    const cnt = f => { const c = {}; work.forEach(t => { [].concat(f(t)).forEach(k => { c[k] = (c[k] || 0) + 1; }); }); return c; };
+    const F = () => {
+      const L = [], mk = (f, opts, quick) => { const g = valsOf(f); L.push({ k: f, t: TK_CF[f][0], i: TK_CF[f][1], type: 'multi', opts: opts, quick: quick, get: g, set: v2 => setOf(f, v2), txt: g.length === 1 ? tkCfTxt({ f: f, v: g[0] }).replace(/^[^:]+: /, '') : g.length ? g.length + ' mục' : '' }); };
+      L.push({ k: 'quick', t: 'Lọc nhanh', i: 'bi-lightning', type: 'one', def: '', opts: QK.filter(x => mode !== 'mine' || (x[0] !== 'me' && x[0] !== 'none')).map(x => ({ v: x[0], t: x[1], d: x[2] })), get: TK.quick ? [TK.quick] : [], set: v2 => { TK.quick = v2[0] || ''; paintKeep(); }, txt: (QK.find(x => x[0] === TK.quick) || [])[1] });
+      if (mode !== 'mine') { const c = cnt(t => (tkWho(t).length ? tkWho(t) : ['none'])), me = D().me, A = Object.keys(c).filter(e => e !== 'none'); valsOf('who').forEach(e => { if (e !== 'none' && A.indexOf(e) < 0) A.push(e); });
+        mk('who', [{ v: 'none', t: 'Chưa giao', av: '', n: c.none || 0 }].concat(A.sort((x, y) => (x === me ? -1 : y === me ? 1 : 0) || tkUser(x).localeCompare(tkUser(y), 'vi')).map(e => ({ v: e, t: tkUser(e) + (e === me ? ' (bạn)' : ''), av: e, n: c[e] || 0 }))), [{ t: 'Chỉ tôi', v: [me] }]); }
+      const eps = base.filter(t => t.type === 'epic'); if (eps.length) { const c = cnt(t => t.epicId || (tkPar(t.parentId) || {}).epicId || 'none'); mk('ep', [{ v: 'none', t: 'Không thuộc epic', ic: 'bi-dash-circle', n: c.none || 0 }].concat(eps.sort((x, y) => (tkShut(x) ? 1 : 0) - (tkShut(y) ? 1 : 0) || (c[y.id] || 0) - (c[x.id] || 0)).map(e => ({ v: e.id, t: e.title, d: e.key + (tkShut(e) ? ' · đã đóng' : ''), n: c[e.id] || 0 })))); }
+      { const c = cnt(t => tkCol(t).t || ''); mk('st', cfVals('st').map(x => ({ v: x.v, t: x.t, n: c[x.v] || 0 }))); }
+      { const c = cnt(t => t.priority || 'med'); mk('pri', cfVals('pri').map(x => ({ v: x.v, t: x.t, ic: x.i, n: c[x.v] || 0 }))); }
+      { const c = cnt(t => t.type || 'task'); mk('ty', cfVals('ty').map(x => ({ v: x.v, t: x.t, ic: x.i, n: c[x.v] || 0 }))); }
+      { const V = cfVals('lbl'); if (V.length) { const c = cnt(t => t.labels || []); mk('lbl', V.sort((x, y) => (c[y.v] || 0) - (c[x.v] || 0)).map(x => ({ v: x.v, t: x.t, n: c[x.v] || 0 }))); } }
+      { const c = cnt(t => String(t.reporter || '').toLowerCase()); mk('by', cfVals('by').map(x => ({ v: x.v, t: x.t, av: x.v, n: c[x.v] || 0 }))); }
+      { const V = cfVals('sp'); if (V.length > 1) { const c = cnt(t => t.sprintId || 'none'); mk('sp', V.map(x => ({ v: x.v, t: x.t, d: x.d, n: c[x.v] || 0 }))); } }
+      ['due', 'cre', 'upd', 'done'].forEach(f => { const g = valsOf(f).slice(0, 1); L.push({ k: f, t: TK_CF[f][0], i: TK_CF[f][1], type: 'date', opts: TK_CFD[f].map(x => ({ v: x[0], t: x[1] })), get: g, set: v2 => setOf(f, v2), txt: g.length ? tkCfTxt({ f: f, v: g[0] }).replace(/^[^:]+: /, '') : '' }); });
+      if (mode === 'board') L.push({ k: 'grp', t: 'Nhóm theo', i: 'bi-layout-three-columns', type: 'one', def: '', opts: Object.keys(GR).filter(k => k !== 'parent' || TK.lv === 'sub').map(k => ({ v: k, t: GR[k] })), get: grpNow() ? [grpNow()] : [], set: v2 => { TK.group = v2[0] || ''; lsSet('tkGroup', TK.group); paintKeep(); }, txt: grpNow() ? GR[grpNow()] : '' });
+      return L;
+    };
+    const clear = () => { TK.quick = TK.epic = TK.group = ''; TK.cf = []; lsSet('tkCf', []); lsSet('tkGroup', ''); paintKeep(); };
+    fxPanel($('[data-filter]', v) || a, F, { title: 'Bộ lọc', at: at, clear: clear, count: () => { const n = work.filter(match).length; return n + '/' + work.length + ' việc khớp'; } });
   };
   /* (1.65.1) BỘ LỌC THÊM: chọn trường → chọn giá trị (ngày: có “Chọn khoảng ngày…”) · i = vị trí bộ lọc đang sửa (không có = thêm mới) */
-  const cfSet = (f, val, i) => { const x = { f: f, v: String(val) }; if (i != null && TK.cf[i]) TK.cf[i] = x; else TK.cf.push(x); lsSet('tkCf', TK.cf); paint(); };
-  const cfAdd = a => openMenu($('[data-filter]', v) || a, Object.keys(TK_CF).map(f => ({ t: TK_CF[f][0], i: TK_CF[f][1], fn: () => cfPick(f, null, a) })));
+  const cfAdd = a => filterMenu(a, 'who');
   const cfVals = f => {
     const okP = {}; shown().forEach(p => { okP[p.id] = 1; }); const L0 = D().tasks.filter(t => okP[t.projectId]), uniq = A => A.filter((x, i) => x && A.indexOf(x) === i);
     if (TK_CFD[f]) return TK_CFD[f].map(x => ({ v: x[0], t: x[1] })).concat([{ v: 'r', t: 'Chọn khoảng ngày…', i: 'bi-calendar-range' }]);
@@ -35940,33 +36571,7 @@ async function viewTasks(arg, v) {
     if (f === 'sp') return [{ v: 'none', t: 'Chưa vào đợt' }].concat(D().sprints.filter(s => okP[s.projectId] && s.status !== 'done').map(s => ({ v: s.id, t: s.name, d: (tkProj(s.projectId) || {}).name })));
     return [];
   };
-  const cfRange = (f, i) => { const cur = i != null && TK.cf[i] && TK.cf[i].v[0] === 'r' ? TK.cf[i].v.split(':') : [];
-    const m = modal({ title: TK_CF[f][0] + ' — chọn khoảng ngày', icon: 'bi-calendar-range', body: '<div class="row" style="gap:10px;flex-wrap:wrap"><label class="fg" style="flex:1 1 140px"><span class="flabel">Từ ngày</span><input class="inp" type="date" id="cfA" value="' + esc(cur[1] || '') + '"></label>' +
-      '<label class="fg" style="flex:1 1 140px"><span class="flabel">Đến ngày</span><input class="inp" type="date" id="cfB" value="' + esc(cur[2] || '') + '"></label></div><small class="muted">Để trống một ô = không giới hạn phía đó.</small>',
-      foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Áp dụng', cls: 'pri', fn: () => { const A = m.$('#cfA').value, Bd = m.$('#cfB').value; if (!A && !Bd) { toast('Chọn ít nhất một ngày', 'info'); return false; } cfSet(f, 'r:' + (A <= Bd || !Bd || !A ? A + ':' + Bd : Bd + ':' + A), i); } }] }); };
-  /** (1.69) BỘ LỌC CHỌN NHIỀU có ô tìm (người tạo, nhãn, trạng thái, ưu tiên, loại, đợt) — danh sách dài không phải cuộn tìm từng dòng */
-  const CF_MULTI = { by: 1, lbl: 1, st: 1, pri: 1, ty: 1, sp: 1 };
-  const cfMulti = (f, i) => {
-    const L = cfVals(f), cur = i != null && TK.cf[i] ? (Array.isArray(TK.cf[i].vs) && TK.cf[i].vs.length ? TK.cf[i].vs : [TK.cf[i].v]) : [], on = new Set(cur);
-    if (!L.length) return toast('Chưa có giá trị nào để lọc', 'info');
-    const m = modal({ title: 'Lọc theo ' + TK_CF[f][0].toLowerCase(), icon: TK_CF[f][1], body: '<div class="cf-m">' + (L.length > 6 ? '<div class="search"><i class="bi bi-search"></i><input class="inp" id="cfQ" placeholder="Tìm trong ' + L.length + ' mục…" autocomplete="off"></div>' : '') +
-        '<div class="cf-l" id="cfL">' + L.map((x, k) => '<label class="cf-o" data-k="' + k + '"><input type="checkbox" value="' + k + '"' + (on.has(x.v) ? ' checked' : '') + '>' + (x.i ? '<i class="bi ' + esc(x.i) + '"></i>' : '') + '<span>' + esc(x.t) + (x.d ? '<small>' + esc(x.d) + '</small>' : '') + '</span></label>').join('') + '</div>' +
-        '<div class="cf-b"><button type="button" class="btn xs ghost" id="cfAll">Chọn tất cả đang hiện</button><button type="button" class="btn xs ghost" id="cfNone">Bỏ chọn</button><span class="sp"></span><small class="muted" id="cfN"></small></div></div>',
-      foot: (i != null ? [{ t: 'Bỏ bộ lọc này', cls: 'ghost u-del', i: 'bi-x-lg', fn: () => { TK.cf.splice(i, 1); lsSet('tkCf', TK.cf); paint(); } }] : []).concat([{ t: 'Huỷ', cls: 'ghost' }, { t: 'Áp dụng', i: 'bi-funnel', cls: 'pri', fn: mm => {
-        const vals = mm.$$('#cfL input:checked').map(c => L[Number(c.value)].v); if (!vals.length) { toast('Chọn ít nhất một mục', 'info'); return false; }
-        const x = Object.assign({ f: f, v: String(vals[0]) }, vals.length > 1 ? { vs: vals.map(String) } : {}); if (i != null && TK.cf[i]) TK.cf[i] = x; else TK.cf.push(x); lsSet('tkCf', TK.cf); paint(); } }]) });
-    const cnt = () => { const n = m.$$('#cfL input:checked').length; m.$('#cfN').textContent = n ? 'Đã chọn ' + n : ''; };
-    const q = m.$('#cfQ'); if (q) { q.oninput = () => { const w = fold(q.value).trim().split(/\s+/).filter(Boolean); m.$$('#cfL .cf-o').forEach(o => { o.hidden = w.length > 0 && !w.every(z => fold(o.textContent).indexOf(z) >= 0); }); };
-      q.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); const o = m.$$('#cfL .cf-o').find(z => !z.hidden); if (o) { const c = o.querySelector('input'); c.checked = !c.checked; cnt(); } } };
-      setTimeout(() => q.focus(), 60); }
-    m.$('#cfL').onchange = cnt;
-    m.$('#cfAll').onclick = () => { m.$$('#cfL .cf-o').forEach(o => { if (!o.hidden) o.querySelector('input').checked = true; }); cnt(); };
-    m.$('#cfNone').onclick = () => { m.$$('#cfL input').forEach(c => { c.checked = false; }); cnt(); };
-    cnt();
-  };
-  const cfPick = (f, i, a) => { if (CF_MULTI[f]) return cfMulti(f, i); const L = cfVals(f), cur = i != null && TK.cf[i] ? TK.cf[i].v : null, ck = on => (on ? 'bi-check-circle-fill' : 'bi-circle');
-    openMenu($('[data-filter]', v) || a, (L.length ? L.map(x => ({ t: x.t, d: x.d, i: x.v === 'r' ? x.i : ck(cur === x.v || (x.v === 'r' && cur && cur[0] === 'r')), fn: () => x.v === 'r' ? cfRange(f, i) : cfSet(f, x.v, i) })) : [{ t: 'Chưa có giá trị nào để lọc', i: 'bi-info-circle', fn: () => {} }])
-      .concat(i != null ? ['-', { t: 'Bỏ bộ lọc này', i: 'bi-x-lg', danger: 1, fn: () => { TK.cf.splice(i, 1); lsSet('tkCf', TK.cf); paint(); } }] : [])); };
+  const cfPick = (f, i, a) => filterMenu(a, f);      // (1.85.3) bấm chip = mở bảng lọc đúng trường đó
   const empty = () => '<div class="card"><div class="empty"><i class="bi bi-kanban"></i><b>Chưa có dự án nào</b><span>' + (C().team ? 'Tạo bảng chung cho team hoặc bảng riêng cho mình rồi bắt đầu giao việc.' : 'Bạn chưa thuộc bảng chung nào' + (C().personal ? ' — tạo bảng riêng cho mình, hoặc' : ' —') + ' nhờ TL / quản trị thêm bạn vào bảng chung.') + '</span>' +
     '<div class="row" style="justify-content:center">' + (C().personal ? '<button class="btn pri" data-newp><i class="bi bi-lock"></i>Tạo bảng riêng</button>' : '') + (C().team ? '<button class="btn" id="tkFirst"><i class="bi bi-people"></i>Tạo bảng chung</button>' : '') + (C().demo ? '<button class="btn ghost" data-go="settings/taskdemo"><i class="bi bi-magic"></i>Thử với dữ liệu mẫu</button>' : '') + '</div>' + '</div></div>';
   const sprintHero = (p, sp) => {
@@ -36256,114 +36861,11 @@ async function viewTasks(arg, v) {
       (noDue ? '<div class="small muted">' + noDue + ' việc chưa đặt hạn nên không hiện trên Timeline.</div>' : '');
     setTitle('Timeline', 'bi-bar-chart-steps', [{ t: 'Kiến Task', r: 'tasks' }], v);
   };
-  /* Báo cáo: bảng điều khiển phân tích của một bảng hoặc mọi bảng — chỉ số chính · tạo mới / hoàn thành theo tuần · trạng thái · khối lượng & quá hạn theo người
-     · hạn 14 ngày tới · ưu tiên · loại việc · tuổi việc đang mở · burndown · tốc độ sprint · epic · việc cần chú ý · so sánh các bảng */
+  /* (1.85.3) BÁO CÁO — lõi tính và giao diện ở TaskReport.html (rpView). Ở đây chỉ đưa các hàm của màn Kiến Task sang */
   const paintSum = () => {
     if (!projs().length) { v.innerHTML = empty(); return; }
-    const one = pf() ? projs().find(x => x.id === pf()) : null, P = one ? [one] : shown(), okP = {}; P.forEach(x => { okP[x.id] = 1; });
-    // LỌC THEO NGƯỜI (quyền “Xem hiệu suất của mọi người”): mọi biểu đồ chỉ tính việc người đó phụ trách — bảng điểm đóng góp vẫn tính cả nhóm để so sánh
-    const pAll = !!C().perfAll, L0 = D().tasks.filter(t => okP[t.projectId] && t.type !== 'epic' && mirOk(t)), ppl = pAll ? [...new Set([].concat(...L0.map(tkWho)))].filter(Boolean) : [];
-    if (TK.sumWho && ppl.indexOf(TK.sumWho) < 0) TK.sumWho = '';
-    const sw = TK.sumWho, L = sw ? L0.filter(t => tkWho(t).indexOf(sw) >= 0) : L0, td = tkToday(), R = tkRng(), ms = x => (x ? new Date(x).getTime() : 0), day = n => tkYmd(new Date(new Date(td + 'T12:00').getTime() + n * 864e5));
-    const open = L.filter(t => !tkShut(t)), done = L.filter(tkDone), late = open.filter(t => t.due && t.due < td), soon = open.filter(t => t.due && t.due >= td && t.due <= day(7));
-    const doneIn = L.filter(t => t.doneAt && R.has(t.doneAt)), newIn = L.filter(t => R.has(t.createdAt));
-    const cyc = doneIn.filter(t => ms(t.createdAt)).map(t => Math.max(0, (ms(t.doneAt) - ms(t.createdAt)) / 864e5)), cycAvg = cyc.length ? cyc.reduce((x, y) => x + y, 0) / cyc.length : null;
-    const pc = (n, m) => (m ? Math.round(n / m * 100) : 0), box = (cls, title, body, sub) => '<div class="tk-box ' + cls + '"><h3>' + title + (sub ? '<small>' + sub + '</small>' : '') + '</h3>' + body + '</div>', none = '<div class="small muted">Chưa có dữ liệu</div>';
-    const barR = (name, n, max, hot, tail, wide) => '<div class="tk-bar-r' + (wide ? ' wd' : '') + '"><span title="' + esc(name) + '">' + esc(name) + '</span><div class="b"><i' + (hot ? ' class="a"' : '') + ' style="width:' + (max ? Math.max(n ? 3 : 0, n / max * 100) : 0) + '%"></i></div><em>' + (tail != null ? tail : n) + '</em></div>';
-    /* cột đứng: data = [{ l: nhãn, v: [a, b], t: chú thích, on: tô đậm }] — a xanh, b cam */
-    const vbars = (data, two) => { const mx = Math.max(1, ...data.map(d => Math.max(d.v[0] || 0, d.v[1] || 0)));
-      return '<div class="tk-vb' + (two ? ' two' : '') + '">' + data.map(d => '<div class="c' + (d.on ? ' on' : '') + '" title="' + esc(d.t || '') + '"><div class="bars"><i style="height:' + (d.v[0] ? Math.max(4, d.v[0] / mx * 100) : 0) + '%"><em>' + (d.v[0] || '') + '</em></i>' +
-        (two ? '<i class="b2" style="height:' + (d.v[1] ? Math.max(4, d.v[1] / mx * 100) : 0) + '%"><em>' + (d.v[1] || '') + '</em></i>' : '') + '</div><small>' + esc(d.l) + '</small></div>').join('') + '</div>'; };
-    // 1) tạo mới / hoàn thành theo tuần (8 tuần gần nhất, tuần bắt đầu Thứ 2)
-    const d0 = new Date(td + 'T12:00'), mon = (d0.getDay() + 6) % 7, wk = [];
-    for (let i = 7; i >= 0; i--) { const ws = day(-mon - i * 7), we = day(-mon - i * 7 + 7), inW = x => x && tkYmd(new Date(x)) >= ws && tkYmd(new Date(x)) < we, c = L.filter(t => inW(t.createdAt)).length, dn = L.filter(t => inW(t.doneAt)).length;
-      wk.push({ l: tkDmy(ws), v: [c, dn], on: i === 0, t: 'Tuần từ ' + tkDmy(ws) + ': tạo ' + c + ' · xong ' + dn }); }
-    // 2) trạng thái: vòng có nhánh chú thích
-    const stN = {}, stDone = {}, stOrd = []; L.forEach(t => { const c = tkCol(t); if (!(c.t in stN)) { stN[c.t] = 0; stOrd.push(c.t); } stN[c.t]++; if (c.done) stDone[c.t] = 1; });
-    if (one) stOrd.sort((x, y) => one.cols.findIndex(c => c.t === x) - one.cols.findIndex(c => c.t === y));
-    const donut = chDonut(stOrd.map(k => ({ l: k, n: stN[k], col: stDone[k] ? '#2E9E62' : '' })).map((x, i, A) => x.col ? x : Object.assign(x, { col: CH_BLUE[A.filter((y, j) => j < i && !stDone[y.l]).length % CH_BLUE.length] })), ['Tổng số việc', fmtN(L.length)], n => n + ' việc');
-    // 2b) sức khoẻ bảng: mạng nhện 6 trục (0–100%)
-    const wDue = open.filter(t => t.due), cnt = {}; open.forEach(t => tkWho(t).forEach(e => { cnt[e] = (cnt[e] || 0) + 1; })); const cv = Object.keys(cnt).map(k => cnt[k]), cmx = Math.max(0, ...cv), cav = cv.length ? cv.reduce((x, y) => x + y, 0) / cv.length : 0;
-    const AX = [{ l: 'Đúng hạn', v: wDue.length ? 1 - late.length / wDue.length : 1, t: late.length + ' việc quá hạn' }, { l: 'Đã giao người', v: open.length ? open.filter(t => tkWho(t).length).length / open.length : 1, t: open.filter(t => !tkWho(t).length).length + ' việc chưa giao' },
-      { l: 'Có hạn', v: open.length ? wDue.length / open.length : 1, t: (open.length - wDue.length) + ' việc chưa đặt hạn' }, { l: 'Hoàn thành', v: L.length ? done.length / L.length : 0, t: done.length + '/' + L.length + ' việc' },
-      { l: 'Xử lý nhanh', v: cycAvg == null ? 0 : Math.max(0, Math.min(1, 1 - (cycAvg - 2) / 12)), t: cycAvg == null ? 'chưa có việc xong trong kỳ' : 'trung bình ' + (Math.round(cycAvg * 10) / 10) + ' ngày / việc' },
-      { l: 'Chia đều việc', v: cv.length > 1 && cmx ? Math.max(0, 1 - (cmx - cav) / cmx) : 1, t: 'người nhiều việc nhất: ' + cmx }], score = Math.round(AX.reduce((x, y) => x + y.v, 0) / AX.length * 100);
-    // 2c) ai đang làm gì: ma trận người × trạng thái (ô càng đậm càng nhiều việc)
-    const mxP = {}; L.forEach(t => (tkWho(t).length ? tkWho(t) : ['']).forEach(e => { const r = mxP[e] || (mxP[e] = {}); const k = tkCol(t).t; r[k] = (r[k] || 0) + 1; r._ = (r._ || 0) + 1; }));
-    const mxK = Object.keys(mxP).sort((x, y) => mxP[y]._ - mxP[x]._).slice(0, 8), mxMax = Math.max(1, ...mxK.map(k => Math.max(...stOrd.map(c => mxP[k][c] || 0))));
-    const matrix = mxK.length ? '<div class="tk-mx" style="--c:' + stOrd.length + '"><span></span>' + stOrd.map(c => '<small title="' + esc(c) + '">' + esc(c) + '</small>').join('') + mxK.map(k => '<b title="' + esc(k ? tkUser(k) : 'Chưa giao') + '">' + esc(k ? tkUser(k) : 'Chưa giao') + '</b>' +
-      stOrd.map(c => { const n = mxP[k][c] || 0; return '<i class="h' + chLevel(n, mxMax) + '" title="' + esc((k ? tkUser(k) : 'Chưa giao') + ' · ' + c + ': ' + n + ' việc') + '">' + (n || '') + '</i>'; }).join('')).join('') + '</div>' : none;
-    // 2d) lịch hạn 4 tuần tới (ô càng đậm càng nhiều việc đến hạn)
-    const d0c = new Date(td + 'T12:00'), wkS = -((d0c.getDay() + 6) % 7), dueBy = {}; open.forEach(t => { if (t.due) dueBy[t.due] = (dueBy[t.due] || 0) + 1; });
-    const calD = Array.from({ length: 28 }, (_, i) => day(wkS + i)), calMax = Math.max(1, ...calD.map(k => (k >= td ? dueBy[k] || 0 : 0)));
-    const heatCal = '<div class="tk-hc">' + ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(x => '<small>' + x + '</small>').join('') + calD.map(k => { const n = dueBy[k] || 0, past = k < td;
-      return '<i class="' + (past ? 'past' : 'h' + chLevel(n, calMax)) + (k === td ? ' now' : '') + '" title="' + tkDmy(k) + ': ' + n + ' việc đến hạn"><em>' + k.slice(8) + '</em>' + (n && !past ? '<b>' + n + '</b>' : '') + '</i>'; }).join('') + '</div><div class="ch-lg"><span>Ít</span><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><i class="h5"></i><span>Nhiều</span></div>';
-    // 2e) thanh phân đoạn 100%
-    const segBar = (items) => { const tot = items.reduce((x, y) => x + y[1], 0); return tot ? '<div class="tk-sg">' + items.filter(x => x[1]).map(x => '<i style="flex:' + x[1] + ';background:' + x[2] + '" title="' + esc(x[0]) + ': ' + x[1] + '"></i>').join('') + '</div><ul class="tk-sgl">' + items.map(x => '<li><i style="background:' + x[2] + '"></i><span>' + esc(x[0]) + '</span><b>' + x[1] + '</b><em>' + pc(x[1], tot) + '%</em></li>').join('') + '</ul>' : none; };
-    const PRC = { urgent: '#B93F12', high: '#F3663D', med: '#4A78BD', low: '#B9C9E2' };
-    // 3) khối lượng đang mở theo người (phần cam = quá hạn)
-    const who = {}; open.forEach(t => { (tkWho(t).length ? tkWho(t) : ['']).forEach(e => { const w = who[e] || (who[e] = { n: 0, late: 0, pts: 0 }); w.n++; if (t.due && t.due < td) w.late++; w.pts += Number(t.points) || 0; }); });
-    const wl = Object.keys(who).sort((x, y) => who[y].n - who[x].n), wmax = Math.max(1, ...wl.map(k => who[k].n));
-    const load = wl.slice(0, 10).map(k => '<div class="tk-bar-r"><span title="' + esc(k ? tkUser(k) : 'Chưa giao') + '">' + esc(k ? tkUser(k) : 'Chưa giao') + '</span><div class="b stk" style="width:' + Math.max(6, who[k].n / wmax * 100) + '%"><i style="flex:' + (who[k].n - who[k].late) + '"></i>' + (who[k].late ? '<i class="a" style="flex:' + who[k].late + '"></i>' : '') + '</div><em title="' + who[k].n + ' việc mở' + (who[k].late ? ' · ' + who[k].late + ' quá hạn' : '') + '">' + who[k].n + (who[k].late ? '<b>·' + who[k].late + '</b>' : '') + '</em></div>').join('');
-    // 4) hạn trong 14 ngày tới
-    const due14 = Array.from({ length: 14 }, (_, i) => { const k = day(i), n = open.filter(t => t.due === k).length; return { l: k.slice(8, 10), v: [n], on: i === 0, t: tkDmy(k) + ': ' + n + ' việc đến hạn' }; });
-    // 5) ưu tiên · loại · tuổi việc
-    const priMax = Math.max(1, ...Object.keys(TK_PRI).map(k => open.filter(t => t.priority === k).length)), tyK = Object.keys(TK_TYPE).filter(k => k !== 'epic' && L.some(t => t.type === k)), tyMax = Math.max(1, ...tyK.map(k => L.filter(t => t.type === k).length));
-    const AG = [['≤ 3 ngày', 0, 3], ['4 – 7 ngày', 3, 7], ['8 – 14 ngày', 7, 14], ['15 – 30 ngày', 14, 30], ['> 30 ngày', 30, 1e9]].map(g => [g[0], open.filter(t => { const a = (Date.now() - ms(t.createdAt)) / 864e5; return ms(t.createdAt) && a > g[1] && a <= g[2]; }).length, g[1] >= 14]), agMax = Math.max(1, ...AG.map(g => g[1]));
-    // 6) burndown (một bảng đang có sprint chạy) · tốc độ các sprint
-    const pts = X => 0; let burn = '';
-    const sp = one ? activeSp(one) : null;
-    if (sp && sp.start && sp.end) {
-      const S2 = D().tasks.filter(t => t.sprintId === sp.id && t.type !== 'epic'), total = pts(S2) || S2.length, usePts = !!pts(S2), days = []; for (let d = new Date(sp.start + 'T12:00'); tkYmd(d) <= sp.end && days.length < 60; d.setDate(d.getDate() + 1)) days.push(tkYmd(d));
-      const W = 520, H = 150, X = i => 10 + i * (W - 20) / Math.max(1, days.length - 1), Y = n => 10 + (1 - n / Math.max(1, total)) * (H - 20);
-      const rem = days.filter(d => d <= td).map(d => total - S2.filter(t => t.doneAt && tkYmd(new Date(t.doneAt)) <= d).reduce((x, t) => x + (usePts ? Number(t.points) || 0 : 1), 0));
-      burn = box('w3', 'Việc còn lại của ' + esc(sp.name), '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto" role="img" aria-label="Biểu đồ việc còn lại theo ngày"><line x1="10" y1="' + Y(total) + '" x2="' + (W - 10) + '" y2="' + Y(0) + '" stroke="rgba(14,27,51,.2)" stroke-width="2" stroke-dasharray="5 5"/>' +
-        (rem.length ? '<polyline fill="none" stroke="#204983" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="' + rem.map((n, i) => X(i) + ',' + Y(n)).join(' ') + '"/>' + rem.map((n, i) => '<circle cx="' + X(i) + '" cy="' + Y(n) + '" r="3.5" fill="#F3663D"/>').join('') : '') + '</svg><div class="small muted">Nét đứt = tiến độ lý tưởng · còn ' + (rem.length ? rem[rem.length - 1] : total) + '/' + total + '</div>', (usePts ? 'điểm' : 'số việc') + ' còn lại');
-    }
-    const SPs = D().sprints.filter(x => okP[x.projectId] && x.status !== 'plan').sort((x, y) => String(x.end || x.start || x.id).localeCompare(String(y.end || y.start || y.id))).slice(-8);
-    const vel = SPs.map(x => { const T = D().tasks.filter(t => t.sprintId === x.id && t.type !== 'epic'), dn = T.filter(tkDone), up = !!pts(T); return { l: x.name.replace(/^.*?(\d+)\s*$/, 'Đợt $1').slice(0, 9), v: [up ? pts(dn) : dn.length, up ? pts(T) - pts(dn) : T.length - dn.length], on: x.status === 'active', t: x.name + ': xong ' + (up ? pts(dn) + '/' + pts(T) + ' điểm' : dn.length + '/' + T.length + ' việc') }; });
-    // 7) epic · việc cần chú ý · so sánh các bảng
-    const eps = D().tasks.filter(t => okP[t.projectId] && t.type === 'epic' && mirOk(t));
-    const hot = late.slice().sort((x, y) => String(x.due).localeCompare(String(y.due))).slice(0, 6);
-    const cmp = P.map(x => { const T = L.filter(t => t.projectId === x.id), o = T.filter(t => !tkShut(t)); return [x.name, o.length, T.length, o.filter(t => t.due && t.due < td).length]; }), cmpMax = Math.max(1, ...cmp.map(x => x[1]));
-    const kpi = (cls, n, l, sub) => '<div class="tk-kpi ' + cls + '"><b>' + n + '</b><small>' + l + '</small>' + (sub ? '<span>' + sub + '</span>' : '') + '</div>';
-    const scHtml = pAll && ppl.length ? tkScoreBox(L0, R.has, td, sw) : '';
-    /* THỜI GIAN THỰC HIỆN (1.38): giờ đã ghi ở việc xong trong kỳ — theo người · theo epic (người thường: chỉ giờ của mình) */
-    const LX = sw && !tkHr(sw) ? [] : hxUnits(okP), U0 = tkHrUnits(D().tasks.filter(t => okP[t.projectId] && mirOk(t))).concat(LX), hrOf = t => { const h = tkCred(t); return Object.keys(h).filter(e => (sw ? e === sw : pAll || e === D().me) && tkHr(e)).reduce((s, e) => s + h[e], 0); };      // giờ gộp ở task / epic tính một lần (1.41)
-    const hrDn = U0.filter(t => t.doneAt && R.has(t.doneAt) && hrOf(t) > 0), hrTot = hrDn.reduce((s, t) => s + hrOf(t), 0), hrAll = sw ? tkHr(sw) : pAll ? D().users.some(u => u.hr) : tkHr(D().me);      // (1.52) chỉ người chấm công theo giờ
-    const hrBy = {}; hrDn.forEach(t => { const h = tkCred(t); Object.keys(h).forEach(e => { if ((sw ? e === sw : pAll || e === D().me) && tkHr(e)) hrBy[e] = (hrBy[e] || 0) + h[e]; }); });
-    const hrEp = {}; hrDn.forEach(t => { const ep = t.hx ? '~' : t.type === 'epic' ? t.id : t.epicId || (tkPar(t.parentId) || {}).epicId || ''; hrEp[ep] = (hrEp[ep] || 0) + hrOf(t); });
-    const hrK = Object.keys(hrBy).sort((a, b) => hrBy[b] - hrBy[a]), hrMx = Math.max(1, ...hrK.map(k => hrBy[k])), epK = Object.keys(hrEp).sort((a, b) => hrEp[b] - hrEp[a]).slice(0, 6), epMx = Math.max(1, ...epK.map(k => hrEp[k]));
-    const hrHtml = !hrAll ? '' : box('w3', 'Thời gian thực hiện', hrDn.length ? '<div class="tk-hr-tot"><b>' + esc(tkHrTxt(hrTot)) + '</b><small>' + hrDn.length + ' việc xong ' + R.in + '</small></div>' +
-        hrK.map(k => '<div class="tk-bar-r tk-hr-p"' + (pAll ? ' role="button" tabindex="0" data-scw="' + esc(k) + '" title="Xem riêng ' + esc(tkUser(k)) + '"' : '') + '><span title="' + esc(tkUser(k)) + '">' + esc(tkUser(k)) + '</span><div class="b"><i style="width:' + Math.max(3, hrBy[k] / hrMx * 100) + '%"></i></div><em>' + esc(tkHrTxt(hrBy[k])) + '</em></div>').join('') +
-        (epK.length > 1 || (epK[0] && epK[0] !== '') ? '<div class="tk-hr-sub">Theo epic</div>' + epK.map(k => barR(k === '~' ? 'Ở bảng bạn không mở được' : k ? (tkEpic(k) || {}).title || 'Epic' : 'Không thuộc epic', hrEp[k], epMx, false, esc(tkHrTxt(hrEp[k])))).join('') : '')
-      : '<div class="small muted">Chưa có giờ nào được ghi ở việc xong trong kỳ</div>', pAll ? (sw ? esc(tkUser(sw)) : 'cả nhóm') + ' · quy về giờ' + (LX.length ? ' · tính trên mọi bảng, kể cả bảng bạn không mở được' : '') : 'của bạn · quy về giờ');
-    const whoF = pAll && ppl.length ? '<button type="button" class="tk-fbtn' + (sw ? ' on' : '') + '" data-sumwho aria-haspopup="menu" title="Lọc theo người" aria-label="Lọc theo người' + (sw ? ' · đang xem ' + esc(tkUser(sw)) : '') + '"><i class="bi bi-funnel' + (sw ? '-fill' : '') + '"></i></button>' +
-      (sw ? '<span class="tk-whoc">' + tkAv(sw) + '<b>' + esc(tkUser(sw)) + '</b><button type="button" data-sumwho-x aria-label="Bỏ lọc theo người" title="Bỏ lọc"><i class="bi bi-x"></i></button></span>' : '') : '';
-    v.innerHTML = bar({ all: 1, noFilter: 1, extra: whoF + tkRngCtl(R) }) +
-      '<div class="tk-kpis k6">' + kpi('ink', open.length, 'Đang mở', pts(open) ? pts(open) + ' điểm' : '') + kpi(late.length ? 'hot' : '', late.length, 'Quá hạn', open.length ? pc(late.length, open.length) + '% việc mở' : '') + kpi('', soon.length, 'Đến hạn 7 ngày tới', '') +
-        kpi('', doneIn.length, 'Xong ' + R.in, 'tạo mới ' + newIn.length) + kpi('', pc(done.length, L.length) + '%', 'Tỉ lệ hoàn thành', done.length + '/' + L.length + ' việc') + kpi('', cycAvg == null ? '—' : (Math.round(cycAvg * 10) / 10).toLocaleString('vi'), 'Ngày xử lý trung bình', cyc.length ? 'trên ' + cyc.length + ' việc xong' : '') + '</div>' +
-      '<div class="tk-dash">' +
-        box('w2', 'Sức khoẻ bảng', chRadar(AX), 'điểm chung ' + score + '/100') +
-        box('w4', 'Tạo mới và hoàn thành theo tuần', vbars(wk, true) + '<div class="tk-lg"><span><i></i>Tạo mới</span><span><i class="a"></i>Hoàn thành</span></div>', '8 tuần gần nhất') +
-        box('w3', 'Theo trạng thái', L.length ? donut : none) +
-        box('w3', 'Ai đang làm gì', matrix, 'số việc theo người và trạng thái') +
-        box('w2', 'Hạn trong 4 tuần tới', heatCal, late.length ? late.length + ' việc đã quá hạn' : '') +
-        box('w2', 'Ưu tiên của việc đang mở', segBar(Object.keys(TK_PRI).map(k => [TK_PRI[k][0], open.filter(t => t.priority === k).length, PRC[k]]))) +
-        box('w2', 'Theo loại việc', segBar(tyK.map((k, i) => [TK_TYPE[k][0], L.filter(t => t.type === k).length, CH_BLUE[i % CH_BLUE.length]]))) +
-        box('w3', 'Khối lượng đang mở theo người', load ? load + '<div class="tk-lg"><span><i></i>Trong hạn</span><span><i class="a"></i>Quá hạn</span></div>' : '<div class="small muted">Không còn việc mở</div>') +
-        box('w3', 'Tuổi của việc đang mở', AG.map(g => barR(g[0], g[1], agMax, g[2])).join(''), 'tính từ ngày tạo') + hrHtml +
-        burn + (vel.length ? box(burn ? 'w3' : 'w6', 'Kết quả các đợt', vbars(vel, true) + '<div class="tk-lg"><span><i></i>Đã xong</span><span><i class="a"></i>Chưa xong</span></div>', 'số việc') : '') +
-        (eps.length ? box('w3', 'Tiến độ epic', eps.map(e => { const ch = L.filter(t => t.epicId === e.id), dn = ch.filter(tkDone).length; return barR(e.title, dn, Math.max(1, ch.length), false, dn + '/' + ch.length); }).join('')) : '') +
-        box(eps.length ? 'w3' : 'w6', 'Cần chú ý', hot.length ? '<div class="tk-hot">' + hot.map(t => '<button type="button" data-id="' + t.id + '"><span class="tk-key">' + esc(t.key) + '</span><b>' + esc(t.title) + '</b><span class="tk-due late"><i class="bi bi-calendar3"></i>' + tkDmy(t.due) + '</span>' + tkAvs(t) + '</button>').join('') + '</div>'
-          : '<div class="small muted"><i class="bi bi-check2-circle"></i> Không có việc quá hạn' + (open.some(t => !tkWho(t).length) ? ' · ' + open.filter(t => !tkWho(t).length).length + ' việc chưa giao cho ai' : '') + '</div>', hot.length ? 'quá hạn lâu nhất' : '') +
-        (P.length > 1 ? box('w6', 'So sánh các bảng', cmp.map(x => barR(x[0], x[1], cmpMax, false, x[1] + '/' + x[2] + (x[3] ? '<b> · ' + x[3] + ' trễ</b>' : ''), true)).join(''), 'việc đang mở / tổng số') : '') +
-        (scHtml ? box('w6 tk-sc', 'Điểm đóng góp &amp; chia thưởng', scHtml, R.in + ' · cả nhóm') : '') + '</div>';
-    tkDashFit(v);
-    setTitle((one ? one.name : allName()) + (sw ? ' · ' + tkUser(sw) : ''), 'bi-bar-chart', [{ t: 'Kiến Task', r: 'tasks' }, { t: 'Báo cáo', r: 'tasks/sum' }], v);
-    tkPoolPaint(v, Number(lsGet('tkPool', 0)) || 0);
-    const pool = $('#tkPool', v); if (pool) pool.onblur = () => { const n = Number(pool.value.replace(/\D/g, '')) || 0; pool.value = n ? n.toLocaleString('vi') : ''; };
-    if (pool) pool.oninput = () => { const n = Number(pool.value.replace(/\D/g, '')) || 0; lsSet('tkPool', n); tkPoolPaint(v, n); };
+    rpView({ v: v, paint: paint, C: C, cur: TK.proj || '*', curIds: pf() ? [pf()] : grpOf(TK.proj) ? shown().map(p => p.id) : [], groups: tkView().groups || [], open: t => taskDialog(t), hxUnits: hxUnits, activeSp: activeSp,
+             setTitle: t => setTitle(t, 'bi-bar-chart', [{ t: 'Kiến Task', r: 'tasks' }, { t: 'Báo cáo', r: 'tasks/sum' }], v) });
   };
   /* ══════════ HIỆU SUẤT (tasks/perf) — biểu đồ theo người ══════════
      Tính ngay trên máy từ dữ liệu đã tải (không gọi máy chủ → mở tức thì). Ai có quyền “Xem hiệu suất của mọi người” thấy cả nhóm và chọn từng người;
@@ -36430,7 +36932,7 @@ async function viewTasks(arg, v) {
           hrList.map(t => (t.hx ? '<tr class="pf-hx" title="Việc ở bảng bạn không mở được — chỉ hiện giờ"><td><span class="tk-key">' + esc(t.key) + '</span> ' + esc(t.title) + ' <small class="muted">· ' + esc(t.hx.b) + (t.hx.own ? ' (bảng riêng của ' + esc(tkUser(t.hx.own)) + ')' : '') + (t.hx.k ? ' · giờ gộp cả ' + t.hx.k : '') + '</small></td>'
             : '<tr data-id="' + t.id + '"><td><span class="tk-key">' + esc(t.key) + '</span> ' + esc(t.title) + (tkPar(t.parentId) ? ' <small class="muted">· ' + esc(tkPar(t.parentId).key) + '</small>' : '') + (tkLeaf(t) ? '' : ' <small class="muted">· giờ gộp cả ' + (t.type === 'epic' ? 'epic' : 'task') + '</small>') + '</td>') + '<td class="small">' + tkDmy(tkYmd(new Date(t.doneAt))) + '</td><td class="n">' + esc(tkHrTxt(S0.hm(t), 1)) + '</td>' + lkCell(t) + '</tr>').join('') +
           '</tbody><tfoot><tr><td colspan="2"><b>Tổng ' + hrList.length + ' việc</b></td><td class="n"><b>' + esc(tkHrTxt(S0.min)) + '</b></td><td></td></tr></tfoot></table></div>' + lkBar : '<div class="small muted">Chưa có giờ nào được ghi ở việc xong trong kỳ</div>', 'việc xong ' + R.in + (S0.minOp ? ' · đang làm đã ghi ' + tkHrTxt(S0.minOp) : '') + hxN);
-    v.innerHTML = bar({ all: 1, noFilter: 1, extra: pick + tkRngCtl(R) }) +
+    v.innerHTML = bar({ all: 1, noFilter: 1, extra: pick }) + tkRngCtl(R) +
       (all ? '' : '<div class="tk-mg-note"><i class="bi bi-person-check"></i><span>Đây là hiệu suất của <b>chính bạn</b>. Xem của cả nhóm cần quyền “Xem hiệu suất của mọi người” (Kiến Task › Phân quyền).</span></div>') +
       '<div class="tk-kpis k6">' + kpi('ink', S0.dn.length, 'Xong ' + R.in, nm(who)) + kpi('', pc(S0.rate), 'Tỉ lệ đúng hạn', S0.on + ' đúng · ' + S0.late + ' trễ') + kpi('', f1(S0.cyc), 'Ngày xử lý trung bình', 'từ lúc tạo tới lúc xong') +
         kpi('', S0.op, 'Đang mở', '') + kpi(S0.od ? 'hot' : '', S0.od, 'Đang quá hạn', '') + (anyHr ? kpi('ink', esc(tkHrTxt(S0.min)), 'Giờ làm ' + R.in, (S0.lkMin ? 'đã chốt ' + tkHrTxt(S0.lkMin) + ' · ' : '') + (who ? 'việc đã xong · chấm công theo giờ' : 'của ' + hrP.length + ' người chấm công theo giờ')) : kpi('', S0.nd, 'Xong mà không đặt hạn', 'không tính vào tỉ lệ')) + '</div>' +
@@ -36595,9 +37097,6 @@ async function viewTasks(arg, v) {
   });
   v.addEventListener('change', async e => {
     const ps = mode === 'perf' && e.target.closest('[data-pfsel]'); if (ps) { TK.pfWho = ps.value; return paint(); }
-    const rs = e.target.closest('[data-rng]'); if (rs) { TK.rng = rs.value; lsSet('tkRng', TK.rng);      // (1.56.7) kỳ báo cáo · khoảng ngày lần đầu = đầu tháng → hôm nay
-      if (TK.rng === 'c' && !TK.rngA) { TK.rngA = tkToday().slice(0, 8) + '01'; TK.rngB = tkToday(); lsSet('tkRngA', TK.rngA); lsSet('tkRngB', TK.rngB); } return paint(); }
-    const rd = e.target.closest('[data-rnga], [data-rngb]'); if (rd) { const k = 'rnga' in rd.dataset ? 'rngA' : 'rngB'; TK[k] = rd.value || tkToday(); lsSet(k === 'rngA' ? 'tkRngA' : 'tkRngB', TK[k]); return paint(); }
     if (mode !== 'roles' || !TK.perm) return;
     const us = e.target.closest('[data-urole]');
     if (us) { const em = us.closest('tr').dataset.em, u = TK.perm.users.find(x => x.email === em); if (!u || !us.value) return; const was = { role: u.role }, val = us.value;
@@ -36711,6 +37210,7 @@ async function viewTasks(arg, v) {
   /* ── bấm · gõ nhanh ── */
   v.onclick = e => {
     // (1.56.7) CHỐT CÔNG ở tab Hiệu suất: chốt giờ chưa chốt của kỳ đang xem · bỏ chốt một việc
+    if (mode === 'perf' && rpDateClick(e, paint)) return;      // (1.85.3) thẻ ngày
     const hl = mode === 'perf' && e.target.closest('[data-hlk]'); if (hl) return void hrsLock();
     const hu = mode === 'perf' && e.target.closest('[data-hunlk]'); if (hu) { e.stopPropagation(); return void hrsUnlock(hu.dataset.hunlk, hu.dataset.hk); }
     // VIỆC BÊN TRONG THẺ (task của epic / sub-task của task): nút “+” · mở / thu · tick xong (lưu ngầm) · bấm tên mở chi tiết · bấm trong vùng này không mở hộp của thẻ
@@ -36745,11 +37245,6 @@ async function viewTasks(arg, v) {
       if (ce) { const i = Number(ce.dataset.cfe); return TK.cf[i] && cfPick(TK.cf[i].f, i, ce); }
       if (e.target.closest('[data-cfadd]')) return cfAdd(e.target.closest('[data-cfadd]'));
       if (e.target.closest('[data-cfclr]')) { TK.cf = []; lsSet('tkCf', []); return paint(); } }
-    const swb = e.target.closest('[data-sumwho]'); if (swb) { const ck = on => (on ? 'bi-check-circle-fill' : 'bi-circle'), okP = {}; (pf() ? [tkProj(pf())] : shown()).forEach(x => { if (x) okP[x.id] = 1; }); const n = {};
-      D().tasks.forEach(t => { if (okP[t.projectId] && t.type !== 'epic' && mirOk(t)) tkWho(t).forEach(e2 => { n[e2] = (n[e2] || 0) + 1; }); });
-      return openMenu(swb, [{ t: 'Cả nhóm', d: 'Mọi người', i: ck(!TK.sumWho), fn: () => { TK.sumWho = ''; paint(); } }, '-'].concat(Object.keys(n).sort((a, b) => tkUser(a).localeCompare(tkUser(b), 'vi')).map(e2 => ({ t: tkUser(e2), d: n[e2] + ' việc', i: ck(TK.sumWho === e2), fn: () => { TK.sumWho = e2; paint(); } })))); }
-    if (e.target.closest('[data-sumwho-x]')) { TK.sumWho = ''; return paint(); }
-    const scw = mode === 'sum' && e.target.closest('[data-scw]'); if (scw) { TK.sumWho = TK.sumWho === scw.dataset.scw ? '' : scw.dataset.scw; paint(); return void window.scrollTo({ top: 0, behavior: 'smooth' }); }
     const tz = e.target.closest('[data-tlz]'); if (tz) { TK.zoom = TK.zoom === 'm' ? 'w' : 'm'; lsSet('tkZoom', TK.zoom); TK.t0 = ''; return paint(); }
     const tn = e.target.closest('[data-tl]'); if (tn) { const k = Number(tn.dataset.tl); if (!k) TK.t0 = ''; else TK.t0 = tkYmd(new Date(new Date(TK.t0 + 'T12:00').getTime() + k * (matchMedia('(max-width:820px)').matches ? (TK.zoom === 'm' ? 14 : 7) : (TK.zoom === 'm' ? 28 : 14)) * 864e5)); return paint(); }
     const pw = mode === 'perf' && e.target.closest('[data-pfw]'); if (pw && !pw.disabled) { TK.pfWho = TK.pfWho === pw.dataset.pfw ? '' : pw.dataset.pfw; return paint(); }
