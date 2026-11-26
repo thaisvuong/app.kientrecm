@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-26T15:37:12.231Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-26T16:54:41.680Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5496,6 +5496,86 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 /* màn rộng: thu nội dung lại cho panel nằm CẠNH khung chat (không che) · màn hẹp: panel mở đè toàn màn */
 @media (min-width:901px){ body.axp-on #views{ padding-right:clamp(340px, 34vw, 520px) } }
 @media (max-width:900px){ .axp{ width:100%; border-left:0 } }
+
+/* (1.92) ảnh vở KGS: nút thu nhỏ + lightbox (App.html › kphThumbs / kphBox) */
+.kph{ width:64px; height:64px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--muted); display:inline-grid; place-items:center; padding:0; overflow:hidden; cursor:zoom-in; font-size:18px; flex:none }
+.fbt-ph .kph{ width:52px; height:52px; border-radius:8px }
+.kph img{ width:100%; height:100%; object-fit:cover; display:block }
+.kph.ld{ background:linear-gradient(90deg, var(--surface-2) 0%, var(--border) 50%, var(--surface-2) 100%); background-size:200% 100%; animation:kphSh 1.2s linear infinite }
+.kph.bad{ color:var(--danger) }
+.kph:focus-visible{ outline:2px solid var(--brand-600, #2F45C8); outline-offset:2px }
+@keyframes kphSh{ to{ background-position:-200% 0 } }
+.kphb{ position:fixed; inset:0; z-index:10050; background:rgba(8,12,24,.92); display:flex; flex-direction:column; animation:kphIn .15s ease-out }
+@keyframes kphIn{ from{ opacity:0 } }
+.kphb-top{ display:flex; align-items:center; gap:8px; padding:10px 14px }
+.kphb-top .sp{ flex:1 } .kphb-n{ font-size:14px; font-weight:600; white-space:nowrap; color:#fff }
+.kphb-btn{ width:40px; height:40px; border-radius:50%; border:0; background:rgba(255,255,255,.12); color:#fff; display:grid; place-items:center; font-size:17px; cursor:pointer; text-decoration:none }
+.kphb-btn:hover{ background:rgba(255,255,255,.22) }
+.kphb-st{ flex:1; min-height:0; display:grid; place-items:center; padding:0 16px 16px; cursor:zoom-out }
+.kphb-st img{ max-width:100%; max-height:100%; object-fit:contain; border-radius:6px; box-shadow:0 10px 40px rgba(0,0,0,.5); cursor:default }
+.kphb-msg{ color:#E2E8F0; font-size:14px; display:flex; align-items:center; gap:10px } .kphb-msg:empty{ display:none }
+.kphb-spin{ width:18px; height:18px; border-radius:50%; border:2px solid rgba(255,255,255,.25); border-top-color:#fff; animation:kphRot .8s linear infinite }
+@keyframes kphRot{ to{ transform:rotate(360deg) } }
+.kphb-nav{ position:absolute; top:50%; transform:translateY(-50%); width:46px; height:46px; border-radius:50%; border:0; background:rgba(255,255,255,.14); color:#fff; font-size:20px; display:grid; place-items:center; cursor:pointer }
+.kphb-nav.p{ left:14px } .kphb-nav.n{ right:14px } .kphb-nav:hover{ background:rgba(255,255,255,.26) }
+@media (max-width:600px){ .kphb-nav{ top:auto; bottom:18px; transform:none } .kphb-st{ padding-bottom:76px } }
+
+/* (1.92) dải “AI đang chạy nền” trong bảng Nhận xét KGS */
+.fbt-run{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:8px 12px; margin:0 0 10px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); font-size:13px; color:var(--ink-2) }
+.fbt-run > i{ color:var(--brand-600, #2F45C8) } .fbt-run-t{ white-space:nowrap; font-weight:600 }
+.fbt-run-c{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface); color:var(--ink); border-radius:999px; padding:3px 10px; font-size:12.5px; white-space:nowrap; cursor:pointer }
+.fbt-run-c small{ color:var(--muted) } .fbt-run-c .dot{ width:7px; height:7px; border-radius:50%; background:var(--brand-600, #2F45C8); animation:kphPulse 1.2s ease-in-out infinite }
+@keyframes kphPulse{ 50%{ opacity:.3 } }
+.fbt-aih [data-faistop]{ flex:none; align-self:flex-start }
+
+/* (1.92) khung tra dữ liệu trong Trợ lý (AiView.html › insxMount) — sáng / tối theo biến màu, điện thoại 390px */
+.insx{ margin:6px 0 10px; border:1px solid var(--border); border-radius:14px; background:var(--surface); overflow:hidden; max-width:100% }
+.insx-ld{ padding:14px } .insx-err{ display:flex; gap:8px; align-items:center; padding:14px; color:var(--danger); font-size:13.5px }
+.insx-bar{ display:flex; align-items:center; gap:8px; padding:10px 12px 0; flex-wrap:wrap }
+.insx-bar:nth-child(2){ padding-bottom:10px; border-bottom:1px solid var(--border) }
+.insx-bar .sp{ flex:1 }
+.insx-seg{ display:flex; gap:4px; overflow-x:auto; max-width:100%; scrollbar-width:none; padding:2px; background:var(--surface-2); border-radius:12px }
+.insx-seg::-webkit-scrollbar{ display:none }
+.insx-seg button{ border:0; background:transparent; color:var(--ink-2); border-radius:10px; padding:6px 11px; font-size:13px; white-space:nowrap; display:inline-flex; gap:6px; align-items:center; cursor:pointer }
+.insx-seg button b{ font-weight:700; color:var(--muted); font-size:12px }
+.insx-seg button[aria-pressed="true"]{ background:var(--surface); color:var(--ink); box-shadow:0 1px 3px rgba(15,23,42,.12) }
+.insx-seg button[aria-pressed="true"] b{ color:var(--brand-600, #2F45C8) }
+.insx-q{ position:relative; flex:1 1 200px; min-width:150px } .insx-q i{ position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px }
+.insx-q input{ width:100%; height:34px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink); padding:0 10px 0 30px; font-size:13.5px }
+.insx .sel{ height:34px; width:auto; font-size:13px }
+.insx-n{ font-size:12.5px; color:var(--muted); white-space:nowrap }
+.insx-tw{ overflow:auto; max-height:460px } .insx.big .insx-tw{ max-height:none }
+.insx-t{ width:100%; border-collapse:collapse; font-size:13px }
+.insx-t th{ position:sticky; top:0; z-index:1; background:var(--surface-2); color:var(--muted); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; text-align:left; padding:8px 10px; white-space:nowrap; cursor:pointer; user-select:none; border-bottom:1px solid var(--border) }
+.insx-t th i{ margin-left:4px; font-size:11px; opacity:.55 } .insx-t th[aria-sort="ascending"] i, .insx-t th[aria-sort="descending"] i{ opacity:1; color:var(--brand-600, #2F45C8) }
+.insx-t td{ padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--ink) }
+.insx-t td b{ font-weight:600 } .insx-t td small{ display:block; color:var(--muted); font-size:11.5px; margin-top:1px }
+.insx-t td:first-child{ white-space:nowrap } .insx-t tr:hover td{ background:var(--surface-2) }
+.insx-sc{ color:var(--ok); white-space:nowrap }
+.insx-gv{ font-size:12px; color:var(--ink-2); line-height:1.45 } .insx .mu{ color:var(--muted) }
+.insx-empty{ text-align:center; color:var(--muted); padding:24px !important }
+.insx-pill{ display:inline-block; white-space:nowrap; font-size:11.5px; font-weight:600; padding:2px 9px; border-radius:999px; background:var(--surface-2); color:var(--ink-2) }
+.insx-pill.both{ background:color-mix(in srgb, var(--ok) 14%, transparent); color:var(--ok) }
+.insx-pill.both2{ background:color-mix(in srgb, var(--brand-600, #2F45C8) 12%, transparent); color:var(--brand-600, #2F45C8) }
+.insx-pill.bad, .insx-pill.never{ background:color-mix(in srgb, var(--danger) 13%, transparent); color:var(--danger) }
+.insx-pill.warn{ background:color-mix(in srgb, #EE5B27 14%, transparent); color:#C2410C }
+.insx-pill.ok{ background:color-mix(in srgb, var(--ok) 14%, transparent); color:var(--ok) }
+.insx-ft{ padding:8px 12px 10px; font-size:11.5px; color:var(--muted); border-top:1px solid var(--border) }
+.insx-side{ position:fixed; top:0; right:0; bottom:0; width:min(820px, 100vw); z-index:10040; background:var(--bg, var(--surface)); border-left:1px solid var(--border); box-shadow:-12px 0 40px rgba(15,23,42,.18); display:flex; flex-direction:column; animation:insxIn .18s ease-out }
+@keyframes insxIn{ from{ transform:translateX(30px); opacity:0 } }
+.insx-sh{ display:flex; align-items:center; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--surface) } .insx-sh b{ font-size:15px; white-space:nowrap; overflow:hidden } .insx-sh .sp{ flex:1 }
+.insx-sb{ flex:1; min-height:0; overflow:auto; padding:12px 16px }
+.insx-sb .insx{ margin:0 }
+@media (max-width:600px){ .insx-seg{ flex-wrap:wrap; overflow:visible } .insx-side{ width:100vw; border-left:0 } .insx-sb{ padding:10px } .insx-bar{ padding:8px 10px 0 } .insx-q{ flex-basis:100% } }
+
+/* (1.92) điểm bài kiểm tra */
+.kts{ display:flex; flex-direction:column; gap:8px } .kts:empty{ display:none }
+.kts-r{ display:flex; align-items:center; gap:10px; justify-content:space-between }
+.kts-r > span{ display:flex; gap:6px; align-items:center; min-width:0; font-size:13.5px; color:var(--ink) } .kts-r > span i{ color:var(--brand-600, #2F45C8) }
+.kts-r .inp{ width:110px; flex:none; text-align:center }
+.tag.kts-sc{ background:color-mix(in srgb, var(--ok) 13%, transparent); color:var(--ok); white-space:nowrap }
+.kts-cfg{ display:flex; flex-direction:column; gap:2px; max-height:52vh; overflow:auto } .kts-cfg label{ display:flex; gap:10px; align-items:center; padding:7px 4px; border-bottom:1px solid var(--border); font-size:13.5px }
+.kts-cfg label small{ margin-left:auto; color:var(--muted); white-space:nowrap }
 </style>
 
   <style>
@@ -8119,7 +8199,7 @@ function showLogin() {
   hideOv();
   $('#app').hidden = true;
   if ($('.login')) return;
-  const B = S.boot || {}, app = B.app || 'Kiến Chuyên môn';
+  const B = S.boot || {}, app = B.app || 'Kiến Trẻ';
   const gsi = !!B.gClient, otp = B.otp !== false;
   const L = document.createElement('div');
   L.className = 'login';
@@ -8212,7 +8292,7 @@ function confirmDetected(me) {
     if (!me || me.via !== 'google' || !me.email || lsGet('okAcc', {})[me.email]) return res(true);
     hideOv();
     const L = document.createElement('div'); L.className = 'login';
-    const app = S.boot.app || 'Kiến Chuyên môn';
+    const app = S.boot.app || 'Kiến Trẻ';
     L.innerHTML = '<div class="login-card"><div class="login-logo"><i class="bi bi-person-check"></i></div><h1>Chào bạn!</h1>' +
       accCard({ email: me.email, name: me.unregistered ? '' : me.name }, 'Hệ thống nhận ra bạn đang dùng tài khoản này trên trình duyệt. Bạn có xác nhận sử dụng tài khoản này để truy cập ' + app + '?', '') +
       '<div class="stack"><button class="btn pri" id="acOk" autofocus><i class="bi bi-check2-circle"></i>Xác nhận & tiếp tục</button>' +
@@ -9304,11 +9384,11 @@ function startApp() {
   const me = S.me;
   brandPaint();      // thanh bên: vòng tròn cánh diều + tên ứng dụng đang mở (trang Apps: “Kiến Trẻ”)
   $('#appSub').textContent = S.boot.sub || 'Chuyên môn';
-  document.title = S.boot.app || 'Kiến Chuyên môn';
+  document.title = S.boot.app || 'Kiến Trẻ';
   $('#meAv').textContent = initials(me.name);
   $('#meName').textContent = me.name;
   $('#meRole').textContent = me.guest ? 'Khách (không đăng nhập)' : me.roles.map(r => roleOf(r).label).join(', ') + (me.email ? ' · ' + me.email : '');
-  $('#sbVer').textContent = (S.boot.app || 'Kiến Chuyên môn') + ' ' + String(S.boot.ver || '').split(' ')[0];
+  $('#sbVer').textContent = (S.boot.app || 'Kiến Trẻ') + ' ' + String(S.boot.ver || '').split(' ')[0];
   if (me.via === 'otp' || me.via === 'gsi' || me.guest) {
     const u = $('.sb-user'); u.classList.add('clk'); u.title = me.guest ? 'Đang xem với tư cách khách' : 'Bấm để đăng xuất';
     const doOut = () => ask(me.guest ? 'Thoát chế độ khách và quay lại màn đăng nhập?' : 'Đăng xuất khỏi ' + me.email + '?', { ok: 'Đăng xuất' }).then(ok => ok && logout());
@@ -9429,7 +9509,7 @@ const ROUTES = {
   settings: { t: 'Cài đặt', i: 'bi-gear', fn: (a, v) => viewSettings(a, v), arg: 1 },
   admin:    { t: 'Cài đặt quản trị', i: 'bi-sliders', fn: (a, v) => viewSettings(a, v, true), arg: 1, cap: ['settings.manage', 'audit.view'] },      // (1.43.2) Chung & truy cập · Menu & tab · Hệ thống · Nhật ký — tab riêng của Quản trị
   tasks:    { t: 'Kiến Task', i: 'bi-kanban', fn: (a, v) => viewTasks(a, v), arg: 1, cls: 'tk-view', cap: TASK_TABS },
-  kt:       { t: 'Kiến Trẻ', i: 'bi-backpack2', fn: (a, v) => viewKt(a, v), arg: 1, cap: 'kt.use' },      // (1.84) KienTreView.html
+  kt:       { t: 'Kiến Chuyên môn', i: 'bi-backpack2', fn: (a, v) => viewKt(a, v), arg: 1, cap: 'kt.use' },      // (1.84) KienTreView.html
   book:     { t: 'Kiến Cẩm Nang', i: 'bi-journal-richtext', fn: (a, v) => viewBook(a, v), arg: 1, cls: 'bk-view', cap: ['book.view', 'book.manage'] },
   apps:     { t: 'Apps', i: 'bi-grid-3x3-gap', fn: (a, v) => viewApps(a, v) },
   trash:    { t: 'Thùng rác', i: 'bi-trash3', fn: (a, v) => viewTrash(a, v) },      // (1.57) ai cũng mở được: mỗi người thấy mục mình xoá, Admin thấy hết (Trash.gs › trashCan_)
@@ -9606,7 +9686,7 @@ async function go(route, opt) {
 }
 function applyChrome(rec, key, navKey) {
   const R = ROUTES[key];
-  const t = rec.title || { t: R.t, i: R.i, crumbs: [{ t: S.boot.app || 'Kiến Chuyên môn', r: 'home' }].concat(key !== navKey ? [{ t: ROUTES[navKey].t, r: navKey }] : []) };
+  const t = rec.title || { t: R.t, i: R.i, crumbs: [{ t: S.boot.app || 'Kiến Trẻ', r: 'home' }].concat(key !== navKey ? [{ t: ROUTES[navKey].t, r: navKey }] : []) };
   paintTitle(t.t, t.i, t.crumbs);
   const tb = $('#tbRight');
   if (rec.topNode) { if (tb.firstChild !== rec.topNode || tb.childNodes.length !== 1) tb.replaceChildren(rec.topNode); }
@@ -9620,7 +9700,7 @@ function paintTitle(t, icon, crumbs) {
   /* ĐƯỜNG DẪN (1.31.1): tên ứng dụng đã nằm ở thanh bên (Kiến Chuyên môn, Kiến Task, Quản trị…) → bỏ mục tên ứng dụng khỏi đường dẫn
      (trước đây lặp “Kiến Chuyên môn” ngay dưới logo, và trang của Quản trị lại ghi “Kiến Chuyên môn › Người dùng”). Bỏ cả mục trùng tên trang.
      Mục còn lại vẫn bấm được (data-go); không còn mục nào thì ẩn dòng đường dẫn. */
-  const appN = new Set([S.boot && S.boot.app, 'Kiến Chuyên môn'].concat(((S.boot && S.boot.mods) || []).map(m => m.t)).filter(Boolean).map(fold));
+  const appN = new Set([S.boot && S.boot.app, 'Kiến Trẻ', 'Kiến Chuyên môn'].concat(((S.boot && S.boot.mods) || []).map(m => m.t)).filter(Boolean).map(fold));
   // mục trỏ sang một TAB KHÁC đang nằm trên thanh bên (tab ngang hàng, không phải trang cha) cũng bỏ — VD đang ở tab Lời mời không ghi “Người dùng”
   let navR = [], cur = ''; try { const L = navItems(); navR = L.map(x => x.r); cur = navOf(S.route, L); } catch (e) {}
   const cs = (crumbs || []).filter(c => c && c.t && !appN.has(fold(c.t)) && fold(c.t) !== fold(t) && !(cur && c.r && c.r !== cur && navR.indexOf(c.r) >= 0 && navOf(c.r, navItems()) !== cur));
@@ -10187,7 +10267,7 @@ async function viewLibrary(arg, v) {
     if (tb && LIB.scope) { tb.insertAdjacentHTML('beforeend', '<button class="btn sm" id="lbHide" title="Ẩn thư mục này khỏi Thư viện của bạn — người khác không bị ảnh hưởng"><i class="bi bi-eye-slash"></i><span class="bl">Ẩn</span></button>'); $('#lbHide', tb).onclick = () => libHideAsk(LIB.scope); }
     const cb = tb && $('#lbCopy', tb); if (cb) cb.onclick = () => folderMenu(cb, LIB.scope);
     setTitle(LIB.scope ? title : 'Thư viện', LIB.scope ? (IX.src[LIB.scope] ? 'bi-hdd-network' : 'bi-folder2-open') : 'bi-collection',
-      [{ t: S.boot.app || 'Kiến Chuyên môn', r: 'home' }].concat(LIB.scope ? [{ t: 'Thư viện', r: 'library' }] : []), v);
+      [{ t: S.boot.app || 'Kiến Trẻ', r: 'home' }].concat(LIB.scope ? [{ t: 'Thư viện', r: 'library' }] : []), v);
   };
   $('#lbPath', v).onclick = e => { const a = e.target.closest('[data-sc]'); if (a) go('library' + (a.dataset.sc ? '/' + a.dataset.sc : '')); };
 
@@ -10675,6 +10755,39 @@ async function aiQuickSend(text) {
     const got = x => { m.wait = 0; if (x.status === 'ok') { m.text = x.text; m.refs = x.refs; } else m.err = x.err || 'Chưa trả lời được'; aiQuickPaint(); if (!AIQ.el) { const n = $('#tbAiN'); if (n) n.hidden = false; } };
     if (typeof AI_WAIT !== 'undefined' && AI_WAIT.test(r.status) && typeof aiWatch === 'function') aiWatch(r.id, got); else got(r); }
   catch (e) { m.wait = 0; m.err = e.message || String(e); aiQuickPaint(); }
+}
+
+/* ══ (1.92) ẢNH VỞ KGS TRONG APP — KGS bắt đăng nhập cho /api/uploads (thẻ <img> nhúng không gửi cookie KGS → vỡ ảnh, trước mở tab Chrome mới).
+   Ảnh tải qua máy chủ (rpc kgsPhoto, phiên KGS đã dán), nhớ trong phiên, tối đa 3 ảnh tải cùng lúc; bấm ảnh → lightbox (←/→, Esc, vuốt). ══ */
+const KPH = {}, KPHS = {}, kphQ = []; let kphRun = 0;
+function kphGet(u) { if (!KPH[u]) KPH[u] = new Promise((res, rej) => { kphQ.push([u, res, rej]); kphPump(); }); return KPH[u]; }
+function kphPump() { while (kphRun < 3 && kphQ.length) { const q = kphQ.shift(); kphRun++; rpc('kgsPhoto', { u: q[0] }, { quiet: true }).then(r => { KPHS[q[0]] = r.src; q[1](r.src); }, e => { delete KPH[q[0]]; q[2](e); }).finally(() => { kphRun--; kphPump(); }); } }
+/** nút ảnh thu nhỏ (chưa tải) — U = link ảnh KGS đầy đủ */
+function kphThumbs(U, cls, more) { U = (U || []).filter(Boolean); if (!U.length) return ''; const g = 'g' + Math.random().toString(36).slice(2, 8);
+  return '<span class="' + (cls || 'kt-ph') + '">' + U.map((u, i) => '<button type="button" class="kph" data-kph="' + esc(u) + '" data-kphg="' + g + '" aria-label="Xem ảnh vở ' + (i + 1) + '/' + U.length + '"><i class="bi bi-image"></i></button>').join('') + (more ? '<small>+' + more + '</small>' : '') + '</span>'; }
+function kphLoad(b) { if (b.dataset.kphd) return; b.dataset.kphd = '1'; const u = b.dataset.kph; b.classList.add('ld');
+  kphGet(u).then(src => { b.classList.remove('ld'); b.innerHTML = '<img src="' + src + '" alt="">'; }).catch(e => { b.classList.remove('ld'); b.classList.add('bad'); b.innerHTML = '<i class="bi bi-image-alt"></i>'; b.title = e.message || 'Không tải được ảnh'; }); }
+const kphIO = 'IntersectionObserver' in window ? new IntersectionObserver(E => E.forEach(x => { if (x.isIntersecting) { kphIO.unobserve(x.target); kphLoad(x.target); } }), { rootMargin: '200px' }) : null;
+function kphScan() { kphScan.t = 0; if (typeof insxScan === 'function') insxScan(); $$('.kph:not([data-kpho])').forEach(b => { b.dataset.kpho = '1'; if (kphIO) kphIO.observe(b); else kphLoad(b); }); }
+new MutationObserver(() => { if (kphScan.t) return; kphScan.t = requestAnimationFrame(kphScan); }).observe(document.documentElement, { childList: true, subtree: true });
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.kph'); if (!b) return; e.preventDefault(); e.stopPropagation();
+  const L = $$('.kph[data-kphg="' + b.dataset.kphg + '"]').map(x => x.dataset.kph); kphBox(L, Math.max(0, L.indexOf(b.dataset.kph))); }, true);
+function kphBox(L, i) {
+  const o = document.createElement('div'); o.className = 'kphb'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Ảnh vở');
+  o.innerHTML = '<div class="kphb-top"><span class="kphb-n"></span><span class="sp"></span><a class="kphb-btn" target="_blank" rel="noopener" title="Mở ở Kiến Gia Sư (cần đăng nhập KGS)"><i class="bi bi-box-arrow-up-right"></i></a><button type="button" class="kphb-btn" data-x aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div>' +
+    '<div class="kphb-st"><img alt="Ảnh vở" hidden><div class="kphb-msg"></div></div>' + (L.length > 1 ? '<button type="button" class="kphb-nav p" aria-label="Ảnh trước"><i class="bi bi-chevron-left"></i></button><button type="button" class="kphb-nav n" aria-label="Ảnh sau"><i class="bi bi-chevron-right"></i></button>' : '');
+  document.body.appendChild(o);
+  const img = $('img', o), msg = $('.kphb-msg', o);
+  const show = k => { i = (k + L.length) % L.length; const u = L[i]; $('.kphb-n', o).textContent = 'Ảnh vở ' + (i + 1) + ' / ' + L.length; $('a.kphb-btn', o).href = u;
+    img.hidden = true; msg.innerHTML = '<span class="kphb-spin"></span>Đang tải ảnh…';
+    kphGet(u).then(src => { if (L[i] !== u) return; img.src = src; img.hidden = false; msg.textContent = ''; }).catch(e => { if (L[i] === u) msg.textContent = e.message || 'Không tải được ảnh'; });
+    if (L.length > 1) [i - 1, i + 1].forEach(j => { kphGet(L[(j + L.length) % L.length]).catch(() => {}); }); };
+  const key = e => { if (e.key === 'Escape') { e.stopPropagation(); shut(); } else if (e.key === 'ArrowLeft') show(i - 1); else if (e.key === 'ArrowRight') show(i + 1); };
+  const shut = () => { if (o.parentNode) o.parentNode.removeChild(o); removeEventListener('keydown', key, true); };
+  addEventListener('keydown', key, true);
+  o.onclick = e => { if (e.target === o || e.target.closest('[data-x]') || e.target.classList.contains('kphb-st')) shut(); else if (e.target.closest('.kphb-nav.p')) show(i - 1); else if (e.target.closest('.kphb-nav.n')) show(i + 1); };
+  let x0 = null; o.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true }); o.addEventListener('touchend', e => { if (x0 == null) return; const d = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(d) > 50) show(i + (d < 0 ? 1 : -1)); });
+  show(i); $('[data-x]', o).focus();
 }
 </script>
 <script>
@@ -12609,7 +12722,7 @@ async function invPaint(box, scope, fresh) {
   const rows = D.list.filter(x => (!f || x.state === f) && (!q || fold(x.email + ' ' + x.name + ' ' + x.byName).indexOf(q) >= 0));
   const cnt = {}; D.list.forEach(x => { cnt[x.state] = (cnt[x.state] || 0) + 1; });
   const st = s => { const t = INV_ST[s] || INV_ST.pending; return '<span class="iv-st" style="--bc:' + t[1] + '"><i class="bi ' + t[2] + '"></i>' + t[0] + '</span>'; };
-  const what = x => '<div class="iv-what"><span class="iv-scope"><i class="bi ' + (x.scope === 'task' ? 'bi-kanban' : 'bi-grid-3x3-gap') + '"></i>' + (x.scope === 'task' ? 'Chỉ Kiến Task' : 'Kiến Chuyên môn') + '</span>' +
+  const what = x => '<div class="iv-what"><span class="iv-scope"><i class="bi ' + (x.scope === 'task' ? 'bi-kanban' : 'bi-grid-3x3-gap') + '"></i>' + (x.scope === 'task' ? 'Chỉ Kiến Task' : 'Kiến GS') + '</span>' +
     '<b>' + esc(x.what.role || '—') + '</b>' + (x.scope !== 'task' ? '<small>' + esc((x.what.apps || []).join(' · ')) + (x.what.task ? ' · Kiến Task: ' + esc(x.what.task) : '') + '</small>' : '') + '</div>';
   const nSt = Object.keys(cnt).length;
   box.innerHTML = '<div class="pm-note iv-note"><i class="bi bi-envelope-paper-heart"></i><span>' + (scope === 'task'
@@ -12970,7 +13083,7 @@ async function setZalo(B) {
       (form ? '<div class="fg"><label class="flabel">Bot Token</label><div class="row" style="flex-wrap:nowrap"><input class="inp mono" id="zbT" type="password" autocomplete="off" placeholder="Dán Bot Token của bot" style="flex:1;min-width:0">' +
           '<button class="btn pri" id="zbGo"><i class="bi bi-plug"></i>Kết nối</button></div></div>' +
         '<details class="adv"' + (Z.has ? '' : ' open') + '><summary><i class="bi bi-chevron-right"></i> Lấy Bot Token ở đâu</summary>' + steps([
-          'Trên điện thoại mở Zalo › Mini app <b>Zalo Bot Creator</b> › chọn bot (VD “Bot Kiến Chuyên môn”) › <b>Thiết lập chung</b>.',
+          'Trên điện thoại mở Zalo › Mini app <b>Zalo Bot Creator</b> › chọn bot (VD “Bot Kiến Trẻ”) › <b>Thiết lập chung</b>.',
           'Mục <b>Bot Token</b> → chép token (bấm “Reset” thì token cũ hết hiệu lực — phải dán lại ở đây).',
           'Ô <b>Webhook URL</b> để <b>trống</b>: app tự đọc tin của bot khi dò nhóm; bot đang đặt Webhook thì không dò được.',
           'Dán token vào ô trên → <b>Kết nối</b>. Token chỉ lưu ở máy chủ Apps Script, không nằm trong kho dữ liệu, không gửi về trình duyệt.']) + '</details>' : '') +
@@ -12985,7 +13098,7 @@ async function setZalo(B) {
       : '<div class="small muted">Chưa có nhóm nào — làm theo 3 bước bên dưới để thêm.</div>') +
     '<div class="zb-add"><b><i class="bi bi-plus-circle"></i> Thêm nhóm</b>' + steps([
       'Zalo Bot Creator › bot › <b>Thông tin</b> › <b>Link mời vào nhóm</b> → gửi link vào nhóm. Trưởng nhóm bấm link → <b>Xác nhận</b> thêm bot.',
-      'Bấm <b>Dò nhóm mới</b> — app <b>nghe 60 giây</b>. Trong lúc đó, vào nhóm gõ <b>@</b>, chọn tên bot, gửi (kèm tên nhóm càng tốt, VD “@Bot Kiến Chuyên môn Nhóm Tuyển sinh”). Zalo không giữ tin lại — gửi trước khi bấm Dò thì app không thấy.',
+      'Bấm <b>Dò nhóm mới</b> — app <b>nghe 60 giây</b>. Trong lúc đó, vào nhóm gõ <b>@</b>, chọn tên bot, gửi (kèm tên nhóm càng tốt, VD “@Bot Kiến Trẻ Nhóm Tuyển sinh”). Zalo không giữ tin lại — gửi trước khi bấm Dò thì app không thấy.',
       'Nhóm hiện bên dưới → sửa tên cho dễ nhận → <b>Thêm</b>. Chỉ làm <b>một lần mỗi nhóm</b> (để lấy mã nhóm); sau đó bot chỉ đẩy thông báo, không cần ai nhắn gì. (Nhắn riêng cho bot trong lúc nghe cũng được — để nhận thông báo cho riêng mình.)']) +
       '<div class="row"><button class="btn pri" id="zbScan"><i class="bi bi-radar"></i>Dò nhóm mới (nghe 60 giây)</button></div>' + diag() +
       '<details class="adv"><summary><i class="bi bi-chevron-right"></i> Đã có mã nhóm? Nhập thẳng</summary><div class="row" style="margin-top:8px"><input class="inp mono" id="zbMC" placeholder="Mã nhóm, VD zgr-…" style="flex:1 1 200px;min-width:0"><input class="inp" id="zbMN" maxlength="60" placeholder="Tên nhóm" style="flex:1 1 160px;min-width:0"><button class="btn" id="zbMA"><i class="bi bi-plus-lg"></i>Thêm</button></div></details>' +
@@ -13215,6 +13328,20 @@ async function setKgs(B) {
   const load = async () => { try { const k = await rpc('kgsGet', {}, { quiet: true }); if (K) fresh(k); else take(k); } catch (e) { B.innerHTML = '<div class="card"><div class="empty"><i class="bi bi-exclamation-octagon"></i><b>Không tải được</b><span>' + esc(e.message) + '</span></div></div>'; } };
   const sw = (id, on, t, d) => '<label class="row" style="gap:10px;flex-wrap:nowrap;align-items:flex-start"><span class="sw"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><span></span></span><span><b>' + t + '</b><br><span class="small muted">' + d + '</span></span></label>';
   const evLabel = m => m < 60 ? m + ' phút' : (m / 60) + ' giờ';
+  /** (1.91.1) KÉO DỮ LIỆU BUỔI CŨ: bấm một lần → lượt đồng bộ kế tiếp đọc toàn bộ buổi Toán từ ngày chọn; các lượt thường chỉ đọc vài ngày gần nhất */
+  const oldc = () => {
+    const A = K.kall || {}, bf = A.bf, dn = A.done, dm = d => String(d || '').split('-').reverse().join('/');
+    const tag = bf ? '<span class="tag"><i class="bi bi-hourglass-split"></i> Chờ lượt đồng bộ</span>' : dn ? '<span class="tag ok">Đã kéo</span>' : '<span class="tag">Chưa kéo</span>';
+    return '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-clock-history"></i>Dữ liệu buổi cũ từ KGS</h2><span class="sp"></span>' + tag + '</div><div class="card-b stack">' +
+      '<p class="small" style="margin:0;line-height:1.6">Kéo <b>mọi buổi Toán đã có bên KGS</b> (trạng thái học / vắng, nội dung dạy, gia sư) về app — như khôi phục lịch sử trước khi dùng app. ' +
+        'Xem ở trang lớp (nút <i class="bi bi-clock-history"></i> Lịch sử buổi KGS) và Khảo sát › Kiểm tra đếm theo đó. Sau lần kéo, mỗi lượt đồng bộ chỉ đọc <b>' + (A.days || 14) + ' ngày</b> gần nhất cho nhanh.</p>' +
+      (bf ? '<div class="gmo-now"><i class="bi bi-hourglass-split"></i><div><b>Đã đặt kéo từ ' + esc(dm(bf.from)) + '</b><small>' + esc(bf.by || '') + ' · ' + esc(ago(bf.at)) + ' — ' +
+          (K.cookie && K.cookie.has ? 'máy chủ đang chạy nền bằng phiên dán.' : 'bấm <b>Chạy ngay</b> ở tiện ích Kiến Connect (lượt đầu lâu hơn bình thường).') + '</small></div><button class="btn sm ghost" id="kgAllNo"><i class="bi bi-x-lg"></i>Huỷ</button></div>'
+        : dn ? '<div class="gmo-now"><i class="bi bi-check2-circle"></i><div><b>Đã kéo ' + Number(dn.n || 0).toLocaleString('vi-VN') + ' buổi · ' + (dn.cls || 0) + ' lớp</b><small>Từ ' + esc(dm(dn.from)) + ' · ' + esc(fmtDT(dn.at)) + (dn.by ? ' · ' + esc(dn.by) : '') + '</small></div></div>' : '') +
+      '<div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><label class="small muted" for="kgAllFrom">Kéo từ ngày</label><input class="inp" type="date" id="kgAllFrom" value="' + esc(A.from || '2024-01-01') + '" style="width:auto">' +
+        '<button class="btn pri sm" id="kgAllGo"' + (bf ? ' disabled' : '') + '><i class="bi bi-cloud-download"></i>' + (dn ? 'Kéo lại dữ liệu cũ' : 'Kéo dữ liệu buổi cũ') + '</button></div>' +
+      '</div></div>';
+  };
   /** tài khoản KGS thiếu quyền → liệt kê ô cần tick ở KGS › Phân quyền */
   const need = s => {
     const G = {}; ((s && s.need) || []).forEach(x => { const p = String(x).split(' › '); (G[p[0]] = G[p[0]] || []).indexOf(p[1]) < 0 && G[p[0]].push(p[1]); });
@@ -13385,7 +13512,7 @@ async function setKgs(B) {
     const tone = k => ({ red: ['#FEE2E2', '#991B1B'], warn: ['#FEF3C7', '#92400E'], ok: ['#DCFCE7', '#166534'] })[RP_ST[k][0]] || ['#EEF2F7', '#334155'];
     const e2 = v => esc(v == null ? '' : String(v)), who = (S.me && (S.me.name || S.me.email)) || '';
     const html = '<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Bao cao KGS - ' + e2(rpFName()) + ' - ' + st.f + '</title><style>' +
-      '@page{ size:A4 landscape; margin:14mm 12mm 16mm } @page{ @bottom-right{ content:"Trang " counter(page) " / " counter(pages); font:9px Helvetica,Arial,sans-serif; color:#64748B } @bottom-left{ content:"Kiến Chuyên môn · Báo cáo đồng bộ Kiến Gia Sư"; font:9px Helvetica,Arial,sans-serif; color:#64748B } }' +
+      '@page{ size:A4 landscape; margin:14mm 12mm 16mm } @page{ @bottom-right{ content:"Trang " counter(page) " / " counter(pages); font:9px Helvetica,Arial,sans-serif; color:#64748B } @bottom-left{ content:"Kiến GS · Báo cáo đồng bộ Kiến Gia Sư"; font:9px Helvetica,Arial,sans-serif; color:#64748B } }' +
       '*{ box-sizing:border-box } body{ margin:0; font:11px/1.45 "Helvetica Neue",Helvetica,Arial,sans-serif; color:#0F172A; -webkit-print-color-adjust:exact; print-color-adjust:exact }' +
       '.hd{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; padding-bottom:10px; border-bottom:2.5px solid #1E3A8A; margin-bottom:12px } .hd .k{ font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#ED5814; font-weight:700 } .hd h1{ margin:2px 0 0; font-size:20px; color:#1E3A8A }' +
       '.hd .m{ text-align:right; font-size:10px; color:#475569; line-height:1.6 } .sm{ display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px } .sm span{ padding:3px 9px; border-radius:999px; font-size:10px; font-weight:700 } .note{ font-size:10px; color:#475569; margin:0 0 10px }' +
@@ -13393,7 +13520,7 @@ async function setKgs(B) {
       'td{ padding:6px 6px; border-bottom:1px solid #E2E8F0; vertical-align:top; overflow-wrap:anywhere; overflow:hidden } tr{ page-break-inside:avoid } tbody tr:nth-child(even) td{ background:#F8FAFC } td.c{ font-weight:700; color:#1E3A8A } td small{ display:block; color:#64748B; font-size:9.5px }' +
       '.tg{ display:inline-block; max-width:100%; padding:2px 7px; border-radius:6px; font-weight:700; font-size:9.5px; line-height:1.35; white-space:normal; overflow-wrap:anywhere } .td{ color:#475569; font-size:10px } .gv{ border:1px dashed #CBD5E1; height:22px; border-radius:4px }' +
       '</style></head><body>' +
-      '<div class="hd"><div><div class="k">Kiến Trẻ · Kiến Chuyên môn</div><h1>Tình trạng từng lớp — Đồng bộ Kiến Gia Sư</h1></div><div class="m">Lọc: <b>' + e2(rpFName()) + '</b> · ' + L.length + ' lớp<br>Xuất lúc ' + e2(st.t) + (who ? ' · ' + e2(who) : '') + '</div></div>' +
+      '<div class="hd"><div><div class="k">Kiến Trẻ · Kiến GS</div><h1>Tình trạng từng lớp — Đồng bộ Kiến Gia Sư</h1></div><div class="m">Lọc: <b>' + e2(rpFName()) + '</b> · ' + L.length + ' lớp<br>Xuất lúc ' + e2(st.t) + (who ? ' · ' + e2(who) : '') + '</div></div>' +
       '<div class="sm">' + Object.keys(cnt).map(k => { const t = tone(k); return '<span style="background:' + t[0] + ';color:' + t[1] + '">' + e2(RP_ST[k][2]) + ' · ' + cnt[k] + '</span>'; }).join('') + '</div>' +
       '<p class="note">So bài gán các buổi sắp tới ở Kiến CM với topic KGS đang gắn cho đúng buổi đó. Nhờ Giáo vụ xử lý bên KGS theo cột “Việc cần làm”, ghi kết quả vào cột cuối.</p>' +
       '<table><colgroup><col style="width:3.5%"><col style="width:15%"><col style="width:10%"><col style="width:9%"><col style="width:8%"><col style="width:13%"><col style="width:25%"><col style="width:16.5%"></colgroup>' +
@@ -13431,7 +13558,7 @@ async function setKgs(B) {
       '<div class="card" style="margin-top:12px"><div class="card-h"><h2><i class="bi bi-clock-history"></i>Các lượt đồng bộ gần nhất</h2></div><div class="card-b stack">' + ((Rp.runs || []).length ? Rp.runs.map(rpRun).join('') : '<div class="small muted">Chưa có lượt nào được ghi báo cáo — báo cáo bắt đầu từ lượt đồng bộ tiếp theo.</div>') + '</div></div>';
   };
   const tabs = () => '<div class="row" style="margin-bottom:12px"><div class="seg" id="kgTab"><button class="seg-b" data-kt="sync" aria-pressed="' + (tab === 'sync') + '"><i class="bi bi-arrow-left-right"></i>Đồng bộ</button><button class="seg-b" data-kt="report" aria-pressed="' + (tab === 'report') + '"><i class="bi bi-clipboard-data"></i>Báo cáo</button></div></div>';
-  const paint = () => { if (!alive()) return; B.innerHTML = tabs() + (tab === 'report' ? report() : status() + ext() + ck() + opts() + road() + pmap() + data()); if (tab === 'report' && !Rp) rpLoad(); };
+  const paint = () => { if (!alive()) return; B.innerHTML = tabs() + (tab === 'report' ? report() : status() + oldc() + ext() + ck() + opts() + road() + pmap() + data()); if (tab === 'report' && !Rp) rpLoad(); };
   const run = async (btn, wait, fn) => { const stop = btnWait(btn, wait); try { const k = await fn(); if (k) take(k); return k; } catch (er) { stop(); fail(er); } };
   const save = o => now(k => { Object.assign(k.cfg, o); }, 'kgsCfg', o, 'cài đặt', 'kgsCfg');
   B.onchange = e => {
@@ -13462,6 +13589,9 @@ async function setKgs(B) {
     if (t.id === 'kgKey') { if (K._code && !K.code) return toast('Đang tải — thử lại sau một giây', 'info'); if (K.code && !await ask('Tạo mã kết nối mới? Mã cũ hết dùng được — tiện ích trên các máy phải dán mã mới.', { ok: 'Tạo mã mới' })) return; return run(t, 'Đang tạo…', () => rpc('kgsKey', {}, { quiet: true })); }
     if (t.id === 'kgCkGo') { const v = $('#kgCk', B).value.trim(); if (!v) return toast('Dán phiên vào ô trước', 'info'); const k = await run(t, 'Đang thử gọi KGS…', () => rpc('kgsCookie', { cookie: v }, { quiet: true })); if (k) toast('Phiên dùng được' + (k.who ? ' · ' + k.who : '') + ' — bấm Đồng bộ ngay hoặc chờ lịch tự chạy', 'ok', 5000); return; }
     if (t.id === 'kgCkOff') { if (!await ask('Xoá phiên KGS đã dán? Máy chủ thôi tự đồng bộ (tiện ích Chrome vẫn chạy nếu có).', { ok: 'Xoá phiên', danger: true })) return; return now(K => { K.cookie = { has: false, tail: '', at: '' }; }, 'kgsCookie', { off: 1 }, 'xoá phiên'); }
+    if (t.id === 'kgAllGo') { const f = ($('#kgAllFrom', B) || {}).value || ''; if (!await ask('Kéo mọi buổi Toán bên KGS từ ' + (f ? f.split('-').reverse().join('/') : '01/01/2024') + ' về app? Lượt đồng bộ kế tiếp sẽ lâu hơn bình thường.', { ok: 'Kéo dữ liệu' })) return;
+      return now(K => { K.kall = Object.assign({}, K.kall, { bf: { from: f, at: new Date().toISOString(), by: (S.me && S.me.name) || '' } }); }, 'kgsAllPull', { from: f }, 'kéo dữ liệu buổi cũ'); }      // (1.91.1)
+    if (t.id === 'kgAllNo') return now(K => { K.kall = Object.assign({}, K.kall, { bf: null }); }, 'kgsAllPull', { cancel: 1 }, 'huỷ kéo dữ liệu cũ');
     if (t.id === 'kgRun') return now(K => { K.run = { at: new Date().toISOString(), wait: 1 }; }, 'kgsRunBg', {}, 'đồng bộ ngay');      // máy chủ chạy nền — trang tự cập nhật khi xong
     if (t.id === 'kgDrop') return now(K => { K.queue = 0; }, 'kgsDrop', {}, 'bỏ hàng chờ topic');
     if (t.id === 'kgFiles' || t.id === 'kgFilesAll') { const all = t.id === 'kgFilesAll'; if (all && !await ask('Đồng bộ lại MỌI topic bên KGS? Mất vài phút, chạy nền.', { ok: 'Đồng bộ tất cả' })) return;      // (1.80.18)
@@ -14132,7 +14262,7 @@ function setGeneral(B, cfg, setCfg) {
   const cu = $('#gCidUse', B); if (cu) cu.onclick = () => { $('#gCid', B).value = cfg.gmoCid; cu.parentNode.remove(); toast('Đã điền Client ID — bấm Lưu', 'info'); };
   $('#gSave', B).onclick = async () => {
     const cid = $('#gCid', B).value.trim(); let otpOn = $('#gOtp', B).checked; if (!otpOn && !cid) { otpOn = true; $('#gOtp', B).checked = true; toast('Chưa có Client ID của Google nên vẫn giữ đăng nhập bằng mã email', 'warn', 5000); }
-    const vals = { appName: $('#gA', B).value.trim() || 'Kiến Chuyên môn', appSub: $('#gS', B).value.trim(), accessMode: 'users', otpLogin: otpOn ? 'on' : 'off', guestAccess: 'off', googleClientId: cid, selfSignup: $('#gSU', B).checked ? 'on' : 'off' };
+    const vals = { appName: $('#gA', B).value.trim() || 'Kiến Trẻ', appSub: $('#gS', B).value.trim(), accessMode: 'users', otpLogin: otpOn ? 'on' : 'off', guestAccess: 'off', googleClientId: cid, selfSignup: $('#gSU', B).checked ? 'on' : 'off' };
     queueRpc('saveSettings', { values: vals }, { key: 'set:gen', label: 'Cài đặt chung', merge: (a, b) => b }).then(c => { if (c && c.values) setCfg(c); }).catch(() => {});
     S.boot.gClient = vals.googleClientId; S.boot.otp = otpOn; S.boot.app = vals.appName; S.boot.sub = vals.appSub; S.boot.access = mode;
     $('#appName').textContent = S.boot.app.toUpperCase(); $('#appSub').textContent = S.boot.sub; document.title = S.boot.app;
@@ -16552,8 +16682,8 @@ async function clPrintAll(c, btn) {
   sync();
   fresh.then(o => { if (m.closed) return; if (JSON.stringify(o) !== JSON.stringify(FL)) { FL = o; paintF(); } }).catch(() => { if (!FL && !m.closed) m.el.querySelectorAll('.gp-fs.ld').forEach(e => { e.innerHTML = '<i class="bi bi-exclamation-triangle"></i>Không lấy được danh sách phiếu — Ghép sẽ gồm mọi tệp'; }); });
   m.el.addEventListener('click', e => { const tg = e.target.closest('[data-cptg]'); if (!tg) return; e.preventDefault(); e.stopPropagation(); const x = CL.d.sessions.find(z => z.id === tg.dataset.cptg); if (!x) return;
-    x.status = 'taught'; x.taughtAt = new Date().toISOString(); clQueue('sessionTaught', { id: x.id }, { key: 'taught:' + x.id, label: 'Đã dạy · ' + clName(c) + ' ' + clDay(x.date, td).dm });
-    const r = tg.closest('[data-cpw]'), k = r && r.querySelector('[data-cpk]'); if (k) k.checked = false; if (r) r.style.display = 'none'; toast('Đã ghi Đã dạy buổi ' + clDay(x.date, td).dm, 'ok'); sync(); });
+    clKtsGate(c, x, x.folders, sc => { x.status = 'taught'; x.taughtAt = new Date().toISOString(); clQueue('sessionTaught', Object.assign({ id: x.id }, sc), { key: 'taught:' + x.id, label: 'Đã dạy · ' + clName(c) + ' ' + clDay(x.date, td).dm });      // (1.92) topic KT → nhập điểm trước
+    const r = tg.closest('[data-cpw]'), k = r && r.querySelector('[data-cpk]'); if (k) k.checked = false; if (r) r.style.display = 'none'; toast('Đã ghi Đã dạy buổi ' + clDay(x.date, td).dm, 'ok'); sync(); }); });
 }
 /** (1.80.52) IN GỘP NHANH: mã link tạo NGAY trên máy → hiện link liền, máy chủ lưu ngầm qua hàng đợi (printPick — như In tài liệu của gia sư).
     Trước phải chờ Apps Script ghép + lưu link (5–10 giây) mới thấy link. Mở link sớm thì trang chờ vài giây tới khi lưu xong. */
@@ -16904,6 +17034,27 @@ async function clKgsRoad(c) {
 }
 /* ── một dòng buổi học (dùng chung) ── */
 function clSelfNote(x) { return x.lnote ? '<div class="cl-lnote full" title="Ghi chú của quản lý"><i class="bi bi-sticky"></i><span>' + esc(x.lnote) + '</span></div>' : ''; }
+/* ══ (1.92) ĐIỂM BÀI KIỂM TRA — topic mã KT (hoặc quản lý tự đánh dấu): bấm Đã dạy thì BẮT nhập điểm thang 10 (máy chủ cũng chặn: ktsGate_) ══ */
+function clKtsNeed(c, x, fs) {
+  const K = CL.d && CL.d.ks; if (!K || !K.cfg) return []; const cfg = K.cfg, have = {};
+  clSess(c.id).forEach(s => { const o = K.sc && K.sc[s.id]; if (o) Object.keys(o).forEach(f => { have[f] = 1; }); });
+  const nm = f => (x.fnames && x.fnames[f]) || clDirName(f) || '';
+  return (fs || x.folders || []).filter((f, i, a) => a.indexOf(f) === i && !have[f]).map(f => ({ f: f, n: nm(f) }))
+    .filter(o => (cfg.off || []).indexOf(o.f) < 0 && ((cfg.on || []).indexOf(o.f) >= 0 || (cfg.auto && /\b\d{1,3} ?kt\b/.test(fold(o.n).replace(/[^a-z0-9]+/g, ' ')))));
+}
+function clKtsRow(o) { return '<label class="kts-r"><span><i class="bi bi-clipboard-check"></i>' + esc(clFName(o.n) || 'Bài kiểm tra') + '</span><input class="inp" type="number" inputmode="decimal" min="0" max="10" step="0.25" data-kts="' + esc(o.f) + '" placeholder="Điểm /10" aria-label="Điểm bài kiểm tra thang 10"></label>'; }
+function clKtsRead(root, L) { const S = {}; let bad = null; L.forEach(o => { const i = root.querySelector('[data-kts="' + o.f + '"]'), v = i ? Number(String(i.value).replace(',', '.')) : NaN;
+  if (!i || String(i.value).trim() === '' || isNaN(v) || v < 0 || v > 10) { bad = bad || i || true; return; } S[o.f] = Math.round(v * 4) / 4; }); return { S: S, bad: bad }; }
+function clKtsKeep(x, S) { const K = CL.d.ks = CL.d.ks || { cfg: { auto: 1, on: [], off: [] }, sc: {} }; K.sc = K.sc || {}; K.sc[x.id] = Object.assign(K.sc[x.id] || {}, S); }
+/** trước khi ghi Đã dạy: không cần điểm → cb({}) ngay · cần → hộp nhập điểm, xong cb({ scores }) */
+function clKtsGate(c, x, fs, cb) {
+  const L = clKtsNeed(c, x, fs); if (!L.length) return cb({});
+  modal({ title: 'Nhập điểm bài kiểm tra', icon: 'bi-clipboard-check',
+    body: '<p class="small muted" style="margin:0 0 10px">Buổi ' + esc(clDay(x.date, CL.d.today).dm) + ' của ' + esc(clName(c)) + ' có bài kiểm tra — nhập điểm của bé (thang 10) rồi mới ghi Đã dạy.</p><div class="kts">' + L.map(clKtsRow).join('') + '</div>',
+    foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu điểm & Đã dạy', cls: 'pri', i: 'bi-check2-all', fn: mm => { const r = clKtsRead(mm.el, L); if (r.bad) { toast('Nhập điểm từ 0 tới 10', 'warn'); if (r.bad.focus) r.bad.focus(); return false; } clKtsKeep(x, r.S); cb({ scores: r.S }); } }] });
+}
+/** điểm đã nhập của buổi → thẻ nhỏ cạnh tên bài */
+function clKtsChips(x) { const o = CL.d && CL.d.ks && CL.d.ks.sc && CL.d.ks.sc[x.id]; return o ? Object.keys(o).map(f => '<span class="tag kts-sc" title="Điểm bài kiểm tra"><i class="bi bi-clipboard-check"></i>' + String(o[f]).replace('.', ',') + '/10</span>').join('') : ''; }
 function clContentHtml(x, c) {
   const p = clProg(c), fs = x.folders || [];
   if (x.status === 'off') return '<span class="tag gray"><i class="bi bi-slash-circle"></i>Nghỉ</span>';
@@ -16914,7 +17065,7 @@ function clContentHtml(x, c) {
     return !p ? '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Lớp chưa gán chương trình</span>' : r && !r.left ? '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Hết bài trong chương trình — chọn bài tay</span>' : '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Chưa xếp bài — bấm sửa để chọn tay</span>'; }
   const man = CL.d.manage;   // gia sư chỉ thấy tên bài (tiến trình), mở tài liệu qua link buổi học
   return '<div class="cl-fl">' + clTagHtml(x) + fs.map(f => (man ? '<a class="cl-fold" data-open="' + f + '">' : '<span class="cl-fold ro">') + '<i class="bi ' + (IX.byId[f] || (x.fnames && /\.[a-z0-9]{2,5}$/i.test(x.fnames[f] || '')) ? 'bi-file-earmark-text' : 'bi-folder2' + (man ? '-open' : '')) + '"></i><span>' + esc(clDirName(f) || x.fnames && x.fnames[f] || '(thư mục không còn)') + '</span>' + (man ? '</a>' : '</span>')).join('') +
-    ((x.extra || []).length ? '<span class="tag gray"><i class="bi bi-paperclip"></i>+' + x.extra.length + ' tệp thêm</span>' : '') + (x.pick ? '<span class="tag gray" title="Đã chọn tay các tệp vào link"><i class="bi bi-ui-checks"></i>chọn tay</span>' : '') + '</div>' +
+    clKtsChips(x) + ((x.extra || []).length ? '<span class="tag gray"><i class="bi bi-paperclip"></i>+' + x.extra.length + ' tệp thêm</span>' : '') + (x.pick ? '<span class="tag gray" title="Đã chọn tay các tệp vào link"><i class="bi bi-ui-checks"></i>chọn tay</span>' : '') + '</div>' +
     (x.lnote ? '<div class="cl-lnote" title="Ghi chú trên link học"><i class="bi bi-sticky"></i><span>' + esc(x.lnote) + '</span></div>' : '');
 }
 /** (1.80.8) BUỔI ĐÃ LƯU TRỮ (Archive.gs): nút “Tải buổi cũ hơn” cuối danh sách buổi — chỉ mở đúng các tháng của bé, ghép vào danh sách để xem */
@@ -16987,6 +17138,31 @@ async function clRateAsk(force) {
 }
 /** (1.80.49) BẢNG NHẬN XÉT ĐIỂM DANH KGS của bé: mỗi buổi một dòng (nhận xét GS, tiếp thu, thái độ, bài tập trên lớp, kiến thức yếu, BTVN %), tìm nhanh, tải CSV */
 const FB_COL = [['d', 'Ngày'], ['nd', 'Nội dung dạy'], ['bai', 'Bài đã gán'], ['dvt', 'KGS duyệt'], ['st', 'Điểm danh'], ['nx', 'Nhận xét GS'], ['tt', 'Mức tiếp thu'], ['td', 'Thái độ'], ['bt', 'Bài tập trên lớp'], ['yeu', 'Kiến thức còn yếu'], ['btvnp', 'BTVN làm / đúng'], ['ph', 'Ảnh vở'], ['btvn', 'BTVN giao']];      // (1.84.4) Ảnh vở: ảnh gia sư chụp bài làm trên app KGS (mở công khai)      // (1.81) Nội dung dạy ngay sau Ngày · (1.82) Bài đã gán (buổi cùng ngày ở Kiến CM)
+/* (1.91.1) LỊCH SỬ BUỔI KGS của lớp (bảng KgsAll — Quản trị › Đồng bộ KGS › Kéo dữ liệu buổi cũ): mọi buổi Toán bên KGS, kể cả trước khi dùng app */
+async function clKallTable(c) {
+  const m = modal({ title: 'Lịch sử buổi KGS · ' + clName(c), icon: 'bi-clock-history', size: 'xl fbt-m', body: typeof loadFx === 'function' ? loadFx('Đang tải lịch sử buổi…', { c: 'cmt', k: 'nb' }) : miniLoader('Đang tải lịch sử buổi…') });
+  let R; try { R = await rpc('kgsAllGet', { id: c.id }, { quiet: true }); } catch (e) { m.close(); return fail(e); } if (m.closed) return;
+  const L = R.items || [], dm = d => String(d || '').split('-').reverse().join('/'), ST = { 1: ['ok', 'Đã học'], 0: ['no', 'Vắng'], 2: ['', 'Chưa ghi nhận'] };
+  const cnt = s => L.filter(x => x.s === s).length, nkt = L.filter(x => x.kt).length;
+  let f = 'all', q = '';
+  const B = $('.modal-b', m.el) || m.el;
+  const rows = () => L.filter(x => (f === 'all' || (f === 'kt' ? !!x.kt : String(x.s) === f)) && (!q || fold([dm(x.d), x.g, x.t].join(' ')).indexOf(fold(q)) >= 0));
+  const draw = () => { const V = rows(), tb = $('#kaT', B); if (!tb) return;
+    tb.innerHTML = V.length ? V.map(x => { const s = ST[x.s] || ST[2];
+      return '<tr><td class="fbt-d">' + esc(dm(x.d)) + '</td><td class="fbt-st"><span class="fbt-dv ' + s[0] + '">' + s[1] + '</span>' + (x.kt ? ' <span class="fbt-dv no" title="' + esc(x.kt) + '">KT</span>' : '') + '</td><td class="fbt-st">' + esc(x.g || '—') + '</td><td>' + esc(x.t || '') + '</td></tr>'; }).join('')
+      : '<tr><td colspan="4" class="muted">Không có buổi nào khớp</td></tr>';
+    $('#kaN', B).textContent = V.length + ' / ' + L.length + ' buổi'; };
+  if (!L.length) { B.innerHTML = '<div class="empty"><i class="bi bi-clock-history"></i><b>Chưa có lịch sử buổi KGS của lớp này</b><span>Quản trị › Đồng bộ KGS › <b>Kéo dữ liệu buổi cũ</b>, rồi chờ lượt đồng bộ kế tiếp.</span></div>'; return; }
+  const chip = (k, t, n) => '<button class="btn sm' + (f === k ? ' pri' : ' ghost') + '" data-kf="' + k + '">' + t + ' · ' + n + '</button>';
+  const head = () => '<div class="fbt-h"><span class="fbt-s"><b>' + L.length + '</b> buổi Toán bên KGS từ ' + esc(dm(R.from || (L[L.length - 1] || {}).d)) + (R.at ? ' · cập nhật ' + esc(fmtDT(R.at)) : '') + '</span>' +
+    '<div class="fbt-act">' + chip('all', 'Tất cả', L.length) + chip('1', 'Đã học', cnt(1)) + chip('0', 'Vắng', cnt(0)) + chip('2', 'Chưa ghi nhận', cnt(2)) + (nkt ? chip('kt', 'Bài kiểm tra', nkt) : '') +
+    '<span class="sp"></span><input class="inp fbt-q" id="kaQ" placeholder="Tìm nội dung, gia sư…" value="' + esc(q) + '"><span class="fbt-s" id="kaN"></span></div></div>';
+  B.innerHTML = '<div id="kaH">' + head() + '</div><div class="fbt-w" style="overflow:auto"><table class="tbl fbt"><thead><tr><th>Ngày</th><th>Trạng thái</th><th>Gia sư</th><th>Nội dung dạy</th></tr></thead><tbody id="kaT"></tbody></table></div>' +
+    '<div class="fbt-note" style="margin-top:8px"><i class="bi bi-info-circle"></i><span>Đã học = KGS ghi hoàn thành / có mặt hoặc có nội dung dạy · Chưa ghi nhận = buổi đã qua mà KGS chưa ghi gì (không tính là đã học) · bỏ buổi huỷ và môn khác.</span></div>';
+  draw();
+  B.addEventListener('click', e => { const b = e.target.closest('[data-kf]'); if (!b) return; f = b.dataset.kf; $('#kaH', B).innerHTML = head(); draw(); });
+  B.addEventListener('input', e => { if (e.target.id !== 'kaQ') return; q = e.target.value; draw(); });
+}
 /* (1.82) câu giao AI khi bấm “AI phân tích & gán bài” — không có chữ ôn lại / dạy lại (không mở khoá xếp lùi; strict) */
 const FB_AI_ASK = 'Đọc kỹ "nhanXetKGS" (nhận xét gia sư ghi bên Kiến Gia Sư từng buổi: nhận xét, mức tiếp thu, thái độ, bài tập trên lớp, kiến thức còn yếu, BTVN % làm / % đúng) cùng "noiDungKGS" và "daDay" của bé. ' +
   'Thêm vào JSON trường "phanTich" (chuỗi, gạch đầu dòng, ≤ 160 chữ) gồm: điểm mạnh; phần kiến thức còn yếu (dẫn đúng ngày nhận xét); mức tiếp thu & BTVN; căn cứ chọn bài cho các buổi tới. ' +
@@ -16998,7 +17174,7 @@ async function clFbTable(c) {
   const sOf = d => clSess(c.id).filter(x => x.date === d && !x.spare);      // buổi Kiến CM cùng ngày với dòng nhận xét
   const bai = x => { const ss = sOf(x.d); return ss.reduce((a, z) => a.concat(clCont(z).folders), []).map(f => ({ id: f, n: clDirName(f) || 'Bài' })); };
   const KGS_HOST = 'https://app.kiengiasu.edu.vn', phU = x => (Array.isArray(x.ph) ? x.ph : []).filter(u => /^\/api\/uploads\//.test(String(u))).map(u => KGS_HOST + u);
-  const phCell = x => { const U = phU(x); return U.length ? '<span class="fbt-ph">' + U.map(u => '<a href="' + esc(u) + '" target="_blank" rel="noopener" title="Mở ảnh vở"><img src="' + esc(u) + '" alt="Ảnh vở" loading="lazy"></a>').join('') + (x.anh > U.length ? '<small>+' + (x.anh - U.length) + '</small>' : '') + '</span>' : x.anh ? '<span class="muted small" title="Đồng bộ KGS lượt tới sẽ kéo đường dẫn ảnh về">' + x.anh + ' ảnh</span>' : ''; };
+  const phCell = x => { const U = phU(x); return U.length ? kphThumbs(U, 'fbt-ph', x.anh > U.length ? x.anh - U.length : 0) : x.anh ? '<span class="muted small" title="Đồng bộ KGS lượt tới sẽ kéo đường dẫn ảnh về">' + x.anh + ' ảnh</span>' : ''; };      // (1.92) ảnh vở: lightbox trong app
   let AIX = null;      // (1.84.4) bản AI phân tích gần nhất — đưa vào PDF + làm ngữ cảnh khi hỏi thêm
   const L = (R.items || []).map(x => Object.assign({}, x, { btvnp: [x.lam ? x.lam + '%' : '', x.dung ? x.dung + '%' : ''].filter(Boolean).join(' / '), dvt: { ok: 'Đã duyệt', wait: 'Chờ duyệt', no: 'Từ chối' }[x.dv] || '' }));      // (1.80.50) dvt: KGS đã duyệt nhận xét (phụ huynh xem được) chưa
   const num = k => { const v = L.map(x => Number(x[k])).filter(v => !isNaN(v) && String(v) !== ''); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) + '%' : '—'; };
@@ -17017,7 +17193,7 @@ async function clFbTable(c) {
     '<div class="fbt-act">' + (man ? '<button class="btn sm" id="fbtBd" title="Bảng gán bài của bé — gán bài cho các buổi tới"><i class="bi bi-grid-3x3-gap"></i>Gán bài</button>' : '') +
       (aiOk && L.length ? '<button class="btn sm fbt-aib" id="fbtAi" title="AI đọc nhận xét các buổi gần đây → tóm tắt điểm mạnh / phần còn yếu và đề xuất bài cho các buổi tới (bạn xem rồi bấm Áp dụng)"><i class="bi bi-stars"></i>AI phân tích & gán bài</button>' : '') +
       '<span class="sp"></span><input class="inp fbt-q" placeholder="Tìm trong nhận xét…" aria-label="Tìm trong nhận xét"><small class="muted fbt-n"></small><button class="btn sm ghost" id="fbtCsv"' + (L.length ? '' : ' disabled') + '><i class="bi bi-download"></i>CSV</button><button class="btn sm" id="fbtPdf"' + (L.length ? '' : ' disabled') + ' title="Báo cáo nhận xét gia sư — logo, biểu đồ BTVN, phân tích AI (nếu đã chạy)"><i class="bi bi-file-earmark-pdf"></i>Xuất PDF</button></div></div>' +
-    '<div class="fbt-ai" id="fbtA" hidden></div><div class="fbt-b"></div>';
+    '<div class="fbt-run" id="fbtRun" hidden></div><div class="fbt-ai" id="fbtA" hidden></div><div class="fbt-b"></div>';
   m.$('.fbt-q').oninput = e => { q = e.target.value; paint(); };
   m.$('#fbtCsv').onclick = () => { const esc2 = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + [FB_COL.map(k => k[1])].concat(L.map(x => FB_COL.map(k => k[0] === 'bai' ? bai(x).map(b => b.n).join('; ') : k[0] === 'ph' ? phU(x).join(' ') || (x.anh ? x.anh + ' ảnh' : '') : x[k[0]] || ''))).map(r => r.map(esc2).join(',')).join('\n')], { type: 'text/csv' }));
@@ -17031,14 +17207,37 @@ async function clFbTable(c) {
     if (e.target.closest('#fbtPdf')) return clFbPdf(c, L, AIX, { lam: num('lam'), dung: num('dung'), vang: vang, nDv: nDv, at: R.at });
   });
   paint();
+  if (aiOk) clFbResume(c, m, () => paint(), X => { AIX = X; });      // (1.92) lượt AI chạy nền ở máy chủ: mở lại bảng vẫn thấy tiến trình / kết quả
+}
+/** (1.92) mở bảng Nhận xét KGS: hỏi máy chủ lượt “AI phân tích & gán bài” gần nhất của lớp (3 ngày) + các lượt đang chạy nền của mọi lớp */
+async function clFbResume(c, m, repaint, onX) {
+  let R; try { R = await rpc('aiFbState', { cid: c.id }, { quiet: true }); } catch (e) { return; }
+  if (m.closed || !m.el.isConnected) return;
+  clFbRun(m, R.run || [], c.id);
+  const lg = R.last; if (!lg) return;
+  const run = /^(send|wait|proc)$/.test(lg.status), btn = m.$('#fbtAi');
+  if (!run && (lg.status === 'err' || Date.now() - new Date(lg.at).getTime() > 864e5)) return;      // lượt lỗi / quá 1 ngày: không bày lại
+  if (btn) clFbAi(c, m, btn, repaint, onX, lg);
+}
+/** dải “AI đang chạy nền” — bé / gia sư nào đang được phân tích (bấm để mở bảng của bé đó) */
+function clFbRun(m, run, cid) {
+  const B = m.$('#fbtRun'); if (!B) return; const O = run.filter(x => x.cid !== cid);
+  if (!O.length) { B.hidden = true; B.innerHTML = ''; return; }
+  B.hidden = false;
+  B.innerHTML = '<i class="bi bi-cpu"></i><span class="fbt-run-t">AI đang chạy nền ' + O.length + ' lượt:</span>' + O.slice(0, 6).map(x => '<button type="button" class="fbt-run-c" data-fbrun="' + esc(x.cid) + '" title="' + esc([x.code, x.tutor && 'Gia sư ' + x.tutor, 'giao bởi ' + x.by].filter(Boolean).join(' · ')) + '"><span class="dot"></span>' + esc(x.be) + (x.tutor ? '<small>' + esc(x.tutor) + '</small>' : '') + '</button>').join('') + (O.length > 6 ? '<small class="muted">+' + (O.length - 6) + '</small>' : '');
+  B.onclick = e => { const b = e.target.closest('[data-fbrun]'); if (!b) return; const k = (CL.d.classes || []).find(x => x.id === b.dataset.fbrun); if (k) { m.close(); clFbTable(k); } };
 }
 /** (1.82) AI PHÂN TÍCH NHẬN XÉT KGS → GÁN BÀI: một lượt gán bài (kind assign, chỉ đề xuất, không mở khoá bài cũ) cho 21 ngày tới; kết quả hiện ngay trong bảng nhận xét — tick mục rồi Áp dụng */
-async function clFbAi(c, m, btn, repaint, onX) {
+async function clFbAi(c, m, btn, repaint, onX, resume) {
   const A = m.$('#fbtA'); if (!A || btn.disabled) return; btn.disabled = true; btn.classList.add('busy');
-  const t0 = new Date().toISOString(); A.hidden = false;
-  A.innerHTML = '<div class="fbt-aih">' + (typeof asstBot === 'function' ? asstBot('xs', 1) : '<i class="bi bi-stars"></i>') + '<div class="b"><b>AI đang phân tích nhận xét của ' + esc(clName(c)) + '</b>' + (typeof aiThink === 'function' ? aiThink('assign', t0) : '') + '</div></div>';
+  const t0 = resume ? resume.at : new Date().toISOString(); A.hidden = false;
+  let lid = resume ? resume.id : '';
+  const busy = () => { A.innerHTML = '<div class="fbt-aih">' + (typeof asstBot === 'function' ? asstBot('xs', 1) : '<i class="bi bi-stars"></i>') + '<div class="b"><b>AI đang phân tích nhận xét của ' + esc(clName(c)) + '</b>' + (typeof aiThink === 'function' ? aiThink('assign', t0) : '') +
+      '<small class="muted">Chạy nền ở máy chủ — đóng bảng / tắt tab vẫn chạy, mở lại sẽ thấy kết quả.</small></div>' + (lid ? '<button type="button" class="btn xs ghost" data-faistop><i class="bi bi-stop-circle"></i>Dừng</button>' : '') + '</div>';
+    const sb = A.querySelector('[data-faistop]'); if (sb) sb.onclick = async () => { sb.disabled = true; try { const r = await rpc('aiFbStop', { id: lid }); show(r.log || { status: 'err', err: 'Đã dừng' }); toast('Đã dừng lượt AI', 'ok'); } catch (e) { sb.disabled = false; fail(e); } }; };
+  busy();
   const end = () => { btn.disabled = false; btn.classList.remove('busy'); };
-  const show = o => { end(); if (!A.isConnected) return; if (o.status === 'err') { A.innerHTML = '<div class="fbt-aih err"><i class="bi bi-exclamation-triangle"></i><div class="b">Trợ lý AI lỗi: ' + esc(o.err || 'không rõ') + '</div></div>'; return; }
+  const show = o => { end(); if (!A.isConnected || (show.done && o.status !== 'ok' && o.status !== 'empty')) return; show.done = 1; if (o.status === 'err') { A.innerHTML = '<div class="fbt-aih err"><i class="bi bi-exclamation-triangle"></i><div class="b">Trợ lý AI lỗi: ' + esc(o.err || 'không rõ') + '</div></div>'; return; }
     const X = o.actions || {}, I = (X.items || []).map((it, i) => Object.assign({ i: i }, it)), pick = new Set(I.filter(it => it.st !== 'done').map(it => it.i));
     if (onX) onX(X);
     const row = it => it.t === 'ask' ? '<label class="fbt-ait"><input type="checkbox" data-fai="' + it.i + '"' + (pick.has(it.i) ? ' checked' : '') + (it.st === 'done' ? ' disabled' : '') + '><span><b><i class="bi bi-chat-dots"></i> Hỏi gia sư</b> — ' + esc(it.msg) + (it.topics && it.topics.length ? '<small>' + esc(it.topics.map(t => t.n).join(' · ')) + '</small>' : '') + '</span></label>'
@@ -17062,8 +17261,10 @@ async function clFbAi(c, m, btn, repaint, onX) {
         await clReload(Date.now()); CL.repaint && CL.repaint(); if (r.log) show(r.log); repaint && repaint(); }
       catch (er) { fail(er); ap.disabled = false; ap.classList.remove('busy'); } };
   };
+  if (resume) { if (/^(send|wait|proc)$/.test(resume.status) && typeof aiWatch === 'function') aiWatch(resume.id, show); else show(resume); return; }      // (1.92) lượt đã giao trước đó
   try { const r = await rpc('aiAssignPlan', { cids: [c.id], days: 21, text: FB_AI_ASK, strict: 1, via: 'fb' }, { quiet: true });
     if (!r.log) { end(); A.innerHTML = '<div class="fbt-aih"><i class="bi bi-info-circle"></i><div class="b">' + esc(r.msg || 'Không có buổi để gán') + '</div></div>'; return; }
+    lid = r.log.id; if (/^(send|wait|proc)$/.test(r.log.status)) busy();
     if (/^(send|wait|proc)$/.test(r.log.status) && typeof aiWatch === 'function') aiWatch(r.log.id, show); else show(r.log); }
   catch (e) { end(); A.innerHTML = '<div class="fbt-aih err"><i class="bi bi-exclamation-triangle"></i><div class="b">' + esc(e.message || e) + '</div></div>'; }
 }
@@ -17208,6 +17409,7 @@ async function clAct(anchor, act, x, done) {
     if (act === 'copy' && !man && x.link.state === 'active') return kpsOpen(clLinkUrl(x), clName(c) + ' · ' + clDay(x.date, CL.d.today).dm);      // (1.77.22) gia sư: mở ngay trong app (có Quay lại, vẫn In)
     if (act === 'copy') return x.link.state === 'active' ? copyText(clLinkUrl(x), 'Đã sao chép link tạm') : toast('Link đã ' + (x.link.state === 'expired' ? 'hết hạn' : 'khoá'), 'warn');
     if (act === 'taught' && !man && (x.folders || []).length) return clTaughtDlg(x, c, done);      // gia sư: xác nhận từng bài đã dạy (bài chưa dạy chuyển buổi sau, bài dạy thêm không bị xếp lại)
+    if (act === 'taught' && clKtsNeed(c, x).length) return clKtsGate(c, x, x.folders, sc => { x.status = 'taught'; x.taughtAt = new Date().toISOString(); clQueue('sessionTaught', Object.assign({ id: x.id }, sc), { key: 'taught:' + x.id, label: 'Đã dạy · ' + clName(c) + ' ' + clDay(x.date, CL.d.today).dm }).then(() => { delete CL_LES[c.id]; }, () => {}); toast('Đã dạy buổi ' + clDay(x.date, CL.d.today).dm + ' · đã lưu điểm', 'ok'); done(); });      // (1.92)
     if (act === 'taught') { x.status = 'taught'; x.taughtAt = new Date().toISOString(); clQueue('sessionTaught', { id: x.id }, { key: 'taught:' + x.id, label: 'Đã dạy · ' + clName(c) + ' ' + clDay(x.date, CL.d.today).dm }).then(() => { delete CL_LES[c.id]; }, () => {});      // Lịch sử học có thêm buổi này
       toast('Đã dạy buổi ' + clDay(x.date, CL.d.today).dm, 'ok', 0, '', { t: 'Hoàn tác', fn: () => { clQueue('sessionTaught', { id: x.id, undo: 1 }, { key: 'taught:' + x.id, label: 'Bỏ đã dạy · ' + clName(c) }); const y = CL.d.sessions.find(s2 => s2.id === x.id); if (y && y.status === 'taught') y.status = 'approved'; CL.repaint && CL.repaint(); } });
       return anchor ? clSoon(done) : done(); }
@@ -17226,7 +17428,7 @@ async function clAct(anchor, act, x, done) {
       man && x.status === 'approved' && !clSelf(x) ? { t: 'Bỏ duyệt (về nháp)', i: 'bi-arrow-counterclockwise', fn: () => { x.status = 'draft'; clQueue('sessionApprove', { ids: [x.id], undo: 1 }, { key: 'appr:' + x.id, label: 'Bỏ duyệt · ' + clName(c) }); toast('Đã bỏ duyệt'); done(); } } : null,
       x.status === 'taught' && (man || x.released) ? { t: 'Độ khó bài với bé' + (x.rate && CL_RATE[x.rate] ? ' · ' + CL_RATE[x.rate][0] : ''), d: 'Dễ quá · Vừa sức · Khó quá', i: 'bi-speedometer2', fn: () => clRateMenu(anchor, x, c, done) } : null,
       x.status === 'taught' ? { t: 'Bỏ xác nhận đã dạy', i: 'bi-arrow-counterclockwise', fn: () => { x.status = 'approved'; clQueue('sessionTaught', { id: x.id, undo: 1 }, { key: 'taught:' + x.id, label: 'Bỏ đã dạy · ' + clName(c) }); done(); } } : null,
-      man && x.released && x.status !== 'taught' ? { t: 'Đánh dấu đã dạy (thay gia sư)', i: 'bi-check2-all', fn: () => { x.status = 'taught'; clQueue('sessionTaught', { id: x.id }, { key: 'taught:' + x.id, label: 'Đã dạy · ' + clName(c) }); done(); } } : null,
+      man && x.released && x.status !== 'taught' ? { t: 'Đánh dấu đã dạy (thay gia sư)', i: 'bi-check2-all', fn: () => clKtsGate(c, x, x.folders, sc => { x.status = 'taught'; clQueue('sessionTaught', Object.assign({ id: x.id }, sc), { key: 'taught:' + x.id, label: 'Đã dạy · ' + clName(c) }); done(); }) } : null,
       man ? { t: x.status === 'off' ? 'Bỏ đánh dấu nghỉ' : 'Nghỉ buổi này (không xếp bài)', i: 'bi-slash-circle', fn: () => { const off = x.status !== 'off'; x.status = off ? 'off' : ((x.folders || []).length ? 'draft' : ''); clQueue('sessionSave', { id: x.id, off: off }, { key: 'off:' + x.id, label: (off ? 'Nghỉ buổi · ' : 'Bỏ nghỉ · ') + clName(c) }); done(); } } : null,
       { t: 'Đổi ngày / giờ / ghi chú', i: 'bi-calendar-event', fn: () => clEditSess(x, done) },
       man && clEditable(x) ? '-' : null,
@@ -18958,6 +19160,7 @@ function clDetail(B, v, id) {
         '<button class="ibtn cd-more cd-chat" data-chat="' + c.id + '" aria-label="Trao đổi" title="Trao đổi về lớp"><i class="bi bi-chat-dots"></i>' + ((D.chat && D.chat[c.id] && D.chat[c.id].un) ? '<em class="bn-b">' + D.chat[c.id].un + '</em>' : '') + '</button>' +
         (man && typeof ofResult === 'function' ? '<button class="ibtn cd-more cd-cab" id="cdCab" aria-label="Tủ hồ sơ AI của bé" title="Tủ hồ sơ AI của bé — mọi kết quả AI 30 ngày, xem & duyệt ngay tại đây"><i class="bi bi-archive"></i>' + clAirBadge(c.id) + '</button>' : '') +      // (1.82.33)
         '<button class="ibtn cd-more" id="cdFb" aria-label="Nhận xét KGS" title="Nhận xét điểm danh bên KGS — xem dạng bảng"><i class="bi bi-table"></i></button>' +      // (1.80.49)
+        '<button class="ibtn cd-more" id="cdKall" aria-label="Lịch sử buổi KGS" title="Lịch sử buổi KGS — mọi buổi Toán bên KGS, kể cả trước khi dùng app"><i class="bi bi-clock-history"></i></button>' +      // (1.91.1)
         '<button class="ibtn cd-more" id="cdMore" aria-label="Tuỳ chọn lớp" title="Tuỳ chọn lớp"><i class="bi bi-three-dots"></i></button></div>' +
       // một hàng gọn: chip chương trình (bấm = xác nhận / đổi) · In gộp · còn N buổi · Tự duyệt. Bảng gán bài, thêm buổi… nằm trong nút ⋯
       '<div class="cd-prog">' + (p || man ? clProgChip(c) : '<span class="cl-warn"><i class="bi bi-exclamation-triangle"></i>Chưa gán chương trình</span>') +
@@ -19042,6 +19245,7 @@ function clDetail(B, v, id) {
     { const kd = $('#cdKdel', B); if (kd) kd.onclick = () => clKgsDel(c, clKgsOrphans(c)); }      // (1.80.9)
     { const ts = $('#cdTsug', B); if (ts) ts.onclick = () => clTutSugGo(c, () => { CL.repaint && CL.repaint(); }); }
     { const fb = $('#cdFb', B); if (fb) fb.onclick = () => clFbTable(c); }
+    { const ka = $('#cdKall', B); if (ka) ka.onclick = () => clKallTable(c); }      // (1.91.1)
     if (man && typeof ofResult === 'function') { const cb = $('#cdCab', B); if (cb) cb.onclick = () => clAirCab(c); clAirLoad(c.id); }      // (1.82.33) kết quả AI của bé: Cần duyệt + Tủ hồ sơ      // (1.80.49) bảng nhận xét KGS
     { const rp = $('.cl-rqp', B); if (rp) (CL.d.reqs || []).forEach(r => { if (r.fn === 'classStart' && r.status === 'pending' && r.classId && !r._pf && !(CL_LES[r.classId] && CL_LES[r.classId].pend)) { r._pf = 1; clLessons(r.classId, true).catch(() => {}); } });      // (1.82.30) tải sẵn danh sách bài gia sư tick → bấm Duyệt là hiện ngay
       if (rp) rp.onclick = e => { const b = e.target.closest('[data-rqok],[data-rqno]'); if (!b) return; e.preventDefault(); e.stopPropagation();      // (1.80.43) duyệt ngay trong trang bé
@@ -19947,7 +20151,7 @@ function clTaughtDlg(x, c, done, opt) {
   const m = modal({ title: 'Xác nhận đã dạy · ' + dd.ws + ' ' + dd.dm, icon: 'bi-check2-all', size: 'td',
     body: '<div class="td">' + (opt.preview ? '<div class="cl-hint small rv-pv"><i class="bi bi-eye"></i><span><b>Xem trước</b> — đây là hộp gia sư thấy khi bấm <b>Đã dạy</b> (buổi mẫu của ' + esc(clName(c)) + '). Bấm thử được, không lưu gì.</span></div>' : '') + '<p class="td-p"><b>' + esc(clName(c)) + '</b> — tick những bài <b>đã dạy xong</b> trong buổi này.</p>' +
       '<div class="td-l" id="tdL">' + fs.map(f => '<label class="td-i"><input type="checkbox" data-tf="' + esc(f) + '" checked><span>' + esc(nameOf(f)) + '</span></label>').join('') + '</div>' +
-      '<div class="td-n" id="tdN"></div>' +
+      '<div class="td-n" id="tdN"></div>' + (clKtsNeed(c, x, fs).length ? '<div class="td-rt"><b>Điểm bài kiểm tra (thang 10)</b><div class="kts" id="tdS">' + clKtsNeed(c, x, fs).map(clKtsRow).join('') + '</div></div>' : '<div class="kts" id="tdS"></div>') +      // (1.92) topic KT → bắt nhập điểm
       // 1.43.11: khảo sát độ khó — một chạm; số liệu về trang Thống kê để chuyên môn chỉnh phiếu
       '<div class="td-rt"><b>Bài buổi này với bé thế nào?</b><div class="td-rb" id="tdR">' + Object.keys(CL_RATE).map(k => '<button type="button" class="r-' + k + '" data-rt="' + k + '" aria-pressed="false"><i class="bi ' + CL_RATE[k][1] + '"></i>' + CL_RATE[k][0] + '</button>').join('') + '</div>' +
         '<input class="inp" id="tdRn" maxlength="300" placeholder="Ghi thêm (tuỳ chọn) — VD: bé làm nhanh phần tính nhanh, nên tăng bài khó" hidden></div>' +
@@ -19956,6 +20160,8 @@ function clTaughtDlg(x, c, done, opt) {
       const taught = mm.$$('[data-tf]').filter(i => i.checked).map(i => i.dataset.tf), more = mm.$$('[data-tm]').filter(i => i.checked).map(i => i.dataset.tm);
       if (!taught.length && !more.length) { toast('Chọn ít nhất một bài đã dạy. Nếu buổi này không học, hãy nhắn quản lý đánh dấu buổi nghỉ.', 'warn', 5000); return false; }
       if (!rate) { toast('Chọn mức độ bài với bé: Dễ quá · Vừa sức · Khó quá', 'warn', 4000); mm.$('#tdR').classList.add('need'); return false; }
+      const KL = clKtsNeed(c, x, taught.concat(more)), SB = mm.$('#tdS'); KL.forEach(o => { if (SB && !SB.querySelector('[data-kts="' + o.f + '"]')) SB.insertAdjacentHTML('beforeend', clKtsRow(o)); });
+      const KR = clKtsRead(mm.el, KL); if (KR.bad) { toast('Buổi có bài kiểm tra — nhập điểm từ 0 tới 10', 'warn', 4000); if (KR.bad.focus) KR.bad.focus(); return false; }      // (1.92)
       const rn = mm.$('#tdRn').value.trim();
       if (opt.preview) { toast('Xem trước: gia sư chọn “' + CL_RATE[rate][0] + '” → buổi được ghi Đã dạy, số liệu vào biểu đồ Độ khó bài', 'info', 5000); return; }
       x.rate = rate; x.rnote = rn;
@@ -19963,7 +20169,8 @@ function clTaughtDlg(x, c, done, opt) {
       x.status = 'taught'; x.taughtAt = new Date().toISOString();
       if (!plain) { x.fnames = x.fnames || {}; more.forEach(f => { x.fnames[f] = names[f] || ''; }); }
       delete CL_LES[c.id];
-      clQueue('sessionTaught', Object.assign(plain ? { id: x.id } : { id: x.id, taught: taught, more: more }, { rate: rate, rnote: rn }), { key: 'taught:' + x.id, label: 'Đã dạy · ' + clName(c) + ' ' + dd.dm });
+      if (KL.length && !opt.preview) clKtsKeep(x, KR.S);
+      clQueue('sessionTaught', Object.assign(plain ? { id: x.id } : { id: x.id, taught: taught, more: more }, { rate: rate, rnote: rn }, KL.length ? { scores: KR.S } : {}), { key: 'taught:' + x.id, label: 'Đã dạy · ' + clName(c) + ' ' + dd.dm });
       toast('Đã dạy buổi ' + dd.dm + (back ? ' · ' + back + ' bài chưa dạy chuyển sang buổi sau' : '') + (more.length ? ' · thêm ' + more.length + ' bài' : ''), 'ok', back || more.length ? 5000 : 0);
       done && done();
     } }] });
@@ -22767,7 +22974,8 @@ function aiMd(text, refs) {
   const flushT = () => { if (!tb) return; const [hd, ...rows] = tb; h += '<table class="ax-tb"><thead><tr>' + hd.map((x, k) => '<th data-sortc="' + k + '" title="Bấm để sắp xếp">' + inl(x) + '<i class="bi bi-arrow-down-up"></i></th>').join('') + '</tr></thead><tbody>' + rows.map(r => '<tr>' + hd.map((_, k) => '<td>' + inl(r[k] || '') + '</td>').join('') + '</tr>').join('') + '</tbody></table>'; tb = null; };
   lines.forEach(l => {
     const ch = /^\s*\[\[CHART:([^\]]{3,3000})\]\]\s*$/.exec(l); if (ch) { flushT(); close(); h += aiChart(ch[1]); return; }      // (1.77.13) biểu đồ
-    const cd = /^\s*\[\[CARDS:([^\]]{3,1500})\]\]\s*$/.exec(l); if (cd) { flushT(); close(); h += aiCards(cd[1]); return; }      // (1.80.16) thẻ số liệu
+    const cd = /^\s*\[\[CARDS:([^\]]{3,1500})\]\]\s*$/.exec(l); if (cd) { flushT(); close(); h += aiCards(cd[1]); return; }
+    const ix = /^\s*\[\[INSX:(both|test)\]\]\s*$/.exec(l); if (ix) { flushT(); close(); h += '<div class="insx" data-insx="' + ix[1] + '"></div>'; return; }      // (1.92) khung tra dữ liệu (insxMount)      // (1.80.16) thẻ số liệu
     if (/^\s*\|.*\|\s*$/.test(l)) { close(); if (/^\s*\|?[\s:|-]+\|?\s*$/.test(l) && /-/.test(l)) return; (tb = tb || []).push(cells(l)); return; }
     flushT();
     const ul = /^\s*[-*•]\s+(.*)$/.exec(l), ol = /^\s*\d+[.)]\s+(.*)$/.exec(l), hd = /^\s*#{1,4}\s+(.*)$/.exec(l);
@@ -23479,10 +23687,10 @@ function aiGemKeysH() {
   const K = (AI.b.gem && AI.b.gem.keys) || []; if (!K.length) return '';
   const hm = t => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + (new Date().toDateString() === d.toDateString() ? '' : ' ' + d.getDate() + '/' + (d.getMonth() + 1)); };
   return '<div class="ai-gks">' + K.map((k, i) => '<div class="ai-gk' + (k.rest ? ' rest' : '') + '"><i class="bi ' + (k.rest ? 'bi-pause-circle' : 'bi-key') + '"></i><span class="mono">' + esc(k.m) + '</span>' +
-    '<small>' + (i === 0 && !k.rest ? 'dùng trước · ' : '') + k.n + ' lượt hôm nay' + (k.rest ? ' · nghỉ tới ' + hm(k.rest) + (k.why ? ' — ' + esc(k.why) : '') : '') + '</small>' +
+    '<small>' + (i === 0 && !k.rest ? 'dùng trước · ' : '') + (k.md ? '<b>' + esc(k.md) + '</b> · ' : '') + k.n + ' lượt hôm nay' + (k.rest ? ' · nghỉ tới ' + hm(k.rest) + (k.why ? ' — ' + esc(k.why) : '') : '') + '</small>' +
     (k.rest ? '<button class="ibtn" data-gk="wake:' + i + '" title="Cho chạy lại ngay"><i class="bi bi-play"></i></button>' : '') + (i ? '<button class="ibtn" data-gk="up:' + i + '" title="Dùng trước"><i class="bi bi-arrow-up"></i></button>' : '') +
     '<button class="ibtn" data-gk="drop:' + i + '" title="Xoá khoá"><i class="bi bi-trash3"></i></button></div>').join('') +
-    '<small class="ai-gkn">Dùng lần lượt từ trên xuống; khoá hết hạn mức / bị chặn tự nghỉ và chuyển sang khoá kế tiếp ngay trong lượt hỏi.</small></div>';
+    '<small class="ai-gkn">Dùng lần lượt từ trên xuống. Mỗi khoá tự dò model chạy được và nhớ lại; model bị Google bỏ hoặc hết hạn mức thì tự sang model khác, hết model thì sang khoá kế tiếp ngay trong lượt hỏi.</small></div>';
 }
 function aiCfgView(body) {
   const c = AI.b.cfg;
@@ -23541,11 +23749,11 @@ function aiCfgView(body) {
     card('bi-diagram-3', 'Agent · chuỗi flow · suy nghĩ sâu', '<div class="small muted" style="line-height:1.55;margin-bottom:10px">Mỗi việc AI là một agent chạy trên các flow ở trên: nối nhiều flow thành chuỗi (nháp → soát → rút gọn), thân thư gửi kèm từng bước, chỉ dẫn, rào chắn, bộ đệm, số liệu 30 ngày — và tạo agent riêng.</div><button type="button" class="btn sm pri" onclick="go(\'asst/subs\')"><i class="bi bi-box-arrow-up-right"></i>Mở xưởng agent (Trợ lý › Các trợ lý)</button>') +      // (1.82.5) bỏ khoá Claude — agent lắp ở module Trợ lý (AgentView.html)
     (AI.b.gw ? aiGwCard(sw, card) : '') +      // (1.82.14) Gemini web qua tiện ích Chrome
     // (1.77.25) GEMINI — khoá API chính thức · (1.80) để cuối trang: ít dùng
-    (AI.b.gem ? card('bi-stars', 'Gemini (khoá API)', '<div class="ai-opt"><div><b>Dùng Gemini thay flow qua mail</b><small>' + (AI.b.gem.on ? '<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> Đang dùng ' + esc(AI.b.gem.model) + '</span> — Hỏi AI, gán bài, xử lý yêu cầu trả lời ngay.' : AI.b.gem.has ? 'Đã có khoá — bật để dùng.' : 'Lấy khoá ở Google AI Studio › Get API key, dán vào đây. Khoá chỉ nằm trên máy chủ.') +
+    (AI.b.gem ? card('bi-stars', 'Gemini (khoá API)', '<div class="ai-opt"><div><b>Dùng Gemini thay flow qua mail</b><small>' + (AI.b.gem.on ? '<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> Đang dùng ' + (AI.b.gem.model === 'auto' ? 'model tự dò' : esc(AI.b.gem.model)) + '</span> — Hỏi AI, gán bài, xử lý yêu cầu trả lời ngay.' : AI.b.gem.has ? 'Đã có khoá — bật để dùng.' : 'Lấy khoá ở Google AI Studio › Get API key, dán vào đây. Khoá chỉ nằm trên máy chủ.') +
         (AI.b.gem.err ? '<br><span style="color:var(--danger)">Lỗi gần nhất: ' + esc(AI.b.gem.err) + '</span>' : '') + '</small></div>' + sw('gemOn', AI.b.gem.on, 'Dùng Gemini') + '</div>' +
       aiGemKeysH() +      // (1.88) nhiều khoá, tự chuyển khi hết hạn mức
       '<div class="ax-inl" style="margin-top:8px;align-items:flex-start"><textarea class="inp mono" id="aiGemK" rows="2" autocomplete="off" spellcheck="false" placeholder="Dán một hoặc nhiều khoá (mỗi dòng một khoá) — dạng AIza… hoặc AQ.…" style="flex:1 1 260px;min-height:44px;-webkit-text-security:disc"></textarea>' +
-        '<select class="sel" id="aiGemM" style="width:auto">' + AI.b.gem.models.concat(AI.b.gem.models.indexOf(AI.b.gem.model) < 0 ? [AI.b.gem.model] : []).map(m => '<option' + (m === AI.b.gem.model ? ' selected' : '') + '>' + esc(m) + '</option>').join('') + '</select>' +
+        '<select class="sel" id="aiGemM" style="width:auto" title="Tự động: mỗi khoá tự dò model mới nhất chạy được">' + AI.b.gem.models.concat(AI.b.gem.models.indexOf(AI.b.gem.model) < 0 ? [AI.b.gem.model] : []).map(m => '<option value="' + esc(m) + '"' + (m === AI.b.gem.model ? ' selected' : '') + '>' + (m === 'auto' ? 'Tự động' : esc(m)) + '</option>').join('') + '</select>' +
         '<button class="btn sm" id="aiGemS"><i class="bi bi-plus-lg"></i>Thêm khoá</button>' + (AI.b.gem.n ? '<button class="btn sm ghost" id="aiGemT"><i class="bi bi-lightning"></i>Thử cả ' + AI.b.gem.n + ' khoá</button>' : '') + '</div>') : '') +
     '</div>';
   const save = async (patch, msg) => { try { AI.b = await rpc('aiCfgSave', patch, { quiet: true }); lsSet('aiBoot:' + (S.me && S.me.email || ''), AI.b); toast(msg || 'Đã lưu', 'ok', 2000); AI.dash = null; aiCfgRe(body); } catch (e) { toast(e.message, 'err'); } };
@@ -23658,6 +23866,96 @@ function aiCfgView(body) {
       try { const r = await rpc('aiJobNow', {}, { quiet: true }); toast(r.skip ? 'Chưa chạy: AI đang tắt hoặc chưa kết nối' : 'Đã giao AI ' + r.classes + ' bé' + (r.reqs ? ' + yêu cầu' : '') + ' — xong sẽ báo chuông' + (r.err && r.err.length ? ' · ' + r.err[0] : ''), r.err && r.err.length ? 'warn' : 'ok', 8000); AI.dash = null; }
       catch (er) { toast(er.message, 'err', 8000); } jb.disabled = false; jb.innerHTML = '<i class="bi bi-play"></i>Chạy ngay'; }
   };
+}
+
+/* ══ (1.92) KHUNG TRA DỮ LIỆU TRONG TRỢ LÝ — câu hỏi tra cứu trả thẳng bảng có bộ lọc (không qua AI, không cắt danh sách):
+   · both — bé học cả Kiến Gia Sư và kientre.click: lọc theo khớp tên (cả hai nơi / chỉ KGS / chỉ kientre.click), khối, tìm, sắp xếp
+   · test — thống kê bài kiểm tra: bài KT bé đã làm, bé chưa từng test, bé học lâu chưa test; lọc trạng thái, gia sư, khối
+   Thẻ [[INSX:both|test]] trong câu trả lời → <div class="insx"> → insxMount (gắn tự động khi xuất hiện trên trang). “Mở cạnh bên” = panel phải. ══ */
+const INSX = { both: { t: 'Bé học cả Kiến Gia Sư và kientre.click', fn: 'insBoth' }, test: { t: 'Thống kê bài kiểm tra', fn: 'insTest' } }, INSX_D = {};
+function insxGet(k, fresh) { if (fresh || !INSX_D[k]) INSX_D[k] = rpc(INSX[k].fn, {}, { quiet: true }).catch(e => { delete INSX_D[k]; throw e; }); return INSX_D[k]; }
+function insxScan() { $$('.insx:not([data-insxd])').forEach(el => { el.dataset.insxd = '1'; insxMount(el, el.dataset.insx); }); }
+const insxDm = d => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) : '';
+/** dòng chuẩn hoá cho bảng + bộ lọc của từng loại */
+function insxRows(k, R) {
+  if (k === 'both') {
+    const L = (R.list || []).map(o => ({ be: o.be, khoi: o.khoi || '', kgs: o.ma || '', gs: o.gs || '', kt: o.ktLop || '', gv: o.gv || '', m: o.chac === 'cao' ? 'both' : 'both2', last: o.ktLast || '' }));
+    (R.onlyKgs || []).forEach(o => L.push({ be: o.be, khoi: o.khoi || '', kgs: o.ma || '', gs: o.gs || '', kt: '', gv: '', m: 'kgs', last: '' }));
+    (R.onlyKt || []).forEach(o => L.push({ be: o.be, khoi: o.khoi || '', kgs: '', gs: '', kt: o.ktLop || '', gv: o.gv || '', m: 'kt', last: o.ktLast || '' }));
+    return L;
+  }
+  return (R.list || []).map(o => ({ be: o.be, khoi: String(o.khoi || '').replace(/^Lớp\s*/i, ''), gs: o.gs || '', ma: o.ma || '', hoc: o.hoc, n: o.n || 0, since: o.since, lv: String(o.lv || '').replace('-sap', ''), sap: /-sap/.test(o.lv || ''), last: o.last, next: o.next, tests: o.tests || [] }));
+}
+const INSX_M = { both: 'Cả hai nơi · cùng khối', both2: 'Cả hai nơi · chưa rõ khối', kgs: 'Chỉ Kiến Gia Sư', kt: 'Chỉ kientre.click' };
+const INSX_LV = { bad: 'Quá lâu chưa test', warn: 'Cần nhắc test', ok: 'Ổn' };
+function insxMount(el, k, big) {
+  if (!INSX[k]) return;
+  const st = { q: '', seg: k === 'both' ? 'hai' : 'can', khoi: '', gs: '', sort: k === 'both' ? 'be' : 'since', dir: k === 'both' ? 1 : -1 };
+  el.classList.add('insx'); if (big) el.classList.add('big');
+  el.innerHTML = '<div class="insx-ld">' + (typeof loadFx === 'function' ? loadFx(k === 'both' ? 'Đang khớp tên hai bộ dữ liệu…' : 'Đang đếm bài kiểm tra của các bé…', { c: 'doc' }) : 'Đang tải…') + '</div>';
+  const load = fresh => insxGet(k, fresh).then(R => { if (el.isConnected) draw(R); }).catch(e => { if (el.isConnected) el.innerHTML = '<div class="insx-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(e.message || e) + '</span><button type="button" class="btn xs ghost" data-ixre><i class="bi bi-arrow-clockwise"></i>Thử lại</button></div>'; });
+  el.onclick = e => { if (e.target.closest('[data-ixre]')) { el.innerHTML = '<div class="insx-ld">' + (typeof loadFx === 'function' ? loadFx('Đang tải lại…', { c: 'doc' }) : 'Đang tải…') + '</div>'; load(true); } };
+  const draw = R => {
+    const A = insxRows(k, R), F = fold;
+    const segs = k === 'both' ? [['hai', 'Cả hai nơi', A.filter(x => /^both/.test(x.m)).length], ['kgs', 'Chỉ KGS', A.filter(x => x.m === 'kgs').length], ['kt', 'Chỉ kientre.click', A.filter(x => x.m === 'kt').length], ['all', 'Tất cả', A.length]]
+      : [['can', 'Cần chú ý', A.filter(x => x.lv !== 'ok').length], ['bad', 'Quá lâu', A.filter(x => x.lv === 'bad').length], ['warn', 'Cần nhắc', A.filter(x => x.lv === 'warn').length], ['never', 'Chưa từng test', A.filter(x => !x.last).length], ['done', 'Đã có bài KT', A.filter(x => x.n).length], ['all', 'Tất cả', A.length]];
+    const khoi = [...new Set(A.map(x => String(x.khoi)).filter(Boolean))].sort((a, b) => Number(a) - Number(b)), gsL = k === 'test' ? [...new Set(A.map(x => x.gs).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi')) : [];
+    const COL = k === 'both' ? [['be', 'Học sinh'], ['khoi', 'Khối'], ['kgs', 'Kiến Gia Sư'], ['kt', 'Lớp kientre.click'], ['gv', 'Giáo viên lớp'], ['m', 'Khớp tên']]
+      : [['be', 'Học sinh'], ['khoi', 'Khối'], ['gs', 'Gia sư'], ['hoc', 'Đã học'], ['n', 'Bài KT đã làm'], ['since', 'Từ lần KT'], ['next', 'Sắp tới']];
+    el.innerHTML = '<div class="insx-bar"><div class="insx-seg" role="tablist" aria-label="Lọc">' + segs.map(g => '<button type="button" data-ixs="' + g[0] + '" aria-pressed="' + (st.seg === g[0]) + '">' + g[1] + '<b>' + g[2] + '</b></button>').join('') + '</div></div>' +
+      '<div class="insx-bar"><span class="insx-q"><i class="bi bi-search"></i><input type="search" placeholder="Tìm học sinh, lớp, ' + (k === 'both' ? 'giáo viên' : 'gia sư') + '…" value="' + esc(st.q) + '" aria-label="Tìm"></span>' +
+        '<select class="sel insx-k" aria-label="Khối"><option value="">Mọi khối</option>' + khoi.map(x => '<option value="' + esc(x) + '"' + (st.khoi === x ? ' selected' : '') + '>Khối ' + esc(x) + '</option>').join('') + '</select>' +
+        (gsL.length ? '<select class="sel insx-g" aria-label="Gia sư"><option value="">Mọi gia sư</option>' + gsL.map(x => '<option' + (st.gs === x ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select>' : '') +
+        '<span class="sp"></span><span class="insx-n"></span>' +
+        '<button type="button" class="ibtn" data-ixcsv title="Tải CSV" aria-label="Tải CSV"><i class="bi bi-download"></i></button><button type="button" class="ibtn" data-ixre title="Tải lại" aria-label="Tải lại"><i class="bi bi-arrow-clockwise"></i></button>' +
+        (big ? '' : '<button type="button" class="btn xs" data-ixside><i class="bi bi-layout-sidebar-inset-reverse"></i>Mở cạnh bên</button>') + '</div>' +
+      '<div class="insx-tw"><table class="insx-t"><thead><tr>' + COL.map(c => '<th data-ixo="' + c[0] + '" aria-sort="' + (st.sort === c[0] ? (st.dir > 0 ? 'ascending' : 'descending') : 'none') + '">' + c[1] + '<i class="bi ' + (st.sort === c[0] ? (st.dir > 0 ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up') + '"></i></th>').join('') + '</tr></thead><tbody></tbody></table></div>' +
+      '<div class="insx-ft">' + (k === 'both' ? 'Khớp theo đủ họ tên (không dấu, không phân biệt thứ tự) + khối; trùng tên khác khối không tính. kientre.click: lớp còn học trong 180 ngày' + (R.who ? ' (phiên ' + esc(R.who) + ')' : '') + '.' : 'Bài KT = bài “KT” đã dạy, topic / nội dung dạy KGS hoặc nhận xét KGS nhắc tới kiểm tra. Cần nhắc ≥ ' + ((R.cfg || {}).warn || 8) + ' buổi, quá lâu ≥ ' + ((R.cfg || {}).bad || 12) + ' buổi kể từ lần KT gần nhất.') + '</div>';
+    const val = (x, c) => c === 'since' || c === 'hoc' || c === 'n' ? Number(x[c]) || 0 : c === 'khoi' ? Number(x.khoi) || 0 : c === 'next' ? (x.next ? x.next.d : '9') : c === 'm' ? x.m : F(String(x[c] || ''));
+    const pass = x => { if (st.khoi && String(x.khoi) !== st.khoi) return false; if (st.gs && x.gs !== st.gs) return false;
+      if (k === 'both') { if (st.seg === 'hai' && !/^both/.test(x.m)) return false; if (st.seg === 'kgs' && x.m !== 'kgs') return false; if (st.seg === 'kt' && x.m !== 'kt') return false; }
+      else { if (st.seg === 'can' && x.lv === 'ok') return false; if ((st.seg === 'bad' || st.seg === 'warn') && x.lv !== st.seg) return false; if (st.seg === 'never' && x.last) return false; if (st.seg === 'done' && !x.n) return false; }
+      if (st.q) { const w = F(st.q); if (F([x.be, x.kgs, x.gs, x.kt, x.gv, x.ma].join(' ')).indexOf(w) < 0) return false; } return true; };
+    const td = (x, c) => {
+      if (k === 'both') { if (c === 'kgs') return x.kgs ? '<b>' + esc(x.kgs) + '</b>' + (x.gs ? '<small>' + esc(x.gs) + '</small>' : '') : '<span class="mu">—</span>';
+        if (c === 'kt') return x.kt ? '<b>' + esc(x.kt) + '</b>' + (x.last ? '<small>gần nhất ' + insxDm(x.last) + '</small>' : '') : '<span class="mu">—</span>';
+        if (c === 'gv') return x.gv ? '<span class="insx-gv">' + esc(x.gv) + '</span>' : '<span class="mu">—</span>';
+        if (c === 'm') return '<span class="insx-pill ' + x.m + '">' + INSX_M[x.m] + '</span>'; }
+      else { if (c === 'n') return x.n ? '<b>' + x.n + '</b>' + x.tests.map(t => '<small>' + insxDm(t.d) + ' · ' + esc(t.n) + (t.v != null ? ' · <b class="insx-sc">' + String(t.v).replace('.', ',') + '/10</b>' : '') + '</small>').join('') : '<span class="insx-pill never">Chưa từng test</span>';
+        if (c === 'since') return '<span class="insx-pill ' + x.lv + '">' + x.since + ' buổi</span>' + (x.last ? '<small>KT gần nhất ' + insxDm(x.last.d) + '</small>' : '');
+        if (c === 'next') return x.next ? '<b>' + insxDm(x.next.d) + '</b><small>' + esc(x.next.n) + '</small>' : '<span class="mu">—</span>';
+        if (c === 'gs') return esc(x.gs) + (x.ma ? '<small>' + esc(x.ma) + '</small>' : ''); }
+      if (c === 'be') return '<b>' + esc(x.be) + '</b>';
+      return esc(x[c] == null || x[c] === '' ? '—' : x[c]); };
+    const body = () => { const V = A.filter(pass).sort((a, b) => { const p = val(a, st.sort), q = val(b, st.sort); return (p < q ? -1 : p > q ? 1 : 0) * st.dir || String(a.be).localeCompare(String(b.be), 'vi'); });
+      $('tbody', el).innerHTML = V.length ? V.map(x => '<tr>' + COL.map(c => '<td data-l="' + c[1] + '">' + td(x, c[0]) + '</td>').join('') + '</tr>').join('') : '<tr><td colspan="' + COL.length + '" class="insx-empty">Không có học sinh nào khớp bộ lọc</td></tr>';
+      $('.insx-n', el).textContent = V.length + ' / ' + A.length + ' học sinh'; el._v = V; };
+    body();
+    $('.insx-q input', el).oninput = e => { st.q = e.target.value; body(); };
+    $('.insx-k', el).onchange = e => { st.khoi = e.target.value; body(); };
+    const g = $('.insx-g', el); if (g) g.onchange = e => { st.gs = e.target.value; body(); };
+    el.onclick = e => {
+      const s = e.target.closest('[data-ixs]'); if (s) { st.seg = s.dataset.ixs; $$('[data-ixs]', el).forEach(b => b.setAttribute('aria-pressed', b === s)); return body(); }
+      const th = e.target.closest('[data-ixo]'); if (th) { const c = th.dataset.ixo; st.dir = st.sort === c ? -st.dir : (c === 'since' || c === 'hoc' || c === 'n' ? -1 : 1); st.sort = c; return draw(R); }
+      if (e.target.closest('[data-ixre]')) { el.innerHTML = '<div class="insx-ld">' + (typeof loadFx === 'function' ? loadFx('Đang tải lại…', { c: 'doc' }) : 'Đang tải…') + '</div>'; return load(true); }
+      if (e.target.closest('[data-ixside]')) return insxSide(k);
+      if (e.target.closest('[data-ixcsv]')) { const q2 = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"', V = el._v || [];
+        const rows = k === 'both' ? [['Học sinh', 'Khối', 'Kiến Gia Sư', 'Gia sư', 'Lớp kientre.click', 'Giáo viên lớp', 'Khớp tên']].concat(V.map(x => [x.be, x.khoi, x.kgs, x.gs, x.kt, x.gv, INSX_M[x.m]]))
+          : [['Học sinh', 'Khối', 'Gia sư', 'Mã lớp', 'Buổi đã học', 'Số bài KT', 'Các bài KT', 'Buổi từ lần KT', 'Trạng thái', 'Sắp tới']].concat(V.map(x => [x.be, x.khoi, x.gs, x.ma, x.hoc, x.n, x.tests.map(t => insxDm(t.d) + ' ' + t.n).join('; '), x.since, x.last ? INSX_LV[x.lv] : 'Chưa từng test', x.next ? insxDm(x.next.d) + ' ' + x.next.n : '']));
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + rows.map(r => r.map(q2).join(',')).join('\n')], { type: 'text/csv' })); a.download = (k === 'both' ? 'Hoc-ca-hai-noi' : 'Thong-ke-bai-kiem-tra') + '.csv'; document.body.appendChild(a); a.click(); a.parentNode.removeChild(a); setTimeout(() => URL.revokeObjectURL(a.href), 30000); }
+    };
+  };
+  load(false);
+}
+/** panel bên phải (điện thoại: toàn màn hình) — cùng khung tra, rộng hơn */
+function insxSide(k) {
+  let P = $('#insxSide'); if (P) P.parentNode.removeChild(P);
+  P = document.createElement('aside'); P.id = 'insxSide'; P.className = 'insx-side'; P.setAttribute('role', 'dialog'); P.setAttribute('aria-label', INSX[k].t);
+  P.innerHTML = '<div class="insx-sh"><b>' + esc(INSX[k].t) + '</b><span class="sp"></span><button type="button" class="ibtn" data-ixx aria-label="Đóng"><i class="bi bi-x-lg"></i></button></div><div class="insx-sb"></div>';
+  document.body.appendChild(P);
+  const shut = () => { if (P.parentNode) P.parentNode.removeChild(P); removeEventListener('keydown', key, true); }, key = e => { if (e.key === 'Escape') { e.stopPropagation(); shut(); } };
+  addEventListener('keydown', key, true); $('[data-ixx]', P).onclick = shut;
+  const box = $('.insx-sb', P), d = document.createElement('div'); d.dataset.insxd = '1'; box.appendChild(d); insxMount(d, k, 1);
 }
 </script>
 
@@ -29461,7 +29759,7 @@ async function svTestV(b) {
     const L = R.list.filter(o => (SVX.f === 'all' || (SVX.f === 'bad' ? /^bad/.test(o.lv) : !/^ok/.test(o.lv))) && (!SVX.q || fold(o.be + ' ' + o.gs + ' ' + o.ma).indexOf(fold(SVX.q)) >= 0));
     const lv = o => /^bad/.test(o.lv) ? '<span class="sv-tag l2">Quá lâu</span>' : /^warn/.test(o.lv) ? '<span class="sv-tag l1">Cần nhắc</span>' : '<span class="sv-tag open">Ổn</span>';
     b.innerHTML = (k.bad ? '<div class="svx-alert"><i class="bi bi-exclamation-octagon-fill"></i><div><b>' + k.bad + ' bé đã học từ ' + cfg.bad + ' buổi trở lên mà chưa làm bài kiểm tra</b><span>Phụ huynh dễ phản ánh. Mở đợt khảo sát để gia sư xác nhận và hẹn buổi cho bé làm.</span></div><button class="btn pri sm" data-x="open"><i class="bi bi-ui-checks"></i>Hỏi gia sư</button></div>' : '') +
-      '<div class="sv-card"><div class="sv-h"><b>Bé đã làm bài kiểm tra chưa</b><small>' + k.all + ' bé đang học · tính lúc ' + esc(fmtDT(R.at)) + '</small><div class="sv-acts"><button class="btn sm ghost" data-x="cfg"><i class="bi bi-sliders"></i>Mốc ' + cfg.warn + ' / ' + cfg.bad + ' buổi</button><button class="btn sm pri" data-x="open"><i class="bi bi-ui-checks"></i>Mở đợt khảo sát</button></div></div>' +
+      '<div class="sv-card"><div class="sv-h"><b>Bé đã làm bài kiểm tra chưa</b><small>' + k.all + ' bé đang học · tính lúc ' + esc(fmtDT(R.at)) + '</small><div class="sv-acts"><button class="btn sm ghost" data-x="cfg"><i class="bi bi-sliders"></i>Mốc ' + cfg.warn + ' / ' + cfg.bad + ' buổi</button><button class="btn sm ghost" data-x="kts" title="Topic nào gia sư phải nhập điểm khi bấm Đã dạy"><i class="bi bi-clipboard-check"></i>Topic ghi điểm</button><button class="btn sm pri" data-x="open"><i class="bi bi-ui-checks"></i>Mở đợt khảo sát</button></div></div>' +
         '<div class="sv-kpi"><div class="' + (k.bad ? 'bad' : 'good') + '"><b>' + k.bad + '</b><small>Quá lâu (≥ ' + cfg.bad + ' buổi)</small></div><div class="' + (k.warn ? 'warn' : '') + '"><b>' + k.warn + '</b><small>Cần nhắc (' + cfg.warn + '–' + (cfg.bad - 1) + ')</small></div><div><b>' + k.never + '</b><small>Chưa thấy bài KT nào</small></div><div class="good"><b>' + k.sap + '</b><small>Đã xếp bài KT sắp tới</small></div></div>' +
         '<div class="svx-ch" role="img" aria-label="Số bé theo số buổi đã học kể từ bài kiểm tra gần nhất">' + R.buckets.map((x, i) => '<div class="svx-c' + (i >= 3 ? ' l2' : i === 2 ? ' l1' : '') + '"><em>' + x.n + '</em><i style="height:' + Math.round(x.n / mx * 100) + '%"></i><small>' + esc(x.t) + '</small></div>').join('') + '</div>' +
         '<small class="sv-sub">Số bé theo số buổi đã học kể từ bài kiểm tra gần nhất · buổi đã học = gia sư bấm Đã dạy hoặc KGS ghi nhận (buổi vắng không tính) · ' + (R.kall && R.kall.n ? 'lịch Toán KGS đầy đủ của ' + R.kall.n + '/' + k.all + ' bé' + (R.kall.from ? ' (từ ' + dm(R.kall.from) + '/' + String(R.kall.from).slice(0, 4) + ')' : '') : 'chưa kéo đủ lịch KGS — chờ lượt đồng bộ KGS tới (tiện ích Kiến Connect 2.0.2)') + '.</small></div>' +
@@ -29469,7 +29767,7 @@ async function svTestV(b) {
       '<div class="sv-card"><div class="sv-h"><div class="seg sv-flt" id="svxF">' + [['warn', 'Lâu chưa test (' + (k.bad + k.warn) + ')'], ['bad', 'Quá lâu (' + k.bad + ')'], ['all', 'Tất cả (' + k.all + ')']].map(t => '<button class="seg-b" data-xf="' + t[0] + '" aria-pressed="' + (SVX.f === t[0]) + '">' + t[1] + '</button>').join('') + '</div><input class="inp svx-q" id="svxQ" placeholder="Tìm bé, gia sư…" value="' + esc(SVX.q) + '"></div>' +
         (L.length ? '<div class="sv-wrap"><table class="sv-tbl"><thead><tr><th>Bé</th><th class="svh">Gia sư</th><th class="n">Đã học</th><th class="n">Từ lần KT</th><th>Bài kiểm tra gần nhất</th><th class="svh">Sắp tới</th></tr></thead><tbody>' +
           L.slice(0, 300).map(o => '<tr class="sv-tr" data-cid="' + esc(o.cid) + '"><td><b>' + esc(o.be) + '</b><small class="sv-sub" style="display:block">' + esc([o.khoi, o.ct].filter(Boolean).join(' · ')) + '</small></td><td class="svh">' + esc(o.gs) + '</td><td class="n">' + o.hoc + '</td><td class="n">' + lv(o) + ' <b>' + o.since + '</b></td>' +
-            '<td>' + (o.last ? esc(dm(o.last.d) + ' · ' + o.last.n) + '<small class="sv-sub" style="display:block">' + (SVX_SRC[o.last.s] || [o.last.s])[0] + (o.dn != null ? ' · ' + o.dn + ' ngày trước' : '') + '</small>' : '<span class="sv-sub">Chưa thấy bài kiểm tra nào' + (o.first ? ' (từ ' + dm(o.first) + ')' : '') + '</span>') + '</td>' +
+            '<td>' + (o.last ? esc(dm(o.last.d) + ' · ' + o.last.n) + (o.last.v != null ? ' <span class="tag kts-sc">' + String(o.last.v).replace('.', ',') + '/10</span>' : '') + '<small class="sv-sub" style="display:block">' + (SVX_SRC[o.last.s] || [o.last.s])[0] + (o.dn != null ? ' · ' + o.dn + ' ngày trước' : '') + '</small>' : '<span class="sv-sub">Chưa thấy bài kiểm tra nào' + (o.first ? ' (từ ' + dm(o.first) + ')' : '') + '</span>') + '</td>' +
             '<td class="svh">' + (o.next ? '<span class="sv-tag open">' + dm(o.next.d) + '</span>' : '') + '</td></tr>').join('') + '</tbody></table></div>' + (L.length > 300 ? '<small class="sv-sub">Hiện 300 / ' + L.length + ' bé — lọc thêm để xem.</small>' : '')
         : '<div class="empty"><i class="bi bi-clipboard-check"></i>' + (SVX.q ? 'Không bé nào khớp' : 'Không bé nào trong nhóm này') + '</div>') + '</div>';
   }
@@ -29479,10 +29777,25 @@ async function svTestV(b) {
     const r = e.target.closest('[data-cid]'); if (r) return go('classes/c/' + r.dataset.cid);
     const a = e.target.closest('[data-x]'); if (!a) return;
     if (a.dataset.x === 'open') { const t = SVY.d && SVY.d.defTest; if (!t) return toast('Chưa tải xong mẫu — thử lại', 'warn'); return svEdit({ title: t.title, intro: t.intro, qs: t.qs, remind: t.remind, kmemo: t.kmemo, kf: { k: 'notest', min: SVX.d.cfg.warn } }); }
+    if (a.dataset.x === 'kts') return svKtsCfg();      // (1.92) topic cần ghi điểm
     if (a.dataset.x === 'cfg') { const cfg = SVX.d.cfg;
       const m = modal({ title: 'Mốc cảnh báo bài kiểm tra', icon: 'bi-sliders', size: 'sm', body: '<div class="sve"><label class="f">Cần nhắc khi bé đã học từ (buổi)<input class="inp" type="number" min="2" max="60" id="xW" value="' + cfg.warn + '"></label><label class="f">Quá lâu chưa test từ (buổi)<input class="inp" type="number" min="3" max="80" id="xB" value="' + cfg.bad + '"></label><small class="sv-sub">Đếm buổi đã học kể từ bài kiểm tra gần nhất. Áp dụng cho tab này, mẫu khảo sát và câu trả lời của Trợ lý.</small></div>',
         foot: [{ t: 'Huỷ', cls: 'ghost' }, { t: 'Lưu', i: 'bi-save', cls: 'pri', fn: async m2 => { SVX.d = await rpc('insTestCfg', { warn: +m2.$('#xW').value, bad: +m2.$('#xB').value }); toast('Đã lưu mốc', 'ok'); if (b.isConnected) paintX(); } }] }); }
   };
+}
+
+/** (1.92) TOPIC CẦN GHI ĐIỂM: mặc định mọi topic mã KT; quản lý bật / tắt từng topic (kể cả topic không mang mã KT) */
+async function svKtsCfg() {
+  const m = modal({ title: 'Topic cần ghi điểm', icon: 'bi-clipboard-check', body: miniLoader('Đang đọc các topic kiểm tra…') });
+  let R; try { R = await rpc('ktsCfgGet', {}, { quiet: true }); } catch (e) { m.close(); return fail(e); } if (m.closed) return;
+  const paint = () => { m.$('.modal-b').innerHTML = '<div class="small muted" style="margin:0 0 10px">Gia sư bấm <b>Đã dạy</b> buổi có topic được tick sẽ phải nhập điểm (thang 10). Điểm hiện ở trang bé và Khảo sát › Kiểm tra.</div>' +
+      '<label style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><input type="checkbox" id="ktsA"' + (R.cfg.auto ? ' checked' : '') + '><span><b>Tự nhận mọi topic mã KT</b> <small class="muted">(VD “Topic 22KT …”)</small></span></label>' +
+      '<input class="inp" id="ktsQ" placeholder="Tìm topic…" style="margin-bottom:6px"><div class="kts-cfg">' + (R.topics.length ? R.topics.map(t => '<label data-ktsn="' + esc(fold(t.n)) + '"><input type="checkbox" data-ktsf="' + esc(t.f) + '"' + (t.need ? ' checked' : '') + '><span>' + esc(t.n) + '</span><small>' + (t.auto ? 'mã KT' : 'tự đánh dấu') + '</small></label>').join('') : '<div class="empty">Chưa thấy topic kiểm tra nào trong các buổi.</div>') + '</div>'; };
+  paint();
+  m.el.addEventListener('input', e => { if (e.target.id !== 'ktsQ') return; const q = fold(e.target.value.trim()); m.$$('[data-ktsn]').forEach(l => { l.hidden = !!q && l.dataset.ktsn.indexOf(q) < 0; }); });
+  m.el.addEventListener('change', async e => { const i = e.target; if (i.id !== 'ktsA' && !i.dataset.ktsf) return; i.disabled = true;
+    try { R = await rpc('ktsCfgSave', i.id === 'ktsA' ? { auto: i.checked ? 1 : 0 } : { f: i.dataset.ktsf, need: i.checked ? 1 : 0 }, { quiet: true }); if (typeof CL !== 'undefined' && CL.d) CL.d.ks = Object.assign(CL.d.ks || {}, { cfg: R.cfg }); toast('Đã lưu', 'ok', 1500); if (i.id === 'ktsA') paint(); }
+    catch (er) { i.checked = !i.checked; fail(er); } finally { i.disabled = false; } });
 }
 
 /* ── soạn đợt / mẫu ── */
@@ -30078,7 +30391,7 @@ async function viewKt(arg, v) {
   const show = a => {
     a = String(a || '').split('/')[0]; if (!KT_TABS.some(t => t[0] === a)) a = '';
     // (1.84.4) chưa nối tài khoản giáo viên → VẪN mở tab Nhận xét (thẻ hướng dẫn nối) — trước tự nhảy sang Hỏi dữ liệu nên không vào được Nhận xét
-    const T = KT_TABS.find(t => t[0] === a); setTitle(T[2], T[1], [{ t: 'Kiến Trẻ', r: 'kt' }], v);      // tên ngắn — không bị cắt “…” trên điện thoại
+    const T = KT_TABS.find(t => t[0] === a); setTitle(T[2], T[1], [{ t: 'Kiến Chuyên môn', r: 'kt' }], v);      // tên ngắn — không bị cắt “…” trên điện thoại
     const B = document.createElement('div'); B.className = 'kt'; $('#ktBody', v).replaceChildren(B);      // (1.84.7) khung mới mỗi lần chuyển tab — view cũ tải xong muộn ghi vào khung đã bỏ, không đè tab mới
     const VW = { jobs: ktJobsView, ask: ktAskView, learned: ktLearnedView, prof: ktProfView, style: ktStyleView, conn: ktConnView };
     VW[a] ? VW[a](B) : ktDayView(B);
@@ -30779,8 +31092,9 @@ function ktProfView(B) {
   const load = async fresh => {
     syncTop(); V.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx(kgs() ? 'Đang đọc nhận xét Kiến Gia Sư…' : 'Đang đọc danh sách lớp từ kientre.click…', { c: 'doc' }) : 'Đang tải…') + '</div>';
     const lk = P.src + '|' + P.fr + '|' + P.to;
+    P.lc = P.lc || {}; if (fresh) P.lc = {}; else if (P.lc[lk]) { P.list = P.lc[lk]; P.lpk = lk; P.lp = null; if (P.view && P.view.isConnected) P.pick(); return; }      // (1.92) chuyển qua lại hai nguồn: dùng danh sách đã tải, chỉ tải lại khi bấm ⟳
     if (!P.lp || P.lpk !== lk || fresh) { P.lpk = lk; P.lp = kgs() ? rpc('ktProfKgsList', {}, { quiet: true }) : rpc('ktProfList', { fr: P.fr, to: P.to, fresh: fresh ? 1 : 0 }, { quiet: true }); }
-    try { const L = await P.lp; if (P.lpk !== lk) return; P.list = L; } catch (e) { P.lp = null; if (V.isConnected) V.innerHTML = ktErrCard(e); return; }
+    try { const L = await P.lp; P.lc[lk] = L; if (P.lpk !== lk) return; P.list = L; } catch (e) { P.lp = null; if (V.isConnected) V.innerHTML = ktErrCard(e); return; }
     P.lp = null; if (P.view && P.view.isConnected) P.pick();
   };
   const hidNote = H => { const a = []; if (H && H.moved) a.push(H.moved + ' lượt học sinh đã chuyển lớp'); if (H && H.quit) a.push(H.quit + ' học sinh đã nghỉ'); if (H && H.ended) a.push(H.ended + ' lớp đã kết thúc'); return a.length ? '<span title="Không hiện ở danh sách — học sinh chuyển lớp vẫn xem được ở lớp mới, kèm nhận xét lớp cũ"><i class="bi bi-eye-slash"></i> Ẩn ' + a.join(' · ') + '</span>' : ''; };
@@ -30814,11 +31128,12 @@ function ktProfView(B) {
   /* hồ sơ một học sinh */
   const open = async (cls, code, name) => {
     P.cls = cls; P.code = code; P.name = name; P.data = null; P.sjSel = [];
+    P.dc = P.dc || {}; const dk = P.src + '|' + cls + '|' + code + '|' + P.fr + '|' + P.to; if (P.dc[dk]) { P.data = P.dc[dk]; if (P.view && P.view.isConnected) P.paint(); return; }      // (1.92) mở lại học sinh vừa xem: không tải lại
     V.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx('Đang gom nhận xét cũ của ' + name + '…', { c: 'cmt' }) : 'Đang tải…') + '</div>';
     const C = kgs() ? {} : (P.list.list || []).find(x => x.cls === cls) || {};
     const ok0 = key();
     P.op = kgs() ? rpc('ktProfKgs', { id: code }, { quiet: true }) : rpc('ktProf', { cls: cls, code: code, name: name, fr: P.fr, to: P.to, grades: C.grades, prog: C.prog }, { quiet: true });
-    try { const D = await P.op; if (key() !== ok0) return; P.data = D; }
+    try { const D = await P.op; P.dc[dk] = D; if (key() !== ok0) return; P.data = D; }
     catch (e) { P.op = null; if (!P.view || !P.view.isConnected) return; P.view.innerHTML = ktErrCard(e) + '<button class="btn sm" id="ktPfBk2"><i class="bi bi-arrow-left"></i> Chọn học sinh khác</button>'; const b = $('#ktPfBk2', P.view); if (b) b.onclick = P.pick; return; }
     P.op = null; if (P.view && P.view.isConnected) P.paint();
   };
@@ -30831,16 +31146,16 @@ function ktProfView(B) {
       (SJ.length > 1 ? '<div class="kt-sjs"><span class="kt-sub"><i class="bi bi-funnel"></i> Môn phân tích</span><button type="button" class="kt-chip" data-kpsj="" aria-pressed="' + !(P.sjSel || []).length + '">Tất cả</button>' + SJ.map(x => '<button type="button" class="kt-chip" data-kpsj="' + esc(x) + '" aria-pressed="' + ((P.sjSel || []).indexOf(x) >= 0) + '">' + esc(x) + '</button>').join('') + '</div>' : '') +
       '<div class="kt-kpi"><div><b>' + R.n + '</b><small>buổi đã học</small></div><div><b>' + R.nCmt + '</b><small>buổi có nhận xét</small></div><div><b>' + R.vang + '</b><small>buổi vắng</small></div><div><b>' + (R.hw != null ? R.hw + '%' : '–') + '</b><small>BTVN làm</small></div><div><b>' + (R.ok != null ? R.ok + '%' : '–') + '</b><small>BTVN đúng</small></div></div>' +
       ((R.hist || []).length > 1 ? '<div class="kt-tl"><span class="kt-sub"><i class="bi bi-signpost-2"></i> Quá trình học</span>' + R.hist.map((h, i) => '<span class="kt-pill' + (i === R.hist.length - 1 ? ' ai' : '') + '" title="' + h.n + ' buổi">' + esc(h.cls) + ' · ' + ktDm(h.fr) + ' → ' + ktDm(h.to) + '</span>').join('<i class="bi bi-arrow-right kt-sub"></i>') + '</div>' : '') +
-      '<div class="kt-acts"><button class="btn pri sm" id="ktPfAi"' + (busy ? ' disabled' : '') + '><i class="bi bi-stars"></i> ' + (S ? 'Phân tích lại' : 'AI phân tích') + '</button>' +
+      '<div class="kt-acts"><button class="btn pri sm" id="ktPfAi"' + (busy ? ' disabled' : '') + '><i class="bi bi-stars"></i> ' + (S ? 'Nhận xét lại' : 'AI nhận xét') + '</button>' +
         '<button class="btn sm" id="ktPfPdf"><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' + (S ? '<button class="btn sm ghost" id="ktPfCp"><i class="bi bi-clipboard"></i> Chép tóm tắt</button>' : '') +
-        '<span class="sp"></span><span class="kt-sub">' + (S ? 'PDF gồm tóm tắt AI, biểu đồ BTVN và nhật ký buổi học' : (R.src === 'kgs' ? 'Bấm AI phân tích rồi xuất PDF để gửi gia sư mới / phụ huynh' : 'Bấm AI phân tích rồi xuất PDF để gửi phụ huynh / giáo viên') + (busy ? ' · chuyển tab vẫn chạy, xem ở Việc AI' : '')) + '</span></div>' +
+        '<span class="sp"></span><span class="kt-sub">' + (S ? 'PDF gồm tóm tắt AI, biểu đồ BTVN và nhật ký buổi học' : 'Bấm AI nhận xét rồi xuất PDF để gửi phụ huynh' + (busy ? ' · chuyển tab vẫn chạy, xem ở Việc AI' : '')) + '</span></div>' +
       '<div id="ktPfAo"></div></div>' + ktProfChart(R) + (S ? ktProfSumHtml(S, R.src) : '') + ktProfLogHtml(R);
     $('#ktPfBk', V).onclick = pick;
     $$('[data-kpsj]', V).forEach(b => { b.onclick = () => { const x = b.dataset.kpsj, L = (P.sjSel || []).slice(); if (!x) P.sjSel = []; else { const i = L.indexOf(x); if (i >= 0) L.splice(i, 1); else L.push(x); P.sjSel = L.length === SJ.length ? [] : L; } paint(); }; });
     const cpp = $('[data-kpph]', V); if (cpp) cpp.onclick = () => navigator.clipboard.writeText(S.thuPhuHuynh).then(() => toast('Đã chép nhận xét gửi phụ huynh', 'ok'));
     $('#ktPfPdf', V).onclick = () => ktProfPdf(R, P.sum[key()]);
     const cp = $('#ktPfCp', V); if (cp) cp.onclick = () => { navigator.clipboard.writeText(ktProfText(R, S)).then(() => toast('Đã chép bản tóm tắt', 'ok')); };
-    if (busy) $('#ktPfAo', V).innerHTML = ktThink(['Đang đọc nhận xét cũ của các thầy cô', 'Đang gom mạch kiến thức đã học', 'Đang đánh giá sức học', 'Đang viết bản bàn giao']);
+    if (busy) $('#ktPfAo', V).innerHTML = ktThink(['Đang đọc nhận xét cũ của các thầy cô', 'Đang gom mạch kiến thức đã học', 'Đang đánh giá sức học', 'Đang viết nhận xét chung']);
     $('#ktPfAi', V).onclick = async () => {
       const k = key(); P.busy = k; paint();
       try { const sj = (P.sjSel || []).slice(), r = await rpc('ktProfAi', Object.assign(R.src === 'kgs' ? { src: 'kgs', id: P.code } : { cls: P.cls, code: P.code, name: P.name, fr: P.fr, to: P.to }, { sjs: sj }), { quiet: true });
@@ -30854,7 +31169,7 @@ function ktProfView(B) {
   $$('[data-kpsrc]', B).forEach(b => { b.onclick = () => { if (P.src === b.dataset.kpsrc) return; P.src = b.dataset.kpsrc; lsSet('ktPfSrc', P.src); P.data = null; P.list = null; load(); }; });
   ktSpanBind(B, 'prof', 180, S => { P.fr = S.fr; P.to = S.to; P.data = null; P.list = null; load(); });      // (1.84.5) nhớ khoảng ngày cho lần mở sau
   $('#ktPfQ', B).oninput = () => { if (P.list && !P.data) pick(); };
-  $('#ktPfRe', B).onclick = () => { P.data = null; load(true); };
+  $('#ktPfRe', B).onclick = () => { P.data = null; P.dc = {}; load(true); };
   P.view = V; P.paint = paint; P.pick = pick;      // (1.84.5) khung đang hiện — lượt AI / tải xong sau khi chuyển tab vẽ vào đây
   syncTop();
   if (P.list && P.data) paint();
@@ -30885,7 +31200,7 @@ function ktProfSumHtml(S, src) {
     (S.thuPhuHuynh ? '<div class="kt-card kt-pad kt-pf"><div class="kt-h"><div class="kt-t"><b><i class="bi bi-envelope-heart"></i> Nhận xét gửi phụ huynh</b><span class="kt-sub">AI viết từ nhận xét các buổi — đọc lại, sửa rồi gửi.</span></div><span class="sp"></span><button class="btn sm" data-kpph><i class="bi bi-clipboard"></i> Chép</button></div><div class="kt-pfl">' + S.thuPhuHuynh.split(/\n{2,}/).map(x => '<p>' + esc(x).replace(/\n/g, '<br>') + '</p>').join('') + '</div></div>' : '');
 }
 /** ảnh vở KGS (mở công khai) */
-function ktPhotos(L) { return (L || []).length ? '<span class="kt-ph">' + L.map(u => '<a href="' + esc(u) + '" target="_blank" rel="noopener" title="Mở ảnh vở"><img src="' + esc(u) + '" alt="Ảnh vở" loading="lazy"></a>').join('') + '</span>' : ''; }
+function ktPhotos(L) { return kphThumbs(L, 'kt-ph'); }      // (1.92) ảnh vở KGS: tải qua máy chủ + lightbox (App.html › kphThumbs)
 /** nhật ký buổi học trên màn hình */
 function ktProfLogHtml(R) {
   if (!R.items.length) return '<div class="kt-card kt-empty"><i class="bi bi-journal-x"></i><div>Chưa có buổi nào của học sinh trong khoảng này.</div></div>';
@@ -30923,23 +31238,23 @@ function ktProfPdf(R, S) {
   const hw = ktProfHw(R), multi = (R.hist || []).length > 1;
   const tl = multi ? sec('Quá trình học', '<div class="ktr-tl">' + R.hist.map((h, i) => '<span' + (i === R.hist.length - 1 ? ' class="cur"' : '') + '>' + esc(h.cls) + ' · ' + ktDm(h.fr) + ' → ' + ktDm(h.to) + ' · ' + h.n + ' buổi</span>').join('<i>→</i>') + '</div>') : '';
   const sum = (S.tongQuan ? '<p class="ktr-lead">' + esc(S.tongQuan) + '</p>' : '') +
-    sec('Đã dạy tới đâu', (S.daHoc || []).length ? '<table><tbody>' + S.daHoc.map(x => '<tr><td class="k">' + esc(x.mang) + '</td><td>' + esc(x.ketQua) + '</td></tr>').join('') + '</tbody></table>' : '') +
+    sec('Kiến thức đã học', (S.daHoc || []).length ? '<table><tbody>' + S.daHoc.map(x => '<tr><td class="k">' + esc(x.mang) + '</td><td>' + esc(x.ketQua) + '</td></tr>').join('') + '</tbody></table>' : '') +
     ((S.diemManh || []).length || (S.canKem || []).length ? '<div class="ktr-two">' + ((S.diemManh || []).length ? '<section class="ktr-bx ok"><h2>Điểm mạnh</h2>' + li(S.diemManh.map(esc)) + '</section>' : '') +
-      ((S.canKem || []).length ? '<section class="ktr-bx warn"><h2>Cần kèm thêm</h2>' + li(S.canKem.map(x => esc(x.y) + (x.vi ? ' <span class="mu">(' + esc(ktProfVi(x.vi)) + ')</span>' : ''))) + '</section>' : '') + '</div>' : '') +
+      ((S.canKem || []).length ? '<section class="ktr-bx warn"><h2>Cần cố gắng thêm</h2>' + li(S.canKem.map(x => esc(x.y) + (x.vi ? ' <span class="mu">(' + esc(ktProfVi(x.vi)) + ')</span>' : ''))) + '</section>' : '') + '</div>' : '') +
     (S.thaiDo || S.btvn ? '<div class="ktr-two">' + sec('Thái độ &amp; thói quen học', S.thaiDo ? '<p>' + esc(S.thaiDo) + '</p>' : '', 'ktr-bx') + sec('Bài tập về nhà', S.btvn ? '<p>' + esc(S.btvn) + '</p>' : '', 'ktr-bx') + '</div>' : '') +
-    ((S.goiY || []).length ? sec(R.src === 'kgs' ? 'Gợi ý cho gia sư mới' : 'Gợi ý cho giáo viên đứng lớp', li(S.goiY.map(esc)), 'ktr-bx tip') : '') + (S.luuY ? sec('Lưu ý khi dạy', '<p>' + esc(S.luuY) + '</p>', 'ktr-bx warn') : '');
+    ((S.goiY || []).length ? sec('Hướng học tiếp theo', li(S.goiY.map(esc)), 'ktr-bx') : '') + (S.luuY ? sec('Lưu ý', '<p>' + esc(S.luuY) + '</p>', 'ktr-bx warn') : '');
   const chart = hw ? '<section>' + ktChartSvg(hw, { print: 1 }) + '</section>' : '';
-  const thu = S && S.thuPhuHuynh ? '<section class="ktr-bx ok flow"><h2>Nhận xét gửi phụ huynh</h2>' + S.thuPhuHuynh.split(/\n{2,}/).map(x => '<p>' + esc(x).replace(/\n/g, '<br>') + '</p>').join('') + '</section>' : '';
+  const thu = S && S.thuPhuHuynh ? '<section class="ktr-letter flow"><h2>Thư gửi phụ huynh</h2>' + S.thuPhuHuynh.split(/\n{2,}/).map(x => '<p>' + esc(x).replace(/\n/g, '<br>') + '</p>').join('') + '</section>' : '';
   /* (1.84.6) bỏ “Nhật ký buổi học & nhận xét cũ” khỏi PDF — người dùng chỉ gửi phần nhận xét tổng hợp; nhật ký vẫn xem trong app */
   const log = '', log0 = '<section class="flow"><h2>Nhật ký buổi học &amp; nhận xét cũ</h2><table><thead><tr><th>Ngày</th><th>Bài</th><th>Nhận xét của thầy cô</th><th>BTVN</th></tr></thead><tbody>' +
     R.items.map(it => '<tr><td class="d">' + ktDm(it.d) + (multi && it.cls ? '<br><span class="mu">' + esc(it.cls) + '</span>' : '') + '</td><td class="b">' + esc(it.bai || it.lc || '—') + (it.tea ? '<br><span class="mu">' + esc(it.tea) + '</span>' : '') + '</td>' +
       '<td>' + (ktProfCmt(it).map(x => '<div><span class="lb">' + x[0] + '</span> ' + esc(x[1]) + '</div>').join('') || '<span class="mu">' + esc(it.att || '—') + '</span>') + '</td>' +
       '<td class="n">' + (it.lam != null ? it.lam + '%' + (it.dung != null ? '<br><span class="mu">đúng ' + it.dung + '%</span>' : '') : '—') + '</td></tr>').join('') + '</tbody></table></section>';
-  rptPdf({ kicker: R.src === 'kgs' ? 'Hồ sơ học sinh · bàn giao gia sư mới' : 'Báo cáo học tập' + (R.mon ? ' · ' + R.mon.join(', ') : ''), title: R.stu.name, sub: [R.stu.cls, R.stu.grades && 'Khối ' + R.stu.grades, R.stu.prog, R.src === 'kgs' ? 'Học gia sư (Kiến Gia Sư)' : 'Học lớp (kientre.click)'].filter(Boolean).join(' · '),
+  rptPdf({ kicker: 'Nhận xét quá trình học' + (R.mon ? ' · ' + R.mon.join(', ') : ''), title: R.stu.name, sub: [R.stu.cls, R.stu.grades && 'Khối ' + R.stu.grades, R.stu.prog, R.src === 'kgs' ? 'Học gia sư (Kiến Gia Sư)' : 'Học lớp (kientre.click)'].filter(Boolean).join(' · '),
     badge: S && S.mucDo ? { k: 'Sức học', v: S.mucDo } : null,
     kpi: [{ n: R.n, t: 'buổi đã học' }, { n: R.nCmt, t: 'buổi có nhận xét' }, { n: R.vang, t: 'buổi vắng' }, { n: R.hw != null ? R.hw + '%' : '–', t: 'BTVN làm' }, { n: R.ok != null ? R.ok + '%' : '–', t: 'BTVN đúng' }, { n: ktDm(R.fr) + ' → ' + ktDm(R.to), t: 'khoảng thời gian' }],
     body: ((R.tea || []).length ? '<p class="mu" style="margin:0 0 10px"><b>Thầy cô đã dạy:</b> ' + esc(R.tea.join(' · ')) + '</p>' : '') + tl + sum + chart + thu + log,
-    file: 'Ho so hoc sinh - ' + R.stu.name + ' - ' + R.fr + ' den ' + R.to,
+    file: 'Nhan xet qua trinh hoc - ' + R.stu.name + ' - ' + R.fr + ' den ' + R.to,
     foot: 'Tổng hợp từ nhận xét buổi học của thầy cô' + (R.src === 'kgs' ? ' Kiến Gia Sư' : ' Kiến Trẻ') + ' · ' + ktDm(R.fr) + '/' + String(R.fr).slice(0, 4) + ' → ' + ktDm(R.to) + '/' + String(R.to).slice(0, 4) + '.' });
 }
 
@@ -31031,7 +31346,7 @@ function rptPdf(o) {
   const head = '<header class="ktr-h"><div class="ktr-bar">' + (logo ? '<span class="ktr-logo"><img src="' + logo + '" alt=""></span>' : '') + '<div class="ktr-t"><small>' + esc(app) + ' · ' + esc(o.kicker || 'Báo cáo') + '</small><b>' + esc(o.title || '') + '</b>' + (o.sub ? '<span>' + esc(o.sub) + '</span>' : '') + '</div>' +
       (o.badge ? '<div class="ktr-bd"><small>' + esc(o.badge.k) + '</small><b>' + esc(o.badge.v) + '</b></div>' : '') + '</div><div class="ktr-strip"></div></header>' +
     ((o.kpi || []).length ? '<div class="ktr-kpi">' + o.kpi.map(k => '<div><b>' + esc(k.n) + '</b><small>' + esc(k.t) + '</small></div>').join('') + '</div>' : '');
-  const foot = '<footer class="ktr-f">' + (o.foot ? o.foot + '<br>' : '') + esc(app) + ' · xuất ngày ' + hom + '</footer>';
+  const foot = '<footer class="ktr-f"><span>' + (o.foot || '') + '</span><span>' + esc(app) + ' · ' + hom + '</span></footer>';
   const area = document.createElement('div'); area.id = 'ktPrint';
   area.innerHTML = '<article class="ktr">' + head + (o.body || '') + foot + '</article>';
   document.body.appendChild(area);
@@ -31044,38 +31359,38 @@ function rptPdf(o) {
   const go2 = () => { if (imgs.some(i => !i.complete) && Date.now() - t1 < 5000) return setTimeout(go2, 150); window.print(); };
   setTimeout(go2, 120);
 }
+/* (1.92) bản sạch: nền trắng, bỏ nền màu các khối — chỉ đầu trang có logo diều + vạch navy / cam (bộ màu mail), chữ và khoảng trắng làm chủ */
 const RPT_CSS = '#ktPrint{ display:none }' +
-  '@media print{ @page{ size:A4; margin:10mm 11mm 10mm } body > *:not(#ktPrint){ display:none !important } html,body{ height:auto !important; overflow:visible !important; background:#fff !important }' +
-  '#ktPrint{ display:block; font-family:"Be Vietnam Pro",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size:10pt; line-height:1.5 }' +
+  '@media print{ @page{ size:A4; margin:13mm 14mm 12mm } body > *:not(#ktPrint){ display:none !important } html,body{ height:auto !important; overflow:visible !important; background:#fff !important }' +
+  '#ktPrint{ display:block; font-family:"Be Vietnam Pro",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size:10pt; line-height:1.55 }' +
   '#ktPrint, #ktPrint *{ box-sizing:border-box; color:#2B3245 !important; background-color:transparent; box-shadow:none !important; text-shadow:none !important; -webkit-print-color-adjust:exact; print-color-adjust:exact }' +
-  '#ktPrint .ktr-bar{ display:flex; align-items:center; gap:12px; background:#1E3A6E !important; border-radius:12px 12px 0 0; padding:14px 18px }' +
-  '#ktPrint .ktr-logo{ width:44px; height:44px; border-radius:50%; background:#fff !important; display:grid; place-items:center; flex:none } #ktPrint .ktr-logo img{ height:30px; width:auto; display:block }' +
-  '#ktPrint .ktr-t{ flex:1; min-width:0; display:flex; flex-direction:column } #ktPrint .ktr-t small{ font-size:8.6pt; color:#BFD0EE !important; letter-spacing:.04em }' +
-  '#ktPrint .ktr-t b{ font-size:17pt; line-height:1.2; color:#fff !important; letter-spacing:-.01em } #ktPrint .ktr-t span{ font-size:9.4pt; color:#D7E2F5 !important; margin-top:2px }' +
-  '#ktPrint .ktr-bd{ background:#fff !important; border-radius:10px; padding:5px 12px; text-align:center; flex:none } #ktPrint .ktr-bd small{ display:block; font-size:7.6pt; color:#5B6478 !important; text-transform:uppercase; letter-spacing:.05em } #ktPrint .ktr-bd b{ font-size:11.5pt; color:#1E3A6E !important }' +
-  '#ktPrint .ktr-strip{ height:4px; background:#EE5B27 !important; border-radius:0 0 4px 4px; margin-bottom:12px }' +
-  '#ktPrint .ktr-kpi{ display:flex; gap:7px; margin:0 0 12px } #ktPrint .ktr-kpi > div{ flex:1; background:#F5F7FB !important; border-radius:10px; padding:8px 6px; text-align:center }' +
-  '#ktPrint .ktr-kpi b{ display:block; font-size:14pt; line-height:1.2; font-weight:800; color:#1E3A6E !important } #ktPrint .ktr-kpi small{ font-size:7.8pt; color:#5B6478 !important }' +
-  '#ktPrint section{ margin:0 0 12px; break-inside:avoid } #ktPrint section.flow{ break-inside:auto }' +
-  '#ktPrint h2{ break-after:avoid; padding-top:2px; font-size:9.6pt; margin:0 0 6px; color:#1E3A6E !important; letter-spacing:.06em; text-transform:uppercase; font-weight:800; display:flex; align-items:center; gap:7px }' +
-  '#ktPrint h2::before{ content:""; width:7px; height:7px; border-radius:50%; background:#1E3A6E !important; display:inline-block }' +
-  '#ktPrint p{ margin:0 0 5px } #ktPrint ul, #ktPrint ol{ margin:0 0 4px; padding-left:16px } #ktPrint li{ margin:0 0 3px } #ktPrint h3, #ktPrint h4{ font-size:10pt; margin:6px 0 3px; color:#14213D !important }' +
-  '#ktPrint .ktr-lead{ font-size:10.6pt; line-height:1.6; border-left:3pt solid #EE5B27; padding:2px 0 2px 11px; margin:0 0 12px; color:#14213D !important }' +
-  '#ktPrint .ktr-two{ display:flex; gap:9px; break-inside:avoid; margin-bottom:12px } #ktPrint .ktr-two > section{ flex:1; margin:0 }' +
-  '#ktPrint .ktr-bx{ border:0.8pt solid #E3E7F0; border-radius:10px; padding:9px 12px; background:#FAFBFE !important }' +
-  '#ktPrint .ktr-bx.ok{ background:#F1FAF4 !important; border-color:#CEEAD6 } #ktPrint .ktr-bx.ok h2{ color:#0F7B45 !important } #ktPrint .ktr-bx.ok h2::before{ background:#0F7B45 !important }' +
-  '#ktPrint .ktr-bx.warn{ background:#FFF6F1 !important; border-color:#F8D5C4 } #ktPrint .ktr-bx.warn h2{ color:#C2410C !important } #ktPrint .ktr-bx.warn h2::before{ background:#EE5B27 !important }' +
-  '#ktPrint .ktr-bx.tip{ background:#EEF3FC !important; border-color:#CFDCF3 }' +
-  '#ktPrint .ktr-tl{ display:flex; flex-wrap:wrap; gap:6px; align-items:center } #ktPrint .ktr-tl span{ background:#EAF0FB !important; color:#1E3A6E !important; border-radius:999px; padding:3px 10px; font-size:8.8pt; font-weight:600 } #ktPrint .ktr-tl span.cur{ background:#1E3A6E !important; color:#fff !important } #ktPrint .ktr-tl i{ color:#8A93A6 !important; font-style:normal }' +
-  '#ktPrint table{ width:100%; border-collapse:collapse; font-size:9pt } #ktPrint td, #ktPrint th{ border-bottom:0.6pt solid #EEF1F6; padding:5px 6px; vertical-align:top; text-align:left }' +
-  '#ktPrint th{ background:#EAF0FB !important; color:#1E3A6E !important; font-size:7.8pt; text-transform:uppercase; letter-spacing:.04em; border-bottom:0 } #ktPrint tr{ break-inside:avoid } #ktPrint thead{ display:table-header-group }' +
-  '#ktPrint td.k{ font-weight:700; width:30%; color:#14213D !important } #ktPrint td.d{ white-space:nowrap; width:10%; color:#5B6478 !important } #ktPrint td.b{ width:22%; font-weight:600; color:#14213D !important } #ktPrint td.n{ white-space:nowrap; width:11% }' +
-  '#ktPrint .lb{ color:#1E3A6E !important; font-size:7.8pt; font-weight:800; text-transform:uppercase; letter-spacing:.03em } #ktPrint .mu{ color:#8A93A6 !important; font-size:8.4pt }' +
-  '#ktPrint .ktr-brk{ break-before:page } #ktPrint .ktr-note{ font-size:9.4pt; background:#FFF6F1 !important; border:0.8pt solid #F8D5C4; border-radius:10px; padding:8px 12px; margin-bottom:12px }' +
-  '#ktPrint figure.kt-chart{ margin:0; border:0.8pt solid #E3E7F0; border-radius:10px; padding:8px 10px 4px; break-inside:avoid } #ktPrint .kt-chart figcaption{ display:flex; gap:10px; justify-content:space-between; font-size:8.8pt; margin-bottom:4px }' +
+  '#ktPrint .ktr-bar{ display:flex; align-items:center; gap:14px; padding:0 0 12px }' +
+  '#ktPrint .ktr-logo{ width:46px; height:46px; border-radius:12px; background:#EEF3FC !important; display:grid; place-items:center; flex:none } #ktPrint .ktr-logo img{ height:32px; width:auto; display:block }' +
+  '#ktPrint .ktr-t{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px } #ktPrint .ktr-t small{ font-size:8pt; font-weight:700; color:#EE5B27 !important; letter-spacing:.08em; text-transform:uppercase }' +
+  '#ktPrint .ktr-t b{ font-size:19pt; line-height:1.2; font-weight:800; color:#1E3A6E !important; letter-spacing:-.015em } #ktPrint .ktr-t span{ font-size:9.2pt; color:#5B6478 !important }' +
+  '#ktPrint .ktr-bd{ border:1pt solid #1E3A6E; border-radius:999px; padding:4px 14px; text-align:center; flex:none; white-space:nowrap } #ktPrint .ktr-bd small{ font-size:7.6pt; color:#5B6478 !important; text-transform:uppercase; letter-spacing:.06em; margin-right:5px } #ktPrint .ktr-bd b{ font-size:10.5pt; color:#1E3A6E !important }' +
+  '#ktPrint .ktr-strip{ height:2pt; background:linear-gradient(90deg,#EE5B27 0 56px,#1E3A6E 56px) !important; margin-bottom:14px }' +
+  '#ktPrint .ktr-kpi{ display:flex; margin:0 0 16px; border-bottom:0.6pt solid #E3E7F0; padding-bottom:12px } #ktPrint .ktr-kpi > div{ flex:1; padding:0 10px; border-left:0.6pt solid #E3E7F0 } #ktPrint .ktr-kpi > div:first-child{ padding-left:0; border-left:0 }' +
+  '#ktPrint .ktr-kpi b{ display:block; font-size:15pt; line-height:1.15; font-weight:800; color:#1E3A6E !important; white-space:nowrap } #ktPrint .ktr-kpi small{ font-size:7.8pt; color:#5B6478 !important; white-space:nowrap }' +
+  '#ktPrint section{ margin:0 0 14px; break-inside:avoid } #ktPrint section.flow{ break-inside:auto }' +
+  '#ktPrint h2{ break-after:avoid; font-size:9pt; margin:0 0 6px; color:#1E3A6E !important; letter-spacing:.08em; text-transform:uppercase; font-weight:800; display:flex; align-items:center; gap:8px }' +
+  '#ktPrint h2::before{ content:""; width:14px; height:2pt; background:#EE5B27 !important; display:inline-block; flex:none }' +
+  '#ktPrint p{ margin:0 0 6px } #ktPrint ul, #ktPrint ol{ margin:0 0 4px; padding-left:15px } #ktPrint li{ margin:0 0 4px } #ktPrint li::marker{ color:#EE5B27 !important } #ktPrint h3, #ktPrint h4{ font-size:10pt; margin:6px 0 3px; color:#14213D !important }' +
+  '#ktPrint .ktr-lead{ font-size:11pt; line-height:1.65; margin:0 0 16px; color:#14213D !important }' +
+  '#ktPrint .ktr-two{ display:flex; gap:22px; break-inside:avoid; margin-bottom:14px } #ktPrint .ktr-two > section{ flex:1; margin:0; min-width:0 }' +
+  '#ktPrint .ktr-bx{ padding:0 } #ktPrint .ktr-bx.ok h2{ color:#0F7B45 !important } #ktPrint .ktr-bx.ok h2::before{ background:#0F7B45 !important }' +
+  '#ktPrint .ktr-bx.warn h2{ color:#C2410C !important }' +
+  '#ktPrint .ktr-bx.flow, #ktPrint .ktr-letter{ background:#F6F8FC !important; border-radius:12px; padding:14px 18px 10px; margin-top:4px } #ktPrint .ktr-letter h2{ color:#1E3A6E !important } #ktPrint .ktr-letter p{ font-size:10.2pt; line-height:1.7 }' +
+  '#ktPrint .ktr-tl{ display:flex; flex-wrap:wrap; gap:6px; align-items:center } #ktPrint .ktr-tl span{ border:0.8pt solid #CFDCF3; color:#1E3A6E !important; border-radius:999px; padding:2px 10px; font-size:8.6pt; font-weight:600 } #ktPrint .ktr-tl span.cur{ background:#1E3A6E !important; border-color:#1E3A6E; color:#fff !important } #ktPrint .ktr-tl i{ color:#8A93A6 !important; font-style:normal }' +
+  '#ktPrint table{ width:100%; border-collapse:collapse; font-size:9.2pt } #ktPrint td, #ktPrint th{ border-bottom:0.6pt solid #E9EDF4; padding:6px 8px 6px 0; vertical-align:top; text-align:left }' +
+  '#ktPrint th{ color:#8A93A6 !important; font-size:7.6pt; font-weight:700; text-transform:uppercase; letter-spacing:.06em; border-bottom:0.8pt solid #1E3A6E } #ktPrint tr{ break-inside:avoid } #ktPrint thead{ display:table-header-group }' +
+  '#ktPrint td.k{ font-weight:700; width:28%; color:#1E3A6E !important } #ktPrint td.d{ white-space:nowrap; width:10%; color:#5B6478 !important } #ktPrint td.b{ width:22%; font-weight:600; color:#14213D !important } #ktPrint td.n{ white-space:nowrap; width:11% }' +
+  '#ktPrint .lb{ color:#1E3A6E !important; font-size:7.6pt; font-weight:800; text-transform:uppercase; letter-spacing:.04em } #ktPrint .mu{ color:#8A93A6 !important; font-size:8.4pt }' +
+  '#ktPrint .ktr-brk{ break-before:page } #ktPrint .ktr-note{ font-size:9.4pt; border-left:2pt solid #EE5B27; padding:2px 0 2px 10px; margin-bottom:14px }' +
+  '#ktPrint figure.kt-chart{ margin:0; padding:2px 0 0; break-inside:avoid } #ktPrint .kt-chart figcaption{ display:flex; gap:10px; justify-content:space-between; font-size:8.8pt; margin-bottom:4px }' +
   '#ktPrint .kt-chart figcaption span{ display:flex; gap:4px; align-items:center; color:#5B6478 !important } #ktPrint .kt-chart figcaption i{ width:9px; height:9px; border-radius:3px; display:inline-block } #ktPrint .kt-chart figcaption em{ width:8px }' +
   '#ktPrint .ktr-ph{ display:flex; gap:4px; margin-top:4px } #ktPrint .ktr-ph img{ width:54px; height:54px; object-fit:cover; border-radius:6px; border:0.6pt solid #E3E7F0 }' +
-  '#ktPrint footer.ktr-f{ margin-top:10px; padding-top:6px; border-top:0.6pt solid #E3E7F0; font-size:7.8pt; color:#8A93A6 !important; text-align:center } }';
+  '#ktPrint footer.ktr-f{ margin-top:14px; padding-top:7px; border-top:0.6pt solid #E3E7F0; font-size:7.6pt; color:#8A93A6 !important; display:flex; justify-content:space-between; gap:12px } #ktPrint footer.ktr-f span{ color:#8A93A6 !important } }';
 
 /* ── (1.84.5) VIỆC AI — mọi lượt AI của Kiến Trẻ (nhận xét · hỏi dữ liệu · đề mock test · phân tích hồ sơ · hỏi nhận xét KGS): đang chạy / xong / lỗi.
    Máy chủ giữ kết quả (AiLog) nên chuyển tab, tắt máy vẫn còn — bấm một dòng để xem lại kết quả hoặc mở lại đúng chỗ. ── */
@@ -31230,12 +31545,12 @@ async function ktGrantView(host) {
   let D; try { D = await rpc('ktGrantList', {}, { quiet: true }); } catch (e) { host.innerHTML = ktErrCard(e); return; }
   const chip = (on, k, i, t) => '<button type="button" class="kt-gsrc' + (on ? ' on' : '') + '" data-kgt="' + k + '" aria-pressed="' + (on ? 'true' : 'false') + '"><i class="bi ' + i + '"></i>' + t + '</button>';
   const paint = () => {
-    host.innerHTML = '<div class="kt-card kt-pad"><div class="kt-h"><div class="kt-t"><b><i class="bi bi-person-check"></i> Cấp quyền dùng Kiến Trẻ theo mail</b><span class="kt-sub">Mail được cấp vào được module Kiến Trẻ và đọc dữ liệu bằng phiên giáo vụ đã nhập — không cần tự dán phiên. Chọn nguồn để giới hạn phạm vi dữ liệu.</span></div></div>' +
+    host.innerHTML = '<div class="kt-card kt-pad"><div class="kt-h"><div class="kt-t"><b><i class="bi bi-person-check"></i> Cấp quyền dùng Kiến Chuyên môn theo mail</b><span class="kt-sub">Mail được cấp vào được module Kiến Trẻ và đọc dữ liệu bằng phiên giáo vụ đã nhập — không cần tự dán phiên. Chọn nguồn để giới hạn phạm vi dữ liệu.</span></div></div>' +
       (D.office ? '' : '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>Chưa có phiên giáo vụ — nối ở thẻ bên trên thì mail được cấp mới đọc được dữ liệu kientre.click.</span></div>') +
       '<div class="kt-gadd"><input class="kt-sel" id="ktGe" type="email" placeholder="mail@kitee.vn" autocomplete="off" aria-label="Mail cần cấp quyền">' + chip(1, 'kt', 'bi-building', 'kientre.click') + chip(1, 'kgs', 'bi-person-video3', 'KGS') + '<button class="btn sm pri" id="ktGa"><i class="bi bi-plus-lg"></i> Cấp quyền</button></div>' +
       (D.list.length ? '<div class="kt-glist">' + D.list.map((g, i) => '<div class="kt-grow" data-kgi="' + i + '">' + ktAv(g.name || g.e) + '<span class="kt-rn"><b>' + esc(g.name || g.e.split('@')[0]) + '</b><small>' + esc(g.e) + (g.user === 0 ? ' · <span class="kt-warn">chưa có tài khoản app — thêm ở Quản trị › Người dùng</span>' : g.user === 2 ? ' · <span class="kt-warn">tài khoản đang tắt</span>' : '') + '</small></span><span class="sp"></span>' +
         chip(g.kt, 'kt', 'bi-building', 'kientre.click') + chip(g.kgs, 'kgs', 'bi-person-video3', 'KGS') + '<button class="kt-ico" data-kgx title="Gỡ quyền" aria-label="Gỡ quyền ' + esc(g.e) + '"><i class="bi bi-x-lg"></i></button></div>').join('') + '</div>'
-        : '<div class="kt-sub" style="margin-top:10px">Chưa cấp mail nào. Người có vai trò dùng Kiến Trẻ vẫn vào được như cũ.</div>') + '</div>';
+        : '<div class="kt-sub" style="margin-top:10px">Chưa cấp mail nào. Người có vai trò dùng Kiến Chuyên môn vẫn vào được như cũ.</div>') + '</div>';
     const add = $('.kt-gadd', host);
     $$('[data-kgt]', add).forEach(b => { b.onclick = () => { const on = !b.classList.contains('on'); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }; });
     const save = async o => { try { D = await rpc('ktGrantSave', o); paint(); return true; } catch (e) { fail(e); return false; } };
@@ -31244,7 +31559,7 @@ async function ktGrantView(host) {
     $('#ktGe', host).onkeydown = ev => { if (ev.key === 'Enter') $('#ktGa', host).click(); };
     $$('[data-kgi]', host).forEach(r => { const g = D.list[Number(r.dataset.kgi)];
       $$('[data-kgt]', r).forEach(b => { b.onclick = () => { const o = { e: g.e, kt: g.kt, kgs: g.kgs }; o[b.dataset.kgt] = g[b.dataset.kgt] ? 0 : 1; if (!o.kt && !o.kgs) return toast('Cần ít nhất một nguồn — muốn bỏ hẳn thì bấm ✕', 'warn'); save(o); }; });
-      $('[data-kgx]', r).onclick = async () => { if (!await ask('Gỡ quyền Kiến Trẻ của ' + g.e + '? Người đó không vào được module nữa (trừ khi vai trò có sẵn quyền).')) return; save({ e: g.e, off: 1 }); }; });
+      $('[data-kgx]', r).onclick = async () => { if (!await ask('Gỡ quyền Kiến Chuyên môn của ' + g.e + '? Người đó không vào được module nữa (trừ khi vai trò có sẵn quyền).')) return; save({ e: g.e, off: 1 }); }; });
   };
   paint();
 }
@@ -38519,7 +38834,7 @@ async function viewTasks(arg, v) {
       vn(); }
     m.$('#pCA').onclick = () => { readCols(); if (cols.length >= 8) return toast('Tối đa 8 cột', 'warn'); cols.splice(Math.max(1, cols.length - 1), 0, { id: 'c' + Date.now().toString(36), t: '', done: 0, wip: 0 }); redraw(); const ins = m.$$('#pCols .r'); $('.inp', ins[ins.length - 2]).focus(); };
     m.$('#pCols').addEventListener('click', e => { const ck = e.target.closest('[data-ck]'); if (!ck) return; readCols(); const i = Number(ck.closest('.r').dataset.i);      // (1.56.6) màu cột — lưu cùng bảng khi bấm Lưu
-      ksPick({ t: cols[i].t || 'Cột ' + (i + 1), k: cols[i].k, cols: cols, i: i, note: 'Màu dùng chung ở Kiến Task và Kiến Chuyên môn › Yêu cầu (nếu là bảng nhận yêu cầu). “Tự động”: màu theo vị trí cột.', onSave: k => { cols[i].k = k; redraw(); } }); });
+      ksPick({ t: cols[i].t || 'Cột ' + (i + 1), k: cols[i].k, cols: cols, i: i, note: 'Màu dùng chung ở Kiến Task và Kiến GS › Yêu cầu (nếu là bảng nhận yêu cầu). “Tự động”: màu theo vị trí cột.', onSave: k => { cols[i].k = k; redraw(); } }); });
     m.$('#pCols').addEventListener('click', e => { const x = e.target.closest('[data-cx]'); if (!x) return; readCols(); cols.splice(Number(x.closest('.r').dataset.i), 1); if (!cols.some(c => c.done)) cols[cols.length - 1].done = 1; redraw(); });
     m.$('#pCols').addEventListener('input', e => { if (!e.target.matches('.nm .inp')) return; const i = Number(e.target.closest('.r').dataset.i), o = m.$('#pDone').options[i]; if (o) o.textContent = e.target.value.trim() || 'Cột ' + (i + 1); });
     m.$('#pDone').onchange = () => { readCols(); redraw(); };
@@ -39817,7 +40132,7 @@ function bkParseMd(txt) {
    • Link thử: <địa chỉ app>/mail — người được phép mở link là giao diện tự bật. */
 const MX = { box: '', items: {}, sel: '', ico: null, cmp: null };
 const MX_TITLE = 'Hộp thư';
-const MX_CREDIT = 'Bản thử giao diện Kiến Chuyên môn, mô phỏng bố cục Gmail của Google. Không liên kết với Google.';
+const MX_CREDIT = 'Bản thử giao diện Kiến Trẻ, mô phỏng bố cục Gmail của Google. Không liên kết với Google.';
 const MX_ICON = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="3" y="7" width="26" height="19" rx="3" fill="#0B57D0"/><path d="M5 10l11 8 11-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>');
 /* các hộp — thứ tự & tên như hộp thư (en); tên tiếng Việt (t) dùng khi chọn “Tên hộp: tiếng Việt”; rê chuột thấy nghĩa (tip) · more = nằm dưới “More” */
 const MX_BOX = [
@@ -39850,7 +40165,7 @@ function mxSet(on, opt) {
 function mxApply(on) {
   const h = document.documentElement;
   if (on) { h.setAttribute('data-ux', 'mail'); h.setAttribute('data-uxc', mxPal()); lsSet('uxcLast', mxPal()); mxFont(); } else { h.removeAttribute('data-ux'); h.removeAttribute('data-uxc'); }
-  document.title = on ? MX_TITLE : (S.boot && S.boot.app) || 'Kiến Chuyên môn';
+  document.title = on ? MX_TITLE : (S.boot && S.boot.app) || 'Kiến Trẻ';
   mxIcon(on);
   const sw = $('#mxSw'); if (sw) { sw.innerHTML = '<i class="bi ' + (on ? 'bi-envelope-open-fill' : 'bi-envelope') + '"></i>'; sw.title = on ? 'Đang dùng giao diện Hộp thư (thử) — bấm để đổi / quay về giao diện cũ' : 'Thử giao diện Hộp thư'; }
   if (on) mxSide(); else { const s = $('#mxSide'); if (s) s.remove(); const f = $('#mxFab'); if (f) f.remove(); mxCmpClose(); }
