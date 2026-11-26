@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-26T07:55:28.507Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-26T07:58:30.861Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -29722,6 +29722,21 @@ function svMemoV(b) {
 .kt-lc input{ flex:1; min-width:0; height:36px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink); font-size:13.5px; padding:0 12px }
 .kt-goi{ border-left:3px solid var(--brand-500, var(--brand-600)); padding:4px 0 4px 12px; font-size:13px; display:flex; flex-direction:column; gap:4px }
 .kt-goi b{ color:var(--brand-700); font-size:12.5px } .kt-goi ul{ margin:0; padding-left:18px; color:var(--ink-2) }
+/* (1.90) gợi ý nhận xét theo bài (đọc từ tệp PDF bài học) · cảnh báo câu trùng */
+.kt-les{ display:flex; flex-direction:column; gap:8px; min-width:0 }
+.kt-les-h{ display:flex; gap:8px; align-items:center; font-size:11.5px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; white-space:nowrap }
+.kt-les-h .sp{ flex:1 } .kt-les-h > i{ font-size:13px; color:var(--brand-600) }
+.kt-les-h button{ border:0; background:none; color:var(--brand-700); font-size:12px; font-weight:700; cursor:pointer; padding:0; text-transform:none; letter-spacing:0; white-space:nowrap }
+.kt-lsugs{ display:flex; gap:6px; flex-wrap:wrap; min-width:0 }
+.kt-lsug{ display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 12px; border-radius:999px; border:1px solid color-mix(in oklab, var(--brand-600) 30%, var(--border)); background:color-mix(in oklab, var(--brand-600) 7%, var(--surface)); color:var(--brand-700); font:inherit; font-size:12.5px; font-weight:650; cursor:pointer; white-space:nowrap; flex:none }
+.kt-lsug:hover:not(:disabled){ background:color-mix(in oklab, var(--brand-600) 15%, var(--surface)) }
+.kt-lsug > i{ font-size:12px } .kt-lsug:disabled{ opacity:.5; cursor:default }
+.kt-ed .kt-lsug{ height:28px; font-size:12px; padding:0 10px }
+.kt-les details{ font-size:12.5px; color:var(--ink-2) } .kt-les summary{ cursor:pointer; color:var(--muted); font-weight:700; font-size:12px; white-space:nowrap }
+.kt-les details ul{ margin:6px 0 0; padding-left:18px; line-height:1.55 }
+.kt-dup{ display:flex; flex-direction:column; gap:6px; font-size:12.5px; line-height:1.5; border-radius:12px; padding:9px 11px; background:color-mix(in oklab, var(--warn) 11%, var(--surface)); color:var(--ink-2) }
+.kt-dup > div:first-child{ display:flex; gap:8px; align-items:center; flex-wrap:wrap } .kt-dup b{ color:var(--warn); white-space:nowrap } .kt-dup .sp{ flex:1 }
+.kt-dup q{ font-style:italic; color:var(--ink) } .kt-dup small{ color:var(--muted) }
 .kt-acts{ display:flex; gap:8px; flex-wrap:wrap; align-items:center } .kt-acts .sp{ flex:1 }
 /* hàng học sinh */
 .kt-list{ border-top:1px solid var(--border) }
@@ -30121,6 +30136,7 @@ function ktPaintDay(D) {
   if (!d.sess.length) { D.innerHTML = '<div class="kt-card kt-empty"><i class="bi bi-calendar2-x"></i><div>Không có buổi học nào ' + ktThu(d.day) + ' ' + ktDm(d.day) + ' của <b>' + esc(d.teacher) + '</b> trên kientre.click.' + (d.teaOk === 0 ? '<br><small class="kt-sub">Chưa tìm thấy tên “' + esc(d.teacher) + '” trong danh sách giáo viên của kientre.click — app đã đọc cả ngày và lọc theo họ tên (không theo thứ tự chữ). Nếu bên đó ghi tên khác, sửa tên tài khoản Google hoặc báo giáo vụ.</small>' : '') + '</div></div>'; return; }
   D.innerHTML = (KT.b && !KT.b.ai ? '<div class="kt-sub"><i class="bi bi-info-circle"></i> Trợ lý AI chưa bật — vẫn nhận xét tay và đẩy được.</div>' : '') + d.sess.map((s, i) => ktSessHtml(s, i)).join('');
   d.sess.forEach((s, i) => ktBindSess(D, s, i));
+  d.sess.forEach(s => { if (ktLesId(s)) ktLesLoad(s); });      // (1.90) đọc bài (bộ đệm theo mã tệp + ngày sửa) → nút gợi ý
 }
 function ktSessHtml(s, i) {
   const m = s.mat, A = KT.ai[s.cls] || {}, busy = A.busy, lcv = s.st.map(st => ktEd(s, st).f.lc).find(Boolean) || s.lc || A.lc || '';
@@ -30129,7 +30145,7 @@ function ktSessHtml(s, i) {
     '<span class="kt-meta">' + [s.time && '<span><i class="bi bi-clock"></i>' + esc(s.time) + '</span>', s.lesson && '<span>' + esc(s.lesson) + '</span>', s.loc && '<span><i class="bi bi-geo-alt"></i>' + esc(s.loc) + '</span>', '<span><i class="bi bi-people"></i>' + s.st.length + ' bé</span>'].filter(Boolean).join('') + '</span></div><span class="sp"></span>' +
     '<div class="kt-acts">' + (busy ? '<span class="kt-wait"><i class="bi bi-arrow-repeat"></i> AI đang viết…</span>' : '<button class="btn sm" data-kai="all"><i class="bi bi-stars"></i> AI viết cả lớp</button>') + '<button class="btn sm pri" data-kpu="all"' + (todo ? '' : ' disabled') + '><i class="bi bi-send"></i> Đẩy' + (todo ? ' ' + todo : '') + '</button></div></div>' +
     '<div class="kt-mat' + (m ? '' : ' miss') + '">' + (m ? '<i class="bi bi-file-earmark-text"></i><span>' + (m.u ? '<a href="' + esc(m.u) + '" target="_blank" rel="noopener">' + esc(m.t || 'Tài liệu') + '</a>' : esc(m.t)) + (m.hw ? ' · <a href="' + esc(m.hw) + '" target="_blank" rel="noopener">BTVN</a>' : '') + '</span>' : '<i class="bi bi-lightbulb"></i><span>Buổi này <b>chưa có tài liệu</b> trên kientre.click — bấm “AI viết” để AI gợi ý nội dung buổi.</span>') + '</div>' +
-    (A.goi && A.goi.length ? '<div class="kt-goi"><b>AI gợi ý nội dung buổi</b><ul>' + A.goi.map(g => '<li>' + esc(g) + '</li>').join('') + '</ul></div>' : '') +
+    (A.goi && A.goi.length ? '<div class="kt-goi"><b>AI gợi ý nội dung buổi</b><ul>' + A.goi.map(g => '<li>' + esc(g) + '</li>').join('') + '</ul></div>' : '') + ktLesHtml(s, busy) +
     '<div class="kt-lc"><label for="ktLc' + i + '">Nội dung buổi</label><input id="ktLc' + i + '" data-klc value="' + esc(lcv) + '" placeholder="VD: Ôn tập phân số, số thập phân"></div></div>' +
     '<div class="kt-list">' + s.st.map((st, j) => ktStuHtml(s, st, j)).join('') + '</div></div>';
 }
@@ -30157,7 +30173,7 @@ function ktStuHtml(s, st, j) {
         '<div class="kt-q"><div><label>Thái độ</label>' + Object.keys(TDS).map(x => '<button type="button" class="kt-chip" data-kp="td" data-kv="' + x + '" title="' + esc(TD[x] || '') + '" aria-pressed="' + ((e.inp.td || []).indexOf(x) >= 0) + '">' + TDS[x] + '</button>').join('') + '</div></div>' +
         '<input class="kt-note" data-knote value="' + esc(e.inp.note || '') + '" placeholder="Ghi chú nhanh cho AI" title="VD: hay sai dấu phẩy, làm nhanh bài nâng cao">') +
       '<div class="kt-fs">' + KT_FL.map(F => '<div class="kt-f' + (e.ai && e.ai[F[0]] && e.ai[F[0]] === e.f[F[0]] ? ' ai' : '') + '"><span>' + F[1] + (e.alt && e.alt[F[0]] ? '<button type="button" data-kalt="' + F[0] + '">Phương án khác</button>' : '') + '</span><textarea data-kf="' + F[0] + '" rows="3" placeholder="' + (F[0] === 'yeu' ? 'Để trống nếu không có' : '') + '">' + esc(e.f[F[0]] || '') + '</textarea></div>').join('') + '</div>' +
-      (e.err && e.st === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(e.err) + '</span></div>' : '') +
+      (e.err && e.st === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(e.err) + '</span></div>' : '') + (ab ? '' : ktDupHtml(e) + ktSugRow(s)) +
       '<div class="kt-acts">' + (st.h && st.h.length ? '<details class="kt-his"><summary><i class="bi bi-clock-history"></i> ' + st.h.length + ' buổi trước</summary>' + st.h.map(h => '<div><small>' + ktDm(h.d) + (h.lc ? ' · ' + esc(h.lc) : '') + '</small>' + [h.td, h.bt, h.yeu && 'Yếu: ' + h.yeu, h.nx].filter(Boolean).map(esc).join('<br>') + '</div>').join('') + '</details>' : '') + '<span class="sp"></span>' +
         (ab ? '' : '<button class="btn sm ghost" data-kai="one"><i class="bi bi-stars"></i> AI viết</button>') + '<button class="btn sm" data-kpu="one"><i class="bi bi-send"></i> Đẩy</button></div></div>';
   }
@@ -30176,12 +30192,17 @@ function ktBindSess(D, s, i) {
       ktSave(s, st, false); }; });
     $$('[data-kpct]', el).forEach(x => { x.onchange = () => { const n = x.value === '' ? null : Number(x.value); e.f[x.dataset.kpct] = n; e.inp[x.dataset.kpct] = n; save(); }; });
     const nt = $('[data-knote]', el); if (nt) nt.oninput = () => { e.inp.note = nt.value; ktSave(s, st, false); };
-    $$('[data-kf]', el).forEach(t => { t.oninput = () => { e.f[t.dataset.kf] = t.value; t.parentElement.classList.remove('ai'); save(); }; });
+    $$('[data-kf]', el).forEach(t => { t.oninput = () => { e.f[t.dataset.kf] = t.value; t.parentElement.classList.remove('ai'); if (e.dup) { e.dup = e.dup.filter(d => (e.f[d.k] || '').indexOf(d.s) >= 0); const dv = $('[data-kdup]', el); if (dv && !e.dup.length) dv.remove(); } save(); }; });
     $$('[data-kalt]', el).forEach(b => { b.onclick = () => { const q = b.dataset.kalt, cur = e.f[q]; e.f[q] = e.alt[q]; e.alt[q] = cur; const t = $('[data-kf="' + q + '"]', el); t.value = e.f[q] || ''; save(); }; });
     const ai = $('[data-kai="one"]', el); if (ai) ai.onclick = () => ktAiRun(s, [st]);
+    $$('[data-ksug]', el).forEach(b => { b.onclick = () => ktAiRun(s, [st], { focus: s.les.goi[Number(b.dataset.ksug)] }); });      // (1.90) gợi ý theo bài → chỉ bé này
+    const rw = $('[data-kredo]', el); if (rw) rw.onclick = () => ktAiRun(s, [st], { avoid: (e.dup || []).map(d => d.s).concat((e.dup || []).map(d => d.r)) });
     const pu = $('[data-kpu="one"]', el); if (pu) pu.onclick = () => ktPushRun(s, [st]);
   });
-  const aa = $('[data-kai="all"]', C); if (aa) aa.onclick = () => ktAiRun(s, s.st.filter(st => !ktAbs(st) && !(ktEd(s, st).st === 'pushed' && !ktEd(s, st).dirty)));
+  const todoAi = () => s.st.filter(st => !ktAbs(st) && !(ktEd(s, st).st === 'pushed' && !ktEd(s, st).dirty));
+  const aa = $('[data-kai="all"]', C); if (aa) aa.onclick = () => ktAiRun(s, todoAi());
+  $$('.kt-pad [data-ksug]', C).forEach(b => { b.onclick = () => ktAiRun(s, todoAi(), { focus: s.les.goi[Number(b.dataset.ksug)] }); });      // (1.90) gợi ý theo bài → cả lớp
+  const lb = $('[data-kles]', C); if (lb) lb.onclick = () => ktLesLoad(s, 1);
   $('[data-kpu="all"]', C).onclick = () => ktPushRun(s, s.st.filter(st => { const e = ktEd(s, st); return ktHasCmt(e.f) && !ktDone(s, st); }));
 }
 /** lưu nháp ngầm (gộp theo bé) — không bắt chờ */
@@ -30198,8 +30219,47 @@ function ktRepaintSess(s) { const D = $('#ktDay'); if (!D || !KT.d) return; cons
   ktPaintStat(); }
 function ktPaintStat() { const d = KT.d, stat = $('#ktStat'); if (!d || !stat || d.pick) return; const nAll = d.sess.reduce((a, s) => a + s.st.filter(st => !ktAbs(st)).length, 0), nDone = d.sess.reduce((a, s) => a + s.st.filter(st => !ktAbs(st) && ktDone(s, st)).length, 0);
   stat.innerHTML = '<span><b>' + d.sess.length + '</b>buổi</span><span><b>' + nDone + '/' + nAll + '</b>đã nhận xét</span>'; }
-/** AI viết nhận xét cho các bé L của buổi s */
-async function ktAiRun(s, L) {
+/* ══ (1.90) GỢI Ý THEO BÀI — máy chủ đọc tệp PDF bài học (Drive → chữ, bộ đệm theo mã tệp + ngày sửa) rồi rút kiến thức / kỹ năng → nút gợi ý.
+   Bấm nút ở đầu buổi = AI viết cả lớp xoay quanh kỹ năng đó; bấm trong ô của một bé = chỉ bé đó. ══ */
+KT.les = {};
+function ktLesId(s) { const u = s && s.mat && s.mat.u, m = /\/d\/([\w-]{5,})/.exec(String(u || '')) || /[?&]id=([\w-]{5,})/.exec(String(u || '')); return m ? m[1] : ''; }
+function ktLesHtml(s, busy) {
+  const id = ktLesId(s); if (!id) return '';
+  const L = s.les, S = KT.les[id] || {};
+  const head = (t, btn) => '<div class="kt-les-h"><i class="bi bi-file-earmark-richtext"></i>' + t + '<span class="sp"></span>' + (btn || '') + '</div>';
+  if (!L || !(L.goi || []).length) {
+    if (!KT.b || !KT.b.ai) return '';
+    return '<div class="kt-les">' + head('Gợi ý theo bài', S.busy ? '' : '<button type="button" data-kles>' + (S.err || L ? 'Đọc lại bài' : 'Đọc bài') + '</button>') +
+      (S.busy ? '<span class="kt-wait"><i class="bi bi-arrow-repeat"></i> Đang đọc tệp bài học…</span>' : S.err ? '<div class="kt-sub">' + esc(S.err) + '</div>' : L ? '<div class="kt-sub">Chưa rút được kỹ năng nào từ bài này.</div>' : '') + '</div>';
+  }
+  const kk = (L.kt || []).concat(L.kn || []);
+  return '<div class="kt-les">' + head('Gợi ý theo bài', S.busy ? '<span class="kt-wait"><i class="bi bi-arrow-repeat"></i></span>' : '') +
+    '<div class="kt-lsugs">' + L.goi.map((g, k) => '<button type="button" class="kt-lsug" data-ksug="' + k + '" title="' + esc(g.y || g.nhan) + ' — AI viết cho cả lớp"' + (busy ? ' disabled' : '') + '><i class="bi bi-stars"></i>' + esc(g.nhan) + '</button>').join('') + '</div>' +
+    (kk.length ? '<details><summary>Kiến thức trong bài (' + kk.length + ')</summary><ul>' + kk.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></details>' : '') + '</div>';
+}
+function ktSugRow(s) {
+  const L = s.les; if (!L || !(L.goi || []).length) return '';
+  return '<div class="kt-les">' + '<div class="kt-les-h"><i class="bi bi-stars"></i>Viết theo kỹ năng</div><div class="kt-lsugs">' + L.goi.map((g, k) => '<button type="button" class="kt-lsug" data-ksug="' + k + '" title="' + esc(g.y || g.nhan) + '">' + esc(g.nhan) + '</button>').join('') + '</div></div>';
+}
+function ktDupHtml(e) {
+  const D = e.dup || []; if (!D.length) return '';
+  const FN = { td: 'Thái độ', bt: 'Bài tập', nx: 'Nhận xét' };
+  return '<div class="kt-dup" data-kdup><div><b><i class="bi bi-copy"></i> Giống nhận xét cũ</b><span class="sp"></span><button type="button" class="btn sm" data-kredo><i class="bi bi-arrow-repeat"></i> Viết lại khác</button></div>' +
+    D.map(d => '<div><small>' + (FN[d.k] || '') + ' · giống ' + d.p + '% ' + esc(d.w) + '</small><br><q>' + esc(d.s) + '</q></div>').join('') + '</div>';
+}
+/** đọc bài của buổi s (tự chạy khi mở ngày; force = bấm Đọc lại) — mọi buổi dùng cùng tệp nhận kết quả */
+async function ktLesLoad(s, force) {
+  const id = ktLesId(s); if (!id || !KT.b || !KT.b.ai) return;
+  const S = KT.les[id] = KT.les[id] || {}; if (S.busy || (S.done && !force)) return;
+  S.busy = 1; S.err = ''; const same = () => (KT.d ? KT.d.sess : []).filter(x => ktLesId(x) === id);
+  if (!s.les || force) same().forEach(ktRepaintSess);
+  try { const r = await rpc('ktLesson', { u: s.mat.u, fresh: force ? 1 : 0 }, { quiet: true }); S.done = 1; same().forEach(x => { x.les = r.les; }); }
+  catch (e) { S.err = e.message || String(e); S.done = 1; }
+  S.busy = 0; same().forEach(ktRepaintSess);
+}
+/** AI viết nhận xét cho các bé L của buổi s · o = { focus: nút gợi ý theo bài, avoid: các câu bị kiểm là trùng } */
+async function ktAiRun(s, L, o) {
+  o = o || {};
   if (!L.length) return toast('Không còn bé nào cần AI viết (bé vắng / đã đẩy được bỏ qua)', 'info');
   const one = L.length === 1 && s.st.length > 1, slot = one ? ktKey(s, L[0]) : s.cls;
   if (KT.ai[slot] && KT.ai[slot].busy) return;
@@ -30207,16 +30267,20 @@ async function ktAiRun(s, L) {
   const lcIn = $('#ktDay [data-kss="' + KT.d.sess.indexOf(s) + '"] [data-klc]');
   const prev = []; s.st.forEach(st => (st.h || []).forEach(h => { if (h.lc && !prev.some(x => x.lc === h.lc)) prev.push({ d: h.d, lc: h.lc }); }));      // nội dung các buổi trước của lớp (từ lịch sử các bé) — AI gợi ý buổi thiếu tài liệu
   const p = { day: KT.day, cls: s.cls, sjT: s.sjT, lesson: s.lesson, prog: s.prog, grades: s.grades, mat: s.mat, mat2: s.mat2, lc: lcIn ? lcIn.value : s.lc, hw: s.hw, prev: prev.sort((a, b) => String(b.d).localeCompare(String(a.d))).slice(0, 6).map(x => ktDm(x.d) + ': ' + x.lc),
-    items: L.map(st => { const e = ktEd(s, st); return { code: st.code, name: st.name, call: st.call, att: st.att, nohw: st.nohw, inp: Object.assign({}, e.inp, { lam: e.f.lam != null ? e.f.lam : e.inp.lam, dung: e.f.dung != null ? e.f.dung : e.inp.dung }), f: st.f, h: st.h }; }) };
+    items: L.map(st => { const e = ktEd(s, st); return { code: st.code, name: st.name, call: st.call, att: st.att, nohw: st.nohw, inp: Object.assign({}, e.inp, { lam: e.f.lam != null ? e.f.lam : e.inp.lam, dung: e.f.dung != null ? e.f.dung : e.inp.dung }), f: st.f, h: st.h }; }),
+    // (1.90) bản đang có của các bạn khác trong buổi → AI tránh lặp · nút gợi ý đã bấm · câu bị kiểm là trùng (Viết lại khác)
+    peers: s.st.filter(st => L.indexOf(st) < 0 && !ktAbs(st)).map(st => { const f = ktEd(s, st).f; return { code: st.code, name: st.name, td: f.td || '', bt: f.bt || '', nx: f.nx || '' }; }).filter(x => x.td || x.bt || x.nx),
+    focus: o.focus || null, avoid: o.avoid || [] };
   const done = o => {
     KT.ai[slot].busy = 0;
     if (!o || o.status === 'err' || !o.actions) { ktRepaintSess(s); return toast('AI chưa viết được: ' + ((o && o.err) || 'không có kết quả'), 'err'); }
     const A = o.actions; if (!one) { KT.ai[s.cls].lc = A.lc; KT.ai[s.cls].goi = A.goi; }
     (A.items || []).forEach(it => { const st = s.st.find(x => x.code === it.code); if (!st) return; const e = ktEd(s, st);
       if (e.dirty && e.st !== 'ai' && ktHasCmt(e.f) && !one) { e.alt = it.f; return; }      // bé đã sửa tay → giữ bản tay, bản AI thành “phương án khác”
-      ['td', 'bt', 'yeu', 'nx'].forEach(q => { e.f[q] = it.f[q] || ''; }); e.ai = it.f; e.alt = it.alt; e.st = 'ai'; e.dirty = false; KT.op[ktKey(s, st)] = true; });
+      ['td', 'bt', 'yeu', 'nx'].forEach(q => { e.f[q] = it.f[q] || ''; }); e.ai = it.f; e.alt = it.alt; e.dup = it.dup || null; e.st = 'ai'; e.dirty = false; KT.op[ktKey(s, st)] = true; });
     if (A.lc && !s.st.some(st => ktEd(s, st).f.lc)) s.st.forEach(st => { ktEd(s, st).f.lc = A.lc; });
-    ktRepaintSess(s); toast('AI đã viết ' + (A.items || []).length + ' nhận xét — đọc, sửa rồi bấm Đẩy', 'ok');
+    const nd = (A.items || []).filter(it => it.dup && it.dup.length).length;
+    ktRepaintSess(s); toast('AI đã viết ' + (A.items || []).length + ' nhận xét' + (A.rw ? ' · đã tự viết lại ' + A.rw + ' bản bị trùng' : '') + (nd ? ' · ' + nd + ' bản còn câu giống nhận xét cũ (xem cảnh báo)' : '') + ' — đọc, sửa rồi bấm Đẩy', nd ? 'warn' : 'ok');
   };
   try { const r = await rpc('ktAi', p, { quiet: true }); ktWatch(r.log, done); }
   catch (e) { KT.ai[slot].busy = 0; ktRepaintSess(s); fail(e); }
