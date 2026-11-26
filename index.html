@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-26T07:30:28.005Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-26T07:55:28.507Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -10906,7 +10906,8 @@ async function vwPrint(data, name, btn) {
     else throw new Error('định dạng này chưa in trực tiếp được — tải về rồi in');
     document.body.appendChild(area);
     let st = document.getElementById('vwPrintCss'); if (!st) { st = document.createElement('style'); st.id = 'vwPrintCss'; document.head.appendChild(st); }
-    st.textContent = '#vwPrintArea{ display:none } @media print{ ' + css.join(' ') + ' html, body{ background:#fff !important; height:auto !important; overflow:visible !important }' +
+    const k0 = Object.keys(sizes)[0], d0 = k0 ? k0.split('x') : null;      // (1.89.1) khổ trang đầu làm @page chung (máy không nhận @page có tên vẫn in đúng khổ, không lề)
+    st.textContent = '#vwPrintArea{ display:none } @media print{ ' + (d0 ? '@page{ size:' + d0[0] + 'pt ' + d0[1] + 'pt; margin:0 } ' : '') + css.join(' ') + ' html, body{ background:#fff !important; height:auto !important; overflow:visible !important }' +
       ' body > *:not(#vwPrintArea){ display:none !important } #vwPrintArea{ display:block !important; margin:0; padding:0 }' +
       ' #vwPrintArea .pp{ display:block; overflow:hidden; margin:0; padding:0; break-after:page; page-break-after:always; break-inside:avoid } #vwPrintArea .pp:last-child{ break-after:auto; page-break-after:auto }' +
       ' #vwPrintArea img{ display:block; width:100%; height:100%; object-fit:contain } }';
@@ -27184,11 +27185,12 @@ async function ofSexSet(em, g) {
     const pp = $('#ofPop'); if (pp && pp.dataset.id === '@t:' + em) ofTutRoom(em); };
   rp(); try { const r = await rpc('asstTutorSex', { em: em, g: g }, { quiet: true }); OF.sx = r.sx || OF.sx; } catch (e) { OF.sx = Object.assign({}, OF.sx); if (old) OF.sx[em] = old; else delete OF.sx[em]; rp(); fail(e); } }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-ofsex]'); if (!b) return; e.stopPropagation(); e.preventDefault(); ofSexSet(b.dataset.ofsex, b.dataset.g); }, true);
+/* (1.89.1) lớp loại người = “ofk-t / ofk-s / ofk-w” — trước là “kt / ks / kw”: “kt” trùng .kt của Kiến Trẻ (display:flex; width:100%) → biểu tượng gia sư giãn hết đầu hộp, tên gia sư mất chỗ */
 function ofPersonSvg(lv, ini, sz, kind, seed) {
   let h = 0; String(seed || ini || '').split('').forEach(c => { h = (h * 31 + c.charCodeAt(0)) >>> 0; }); kind = kind || 't';
   const g = kind !== 's' ? ofSex(seed) : '', hair = OF_HAIR[h % OF_HAIR.length], skin = OF_SKIN[(h >>> 3) % OF_SKIN.length], long = g === 'f' ? 1 : g === 'm' ? 0 : (h >>> 5) % 2, id = 'pc' + (h % 99991) + kind;
   const shirt = kind === 's' ? '#38BDF8' : kind === 'w' ? '#64748B' : '#1E3A8A';
-  return '<span class="of-pp ' + (lv || '') + ' k' + kind + '" style="--ps:' + (sz || 28) + 'px" aria-hidden="true"><svg viewBox="0 0 40 40"><defs><clipPath id="' + id + '"><circle cx="20" cy="20" r="18.2"/></clipPath></defs><circle class="bg" cx="20" cy="20" r="18.2"/><g clip-path="url(#' + id + ')">' +
+  return '<span class="of-pp ' + (lv || '') + ' ofk-' + kind + '" style="--ps:' + (sz || 28) + 'px" aria-hidden="true"><svg viewBox="0 0 40 40"><defs><clipPath id="' + id + '"><circle cx="20" cy="20" r="18.2"/></clipPath></defs><circle class="bg" cx="20" cy="20" r="18.2"/><g clip-path="url(#' + id + ')">' +
     (long ? '<path d="M11.6 16 C10.6 23 11.4 28 13.6 31 L26.4 31 C28.6 28 29.4 23 28.4 16 Z" fill="' + hair + '"/>' : '') +
     '<path d="M5 41 C5 31 11 26.6 20 26.6 C29 26.6 35 31 35 41 Z" fill="' + shirt + '"/><rect x="17.4" y="22" width="5.2" height="5.6" rx="2" fill="' + skin + '"/>' +
     (kind === 't' ? '<path d="M16.2 27 L20 31.2 L23.8 27" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><rect x="23.6" y="31.5" width="4.2" height="5.2" rx="1" fill="#FDE68A"/>' : kind === 's' ? '<path d="M12.2 29.5 L14.6 41 M27.8 29.5 L25.4 41" stroke="#F97316" stroke-width="2.4" stroke-linecap="round"/>' : '<path d="M17 27.2 L20 29.6 L23 27.2" fill="none" stroke="#CBD5E1" stroke-width="1.4"/>') +
@@ -34686,7 +34688,7 @@ html[data-mode="dark"] .tkr .h0{ background:#1A2234 } html[data-mode="dark"] .tk
   html.tkr-print, html.tkr-print body{ background:#fff !important; height:auto !important; overflow:visible !important } html.tkr-print :is(.sb, .tb, .sync-bar, :has(> .bn-i), .bn-i, #toasts, #ov, .tkr-ib, .tkr-pv, .menu, .tkr-more, .tkr-hm + *, .rt, .tkr-ft button, [data-rp-nav]){ display:none !important }
   html.tkr-print :is(.app, .main, .views, .view){ display:block !important; position:static !important; height:auto !important; overflow:visible !important; padding:0 !important; margin:0 !important; background:#fff !important } html.tkr-print .views > .view[hidden]{ display:none !important }
   html.tkr-print .tkr-hd{ position:static; box-shadow:none; padding:0 0 8px; border-bottom:2px solid var(--rp-t); border-radius:0 } html.tkr-print .tkr-ttl{ display:block } html.tkr-print .tkr-ttl b::before{ content:'Báo cáo Kiến Task · ' } html.tkr-print .tk-box, html.tkr-print .tk-kpi{ animation:none !important; opacity:1 !important } html.tkr-print .tkr-rg{ border:0 } html.tkr-print .tk-box, html.tkr-print .tk-kpi{ box-shadow:none !important; border:1px solid #DDE5F1; break-inside:avoid } html.tkr-print .tkr-tw{ overflow:visible; margin:0; padding:0 } html.tkr-print .tkr-tb{ font-size:10.5px } html.tkr-print .tkr-tb :is(td, th){ padding:5px 5px; position:static } html.tkr-print .tkr-tb .tkr-sp{ width:50px } html.tkr-print .tk-dash{ display:grid !important; grid-template-columns:repeat(6, minmax(0, 1fr)) !important; gap:10px } html.tkr-print .tk-dash > .w6{ grid-column:span 6 } html.tkr-print .tk-dash > .w4{ grid-column:span 4 } html.tkr-print .tk-dash > .w3{ grid-column:span 3 } html.tkr-print .tk-dash > .w2{ grid-column:span 2 } html.tkr-print .tkr-k4{ grid-template-columns:repeat(4, 1fr) !important } html.tkr-print *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; animation:none !important }
-  @page{ size:A4 landscape; margin:10mm }
+  /* (1.89.1) KHÔNG đặt @page ở đây — luật @page nằm sẵn áp lên MỌI lần in của app (In ở Thư viện bị xoay ngang, có lề, mỗi trang tràn 2 tờ); rpPrint gắn lúc in rồi gỡ */
 }
 </style>
 <script>
@@ -35066,7 +35068,9 @@ function rpDrill(title, sub, rows, ctx) {
 function rpSpark(vals) { const mx = Math.max(1, ...vals), n = vals.length, X = i => (n > 1 ? 2 + i * 92 / (n - 1) : 48), Y = v => 23 - v / mx * 19, pts = vals.map((v, i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1));
   if (!vals.some(Boolean)) return '<svg class="tkr-sp" viewBox="0 0 96 26" aria-hidden="true"><line x1="2" y1="23" x2="94" y2="23" stroke="var(--rp-line)" stroke-width="1.5"/></svg>';
   const pk = vals.indexOf(mx); return '<svg class="tkr-sp" viewBox="0 0 96 26" aria-hidden="true"><path d="M' + X(0).toFixed(1) + ',23 L' + pts.join(' L') + ' L' + X(n - 1).toFixed(1) + ',23 Z" fill="var(--rp-t)" opacity=".1"/><polyline points="' + pts.join(' ') + '" fill="none" stroke="var(--rp-t)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="' + X(pk).toFixed(1) + '" cy="' + Y(mx).toFixed(1) + '" r="2.2" fill="var(--rp-e)"/></svg>'; }
-function rpPrint() { const h = document.documentElement, dk = h.getAttribute('data-mode'); h.classList.add('tkr-print'); if (dk) h.removeAttribute('data-mode'); const end = () => { h.classList.remove('tkr-print'); if (dk) h.setAttribute('data-mode', dk); window.removeEventListener('afterprint', end); }; window.addEventListener('afterprint', end); setTimeout(() => window.print(), 80); }
+function rpPrint() { const h = document.documentElement, dk = h.getAttribute('data-mode'); h.classList.add('tkr-print'); if (dk) h.removeAttribute('data-mode');
+  const pg = document.createElement('style'); pg.id = 'tkrPage'; pg.textContent = '@media print{ @page{ size:A4 landscape; margin:10mm } }'; document.head.appendChild(pg);      // (1.89.1) khổ ngang chỉ trong lúc in báo cáo
+  const end = () => { h.classList.remove('tkr-print'); pg.remove(); if (dk) h.setAttribute('data-mode', dk); window.removeEventListener('afterprint', end); }; window.addEventListener('afterprint', end); setTimeout(() => window.print(), 80); }
 
 /** ctx = { v, paint, C(), me, setTitle, open(t), groups: nhóm bảng đã lưu, cur: bảng / nhóm đang chọn ở màn khác, curIds } */
 function rpView(ctx) {
