@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-26T17:15:49.125Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-26T18:04:07.441Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5500,6 +5500,10 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 /* (1.92) ảnh vở KGS: nút thu nhỏ + lightbox (App.html › kphThumbs / kphBox) */
 .kph{ width:64px; height:64px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--muted); display:inline-grid; place-items:center; padding:0; overflow:hidden; cursor:zoom-in; font-size:18px; flex:none }
 .fbt-ph .kph{ width:52px; height:52px; border-radius:8px }
+/* (1.93) ô ảnh vở luôn vuông, không bị ảnh dọc kéo cao (Hồ sơ học sinh › Nhật ký) */
+.kt-ph, .fbt-ph{ display:flex !important; flex-direction:row !important; flex-wrap:wrap; align-items:flex-start; gap:6px }
+.kt-ph .kph{ width:80px; height:80px; flex:0 0 80px; border-radius:12px }
+.kph{ aspect-ratio:1 / 1; max-height:96px; align-self:flex-start } .kph > img{ max-width:100%; max-height:100%; width:100%; height:100% }
 .kph img{ width:100%; height:100%; object-fit:cover; display:block }
 .kph.ld{ background:linear-gradient(90deg, var(--surface-2) 0%, var(--border) 50%, var(--surface-2) 100%); background-size:200% 100%; animation:kphSh 1.2s linear infinite }
 .kph.bad{ color:var(--danger) }
@@ -5576,6 +5580,18 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 .tag.kts-sc{ background:color-mix(in srgb, var(--ok) 13%, transparent); color:var(--ok); white-space:nowrap }
 .kts-cfg{ display:flex; flex-direction:column; gap:2px; max-height:52vh; overflow:auto } .kts-cfg label{ display:flex; gap:10px; align-items:center; padding:7px 4px; border-bottom:1px solid var(--border); font-size:13.5px }
 .kts-cfg label small{ margin-left:auto; color:var(--muted); white-space:nowrap }
+
+/* (1.93) khung tra: lớp / giáo viên một dòng, “+N” mở đủ */
+.insx-t td:nth-child(4), .insx-t td:nth-child(3){ white-space:nowrap }
+.insx-gv{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap } .insx-gv.all{ white-space:normal; display:inline }
+.insx-more{ border:1px solid var(--border); background:var(--surface-2); color:var(--ink-2); border-radius:999px; font-size:11px; font-weight:700; padding:1px 7px; cursor:pointer }
+.insx-more:hover{ color:var(--ink); border-color:var(--border-strong) }
+
+/* (1.93) bổ trợ lớp KT */
+.insx-act{ display:inline-flex; gap:4px; white-space:nowrap }
+.insx-ab{ display:inline-flex; align-items:center; gap:4px; border:1px solid var(--border); background:var(--surface); color:var(--ink-2); border-radius:999px; padding:3px 9px; font-size:11.5px; font-weight:600; cursor:pointer; white-space:nowrap }
+.insx-ab:hover{ color:var(--ink); border-color:var(--border-strong) } .insx-ab.on{ background:color-mix(in srgb, var(--ok) 13%, transparent); color:var(--ok); border-color:transparent }
+.ktl-chip i{ color:var(--brand-600, #2F45C8) }
 </style>
 
   <style>
@@ -9509,7 +9525,7 @@ const ROUTES = {
   settings: { t: 'Cài đặt', i: 'bi-gear', fn: (a, v) => viewSettings(a, v), arg: 1 },
   admin:    { t: 'Cài đặt quản trị', i: 'bi-sliders', fn: (a, v) => viewSettings(a, v, true), arg: 1, cap: ['settings.manage', 'audit.view'] },      // (1.43.2) Chung & truy cập · Menu & tab · Hệ thống · Nhật ký — tab riêng của Quản trị
   tasks:    { t: 'Kiến Task', i: 'bi-kanban', fn: (a, v) => viewTasks(a, v), arg: 1, cls: 'tk-view', cap: TASK_TABS },
-  kt:       { t: 'Kiến Chuyên môn', i: 'bi-backpack2', fn: (a, v) => viewKt(a, v), arg: 1, cap: 'kt.use' },      // (1.84) KienTreView.html
+  kt:       { t: 'Kiến Chuyên môn', i: 'bi-mortarboard', fn: (a, v) => viewKt(a, v), arg: 1, cap: 'kt.use' },      // (1.84) KienTreView.html
   book:     { t: 'Kiến Cẩm Nang', i: 'bi-journal-richtext', fn: (a, v) => viewBook(a, v), arg: 1, cls: 'bk-view', cap: ['book.view', 'book.manage'] },
   apps:     { t: 'Apps', i: 'bi-grid-3x3-gap', fn: (a, v) => viewApps(a, v) },
   trash:    { t: 'Thùng rác', i: 'bi-trash3', fn: (a, v) => viewTrash(a, v) },      // (1.57) ai cũng mở được: mỗi người thấy mục mình xoá, Admin thấy hết (Trash.gs › trashCan_)
@@ -17192,6 +17208,7 @@ async function clFbTable(c) {
     '<div class="fbt-note"><i class="bi bi-info-circle"></i><span>Nhận xét do gia sư tự ghi bên KGS. Dòng <b>Đã duyệt</b> là Chuyên môn / Giáo vụ đã duyệt bên KGS (phụ huynh xem được). Trước khi gửi phụ huynh, đọc lại các dòng chưa duyệt.</span></div>' +
     '<div class="fbt-act">' + (man ? '<button class="btn sm" id="fbtBd" title="Bảng gán bài của bé — gán bài cho các buổi tới"><i class="bi bi-grid-3x3-gap"></i>Gán bài</button>' : '') +
       (aiOk && L.length ? '<button class="btn sm fbt-aib" id="fbtAi" title="AI đọc nhận xét các buổi gần đây → tóm tắt điểm mạnh / phần còn yếu và đề xuất bài cho các buổi tới (bạn xem rồi bấm Áp dụng)"><i class="bi bi-stars"></i>AI phân tích & gán bài</button>' : '') +
+      (man && L.length && typeof ktProfSumHtml === 'function' ? '<button class="btn sm" id="fbtNx" title="AI viết nhận xét chung về bé sau quá trình học (gửi phụ huynh) — xuất PDF"><i class="bi bi-journal-text"></i>Nhận xét tình trạng học tập</button>' : '') +      // (1.93)
       '<span class="sp"></span><input class="inp fbt-q" placeholder="Tìm trong nhận xét…" aria-label="Tìm trong nhận xét"><small class="muted fbt-n"></small><button class="btn sm ghost" id="fbtCsv"' + (L.length ? '' : ' disabled') + '><i class="bi bi-download"></i>CSV</button><button class="btn sm" id="fbtPdf"' + (L.length ? '' : ' disabled') + ' title="Báo cáo nhận xét gia sư — logo, biểu đồ BTVN, phân tích AI (nếu đã chạy)"><i class="bi bi-file-earmark-pdf"></i>Xuất PDF</button></div></div>' +
     '<div class="fbt-run" id="fbtRun" hidden></div><div class="fbt-ai" id="fbtA" hidden></div><div class="fbt-b"></div>';
   m.$('.fbt-q').oninput = e => { q = e.target.value; paint(); };
@@ -17204,6 +17221,7 @@ async function clFbTable(c) {
     const g = e.target.closest('[data-fbg]'); if (g) return board(g.dataset.fbg);
     if (e.target.closest('#fbtBd')) return board();
     if (e.target.closest('#fbtAi')) return clFbAi(c, m, e.target.closest('#fbtAi'), () => paint(), X => { AIX = X; });
+    if (e.target.closest('#fbtNx')) return clFbNx(c);      // (1.93) nhận xét quá trình học (như Kiến Chuyên môn › Hồ sơ học sinh)
     if (e.target.closest('#fbtPdf')) return clFbPdf(c, L, AIX, { lam: num('lam'), dung: num('dung'), vang: vang, nDv: nDv, at: R.at });
   });
   paint();
@@ -17226,6 +17244,52 @@ function clFbRun(m, run, cid) {
   B.hidden = false;
   B.innerHTML = '<i class="bi bi-cpu"></i><span class="fbt-run-t">AI đang chạy nền ' + O.length + ' lượt:</span>' + O.slice(0, 6).map(x => '<button type="button" class="fbt-run-c" data-fbrun="' + esc(x.cid) + '" title="' + esc([x.code, x.tutor && 'Gia sư ' + x.tutor, 'giao bởi ' + x.by].filter(Boolean).join(' · ')) + '"><span class="dot"></span>' + esc(x.be) + (x.tutor ? '<small>' + esc(x.tutor) + '</small>' : '') + '</button>').join('') + (O.length > 6 ? '<small class="muted">+' + (O.length - 6) + '</small>' : '');
   B.onclick = e => { const b = e.target.closest('[data-fbrun]'); if (!b) return; const k = (CL.d.classes || []).find(x => x.id === b.dataset.fbrun); if (k) { m.close(); clFbTable(k); } };
+}
+/* ══ (1.93) BÉ HỌC LỚP KIENTRE.CLICK — đánh dấu · chủ đề đã học bên KT · AI gán bài bổ trợ (nháp chờ duyệt, chỉ chương trình đang gán) ══ */
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-ktl]'); if (!b) return; e.preventDefault(); e.stopPropagation(); ktlMenu(b.dataset.ktl); }, true);
+function ktlMenu(cid) { const c = clClass(cid), L = CL.d && CL.d.ktl && CL.d.ktl[cid]; if (!c || !L) return;
+  modal({ title: 'Học lớp kientre.click · ' + clName(c), icon: 'bi-mortarboard', body: '<p style="margin:0 0 6px">Bé học lớp <b>' + esc(L.cls) + '</b> ở kientre.click (mã học sinh ' + esc(L.code) + ').</p><p class="small muted" style="margin:0">Dữ liệu lớp KT để riêng, chỉ dùng để chọn bài bổ trợ trong chương trình gia sư đang gán.</p>',
+    foot: [{ t: 'Bỏ đánh dấu', cls: 'ghost', fn: () => { ktlMark(cid, null); } }, { t: 'Chủ đề KT', i: 'bi-journal-bookmark', fn: () => { ktlTopicsDlg(cid, clName(c)); } }, { t: 'Gán bổ trợ', cls: 'pri', i: 'bi-stars', fn: () => { ktlAssignDo(cid, clName(c)); } }] }); }
+async function ktlMark(cid, lk, done) {
+  try { const r = await rpc('ktlSet', Object.assign({ cid: cid, on: lk ? 1 : 0 }, lk || {})); if (CL && CL.d) { CL.d.ktl = r.ktl; if (CL.repaint) CL.repaint(); } toast(lk ? 'Đã đánh dấu bé học lớp kientre.click' : 'Đã bỏ đánh dấu', 'ok'); done && done(!!lk); }
+  catch (e) { fail(e); } }
+async function ktlTopicsDlg(cid, be) {
+  const m = modal({ title: 'Chủ đề đã học bên kientre.click · ' + be, icon: 'bi-journal-bookmark', size: 'lg', body: typeof loadFx === 'function' ? loadFx('Đang đọc buổi học lớp kientre.click…', { c: 'doc' }) : miniLoader('Đang tải…') });
+  let R; try { R = await rpc('ktlTopics', { cid: cid }, { quiet: true }); } catch (e) { m.close(); return fail(e); } if (m.closed) return;
+  const dm = d => String(d || '').slice(8, 10) + '/' + String(d || '').slice(5, 7);
+  m.$('.modal-b').innerHTML = '<div class="small muted" style="margin:0 0 10px">Lớp <b>' + esc(R.link.cls) + '</b> · ' + R.n + ' buổi từ ' + dm(R.fr) + ' tới ' + dm(R.to) + ' · ' + R.topics.length + ' chủ đề</div>' +
+    (R.topics.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Chủ đề / bài</th><th>Môn</th><th>Buổi</th><th>Gần nhất</th></tr></thead><tbody>' + R.topics.map(t => '<tr><td>' + esc(t.n) + '</td><td style="white-space:nowrap">' + esc(t.sj || '—') + '</td><td>' + t.k + '</td><td style="white-space:nowrap">' + dm(t.last) + '</td></tr>').join('') + '</tbody></table></div>'
+      : '<div class="empty"><i class="bi bi-journal-x"></i>Chưa thấy buổi nào có nội dung bài.</div>') +
+    '<div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn sm pri" data-ktlg><i class="bi bi-stars"></i>Gán bài bổ trợ</button></div>';
+  m.$('[data-ktlg]').onclick = () => { m.close(); ktlAssignDo(cid, be); };
+}
+async function ktlAssignDo(cid, be) {
+  if (!await ask('AI chọn bài trong chương trình gia sư đang gán, bổ trợ cho các chủ đề ' + be + ' học bên kientre.click (60 ngày gần đây). Bài được gán NHÁP vào các buổi tới — bạn duyệt ở Buổi học. Tiếp tục?')) return;
+  try { const r = await rpc('ktlAssign', { cid: cid });
+    toast(r.log ? 'Đã giao AI gán bài bổ trợ (' + r.topics.length + ' chủ đề KT) — bài nháp hiện ở Buổi học, xem tiến trình ở Trợ lý AI › Gán bài' : (r.msg || 'Không có buổi để gán'), r.log ? 'ok' : 'warn', 6000);
+    if (r.log && /^(send|wait|proc)$/.test(r.log.status) && typeof aiWatch === 'function') aiWatch(r.log.id, lg => { toast(lg.status === 'err' ? 'AI gán bổ trợ lỗi: ' + (lg.err || '') : 'AI đã gán bài bổ trợ cho ' + be + ' (nháp chờ duyệt)', lg.status === 'err' ? 'err' : 'ok', 6000); clReload(Date.now()).then(() => CL.repaint && CL.repaint()).catch(() => {}); }); }
+  catch (e) { fail(e); } }
+/** (1.93) NHẬN XÉT TÌNH TRẠNG HỌC TẬP ngay trong bảng Nhận xét KGS — cùng máy với Kiến Chuyên môn › Hồ sơ học sinh (nguồn KGS):
+    bản gần nhất (30 ngày) hiện ngay; “Viết lại” giao AI (chạy nền, xem ở Việc AI); Xuất PDF / Chép thư gửi phụ huynh */
+async function clFbNx(c) {
+  const m = modal({ title: 'Nhận xét tình trạng học tập · ' + clName(c), icon: 'bi-journal-text', size: 'lg', body: typeof loadFx === 'function' ? loadFx('Đang đọc nhận xét KGS của ' + clName(c) + '…', { c: 'cmt' }) : miniLoader('Đang tải…') });
+  let R, last; try { [R, last] = await Promise.all([rpc('ktProfKgs', { id: c.id }, { quiet: true }), rpc('ktProfLast', { src: 'kgs', code: c.id }, { quiet: true })]); } catch (e) { m.close(); return fail(e); }
+  if (m.closed) return;
+  const B = m.$('.modal-b');
+  const paint = (S, busy, err) => {
+    B.innerHTML = '<div class="kt-acts" style="margin-bottom:10px"><button class="btn pri sm" data-nx="run"' + (busy ? ' disabled' : '') + '><i class="bi bi-stars"></i>' + (S ? 'Viết lại' : 'AI viết nhận xét') + '</button>' +
+      (S ? '<button class="btn sm" data-nx="pdf"><i class="bi bi-file-earmark-pdf"></i>Xuất PDF</button><button class="btn sm ghost" data-nx="cp"><i class="bi bi-clipboard"></i>Chép thư gửi phụ huynh</button>' : '') +
+      '<span class="sp"></span><span class="small muted">' + R.n + ' buổi · ' + R.nCmt + ' buổi có nhận xét · ' + ktDm(R.fr) + ' → ' + ktDm(R.to) + (busy ? ' · đóng bảng vẫn chạy, xem ở Việc AI' : '') + '</span></div>' +
+      (err ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(err) + '</span></div>' : '') +
+      (busy ? ktThink(['Đang đọc nhận xét của gia sư', 'Đang gom mạch kiến thức đã học', 'Đang viết nhận xét chung']) : S ? ktProfSumHtml(S, 'kgs') : '<div class="empty" style="padding:24px"><i class="bi bi-journal-text"></i>Chưa có nhận xét — bấm “AI viết nhận xét”.</div>');
+  };
+  let S = last.log && last.log.actions && last.log.actions.prof || null;
+  const watch = lg => { paint(S, 1); ktWatch(lg, g => { const A = g && g.actions && g.actions.prof; if (A) S = A; if (!m.closed) paint(S, 0, A ? '' : (g && g.err) || 'AI chưa viết được — thử lại'); }); };
+  if (last.log && /^(send|wait|proc)$/.test(last.log.status)) watch(last.log); else paint(S, 0);
+  B.onclick = async e => { const b = e.target.closest('[data-nx]'); if (!b) return;
+    if (b.dataset.nx === 'pdf') return ktProfPdf(R, S);
+    if (b.dataset.nx === 'cp') return navigator.clipboard.writeText(S.thuPhuHuynh || ktProfText(R, S)).then(() => toast('Đã chép', 'ok'));
+    b.disabled = true; try { const r = await rpc('ktProfAi', { src: 'kgs', id: c.id }, { quiet: true }); watch(r.log); } catch (er) { b.disabled = false; fail(er); } };
 }
 /** (1.82) AI PHÂN TÍCH NHẬN XÉT KGS → GÁN BÀI: một lượt gán bài (kind assign, chỉ đề xuất, không mở khoá bài cũ) cho 21 ngày tới; kết quả hiện ngay trong bảng nhận xét — tick mục rồi Áp dụng */
 async function clFbAi(c, m, btn, repaint, onX, resume) {
@@ -19168,7 +19232,7 @@ function clDetail(B, v, id) {
         // (1.74) máy tính: Tự duyệt · Lộ trình KGS · Link chung gom thành MỘT nhóm công tắc liền khối; In gộp (việc chính) đứng riêng bên phải
         (man ? '<span class="cd-set">' : '') +
         (man ? '<label class="cd-auto' + (c.autoOk ? ' on' : '') + '" title="' + (c.autoOk ? 'Đang bật — bài hệ thống xếp được duyệt & phát ngay' : 'Đang tắt — bạn duyệt từng buổi') + '"><i class="bi bi-robot"></i><b>Tự duyệt</b><span class="sw"><input type="checkbox" id="cdAuto"' + (c.autoOk ? ' checked' : '') + '><span></span></span></label>' : '') +
-        (man ? clKgsChip(c) : '') +
+        (man ? clKgsChip(c) : '') + (man && CL.d.ktl && CL.d.ktl[c.id] ? '<button type="button" class="cd-auto on ktl-chip" data-ktl="' + esc(c.id) + '" title="Bé học lớp kientre.click ' + esc(CL.d.ktl[c.id].cls) + ' — xem chủ đề, gán bài bổ trợ"><i class="bi bi-mortarboard"></i><b>Học lớp KT</b></button>' : '') +      // (1.93)
         (man ? '<button type="button" class="cd-auto cd-lk' + (c.linkcfg ? ' on' : '') + '" id="cdLink" aria-label="Cài đặt link của lớp" title="' + esc((c.linkcfg ? 'Cài đặt link riêng: ' : 'Theo cài đặt chung: ') + clLinkSum(clLinkC(c))) + '"><i class="bi bi-link-45deg"></i><b>' + (c.linkcfg ? 'Link riêng' : 'Link chung') + '</b></button></span>' : '') +
         clSnBtn(c) +      // (1.75)
         // (1.75.1) cụm việc chính bên phải, cùng cỡ: Gán bài (dùng nhiều) · In gộp
@@ -22005,7 +22069,7 @@ async function apPreview(x) {
 .ax-mode-p button{ display:grid; grid-template-columns:22px 1fr 16px; gap:10px; align-items:center; border:0; background:none; padding:9px 10px; border-radius:10px; cursor:pointer; text-align:left; color:var(--ink); font:inherit }
 .ax-mode-p button:hover{ background:var(--surface-3) } .ax-mode-p button > i:first-child{ font-size:16px; color:var(--primary) } .ax-mode-p b{ display:block; font-size:13.5px } .ax-mode-p small{ display:block; font-size:11.5px; color:var(--muted); line-height:1.35 }
 .ax-mode-p .ck{ visibility:hidden; color:var(--primary) } .ax-mode-p [aria-checked="true"] .ck{ visibility:visible } .ax-mode-p [aria-checked="true"]{ background:color-mix(in oklab, var(--primary) 7%, transparent) }
-.ax-app .ax-msgs{ padding:18px max(6px, calc((100% - 1080px) / 2)) 22px; gap:22px }
+.ax-app .ax-msgs{ padding:18px max(6px, calc((100% - 1180px) / 2)) 22px; gap:22px }      /* (1.93) cột chat rộng hơn */
 .ax-app .ax-m{ max-width:100% } .ax-app .ax-m.me{ max-width:min(720px, 85%) }
 .ax-app .ax-m.me .ax-bb{ background:color-mix(in oklab, var(--primary) 10%, var(--surface)); border:1px solid color-mix(in oklab, var(--primary) 16%, transparent) }
 .ax-app .ax-m.ai .ax-bb{ flex:1 }
@@ -23879,7 +23943,7 @@ const insxDm = d => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) : '
 /** dòng chuẩn hoá cho bảng + bộ lọc của từng loại */
 function insxRows(k, R) {
   if (k === 'both') {
-    const L = (R.list || []).map(o => ({ be: o.be, khoi: o.khoi || '', kgs: o.ma || '', gs: o.gs || '', kt: o.ktLop || '', gv: o.gv || '', m: o.chac === 'cao' ? 'both' : 'both2', last: o.ktLast || '' }));
+    const L = (R.list || []).map(o => ({ be: o.be, khoi: o.khoi || '', kgs: o.ma || '', gs: o.gs || '', kt: o.ktLop || '', gv: o.gv || '', m: o.chac === 'cao' ? 'both' : 'both2', last: o.ktLast || '', cid: o.cid, ktMa: o.ktMa, ktTen: o.ktTen, lk: o.lk ? 1 : 0 }));
     (R.onlyKgs || []).forEach(o => L.push({ be: o.be, khoi: o.khoi || '', kgs: o.ma || '', gs: o.gs || '', kt: '', gv: '', m: 'kgs', last: '' }));
     (R.onlyKt || []).forEach(o => L.push({ be: o.be, khoi: o.khoi || '', kgs: '', gs: '', kt: o.ktLop || '', gv: o.gv || '', m: 'kt', last: o.ktLast || '' }));
     return L;
@@ -23900,7 +23964,7 @@ function insxMount(el, k, big) {
     const segs = k === 'both' ? [['hai', 'Cả hai nơi', A.filter(x => /^both/.test(x.m)).length], ['kgs', 'Chỉ KGS', A.filter(x => x.m === 'kgs').length], ['kt', 'Chỉ kientre.click', A.filter(x => x.m === 'kt').length], ['all', 'Tất cả', A.length]]
       : [['can', 'Cần chú ý', A.filter(x => x.lv !== 'ok').length], ['bad', 'Quá lâu', A.filter(x => x.lv === 'bad').length], ['warn', 'Cần nhắc', A.filter(x => x.lv === 'warn').length], ['never', 'Chưa từng test', A.filter(x => !x.last).length], ['done', 'Đã có bài KT', A.filter(x => x.n).length], ['all', 'Tất cả', A.length]];
     const khoi = [...new Set(A.map(x => String(x.khoi)).filter(Boolean))].sort((a, b) => Number(a) - Number(b)), gsL = k === 'test' ? [...new Set(A.map(x => x.gs).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi')) : [];
-    const COL = k === 'both' ? [['be', 'Học sinh'], ['khoi', 'Khối'], ['kgs', 'Kiến Gia Sư'], ['kt', 'Lớp kientre.click'], ['gv', 'Giáo viên lớp'], ['m', 'Khớp tên']]
+    const COL = k === 'both' ? [['be', 'Học sinh'], ['khoi', 'Khối'], ['kgs', 'Kiến Gia Sư'], ['kt', 'Lớp kientre.click'], ['gv', 'Giáo viên lớp'], ['m', 'Khớp tên']].concat(typeof ktlMark === 'function' && st.seg !== 'kgs' && st.seg !== 'kt' ? [['act', 'Bổ trợ lớp KT']] : [])
       : [['be', 'Học sinh'], ['khoi', 'Khối'], ['gs', 'Gia sư'], ['hoc', 'Đã học'], ['n', 'Bài KT đã làm'], ['since', 'Từ lần KT'], ['next', 'Sắp tới']];
     el.innerHTML = '<div class="insx-bar"><div class="insx-seg" role="tablist" aria-label="Lọc">' + segs.map(g => '<button type="button" data-ixs="' + g[0] + '" aria-pressed="' + (st.seg === g[0]) + '">' + g[1] + '<b>' + g[2] + '</b></button>').join('') + '</div></div>' +
       '<div class="insx-bar"><span class="insx-q"><i class="bi bi-search"></i><input type="search" placeholder="Tìm học sinh, lớp, ' + (k === 'both' ? 'giáo viên' : 'gia sư') + '…" value="' + esc(st.q) + '" aria-label="Tìm"></span>' +
@@ -23919,8 +23983,9 @@ function insxMount(el, k, big) {
     const td = (x, c) => {
       if (k === 'both') { if (c === 'kgs') return x.kgs ? '<b>' + esc(x.kgs) + '</b>' + (x.gs ? '<small>' + esc(x.gs) + '</small>' : '') : '<span class="mu">—</span>';
         if (c === 'kt') return x.kt ? '<b>' + esc(x.kt) + '</b>' + (x.last ? '<small>gần nhất ' + insxDm(x.last) + '</small>' : '') : '<span class="mu">—</span>';
-        if (c === 'gv') return x.gv ? '<span class="insx-gv">' + esc(x.gv) + '</span>' : '<span class="mu">—</span>';
-        if (c === 'm') return '<span class="insx-pill ' + x.m + '">' + INSX_M[x.m] + '</span>'; }
+        if (c === 'gv') { const G = String(x.gv || '').split(/\s*,\s*/).filter(Boolean); return G.length ? '<span class="insx-gv" title="' + esc(G.join(', ')) + '">' + esc(G.slice(0, 2).join(', ')) + (G.length > 2 ? '<button type="button" class="insx-more" data-ixgv="' + esc(G.join(', ')) + '">+' + (G.length - 2) + '</button>' : '') + '</span>' : '<span class="mu">—</span>'; }
+        if (c === 'm') return '<span class="insx-pill ' + x.m + '">' + INSX_M[x.m] + '</span>';
+        if (c === 'act') return x.cid && x.ktMa && /^both/.test(x.m) ? '<span class="insx-act"><button type="button" class="insx-ab' + (x.lk ? ' on' : '') + '" data-ixa="mark" title="' + (x.lk ? 'Đã đánh dấu bé học lớp KT — bấm để bỏ' : 'Đánh dấu lớp gia sư này là bé học lớp kientre.click') + '"><i class="bi ' + (x.lk ? 'bi-check2-circle' : 'bi-link-45deg') + '"></i>' + (x.lk ? 'Đã đánh dấu' : 'Đánh dấu') + '</button><button type="button" class="insx-ab" data-ixa="top" title="Chủ đề bé đã học bên kientre.click"><i class="bi bi-journal-bookmark"></i>Chủ đề KT</button><button type="button" class="insx-ab" data-ixa="asg" title="AI gán bài bổ trợ (nháp chờ duyệt)"><i class="bi bi-stars"></i>Gán bổ trợ</button></span>' : '<span class="mu">—</span>'; }
       else { if (c === 'n') return x.n ? '<b>' + x.n + '</b>' + x.tests.map(t => '<small>' + insxDm(t.d) + ' · ' + esc(t.n) + (t.v != null ? ' · <b class="insx-sc">' + String(t.v).replace('.', ',') + '/10</b>' : '') + '</small>').join('') : '<span class="insx-pill never">Chưa từng test</span>';
         if (c === 'since') return '<span class="insx-pill ' + x.lv + '">' + x.since + ' buổi</span>' + (x.last ? '<small>KT gần nhất ' + insxDm(x.last.d) + '</small>' : '');
         if (c === 'next') return x.next ? '<b>' + insxDm(x.next.d) + '</b><small>' + esc(x.next.n) + '</small>' : '<span class="mu">—</span>';
@@ -23928,15 +23993,20 @@ function insxMount(el, k, big) {
       if (c === 'be') return '<b>' + esc(x.be) + '</b>';
       return esc(x[c] == null || x[c] === '' ? '—' : x[c]); };
     const body = () => { const V = A.filter(pass).sort((a, b) => { const p = val(a, st.sort), q = val(b, st.sort); return (p < q ? -1 : p > q ? 1 : 0) * st.dir || String(a.be).localeCompare(String(b.be), 'vi'); });
-      $('tbody', el).innerHTML = V.length ? V.map(x => '<tr>' + COL.map(c => '<td data-l="' + c[1] + '">' + td(x, c[0]) + '</td>').join('') + '</tr>').join('') : '<tr><td colspan="' + COL.length + '" class="insx-empty">Không có học sinh nào khớp bộ lọc</td></tr>';
+      $('tbody', el).innerHTML = V.length ? V.map((x, i) => '<tr data-ixr="' + i + '">' + COL.map(c => '<td data-l="' + c[1] + '">' + td(x, c[0]) + '</td>').join('') + '</tr>').join('') : '<tr><td colspan="' + COL.length + '" class="insx-empty">Không có học sinh nào khớp bộ lọc</td></tr>';
       $('.insx-n', el).textContent = V.length + ' / ' + A.length + ' học sinh'; el._v = V; };
     body();
     $('.insx-q input', el).oninput = e => { st.q = e.target.value; body(); };
     $('.insx-k', el).onchange = e => { st.khoi = e.target.value; body(); };
     const g = $('.insx-g', el); if (g) g.onchange = e => { st.gs = e.target.value; body(); };
     el.onclick = e => {
-      const s = e.target.closest('[data-ixs]'); if (s) { st.seg = s.dataset.ixs; $$('[data-ixs]', el).forEach(b => b.setAttribute('aria-pressed', b === s)); return body(); }
-      const th = e.target.closest('[data-ixo]'); if (th) { const c = th.dataset.ixo; st.dir = st.sort === c ? -st.dir : (c === 'since' || c === 'hoc' || c === 'n' ? -1 : 1); st.sort = c; return draw(R); }
+      const gv = e.target.closest('[data-ixgv]'); if (gv) { const sp = gv.parentNode; sp.innerHTML = esc(gv.dataset.ixgv); sp.classList.add('all'); return; }      // (1.93) hiện đủ giáo viên
+      const s = e.target.closest('[data-ixs]'); if (s) { st.seg = s.dataset.ixs; return draw(R); }      // (1.93) vẽ lại cả bảng — cột “Bổ trợ lớp KT” chỉ ở nhóm cả hai nơi
+      const ab = e.target.closest('[data-ixa]'); if (ab) { const x = (el._v || [])[Number(ab.closest('[data-ixr]').dataset.ixr)]; if (!x) return; const lk = { code: x.ktMa, name: x.ktTen, cls: x.kt };      // (1.93) bổ trợ lớp KT
+        if (ab.dataset.ixa === 'mark') return ktlMark(x.cid, x.lk ? null : lk, on => { x.lk = on ? 1 : 0; body(); });
+        if (!x.lk) return ktlMark(x.cid, lk, () => { x.lk = 1; body(); ab.dataset.ixa === 'top' ? ktlTopicsDlg(x.cid, x.be) : ktlAssignDo(x.cid, x.be); });
+        return ab.dataset.ixa === 'top' ? ktlTopicsDlg(x.cid, x.be) : ktlAssignDo(x.cid, x.be); }
+      const th = e.target.closest('[data-ixo]'); if (th) { const c = th.dataset.ixo; if (c === 'act') return; st.dir = st.sort === c ? -st.dir : (c === 'since' || c === 'hoc' || c === 'n' ? -1 : 1); st.sort = c; return draw(R); }
       if (e.target.closest('[data-ixre]')) { el.innerHTML = '<div class="insx-ld">' + (typeof loadFx === 'function' ? loadFx('Đang tải lại…', { c: 'doc' }) : 'Đang tải…') + '</div>'; return load(true); }
       if (e.target.closest('[data-ixside]')) return insxSide(k);
       if (e.target.closest('[data-ixcsv]')) { const q2 = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"', V = el._v || [];
@@ -24121,7 +24191,7 @@ html[data-mode="dark"] .ah{ --s-api:#3987e5; --s-gweb:#199e70; --s-flow:#d95926 
 .br-n.flow{ border-color:color-mix(in oklab, var(--primary) 60%, var(--border)); background:color-mix(in oklab, var(--primary) 8%, var(--surface)); box-shadow:0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent) }
 .br-svg path.use.out{ animation-direction:reverse }
 .br-n.sub b{ overflow:visible; padding:3px 0 0 3px } .br-n.sub b .as-av.xs{ width:28px; height:28px; margin:0 4px 0 0 }      /* (1.82.7) robot không bị cắt */ .br-n.br-lv{ margin-left:22px; padding:6px 10px; min-height:0; position:relative } .br-n.br-lv::before{ content:''; position:absolute; left:-14px; top:-6px; height:calc(50% + 6px); width:10px; border-left:1.5px solid var(--border); border-bottom:1.5px solid var(--border); border-bottom-left-radius:7px } .br-n.br-lv .src{ display:none }      /* (1.82.13) nhân viên dưới quyền trưởng phòng */ .br-pop .ph .as-av.xs{ width:28px; height:28px } .br-n.sub{ border-style:solid; border-width:1.5px } .br-n.sub b em{ font-weight:700; color:var(--muted) } .br-n.sub.use b em{ color:var(--primary) }
-.br-th{ max-width:760px; margin:4px auto 0 } .br-th:empty{ display:none } .br-th .tka-qm{ margin-top:14px }
+.br-th{ max-width:1100px; margin:4px auto 0 }      /* (1.93) rộng hơn */ .br-th:empty{ display:none } .br-th .tka-qm{ margin-top:14px }
 .br-sb{ display:inline-block; font-size:10.5px; font-weight:700; padding:0 6px; border-radius:6px; background:color-mix(in oklab, var(--primary) 10%, var(--surface)); color:var(--primary) }
 .br-gv{ display:flex; gap:8px; align-items:flex-start; flex-wrap:wrap; margin-top:10px } .br-gv .sel{ width:auto; flex:none } .br-gv textarea{ flex:1 1 260px; min-height:36px; resize:vertical } .br-gv .btn{ flex:none }
 .tka-br{ margin-top:14px } .tka-br .br-wrap{ padding-bottom:0 }
@@ -30115,7 +30185,7 @@ function svMemoV(b) {
   .view:has(.kt-ask){ padding:0 }      /* bỏ lề vùng nội dung (lề mỗi giao diện một khác) → thanh lịch sử chạm mép trái, cao hết màn */
   .kt-ask{ gap:0 }
   .kt-rail{ top:0; flex:0 0 272px; height:calc(100dvh - var(--tb-h, 64px) - 2px); padding:14px 12px 12px; background:var(--surface); border-right:1px solid var(--border) }
-  .kt-ask > .kt-chat{ max-width:820px; margin:0 auto; padding:var(--sp-4) 20px 0; box-sizing:border-box; min-height:calc(100dvh - var(--tb-h, 64px) - 2px) }
+  .kt-ask > .kt-chat{ max-width:1160px; margin:0 auto; padding:var(--sp-4) 20px 0; box-sizing:border-box; min-height:calc(100dvh - var(--tb-h, 64px) - 2px) }
   .kt-ask > .kt-side{ margin:var(--sp-4) var(--sp-4) 0 0; top:var(--sp-4) }
 }
 .kt-ask.rail-off > .kt-rail{ display:none }
@@ -30138,8 +30208,11 @@ function svMemoV(b) {
 .kt-rf select{ height:24px; border-radius:7px; border:1px solid var(--border); background:var(--surface); color:var(--ink-2); font-size:11.5px; padding:0 4px }
 .kt-rf a{ margin-left:auto; color:var(--muted) } .kt-rf a:hover{ color:var(--danger) }
 .kt-rbd{ display:none }
-.kt-chd{ display:flex; align-items:center; gap:4px; min-height:38px; margin-bottom:2px }
-.kt-chd .kt-ctt{ flex:1; min-width:0; font-size:14px; font-weight:600; color:var(--ink-2); white-space:nowrap; overflow:hidden; -webkit-mask-image:linear-gradient(90deg, #000 85%, transparent); mask-image:linear-gradient(90deg, #000 85%, transparent); padding-left:4px }
+.kt-chd{ display:flex; align-items:center; gap:10px; min-height:48px; margin:0 0 6px; padding:0 2px 8px; border-bottom:1px solid var(--border) }      /* (1.93) thanh đầu gọn */
+.kt-chg{ display:inline-flex; align-items:center; gap:2px; padding:3px; border:1px solid var(--border); border-radius:12px; background:var(--surface); flex:none }
+.kt-chg .kt-icb{ width:32px; height:32px; border-radius:9px; font-size:15px }
+.kt-ask:not(.rail-off) .kt-chg{ display:none }
+.kt-chd .kt-ctt{ flex:1; min-width:0; font-size:15px; font-weight:650; letter-spacing:-.005em; color:var(--ink); white-space:nowrap; overflow:hidden; -webkit-mask-image:linear-gradient(90deg, #000 85%, transparent); mask-image:linear-gradient(90deg, #000 85%, transparent); padding-left:4px }
 .kt-ask:not(.rail-off) .kt-chd [data-krtg], .kt-ask:not(.rail-off) .kt-chd [data-krnew]{ display:none }
 /* thanh soạn câu hỏi — MỘT hàng: chip Phạm vi · chip Học sinh │ kênh AI · nút gửi */
 .kt-cbar{ display:flex; align-items:center; gap:6px; min-width:0 }
@@ -30189,14 +30262,14 @@ function svMemoV(b) {
   .kt-ask.rail-off > .kt-rail{ display:flex }
   .kt-ask.rail-m > .kt-rail{ transform:none }
   .kt-ask.rail-m > .kt-rbd{ display:block; position:fixed; inset:0; z-index:299; background:rgba(15,23,42,.32) }
-  .kt-ask .kt-chd [data-krtg], .kt-ask .kt-chd [data-krnew]{ display:grid !important }
+  .kt-ask .kt-chd [data-krtg], .kt-ask .kt-chd [data-krnew]{ display:grid !important } .kt-ask .kt-chg{ display:inline-flex !important }
 }
 @media (max-width:600px){      /* điện thoại: chip chỉ còn biểu tượng (học sinh đã chọn thì hiện tên) · kênh AI chữ nhỏ */
   #ktScope > span, #ktScope > .bi-chevron-down, #ktStuBtn:not(.on) > span{ display:none }
   .kt-chip{ padding:0 10px } .kt-eng > i{ display:none } .kt-eng select{ font-size:13px !important; max-width:118px }
   .kt-comp textarea{ font-size:16px }
 }
-.kt-chat{ display:flex; flex-direction:column; gap:0; max-width:780px; margin:0 auto; width:100%; min-height:calc(100dvh - 150px) }
+.kt-chat{ display:flex; flex-direction:column; gap:0; max-width:1120px; margin:0 auto; width:100%; min-height:calc(100dvh - 150px) }
 .kt-msgs{ flex:1; display:flex; flex-direction:column; gap:26px; padding:8px 0 24px }
 .kt-hello{ flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:10px; padding:28px 0 }
 .kt-hello h2{ margin:6px 0 0; font-size:26px; letter-spacing:-.02em } .kt-hello p{ margin:0; color:var(--muted); font-size:14.5px; max-width:520px; line-height:1.55 }
@@ -30738,8 +30811,8 @@ function ktAskView(B) {
      Thanh soạn câu hỏi một hàng: chip Phạm vi (môn + khoảng ngày, mở bảng nhỏ) · chip Học sinh │ kênh AI · nút gửi. Cuộc mới / Lịch sử nằm ở thanh trái. */
   const wide = window.innerWidth > 900, railOn = wide && lsGet('ktRail', 1) ? 1 : 0;
   B.innerHTML = '<div class="kt-ask' + (railOn ? '' : ' rail-off') + '"><aside class="kt-rail" id="ktRail" aria-label="Lịch sử trò chuyện"></aside><div class="kt-rbd" data-krbd></div>' +
-    '<div class="kt-chat"><div class="kt-chd"><button type="button" class="kt-icb" data-krtg title="Lịch sử trò chuyện" aria-label="Mở lịch sử trò chuyện"><i class="bi bi-layout-sidebar"></i></button>' +
-      '<button type="button" class="kt-icb" data-krnew title="Cuộc trò chuyện mới" aria-label="Cuộc trò chuyện mới"><i class="bi bi-pencil-square"></i></button><span class="kt-ctt" id="ktCtt"></span></div>' +
+    '<div class="kt-chat"><div class="kt-chd"><span class="kt-chg"><button type="button" class="kt-icb" data-krtg title="Lịch sử trò chuyện" aria-label="Mở lịch sử trò chuyện"><i class="bi bi-layout-sidebar"></i></button>' +
+      '<button type="button" class="kt-icb" data-krnew title="Cuộc trò chuyện mới" aria-label="Cuộc trò chuyện mới"><i class="bi bi-pencil-square"></i></button></span><span class="kt-ctt" id="ktCtt"></span></div>' +
     '<div id="ktStuBox" class="kt-stubox"></div><div class="kt-msgs" id="ktMsgs"></div><div class="kt-comp"><textarea id="ktQ" rows="1" placeholder="Hỏi Trợ lý về lớp, học sinh, bài đã học, BTVN…" aria-label="Câu hỏi"></textarea>' +
     '<div class="kt-cbar"><button type="button" class="kt-chip" id="ktScope" aria-haspopup="true" title="Môn và khoảng ngày dữ liệu"></button>' +
     '<button type="button" class="kt-chip" id="ktStuBtn" aria-label="Chọn học sinh"><i class="bi bi-person-plus"></i><span>Học sinh</span></button><span class="sp"></span>' +
@@ -31133,7 +31206,10 @@ function ktProfView(B) {
     const C = kgs() ? {} : (P.list.list || []).find(x => x.cls === cls) || {};
     const ok0 = key();
     P.op = kgs() ? rpc('ktProfKgs', { id: code }, { quiet: true }) : rpc('ktProf', { cls: cls, code: code, name: name, fr: P.fr, to: P.to, grades: C.grades, prog: C.prog }, { quiet: true });
-    try { const D = await P.op; P.dc[dk] = D; if (key() !== ok0) return; P.data = D; }
+    try { const D = await P.op; P.dc[dk] = D; if (key() !== ok0) return; P.data = D;
+      if (!P.sum[ok0]) rpc('ktProfLast', { src: P.src, code: code }, { quiet: true }).then(r => { const lg = r && r.log; if (!lg) return; const A = lg.actions && lg.actions.prof; if (A && !P.sum[ok0]) { P.sum[ok0] = A; if (key() === ok0 && P.view && P.view.isConnected) P.paint(); }
+        else if (/^(send|wait|proc)$/.test(lg.status) && P.busy !== ok0) { P.busy = ok0; ktWatch(lg, g => { if (P.busy === ok0) P.busy = ''; const B2 = g && g.actions && g.actions.prof; if (B2) P.sum[ok0] = B2; if (key() === ok0 && P.view && P.view.isConnected) P.paint(); }); if (key() === ok0 && P.view && P.view.isConnected) P.paint(); } }).catch(() => {});      // (1.93) bản gần nhất / đang chạy
+    }
     catch (e) { P.op = null; if (!P.view || !P.view.isConnected) return; P.view.innerHTML = ktErrCard(e) + '<button class="btn sm" id="ktPfBk2"><i class="bi bi-arrow-left"></i> Chọn học sinh khác</button>'; const b = $('#ktPfBk2', P.view); if (b) b.onclick = P.pick; return; }
     P.op = null; if (P.view && P.view.isConnected) P.paint();
   };
@@ -31143,7 +31219,7 @@ function ktProfView(B) {
     V.innerHTML = '<div class="kt-card kt-pad"><div class="kt-h"><button class="btn sm ghost" id="ktPfBk"><i class="bi bi-arrow-left"></i> Chọn học sinh khác</button><span class="sp"></span><span class="kt-pill">' + esc(src) + '</span><span class="kt-sub">' + ktDm(R.fr) + ' → ' + ktDm(R.to) + '</span></div>' +
       '<div class="kt-h">' + ktAv(R.stu.name) + '<div class="kt-t" style="flex:1"><b>' + esc(R.stu.name) + '</b><span class="kt-meta">' + [R.stu.cls, R.stu.grades && 'Khối ' + R.stu.grades, R.stu.prog].filter(Boolean).map(x => '<span>' + esc(x) + '</span>').join('') + '</span>' +
         ((R.tea || []).length ? '<span class="kt-meta kt-tea"><i class="bi bi-person-workspace"></i><span>' + esc(R.tea.join(' · ')) + '</span></span>' : '') + '</div>' + (S && S.mucDo ? '<span class="kt-pill ai">Sức học: ' + esc(S.mucDo) + '</span>' : '') + '</div>' +
-      (SJ.length > 1 ? '<div class="kt-sjs"><span class="kt-sub"><i class="bi bi-funnel"></i> Môn phân tích</span><button type="button" class="kt-chip" data-kpsj="" aria-pressed="' + !(P.sjSel || []).length + '">Tất cả</button>' + SJ.map(x => '<button type="button" class="kt-chip" data-kpsj="' + esc(x) + '" aria-pressed="' + ((P.sjSel || []).indexOf(x) >= 0) + '">' + esc(x) + '</button>').join('') + '</div>' : '') +
+      (SJ.length > 1 ? '<div class="kt-sjs"><span class="kt-sub"><i class="bi bi-funnel"></i> Môn phân tích</span><button type="button" class="kt-chip" data-kpsj="" aria-pressed="' + !(P.sjSel || []).length + '">Tất cả</button>' + SJ.map(x => '<button type="button" class="kt-chip" data-kpsj="' + esc(x) + '" aria-pressed="' + ((P.sjSel || []).indexOf(x) >= 0) + '">' + esc(x) + '</button>').join('') + '</div>' : SJ.length === 1 ? '<div class="kt-sjs"><span class="kt-sub"><i class="bi bi-funnel"></i> Môn phân tích</span><span class="kt-chip" aria-pressed="true">' + esc(SJ[0]) + '</span>' + (R0.src === 'kgs' ? '<span class="kt-sub">theo Môn áp dụng ở Đồng bộ KGS</span>' : '') + '</div>' : '') +
       '<div class="kt-kpi"><div><b>' + R.n + '</b><small>buổi đã học</small></div><div><b>' + R.nCmt + '</b><small>buổi có nhận xét</small></div><div><b>' + R.vang + '</b><small>buổi vắng</small></div><div><b>' + (R.hw != null ? R.hw + '%' : '–') + '</b><small>BTVN làm</small></div><div><b>' + (R.ok != null ? R.ok + '%' : '–') + '</b><small>BTVN đúng</small></div></div>' +
       ((R.hist || []).length > 1 ? '<div class="kt-tl"><span class="kt-sub"><i class="bi bi-signpost-2"></i> Quá trình học</span>' + R.hist.map((h, i) => '<span class="kt-pill' + (i === R.hist.length - 1 ? ' ai' : '') + '" title="' + h.n + ' buổi">' + esc(h.cls) + ' · ' + ktDm(h.fr) + ' → ' + ktDm(h.to) + '</span>').join('<i class="bi bi-arrow-right kt-sub"></i>') + '</div>' : '') +
       '<div class="kt-acts"><button class="btn pri sm" id="ktPfAi"' + (busy ? ' disabled' : '') + '><i class="bi bi-stars"></i> ' + (S ? 'Nhận xét lại' : 'AI nhận xét') + '</button>' +
@@ -31170,8 +31246,11 @@ function ktProfView(B) {
   ktSpanBind(B, 'prof', 180, S => { P.fr = S.fr; P.to = S.to; P.data = null; P.list = null; load(); });      // (1.84.5) nhớ khoảng ngày cho lần mở sau
   $('#ktPfQ', B).oninput = () => { if (P.list && !P.data) pick(); };
   $('#ktPfRe', B).onclick = () => { P.data = null; P.dc = {}; load(true); };
+  P.go = () => { const g = KT.pfGo; if (!g) return; KT.pfGo = null; if (P.src !== g.src) { P.src = g.src; lsSet('ktPfSrc', P.src); P.list = null; } syncTop();      // (1.93) mở từ Việc AI
+    const pr = open(g.cls, g.code, g.name); if (g.sum) { P.sum[key()] = g.sum; if (P.data && P.view && P.view.isConnected) P.paint(); } return pr; };
   P.view = V; P.paint = paint; P.pick = pick;      // (1.84.5) khung đang hiện — lượt AI / tải xong sau khi chuyển tab vẽ vào đây
   syncTop();
+  if (KT.pfGo) { P.go(); return; }      // (1.93)
   if (P.list && P.data) paint();
   else if (P.op) { V.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx('Đang gom nhận xét cũ của ' + P.name + '…', { c: 'cmt' }) : 'Đang tải…') + '</div>'; }
   else if (P.list) pick(); else load();
@@ -31259,7 +31338,7 @@ function ktProfPdf(R, S) {
 }
 
 /* ══════ (1.84.4) DÙNG CHUNG: BIỂU ĐỒ SVG · MARKDOWN KÈM BIỂU ĐỒ · KHUNG PDF THEO BỘ MÀU MAIL (Kiến Trẻ + Kiến GS › Nhận xét KGS) ══════ */
-const KT_PAL = ['var(--brand-600)', '#EE5B27', 'var(--ok)'], KT_PAL_PR = ['#1E3A6E', '#EE5B27', '#0F7B45'];
+const KT_PAL = ['var(--brand-600)', '#EE5B27', 'var(--ok)'], KT_PAL_PR = ['#204983', '#F66600', '#0F7B45'];
 /** khối biểu đồ AI viết: { type: bar | line | hbar, title, unit, labels, series: [{ name, data }] } → <figure> SVG (o.print = màu cố định cho bản in) */
 function ktChartSvg(c, o) {
   o = o || {}; const pal = o.print ? KT_PAL_PR : KT_PAL, mut = o.print ? '#5B6478' : 'var(--muted)', grid = o.print ? '#E3E7F0' : 'var(--border)', ink = o.print ? '#14213D' : 'var(--ink)';
@@ -31346,51 +31425,69 @@ function rptPdf(o) {
   const head = '<header class="ktr-h"><div class="ktr-bar">' + (logo ? '<span class="ktr-logo"><img src="' + logo + '" alt=""></span>' : '') + '<div class="ktr-t"><small>' + esc(app) + ' · ' + esc(o.kicker || 'Báo cáo') + '</small><b>' + esc(o.title || '') + '</b>' + (o.sub ? '<span>' + esc(o.sub) + '</span>' : '') + '</div>' +
       (o.badge ? '<div class="ktr-bd"><small>' + esc(o.badge.k) + '</small><b>' + esc(o.badge.v) + '</b></div>' : '') + '</div><div class="ktr-strip"></div></header>' +
     ((o.kpi || []).length ? '<div class="ktr-kpi">' + o.kpi.map(k => '<div><b>' + esc(k.n) + '</b><small>' + esc(k.t) + '</small></div>').join('') + '</div>' : '');
-  const foot = '<footer class="ktr-f"><span>' + (o.foot || '') + '</span><span>' + esc(app) + ' · ' + hom + '</span></footer>';
+  const foot = '<footer class="ktr-f"><span>' + (o.foot || '') + '</span><span>' + esc(app) + ' · kientre.edu.vn · ' + hom + '</span></footer>';
   const area = document.createElement('div'); area.id = 'ktPrint';
   area.innerHTML = '<article class="ktr">' + head + (o.body || '') + foot + '</article>';
   document.body.appendChild(area);
   const st = document.createElement('style'); st.id = 'ktPrintCss'; st.textContent = RPT_CSS; document.head.appendChild(st);
+  if (!document.getElementById('ktPrintFont')) { const lk = document.createElement('link'); lk.id = 'ktPrintFont'; lk.rel = 'stylesheet'; lk.href = RPT_FONT; document.head.appendChild(lk); }      // (1.93) font Montserrat như kientre.edu.vn
   const t0 = document.title; document.title = String(o.file || o.title || 'Bao cao').replace(/[\\/:*?"<>|]/g, '');
   const clean = () => { area.remove(); st.remove(); document.title = t0; removeEventListener('afterprint', clean); };
   addEventListener('afterprint', clean);
   toast('Chọn “Lưu thành PDF” (Save as PDF), khổ A4', 'info', 4000);
   const imgs = [].slice.call(area.querySelectorAll('img')).filter(i => !i.complete), t1 = Date.now();      // ảnh vở / logo tải xong rồi mới in (tối đa 5 giây)
-  const go2 = () => { if (imgs.some(i => !i.complete) && Date.now() - t1 < 5000) return setTimeout(go2, 150); window.print(); };
+  const fok = () => { try { return document.fonts.check('800 20px Montserrat'); } catch (e) { return true; } };
+  const go2 = () => { if ((imgs.some(i => !i.complete) || !fok()) && Date.now() - t1 < 5000) return setTimeout(go2, 150); window.print(); };
+  try { document.fonts.load('800 20px Montserrat'); document.fonts.load('500 10px Montserrat'); } catch (e) {}
   setTimeout(go2, 120);
 }
-/* (1.92) bản sạch: nền trắng, bỏ nền màu các khối — chỉ đầu trang có logo diều + vạch navy / cam (bộ màu mail), chữ và khoảng trắng làm chủ */
+/* (1.93) PHONG CÁCH KIẾN TRẺ (theo kientre.edu.vn): navy #204983 · cam #F66600 · kem #F4EFE6 · nền xanh nhạt #F5F9FF · font Montserrat (tiêu đề đậm 800,
+   dòng nhỏ cam in hoa) · thẻ bo tròn, khối trang trí tròn ở đầu trang · đoạn văn căn đều hai bên. Dùng cho MỌI báo cáo xuất PDF (rptPdf). */
+const RPT_FONT = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap';
 const RPT_CSS = '#ktPrint{ display:none }' +
-  '@media print{ @page{ size:A4; margin:13mm 14mm 12mm } body > *:not(#ktPrint){ display:none !important } html,body{ height:auto !important; overflow:visible !important; background:#fff !important }' +
-  '#ktPrint{ display:block; font-family:"Be Vietnam Pro",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size:10pt; line-height:1.55 }' +
-  '#ktPrint, #ktPrint *{ box-sizing:border-box; color:#2B3245 !important; background-color:transparent; box-shadow:none !important; text-shadow:none !important; -webkit-print-color-adjust:exact; print-color-adjust:exact }' +
-  '#ktPrint .ktr-bar{ display:flex; align-items:center; gap:14px; padding:0 0 12px }' +
-  '#ktPrint .ktr-logo{ width:46px; height:46px; border-radius:12px; background:#EEF3FC !important; display:grid; place-items:center; flex:none } #ktPrint .ktr-logo img{ height:32px; width:auto; display:block }' +
-  '#ktPrint .ktr-t{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px } #ktPrint .ktr-t small{ font-size:8pt; font-weight:700; color:#EE5B27 !important; letter-spacing:.08em; text-transform:uppercase }' +
-  '#ktPrint .ktr-t b{ font-size:19pt; line-height:1.2; font-weight:800; color:#1E3A6E !important; letter-spacing:-.015em } #ktPrint .ktr-t span{ font-size:9.2pt; color:#5B6478 !important }' +
-  '#ktPrint .ktr-bd{ border:1pt solid #1E3A6E; border-radius:999px; padding:4px 14px; text-align:center; flex:none; white-space:nowrap } #ktPrint .ktr-bd small{ font-size:7.6pt; color:#5B6478 !important; text-transform:uppercase; letter-spacing:.06em; margin-right:5px } #ktPrint .ktr-bd b{ font-size:10.5pt; color:#1E3A6E !important }' +
-  '#ktPrint .ktr-strip{ height:2pt; background:linear-gradient(90deg,#EE5B27 0 56px,#1E3A6E 56px) !important; margin-bottom:14px }' +
-  '#ktPrint .ktr-kpi{ display:flex; margin:0 0 16px; border-bottom:0.6pt solid #E3E7F0; padding-bottom:12px } #ktPrint .ktr-kpi > div{ flex:1; padding:0 10px; border-left:0.6pt solid #E3E7F0 } #ktPrint .ktr-kpi > div:first-child{ padding-left:0; border-left:0 }' +
-  '#ktPrint .ktr-kpi b{ display:block; font-size:15pt; line-height:1.15; font-weight:800; color:#1E3A6E !important; white-space:nowrap } #ktPrint .ktr-kpi small{ font-size:7.8pt; color:#5B6478 !important; white-space:nowrap }' +
-  '#ktPrint section{ margin:0 0 14px; break-inside:avoid } #ktPrint section.flow{ break-inside:auto }' +
-  '#ktPrint h2{ break-after:avoid; font-size:9pt; margin:0 0 6px; color:#1E3A6E !important; letter-spacing:.08em; text-transform:uppercase; font-weight:800; display:flex; align-items:center; gap:8px }' +
-  '#ktPrint h2::before{ content:""; width:14px; height:2pt; background:#EE5B27 !important; display:inline-block; flex:none }' +
-  '#ktPrint p{ margin:0 0 6px } #ktPrint ul, #ktPrint ol{ margin:0 0 4px; padding-left:15px } #ktPrint li{ margin:0 0 4px } #ktPrint li::marker{ color:#EE5B27 !important } #ktPrint h3, #ktPrint h4{ font-size:10pt; margin:6px 0 3px; color:#14213D !important }' +
-  '#ktPrint .ktr-lead{ font-size:11pt; line-height:1.65; margin:0 0 16px; color:#14213D !important }' +
-  '#ktPrint .ktr-two{ display:flex; gap:22px; break-inside:avoid; margin-bottom:14px } #ktPrint .ktr-two > section{ flex:1; margin:0; min-width:0 }' +
-  '#ktPrint .ktr-bx{ padding:0 } #ktPrint .ktr-bx.ok h2{ color:#0F7B45 !important } #ktPrint .ktr-bx.ok h2::before{ background:#0F7B45 !important }' +
-  '#ktPrint .ktr-bx.warn h2{ color:#C2410C !important }' +
-  '#ktPrint .ktr-bx.flow, #ktPrint .ktr-letter{ background:#F6F8FC !important; border-radius:12px; padding:14px 18px 10px; margin-top:4px } #ktPrint .ktr-letter h2{ color:#1E3A6E !important } #ktPrint .ktr-letter p{ font-size:10.2pt; line-height:1.7 }' +
-  '#ktPrint .ktr-tl{ display:flex; flex-wrap:wrap; gap:6px; align-items:center } #ktPrint .ktr-tl span{ border:0.8pt solid #CFDCF3; color:#1E3A6E !important; border-radius:999px; padding:2px 10px; font-size:8.6pt; font-weight:600 } #ktPrint .ktr-tl span.cur{ background:#1E3A6E !important; border-color:#1E3A6E; color:#fff !important } #ktPrint .ktr-tl i{ color:#8A93A6 !important; font-style:normal }' +
-  '#ktPrint table{ width:100%; border-collapse:collapse; font-size:9.2pt } #ktPrint td, #ktPrint th{ border-bottom:0.6pt solid #E9EDF4; padding:6px 8px 6px 0; vertical-align:top; text-align:left }' +
-  '#ktPrint th{ color:#8A93A6 !important; font-size:7.6pt; font-weight:700; text-transform:uppercase; letter-spacing:.06em; border-bottom:0.8pt solid #1E3A6E } #ktPrint tr{ break-inside:avoid } #ktPrint thead{ display:table-header-group }' +
-  '#ktPrint td.k{ font-weight:700; width:28%; color:#1E3A6E !important } #ktPrint td.d{ white-space:nowrap; width:10%; color:#5B6478 !important } #ktPrint td.b{ width:22%; font-weight:600; color:#14213D !important } #ktPrint td.n{ white-space:nowrap; width:11% }' +
-  '#ktPrint .lb{ color:#1E3A6E !important; font-size:7.6pt; font-weight:800; text-transform:uppercase; letter-spacing:.04em } #ktPrint .mu{ color:#8A93A6 !important; font-size:8.4pt }' +
-  '#ktPrint .ktr-brk{ break-before:page } #ktPrint .ktr-note{ font-size:9.4pt; border-left:2pt solid #EE5B27; padding:2px 0 2px 10px; margin-bottom:14px }' +
-  '#ktPrint figure.kt-chart{ margin:0; padding:2px 0 0; break-inside:avoid } #ktPrint .kt-chart figcaption{ display:flex; gap:10px; justify-content:space-between; font-size:8.8pt; margin-bottom:4px }' +
-  '#ktPrint .kt-chart figcaption span{ display:flex; gap:4px; align-items:center; color:#5B6478 !important } #ktPrint .kt-chart figcaption i{ width:9px; height:9px; border-radius:3px; display:inline-block } #ktPrint .kt-chart figcaption em{ width:8px }' +
-  '#ktPrint .ktr-ph{ display:flex; gap:4px; margin-top:4px } #ktPrint .ktr-ph img{ width:54px; height:54px; object-fit:cover; border-radius:6px; border:0.6pt solid #E3E7F0 }' +
-  '#ktPrint footer.ktr-f{ margin-top:14px; padding-top:7px; border-top:0.6pt solid #E3E7F0; font-size:7.6pt; color:#8A93A6 !important; display:flex; justify-content:space-between; gap:12px } #ktPrint footer.ktr-f span{ color:#8A93A6 !important } }';
+  '@media print{ @page{ size:A4; margin:12mm 13mm 12mm } body > *:not(#ktPrint){ display:none !important } html,body{ height:auto !important; overflow:visible !important; background:#fff !important }' +
+  '#ktPrint{ display:block; font-family:Montserrat,"Be Vietnam Pro",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size:9.6pt; line-height:1.6 }' +
+  '#ktPrint, #ktPrint *{ box-sizing:border-box; color:#2A3144 !important; background-color:transparent; box-shadow:none !important; text-shadow:none !important; -webkit-print-color-adjust:exact; print-color-adjust:exact }' +
+  '#ktPrint .ktr-h{ position:relative; overflow:hidden; border-radius:18px; background:#F5F9FF !important; padding:16px 18px 14px; margin-bottom:12px }' +
+  '#ktPrint .ktr-h::before{ content:""; position:absolute; right:0; top:0; width:58%; height:100%; background-color:transparent !important; background-image:radial-gradient(ellipse at 100% 0%, rgba(245,249,255,0) 25%, #F5F9FF 72%), linear-gradient(#D3DFF2 0.7pt, transparent 0.7pt), linear-gradient(90deg, #D3DFF2 0.7pt, transparent 0.7pt) !important; background-size:100% 100%, 13px 13px, 13px 13px }' +
+  '#ktPrint .ktr-h::after{ content:""; position:absolute; right:-30px; bottom:-40px; width:96px; height:96px; border-radius:42% 58% 50% 50%; background:#FFD9BF !important }' +
+  '#ktPrint .ktr-bar::after{ content:""; position:absolute; right:118px; top:-6px; width:12px; height:12px; border-radius:50%; background:#FFC53D !important }' +
+  '#ktPrint .ktr-bar{ position:relative; z-index:1; display:flex; align-items:center; gap:14px }' +
+  '#ktPrint .ktr-logo{ width:52px; height:52px; border-radius:16px; background:#fff !important; display:grid; place-items:center; flex:none; border:1pt solid #E3ECF9 } #ktPrint .ktr-logo img{ height:36px; width:auto; display:block }' +
+  '#ktPrint .ktr-t{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px } #ktPrint .ktr-t small{ font-size:7.8pt; font-weight:800; color:#F66600 !important; letter-spacing:.1em; text-transform:uppercase }' +
+  '#ktPrint .ktr-t b{ font-size:21pt; line-height:1.15; font-weight:800; color:#204983 !important; letter-spacing:-.01em } #ktPrint .ktr-t span{ font-size:8.8pt; color:#5A6582 !important; font-weight:500 }' +
+  '#ktPrint .ktr-bd{ background:#F66600 !important; border-radius:999px; padding:6px 14px; text-align:center; flex:none; white-space:nowrap } #ktPrint .ktr-bd small{ font-size:7pt; color:#FFE7D6 !important; text-transform:uppercase; letter-spacing:.08em; margin-right:5px; font-weight:700 } #ktPrint .ktr-bd b{ font-size:10.5pt; color:#fff !important; font-weight:800 }' +
+  '#ktPrint .ktr-strip{ display:none }' +
+  '#ktPrint .ktr-kpi{ display:flex; gap:7px; margin:0 0 14px } #ktPrint .ktr-kpi > div{ flex:1; background:#fff !important; border:1pt solid #E3ECF9; border-radius:14px; padding:8px 8px 7px; text-align:center }' +
+  '#ktPrint .ktr-kpi b{ display:block; font-size:14.5pt; line-height:1.15; font-weight:800; color:#204983 !important; white-space:nowrap } #ktPrint .ktr-kpi small{ font-size:7.2pt; color:#5A6582 !important; white-space:nowrap; font-weight:600 }' +
+  '#ktPrint .ktr-kpi > div:nth-child(4) b, #ktPrint .ktr-kpi > div:nth-child(5) b{ color:#F66600 !important }' +
+  '#ktPrint section{ margin:0 0 13px; break-inside:avoid } #ktPrint section.flow{ break-inside:auto }' +
+  '#ktPrint h2{ break-after:avoid; font-size:10pt; margin:0 0 7px; color:#204983 !important; letter-spacing:.02em; font-weight:800; display:flex; align-items:center; gap:8px }' +
+  '#ktPrint h2::before{ content:""; width:8px; height:8px; border-radius:3px; background:#F66600 !important; transform:rotate(45deg); display:inline-block; flex:none }' +
+  '#ktPrint p, #ktPrint li, #ktPrint .ktr-lead, #ktPrint td{ text-align:justify; hyphens:auto } #ktPrint .ktr-two li{ text-align:left } #ktPrint p{ margin:0 0 6px }' +
+  '#ktPrint ul, #ktPrint ol{ margin:0 0 4px; padding-left:15px } #ktPrint li{ margin:0 0 4px } #ktPrint li::marker{ color:#F66600 !important } #ktPrint h3, #ktPrint h4{ font-size:10pt; margin:6px 0 3px; color:#204983 !important }' +
+  '#ktPrint .ktr-lead{ font-size:10.4pt; line-height:1.7; margin:0 0 14px; padding:0 2px; color:#1F2A44 !important; font-weight:500 }' +
+  '#ktPrint .ktr-two{ display:flex; gap:10px; break-inside:avoid; margin-bottom:13px } #ktPrint .ktr-two > section{ flex:1; margin:0; min-width:0 }' +
+  '#ktPrint .ktr-bx{ border-radius:14px; padding:11px 13px 8px; background:#F5F9FF !important }' +
+  '#ktPrint .ktr-bx.ok{ background:#F5F9FF !important } #ktPrint .ktr-bx.ok h2{ color:#204983 !important }' +
+  '#ktPrint .ktr-bx.warn{ background:#FFF7F2 !important } #ktPrint .ktr-bx.warn h2{ color:#C24F00 !important }' +
+  '#ktPrint .ktr-bx.tip{ background:#F5F9FF !important }' +
+  '#ktPrint .ktr-two .ktr-bx{ position:relative; overflow:hidden } #ktPrint .ktr-two .ktr-bx::after{ content:""; position:absolute; right:10px; top:10px; width:36px; height:27px; background-image:radial-gradient(#C9D8F0 1.1pt, transparent 1.3pt) !important; background-size:9px 9px } #ktPrint .ktr-two .ktr-bx.warn::after{ background-image:radial-gradient(#F8CDAE 1.1pt, transparent 1.3pt) !important }' +
+  '#ktPrint .ktr-bx.flow, #ktPrint .ktr-letter{ position:relative; background:#FBF8F2 !important; border:1pt solid #EFE6D6; border-radius:16px; padding:14px 18px 10px 20px; margin-top:4px }' +
+  '#ktPrint .ktr-letter::before{ content:""; position:absolute; left:0; top:0; width:46%; height:70%; background-color:transparent !important; background-image:radial-gradient(ellipse at 0% 0%, rgba(251,248,242,0) 20%, #FBF8F2 70%), linear-gradient(#EADFCB 0.7pt, transparent 0.7pt), linear-gradient(90deg, #EADFCB 0.7pt, transparent 0.7pt) !important; background-size:100% 100%, 12px 12px, 12px 12px; border-radius:16px 0 0 0 }' +
+  '#ktPrint .ktr-letter::after{ content:""; position:absolute; right:14px; bottom:12px; width:54px; height:36px; background-color:transparent !important; background-image:radial-gradient(#F6B98E 1.3pt, transparent 1.5pt) !important; background-size:9px 9px }' +
+  '#ktPrint .ktr-letter > *{ position:relative; z-index:1 }' +
+  '#ktPrint .ktr-letter h2{ color:#204983 !important } #ktPrint .ktr-letter p{ font-size:10pt; line-height:1.75 }' +
+  '#ktPrint .ktr-tl{ display:flex; flex-wrap:wrap; gap:6px; align-items:center } #ktPrint .ktr-tl span{ background:#fff !important; border:1pt solid #D6E2F5; color:#204983 !important; border-radius:999px; padding:2px 10px; font-size:8.2pt; font-weight:700 } #ktPrint .ktr-tl span.cur{ background:#204983 !important; border-color:#204983; color:#fff !important } #ktPrint .ktr-tl i{ color:#F66600 !important; font-style:normal; font-weight:800 }' +
+  '#ktPrint table{ width:100%; border-collapse:separate; border-spacing:0; font-size:9pt; border:1pt solid #E3ECF9; border-radius:14px; overflow:hidden } #ktPrint td, #ktPrint th{ border-bottom:0.6pt solid #E9EFF8; padding:7px 10px; vertical-align:top; text-align:left }' +
+  '#ktPrint tr:last-child td{ border-bottom:0 } #ktPrint th{ background:#204983 !important; color:#fff !important; font-size:7.4pt; font-weight:800; text-transform:uppercase; letter-spacing:.06em } #ktPrint tr{ break-inside:avoid } #ktPrint thead{ display:table-header-group }' +
+  '#ktPrint tbody tr:nth-child(even) td{ background:#F8FBFF !important } #ktPrint td.k{ font-weight:800; width:27%; color:#204983 !important; text-align:left } #ktPrint td.d{ white-space:nowrap; width:10%; color:#5A6582 !important } #ktPrint td.b{ width:22%; font-weight:700; color:#1F2A44 !important; text-align:left } #ktPrint td.n{ white-space:nowrap; width:11%; text-align:left }' +
+  '#ktPrint .lb{ color:#204983 !important; font-size:7.4pt; font-weight:800; text-transform:uppercase; letter-spacing:.04em } #ktPrint .mu{ color:#8A93A6 !important; font-size:8.2pt }' +
+  '#ktPrint .ktr-brk{ break-before:page } #ktPrint .ktr-note{ font-size:9.2pt; background:#FFF7F2 !important; border-radius:12px; padding:8px 12px; margin-bottom:12px }' +
+  '#ktPrint figure.kt-chart{ margin:0; padding:10px 12px 4px; border:1pt solid #E3ECF9; border-radius:14px; break-inside:avoid } #ktPrint .kt-chart figcaption{ display:flex; gap:10px; justify-content:space-between; font-size:8.8pt; font-weight:700; margin-bottom:4px; color:#204983 !important }' +
+  '#ktPrint .kt-chart figcaption span{ display:flex; gap:4px; align-items:center; color:#5A6582 !important; font-weight:600 } #ktPrint .kt-chart figcaption i{ width:9px; height:9px; border-radius:3px; display:inline-block } #ktPrint .kt-chart figcaption em{ width:8px }' +
+  '#ktPrint .ktr-ph{ display:flex; gap:4px; margin-top:4px } #ktPrint .ktr-ph img{ width:54px; height:54px; object-fit:cover; border-radius:8px; border:0.6pt solid #E3ECF9 }' +
+  '#ktPrint footer.ktr-f{ margin-top:14px; padding-top:7px; border-top:1.2pt solid #F66600; font-size:7.4pt; color:#5A6582 !important; display:flex; justify-content:space-between; gap:12px } #ktPrint footer.ktr-f span{ color:#5A6582 !important } #ktPrint footer.ktr-f span:last-child{ color:#204983 !important; font-weight:700; white-space:nowrap } }';
 
 /* ── (1.84.5) VIỆC AI — mọi lượt AI của Kiến Trẻ (nhận xét · hỏi dữ liệu · đề mock test · phân tích hồ sơ · hỏi nhận xét KGS): đang chạy / xong / lỗi.
    Máy chủ giữ kết quả (AiLog) nên chuyển tab, tắt máy vẫn còn — bấm một dòng để xem lại kết quả hoặc mở lại đúng chỗ. ── */
@@ -31403,8 +31500,11 @@ function ktJobsView(B) {
   let tm = 0;
   const load = async () => {
     clearTimeout(tm); let R;
-    try { R = await rpc('ktJobs', { n: 50 }, { quiet: true }); } catch (e) { V.innerHTML = ktErrCard(e); return; }
-    if (!V.isConnected) return;
+    try { R = await rpc('ktJobs', { n: 50 }, { quiet: true }); } catch (e) { if (!KT.jobsR) V.innerHTML = ktErrCard(e); return; }
+    KT.jobsR = R; if (!V.isConnected) return; draw(R);
+  };
+  /* (1.93) vẽ danh sách — dùng cả cho bản lưu lần trước (hiện ngay khi mở tab) */
+  const draw = R => {
     const L = R.list || [], run = L.filter(j => st(j)[0] === 'run').length;
     $('#ktJs', B).innerHTML = '<span><b>' + run + '</b>đang chạy</span><span><b>' + L.length + '</b>lượt gần đây</span><span>Chuyển tab vẫn chạy — kết quả lưu ở máy chủ</span>';
     V.innerHTML = L.length ? '<div class="kt-card kt-jobs">' + L.map((j, i) => { const s = st(j);
@@ -31414,6 +31514,7 @@ function ktJobsView(B) {
     if (run) tm = setTimeout(() => { if (V.isConnected) load(); }, 5000);      // còn lượt đang chạy → tự hỏi lại
   };
   $('#ktJr', B).onclick = load;
+  if (KT.jobsR) draw(KT.jobsR); else V.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx('Đang đọc các lượt AI…', { c: 'doc' }) : 'Đang tải…') + '</div>';      // (1.93) không còn trắng trơn
   load();
 }
 /** mở một lượt: hồ sơ → về đúng học sinh (kèm báo cáo AI) · hỏi dữ liệu → về cuộc hỏi · nhận xét → về đúng ngày · còn lại xem trong hộp */
@@ -31421,12 +31522,9 @@ async function ktJobOpen(j) {
   let lg; try { lg = ((await rpc('aiPoll', { ids: [j.id] }, { quiet: true })).list || [])[0]; } catch (e) { return fail(e); }
   if (!lg) return toast('Không đọc được lượt này', 'warn');
   const m = j.m || {};
-  if (j.kind === 'kths' && lg.actions && lg.actions.prof) {
-    const to = ktToday(); KT.pf = KT.pf || { fr: ktAdd(to, -180), to: to, open: {}, sum: {} };
-    const P = KT.pf; Object.assign(P, { src: m.src === 'kgs' ? 'kgs' : 'kt', cls: m.src === 'kgs' ? '' : m.cls, code: m.code, name: m.name || '', data: null, list: P.list && P.src === (m.src === 'kgs' ? 'kgs' : 'kt') ? P.list : null, sjSel: m.sjs || [] });
-    P.sum[P.src + '|' + P.cls + '|' + P.code + '|' + (P.sjSel || []).join(',')] = lg.actions.prof;
-    P.op = P.src === 'kgs' ? rpc('ktProfKgs', { id: m.code }, { quiet: true }) : rpc('ktProf', { cls: m.cls, code: m.code, name: m.name, fr: P.fr, to: P.to }, { quiet: true });
-    P.op.then(D => { P.data = D; P.op = null; if (P.view && P.view.isConnected) P.paint(); }).catch(e => { P.op = null; fail(e); });
+  if (j.kind === 'kths' && m.code) {      // (1.93) mở đúng học sinh ở Hồ sơ học sinh (cả khi lượt còn chạy) — trang tự hiện bản nhận xét
+    KT.pfGo = { src: m.src === 'kgs' ? 'kgs' : 'kt', cls: m.cls || '', code: m.code, name: m.name || '', sjs: m.sjs || [], sum: lg.actions && lg.actions.prof || null, log: lg };
+    if (KT.pf && KT.pf.go && /\/prof$/.test(S.route || '')) return KT.pf.go();
     return go('kt/prof');
   }
   if (j.kind === 'ktnx' && m.day) { KT.day = m.day; return go('kt'); }
