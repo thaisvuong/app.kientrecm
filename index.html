@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-26T01:43:24.805Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-26T07:30:28.005Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -4900,6 +4900,10 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 #vDrv.on{ color:var(--accent,#B45309) }
 html[data-mode="dark"] .vw-drv-bar{ background:#232832; color:#cfd6e2 }
 .vw-drv-bar .vd-m{ display:none }
+/* (1.89) nút ⚡ đang bật: nền nhạt + tia vàng (trước: nền xanh đậm trùng màu icon → “tối thui”) */
+.vw-tool #vDrv.on{ background:var(--brand-50); color:var(--brand-700); box-shadow:inset 0 0 0 1px var(--brand-100) } .vw-tool #vDrv.on i{ color:#D97706 }
+html[data-mode="dark"] .vw-tool #vDrv.on{ background:#2a2f3a; box-shadow:inset 0 0 0 1px #3a4252 } html[data-mode="dark"] .vw-tool #vDrv.on i{ color:#FBBF24 }
+.vw-drv .drv-w{ border-radius:8px }
 @media (max-width:820px){ .vw-drv-bar{ font-size:12px; gap:8px } .vw-drv-bar .vd-x{ display:none } .vw-drv-bar .vd-m{ display:inline } .vw-drv{ margin-bottom:-30px } }
 .dsh{ border:1px solid var(--line,#e5e7eb); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:8px }
 .dsh-h{ display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px } .dsh-h small{ font-weight:400 }
@@ -10815,6 +10819,46 @@ if (!document.getElementById('sh') && !document.getElementById('pg')) {      // 
 </script>
 
 <script>
+/* ══ (1.89) XEM NHANH BẰNG TRÌNH XEM GOOGLE DRIVE — dùng chung cho Kiến Lib (Viewer.html) và trang Link tạm (Share.html) ══
+   Khung /preview của Drive hiện trang ngay (Drive gửi từng trang, không phải chờ tải cả file); bản đầy đủ vẫn tải ngầm theo cách cũ cho In / Tải về.
+   DÒ TRƯỚC: ảnh thu nhỏ của Drive (drive.google.com/thumbnail) đi cùng phiên đăng nhập / cùng quyền với khung xem — ảnh không về được
+   (file chưa chia sẻ theo link, người xem không có quyền, trình duyệt chặn cookie bên thứ ba) thì khung Drive cũng trống → trang quay về cách cũ. */
+const DRV_OK = {};
+/** true = khung Drive mở được tệp này · false = không (về cách cũ). Quá 6 giây chưa rõ → coi như được (khung Drive vẫn đang hiện, người xem tự đổi được). */
+function drvProbe(id) {
+  if (!id) return Promise.resolve(false);
+  if (DRV_OK[id]) return DRV_OK[id];
+  return (DRV_OK[id] = new Promise(res => {
+    const im = new Image(), t = setTimeout(() => res(true), 6000), end = v => { clearTimeout(t); res(v); };
+    im.onload = () => end(im.naturalWidth > 1);
+    im.onerror = () => end(false);
+    im.referrerPolicy = 'no-referrer';
+    im.src = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w48';
+  }));
+}
+/** gắn khung Drive vào w (ẩn tới khi dò xong — khung vẫn tải song song nên không chậm thêm); trả Promise<true/false> như drvProbe */
+function drvMount(w, id, title, cover) {
+  w.classList.add('drv-w', 'wait'); w.innerHTML = drvFrame(id, title, cover);
+  return drvProbe(id).then(ok => { if (ok) w.classList.remove('wait'); return ok; });
+}
+/** khung xem của Drive. cover = che nút “Mở trong cửa sổ mới” của Drive (ở đó có Tải xuống / In — bỏ qua quyền in, tải của app / link) */
+function drvFrame(id, title, cover) {
+  return '<iframe class="drv-f" src="https://drive.google.com/file/d/' + encodeURIComponent(id) + '/preview" allow="autoplay; fullscreen" referrerpolicy="no-referrer" title="' +
+    String(title || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) + '"></iframe>' +
+    (cover ? '<span class="drv-cv" title="Đang xem nhanh bằng trình xem Google Drive"><i class="bi bi-lightning-charge-fill"></i></span>' : '');
+}
+</script>
+<style>
+  /* khung Drive + miếng che góc phải trên (nút mở cửa sổ mới của Drive) */
+  .drv-w{ position:relative; flex:1; min-height:0; border-radius:8px; overflow:hidden; background:#fff }
+  .drv-f{ position:absolute; inset:0; width:100%; height:100%; border:0; background:#fff }
+  .drv-w.wait .drv-f, .drv-w.wait .drv-cv{ opacity:0 }
+  .drv-w.wait::before{ content:''; position:absolute; left:50%; top:38%; width:30px; height:30px; margin:-15px 0 0 -15px; border-radius:50%; border:3px solid #dfe4ec; border-top-color:#2f3fa8; animation:drvSpin .8s linear infinite }
+  @keyframes drvSpin{ to{ transform:rotate(360deg) } }
+  .drv-cv{ position:absolute; top:0; right:0; width:62px; height:58px; display:grid; place-items:center; border-bottom-left-radius:16px; background:#2b2f36; color:#FBBF24; font-size:17px; box-shadow:-2px 2px 8px rgba(0,0,0,.18); z-index:2 }
+</style>
+
+<script>
 /* ══════════════════════════════════════════════════════════════
    XEM TÀI LIỆU — pdf.js vẽ từng trang khi cuộn tới (nhẹ với file nhiều trang),
    phóng to / thu nhỏ, chuyển nhanh giữa các tài liệu cùng buổi, tìm chữ trong tài liệu.
@@ -11159,8 +11203,10 @@ function PdfView(host, opt) {
 
 /* ══════════ TRANG XEM ══════════ */
 const ZOOMS = [0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3];
-/** (1.88) xem nhanh bằng trình xem Google Drive — nhớ theo máy; mặc định bật khi app ở chế độ “Ai có link” (file đã chia sẻ theo link nên khung Drive chắc chắn mở được) */
-function vwDrvOn() { return !!lsGet('vwDrive', !!(S.boot && S.boot.view && S.boot.view.mode === 'link')); }
+/** (1.88) xem nhanh bằng trình xem Google Drive — nhớ theo máy (nút ⚡).
+    (1.89) mặc định theo Quản trị › Hệ thống › Chế độ xem tài liệu › “Mở nhanh bằng trình xem Drive” (bật sẵn) — khoá nhớ mới vwDrive2 nên lựa chọn cũ trên máy
+    không chặn mặc định mới; Drive không mở được tệp (dò trước bằng ảnh thu nhỏ — DrvFast.html) thì tự về trình xem app */
+function vwDrvOn() { const V = S.boot && S.boot.view; return !!lsGet('vwDrive2', !!(V && (V.fast != null ? V.fast : V.mode === 'link'))); }
 async function viewFile(id, v) {
   const f = IX.byId[id];
   if (!f) {
@@ -11407,7 +11453,7 @@ async function viewFile(id, v) {
       '<div class="row" style="justify-content:center"><button class="btn" id="vRetry"><i class="bi bi-arrow-repeat"></i>Thử lại</button><a class="btn" target="_blank" href="' + driveUrl(f.id) + '"><i class="bi bi-google"></i>Mở trên Drive</a></div></div>';
     $('#vRetry', v).onclick = () => go(S.route, { nohist: 1, refresh: 1 });
   };
-  { const b = $('#vDrv', v); if (b) b.onclick = () => { lsSet('vwDrive', !vwDrvOn()); toast(vwDrvOn() ? 'Đã bật xem nhanh bằng trình xem Google Drive' : 'Đã tắt xem nhanh — dùng trình xem của app'); go(S.route, { nohist: 1, refresh: 1 }); }; }
+  { const b = $('#vDrv', v); if (b) b.onclick = () => { lsSet('vwDrive2', !vwDrvOn()); toast(vwDrvOn() ? 'Đã bật xem nhanh bằng trình xem Google Drive' : 'Đã tắt xem nhanh — dùng trình xem của app'); go(S.route, { nohist: 1, refresh: 1 }); }; }
   /* (1.88) XEM NHANH BẰNG TRÌNH XEM GOOGLE DRIVE (nút ⚡): tài liệu chưa có sẵn trên máy → hiện khung xem của Drive NGAY (Drive gửi từng trang,
      không phải chờ tải cả file), đồng thời tải bản đầy đủ ngầm cho In / Tải về; muốn tìm chữ, phóng to → “Dùng trình xem app”.
      Khung Drive cần người xem đăng nhập Google và có quyền xem file trên Drive (hoặc file chia sẻ “ai có link”) — không được thì bấm “Dùng trình xem app”.
@@ -11420,7 +11466,7 @@ async function viewFile(id, v) {
       drvOn = true; noTool();
       pages.innerHTML = '<div class="vw-drv"><div class="vw-drv-bar"><i class="bi bi-lightning-charge-fill"></i><span id="vDrvT">Xem nhanh<span class="vd-x"> bằng Google Drive</span> · đang tải bản đầy đủ <span class="spin"></span></span>' +
         '<button class="btn sm" id="vDrvApp" title="Trang trống / Drive báo cần quyền? Mở bằng trình xem của app"><i class="bi bi-window"></i><span class="vd-x">Dùng trình xem app</span><span class="vd-m">Trình xem app</span></button></div>' +
-        '<iframe class="vw-drv-f" src="https://drive.google.com/file/d/' + encodeURIComponent(f.id) + '/preview" allow="autoplay; fullscreen" title="' + esc(f.name) + '"></iframe></div>';
+        '<div class="drv-w wait" id="vDrvW"></div></div>';
       let want = false;
       const toApp = async () => {
         if (!drvOn) return; want = true;
@@ -11430,6 +11476,13 @@ async function viewFile(id, v) {
         try { await showData(); } catch (e) { showErr(e); }
       };
       $('#vDrvApp', v).onclick = toApp;
+      // (1.89) Drive không mở được tệp này (chưa chia sẻ / không có quyền / trình duyệt chặn) → không để khung trống: chờ bản đầy đủ rồi mở bằng trình xem app
+      drvMount($('#vDrvW', v), f.id, f.name, !can('download')).then(ok => {      // (1.89) không có quyền tải → che nút mở cửa sổ mới của Drive (ở đó tải / in được)
+        if (ok || !drvOn || !v.isConnected) return;
+        console.info('[xem nhanh] Drive không mở được', f.id, '→ trình xem app');
+        const w = $('.vw-drv', v); if (w && !data) w.outerHTML = '<div class="vw-ph" id="vPh">' + (typeof loadFx === 'function' ? loadFx('Đang mở bằng trình xem app…') : miniLoader('Đang mở…')) + '</div>';
+        toApp();
+      });
       try {
         data = await fileData(f.id);
         if (!v.isConnected) return;
@@ -14310,6 +14363,8 @@ function setSystem(B, cfg, setCfg) {
       (G.mode !== G.eff ? '<div class="vw-warn"><i class="bi bi-exclamation-triangle-fill"></i>Đã chọn “' + esc((M.find(x => x[0] === G.mode) || M[0])[2]) + '” nhưng chưa cài đủ — app tạm dùng “Qua máy chủ”.</div>' : '') +
       '<div class="vw-modes" role="radiogroup">' + M.map(m => '<label class="vw-m' + (G.mode === m[0] ? ' on' : '') + '"><input type="radio" name="vwM" value="' + m[0] + '"' + (G.mode === m[0] ? ' checked' : '') + '><i class="bi ' + m[1] + '"></i><span><b>' + esc(m[2]) + '</b><small>' + esc(m[3]) + '</small>' +
           (m[4] ? '<small class="vw-risk"><i class="bi bi-exclamation-circle"></i>' + esc(m[4]) + '</small>' : '') + '</span></label>').join('') + '</div>' +
+      // (1.89) mở nhanh bằng trình xem Drive — Kiến Lib + Link tạm (lưu ngay khi bật / tắt)
+      '<label class="ml-sw"><span><b><i class="bi bi-lightning-charge-fill" style="color:#D97706"></i> Mở nhanh bằng trình xem Google Drive</b><small>Kiến Lib và Link tạm (cả link ghép nhiều tệp) hiện trang ngay bằng khung xem của Drive; bản đầy đủ tải ngầm cho In, Tải về, Xem liền mạch. Drive không mở được tệp (chưa chia sẻ theo link, người xem không có quyền) thì tự quay về cách cũ. Mỗi người vẫn tắt được trên máy mình bằng nút ⚡.</small></span><span class="sw"><input type="checkbox" id="vwF"' + (G.fast ? ' checked' : '') + '><span></span></span></label>' +
       '<div class="vw-sec" data-for="token"><div class="flabel">Tài khoản xem (chỉ đọc)</div>' +
         (a ? '<div class="gmo-now"><i class="bi ' + (a.err ? 'bi-exclamation-triangle" style="color:var(--danger)' : 'bi-eye') + '"></i><div><b>' + esc(a.email) + '</b><small>' + esc((a.name ? a.name + ' · ' : '') + 'kết nối ' + fmtDT(a.at)) + '</small>' + (a.err ? '<small style="color:var(--danger)">' + esc(a.err) + '</small>' : '') + '</div><button class="btn sm ghost" id="vwX"><i class="bi bi-plug"></i>Ngắt</button></div>'
           : '<div class="small muted">Nên dùng một tài khoản riêng (VD xem.kientre@gmail.com) chỉ được chia sẻ quyền <b>Người xem</b> các thư mục thư viện. App chỉ nhận quyền đọc; tài khoản đã cấp quyền ghi cho app sẽ bị từ chối.</div>') +
@@ -14326,6 +14381,7 @@ function setSystem(B, cfg, setCfg) {
       if (m !== 'app' && !await ask(m === 'token' ? 'Bật “Token đọc tạm”? Người đăng nhập app sẽ nhận token chỉ đọc (~1 giờ) của tài khoản xem — có thể dùng nó đọc mọi file tài khoản đó thấy, bỏ qua quyền xem theo thư mục của app.' : 'Bật “Ai có link”? App sẽ lấy thẳng các file đã chia sẻ theo link — ai có mã file đều xem được file đó.', { ok: 'Bật' })) return;
       const stop = btnWait(e.currentTarget, 'Đang lưu…'); try { vwPaint(await rpc('viewSave', { mode: m, key: $('#vwK', vc).value.trim() }, { quiet: true })); toast('Đã lưu chế độ xem tài liệu'); } catch (er) { stop(); fail(er); } };
     $('#vwR', vc).onclick = () => vwLoad();
+    $('#vwF', vc).onchange = async e => { const on = e.target.checked; try { vwPaint(await rpc('viewFast', { on: on ? 1 : 0 }, { quiet: true })); toast(on ? 'Đã bật mở nhanh bằng trình xem Drive' : 'Đã tắt — Kiến Lib và Link tạm dùng trình xem của app'); } catch (er) { e.target.checked = !on; fail(er); } };
     $('#vwGo', vc).onclick = async () => { const w = window.open('', '_blank'); try { const r = await rpc('viewStart', { hint: $('#vwH', vc).value.trim() }, { quiet: true }); if (w) w.location = r.url; else location.href = r.url; toast('Cấp quyền ở tab mới, xong quay lại đây', 'info', 5000); } catch (er) { if (w) w.close(); fail(er); } };
     const x = $('#vwX', vc); if (x) x.onclick = async () => { if (!await ask('Ngắt tài khoản xem ' + a.email + '? Chế độ Token đọc tạm sẽ tắt (quay về Qua máy chủ).', { ok: 'Ngắt', danger: true })) return; try { vwPaint(await rpc('viewRemove', {}, { quiet: true })); toast('Đã ngắt tài khoản xem'); } catch (er) { fail(er); } };
     const sl = $('#vwSL', vc); if (sl) sl.onclick = async e => { const stop = btnWait(e.currentTarget, 'Đang kiểm tra…'); try { vwShare = (await rpc('viewShare', {}, { quiet: true })).list; $('#vwS', vc).innerHTML = vwShareHtml(vwShare); } catch (er) { stop(); fail(er); } };
@@ -23647,12 +23703,38 @@ function aiCfgView(body) {
 .ah-capbar{ flex:1 1 120px; max-width:220px; height:6px; border-radius:99px; background:color-mix(in oklab, var(--border) 50%, transparent); overflow:hidden } .ah-capbar i{ display:block; height:100%; background:var(--primary); border-radius:99px } .ah-capbar i.hi{ background:var(--danger) }
 .ah-grid2{ display:grid; grid-template-columns:minmax(0, 1.5fr) minmax(0, 1fr); gap:14px }
 .ah-pad{ padding:12px 16px 14px }
-.ah-lg{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted) } .ah-lg i{ width:9px; height:9px; border-radius:3px; display:inline-block; margin-left:7px }
-.ah-lg i.api, .ah-chart i.api{ background:var(--primary) } .ah-lg i.gweb, .ah-chart i.gweb{ background:var(--ok) } .ah-lg i.flow, .ah-chart i.flow{ background:var(--warn, #B45309) }
-.ah-chart{ display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:5px; align-items:end; height:150px }
-.ah-chart > div{ display:flex; flex-direction:column; align-items:center; gap:3px; height:100%; min-width:0 } .ah-chart small{ font-size:10px; color:var(--muted) } .ah-chart em{ font-style:normal; font-size:10px; font-weight:700; color:var(--ink-2, var(--muted)); min-height:13px }
-.ah-bar{ flex:1; width:100%; max-width:30px; display:flex; flex-direction:column; justify-content:flex-end; border-radius:7px; overflow:hidden; background:color-mix(in oklab, var(--border) 30%, transparent) }
-.ah-chart i{ display:block; width:100%; min-height:2px }
+/* (1.89) biểu đồ: màu theo kênh (bảng màu đã kiểm mù màu — API xanh dương · Gemini web xanh ngọc · Flow cam), không dùng màu trạng thái cho kênh */
+.ah{ --s-api:#2a78d6; --s-gweb:#1baf7a; --s-flow:#eb6834 }
+html[data-mode="dark"] .ah{ --s-api:#3987e5; --s-gweb:#199e70; --s-flow:#d95926 }
+.ah-lg{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; font-size:11.5px; color:var(--muted) } .ah-lg span{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap }
+.ah-sw0{ width:10px; height:10px; border-radius:3px; display:inline-block; flex:none } .ah-sw0.api{ background:var(--s-api) } .ah-sw0.gweb{ background:var(--s-gweb) } .ah-sw0.flow{ background:var(--s-flow) }
+.ah-cv{ position:relative; display:grid; grid-template-columns:auto minmax(0, 1fr); gap:0 8px; padding:14px 16px 10px }
+.ah-yx{ position:relative; height:190px; font-size:10.5px; color:var(--muted); font-variant-numeric:tabular-nums; text-align:right; min-width:22px }
+.ah-yx span{ position:absolute; right:0; transform:translateY(50%) }
+.ah-pl{ position:relative; height:190px }
+.ah-gl{ position:absolute; left:0; right:0; height:1px; background:color-mix(in oklab, var(--border) 70%, transparent) } .ah-gl.z{ background:var(--border-strong, var(--border)) }
+.ah-bs{ position:absolute; inset:0; display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0, 1fr); align-items:end }
+.ah-b{ position:relative; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; cursor:default; outline:0 }
+.ah-st{ width:62%; max-width:26px; min-width:6px; display:flex; flex-direction:column-reverse; gap:2px }
+.ah-st i{ display:block; width:100%; min-height:2px } .ah-st i:last-child{ border-radius:4px 4px 0 0 }
+.ah-st i.api{ background:var(--s-api) } .ah-st i.gweb{ background:var(--s-gweb) } .ah-st i.flow{ background:var(--s-flow) }
+.ah-b em{ position:absolute; font-style:normal; font-size:10.5px; font-weight:700; color:var(--ink-2, var(--ink)); transform:translateY(-4px); white-space:nowrap; font-variant-numeric:tabular-nums }
+.ah-b:hover::before, .ah-b:focus-visible::before{ content:''; position:absolute; inset:0 8%; border-radius:6px; background:color-mix(in oklab, var(--primary) 8%, transparent) }
+.ah-xs{ grid-column:2; display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0, 1fr); margin-top:6px; font-size:10.5px; color:var(--muted); text-align:center; font-variant-numeric:tabular-nums }
+.ah-xs span.t{ color:var(--ink); font-weight:700 }
+.ah-tip{ position:absolute; z-index:5; pointer-events:none; min-width:150px; padding:8px 10px; border-radius:10px; background:var(--surface); border:1px solid var(--border); box-shadow:0 8px 24px -8px rgba(16,24,40,.28); font-size:12px; line-height:1.55; opacity:0; transition:opacity .12s }
+.ah-tip{ background:#fff } html[data-mode="dark"] .ah-tip{ background:#1d2330; border-color:#343c4d }
+.ah-tip.on{ opacity:1 } .ah-tip b{ display:block; font-size:12.5px; margin-bottom:2px } .ah-tip div{ display:flex; align-items:center; gap:6px } .ah-tip div span:nth-child(2){ flex:1; color:var(--muted) } .ah-tip div b{ display:inline; margin:0; font-variant-numeric:tabular-nums }
+.ah-tip hr{ border:0; border-top:1px solid var(--border); margin:4px 0 }
+.ah-sum{ display:flex; gap:18px; flex-wrap:wrap; padding:0 16px 14px; font-size:12px; color:var(--muted) } .ah-sum b{ color:var(--ink); font-variant-numeric:tabular-nums; margin-right:3px }
+/* chia theo kênh: một thanh 100 % + bảng số */
+.ah-mix{ display:flex; gap:2px; height:14px; margin:2px 0 12px } .ah-mix i{ display:block; height:100%; min-width:3px } .ah-mix i:first-child{ border-radius:5px 0 0 5px } .ah-mix i:last-child{ border-radius:0 5px 5px 0 } .ah-mix i:only-child{ border-radius:5px }
+.ah-mix i.api{ background:var(--s-api) } .ah-mix i.gweb{ background:var(--s-gweb) } .ah-mix i.flow{ background:var(--s-flow) } .ah-mix i.z{ flex:1; background:color-mix(in oklab, var(--border) 45%, transparent); border-radius:5px }
+.ah-mt{ width:100%; border-collapse:collapse; font-size:12.5px } .ah-mt td{ padding:6px 0; border-top:1px solid var(--border) } .ah-mt tr:first-child td{ border-top:0 }
+.ah-mt td:first-child{ display:flex; align-items:center; gap:7px } .ah-mt td.n{ text-align:right; font-variant-numeric:tabular-nums; font-weight:700; padding-left:10px; white-space:nowrap } .ah-mt td.m{ text-align:right; color:var(--muted); padding-left:10px; white-space:nowrap; font-variant-numeric:tabular-nums }
+.ah-col{ display:flex; flex-direction:column; gap:14px; min-width:0 }
+.ah-grid2 > .ah-sec:first-child{ display:flex; flex-direction:column } .ah-grid2 > .ah-sec:first-child .ah-cv{ flex:1; grid-template-rows:minmax(190px, 1fr) auto } .ah-grid2 > .ah-sec:first-child .ah-yx, .ah-grid2 > .ah-sec:first-child .ah-pl{ height:auto; min-height:190px }
+.ah-spk{ display:block; width:100%; height:22px; margin-top:4px; color:var(--primary) } .ah-spk path.a{ fill:color-mix(in oklab, var(--primary) 14%, transparent); stroke:none } .ah-spk path.l{ fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke }
 .ah-ufh{ display:flex; align-items:baseline; gap:8px } .ah-ufh b{ font-size:22px; font-variant-numeric:tabular-nums }
 .ah-ufbar{ height:9px; border-radius:99px; background:color-mix(in oklab, var(--border) 45%, transparent); overflow:hidden; margin:6px 0 10px } .ah-ufbar i{ display:block; height:100%; border-radius:99px; background:var(--primary) } .ah-ufbar i.hi{ background:var(--danger) }
 .ah-uf{ display:flex; flex-direction:column; gap:6px } .ah-uf > div{ display:grid; grid-template-columns:minmax(0, 1fr) auto; gap:3px 10px; font-size:12.5px; align-items:baseline }
@@ -23663,7 +23745,7 @@ function aiCfgView(body) {
 .ah-foot{ text-align:center; margin:2px 0 0 }
 @media (max-width:860px){ .ah-hero, .ah-grid2{ grid-template-columns:minmax(0, 1fr) } }
 @media (max-width:640px){
-  .ah-hero{ padding:14px } .ah-nums{ grid-template-columns:repeat(2, minmax(0, 1fr)) } .ah-chart{ height:110px } .ah-chart em{ display:none }
+  .ah-hero{ padding:14px } .ah-nums{ grid-template-columns:repeat(2, minmax(0, 1fr)) } .ah-yx, .ah-pl{ height:150px } .ah-cv{ padding:12px 10px 8px } .ah-xs span.o{ visibility:hidden } .ah-st{ width:70% }
   .ah-eng{ grid-template-columns:24px minmax(0, 1fr) auto; row-gap:8px } .ah-em{ grid-column:1 / -1 } .ah-cap{ grid-column:1 / -1; margin-top:0 }
   .ah-sh, .ah-t, .ah-eng, .ah-pad{ padding-left:12px; padding-right:12px } .ah-tb th, .ah-tb td{ padding:7px 12px }
 }
@@ -24177,7 +24259,7 @@ function ahHtml(D) {
   const route = '<div class="ah-route"><span class="ah-sub">Lượt tới:</span>' + (D.seq.length ? D.seq.map((x, i) => (i ? '<i class="bi bi-chevron-right"></i>' : '') + (i ? '<span>' : '<b>') + esc(E(x).t || x) + (i ? '</span>' : '</b>')).join('') : '<span>không có kênh</span>') + '</div>';
   const hero = '<div class="ah-hero ' + lv + '"><div class="ah-hs"><i class="bi ' + (lv === 'ok' ? 'bi-heart-pulse' : lv === 'warn' ? 'bi-exclamation-lg' : 'bi-x-lg') + '"></i><div><h3>' + esc(title) + '</h3>' +
       '<p>Dùng chung cho mọi nơi gọi AI: Kiến CM, Kiến Task, Kiến Trẻ, Văn phòng AI.</p>' + route + '</div></div>' +
-    '<div class="ah-nums"><div><b>' + today + '</b><small>lượt hôm nay</small></div><div><b>' + n14 + '</b><small>' + D.days + ' ngày</small></div>' +
+    '<div class="ah-nums"><div><b>' + today + '</b><small>lượt hôm nay</small></div><div><b>' + n14 + '</b><small>' + D.days + ' ngày</small>' + ahSpark(D.byDay.map(d => d.api + d.gweb + d.flow)) + '</div>' +
       '<div class="' + (rate == null ? '' : rate >= 90 ? 'good' : rate < 70 ? 'bad' : '') + '"><b>' + (rate == null ? '–' : rate + '%') + '</b><small>trả lời được</small></div>' +
       '<div class="' + (D.errs.length ? 'bad' : 'good') + '"><b>' + D.errs.length + '</b><small>lượt lỗi ' + D.days + ' ngày</small></div></div></div>';
   const todoH = todo.length ? '<div class="ah-sec"><div class="ah-sh"><i class="bi bi-list-check"></i><b>Cần xử lý</b><span class="ah-sub">' + todo.length + ' việc</span></div><div class="ah-todo">' +
@@ -24195,13 +24277,29 @@ function ahHtml(D) {
   const engs = '<div class="ah-sec"><div class="ah-sh"><i class="bi bi-diagram-3"></i><b>Kênh AI</b><span class="sp"></span><div class="ah-seg" role="group" aria-label="Cách chọn kênh">' +
       modes.map(m => '<button type="button" class="ah-mode' + (cfg.mode === m[0] ? ' on' : '') + '" data-ahmode="' + m[0] + '"' + (can ? '' : ' disabled') + ' title="' + esc(m[2]) + '" aria-pressed="' + (cfg.mode === m[0]) + '">' + esc(m[1]) + '</button>').join('') + '</div></div>' +
     '<div class="ah-opts">' + ahSw('fb', 'Tự chuyển kênh khi lỗi', cfg.fb, can) + ahSw('pick', 'Cho người hỏi chọn kênh trong khung chat', cfg.pick, can) + '</div>' + engH + '</div>';
-  // biểu đồ cột chồng theo ngày + lượt gọi ra ngoài hôm nay
-  const max = Math.max.apply(null, D.byDay.map(d => d.api + d.gweb + d.flow).concat([1]));
-  const chart = '<div class="ah-sec"><div class="ah-sh"><i class="bi bi-bar-chart"></i><b>Lượt hỏi ' + D.days + ' ngày</b><span class="sp"></span><span class="ah-lg"><i class="api"></i>Gemini API<i class="gweb"></i>Gemini web<i class="flow"></i>Flow</span></div><div class="ah-pad">' +
-    '<div class="ah-chart">' + D.byDay.map(d => { const tot = d.api + d.gweb + d.flow, h = p => Math.round(p * 100 / max);
-      return '<div title="' + ktDm2(d.d) + ': ' + tot + ' lượt (API ' + d.api + ' · web ' + d.gweb + ' · flow ' + d.flow + ')"><em>' + (tot || '') + '</em><span class="ah-bar">' +
-        (d.flow ? '<i class="flow" style="height:' + h(d.flow) + '%"></i>' : '') + (d.gweb ? '<i class="gweb" style="height:' + h(d.gweb) + '%"></i>' : '') + (d.api ? '<i class="api" style="height:' + h(d.api) + '%"></i>' : '') +
-        '</span><small>' + ktDm2(d.d).slice(0, 5) + '</small></div>'; }).join('') + '</div></div></div>';
+  // (1.89) BIỂU ĐỒ CỘT CHỒNG theo ngày: trục số tròn, lưới nhạt, số chỉ ở ngày cao nhất + hôm nay, rê chuột / chạm xem từng kênh
+  const K3 = [['api', 'Gemini API'], ['gweb', 'Gemini web'], ['flow', 'Flow qua mail']], tot = d => d.api + d.gweb + d.flow;
+  const mx = Math.max.apply(null, D.byDay.map(tot).concat([1])), step = ahStep(mx / 4), top = Math.max(step, Math.ceil(mx / step) * step), last = D.byDay.length - 1;
+  const imx = D.byDay.reduce((b, d, i) => tot(d) > tot(D.byDay[b]) ? i : b, 0), ticks = []; for (let v = 0; v <= top + 1e-9; v += step) ticks.push(v);
+  const used = K3.filter(k => D.byDay.some(d => d[k[0]]));
+  const chart = '<div class="ah-sec"><div class="ah-sh"><i class="bi bi-bar-chart"></i><b>Lượt hỏi ' + D.days + ' ngày</b><span class="sp"></span><span class="ah-lg">' +
+      (used.length ? used : K3).map(k => '<span><i class="ah-sw0 ' + k[0] + '"></i>' + k[1] + '</span>').join('') + '</span></div>' +
+    '<div class="ah-cv" data-ahcv><div class="ah-yx">' + ticks.map(v => '<span style="bottom:' + (v * 100 / top) + '%">' + v.toLocaleString('vi-VN') + '</span>').join('') + '</div>' +
+      '<div class="ah-pl">' + ticks.map(v => '<i class="ah-gl' + (v ? '' : ' z') + '" style="bottom:' + (v * 100 / top) + '%"></i>').join('') +
+      '<div class="ah-bs">' + D.byDay.map((d, i) => { const t = tot(d);
+        return '<div class="ah-b" tabindex="0" data-ahd="' + i + '" aria-label="' + ktDm2(d.d) + ': ' + t + ' lượt"><span class="ah-st" style="height:' + (t * 100 / top) + '%">' +
+          K3.filter(k => d[k[0]]).map(k => '<i class="' + k[0] + '" style="flex:' + d[k[0]] + ' 1 0"></i>').join('') + '</span>' +
+          ((i === imx || i === last) && t ? '<em style="bottom:' + (t * 100 / top) + '%">' + t + '</em>' : '') + '</div>'; }).join('') + '</div></div>' +
+      '<div class="ah-xs">' + D.byDay.map((d, i) => '<span class="' + (i === last ? 't' : (last - i) % 2 ? 'o' : '') + '">' + (i === last ? 'Nay' : ktDm2(d.d).slice(0, 2)) + '</span>').join('') + '</div>' +
+      '<div class="ah-tip" role="status"></div></div>' +
+    '<div class="ah-sum"><span><b>' + Math.round(n14 / Math.max(1, D.byDay.length)) + '</b>lượt / ngày trung bình</span><span><b>' + tot(D.byDay[imx] || { api: 0, gweb: 0, flow: 0 }) + '</b>cao nhất (' + ktDm2((D.byDay[imx] || {}).d) + ')</span>' +
+      '<span>Ngày ' + ktDm2(D.byDay[0] && D.byDay[0].d) + ' → ' + ktDm2(D.byDay[last] && D.byDay[last].d) + '</span></div></div>';
+  // CHIA THEO KÊNH (14 ngày): một thanh 100 % + bảng số (lượt · phần trăm · tỉ lệ trả lời)
+  const sumK = k => D.byDay.reduce((a, d) => a + (d[k] || 0), 0), allK = K3.reduce((a, k) => a + sumK(k[0]), 0);
+  const mix = '<div class="ah-sec"><div class="ah-sh"><i class="bi bi-pie-chart"></i><b>Chia theo kênh</b><span class="ah-sub">' + D.days + ' ngày</span></div><div class="ah-pad">' +
+    '<div class="ah-mix" role="img" aria-label="Tỉ lệ lượt hỏi theo kênh">' + (allK ? K3.filter(k => sumK(k[0])).map(k => '<i class="' + k[0] + '" style="flex:' + sumK(k[0]) + ' 1 0" title="' + k[1] + ': ' + sumK(k[0]) + ' lượt"></i>').join('') : '<i class="z"></i>') + '</div>' +
+    '<table class="ah-mt"><tbody>' + K3.map(k => { const n = sumK(k[0]), e = E(k[0]);
+      return '<tr><td><i class="ah-sw0 ' + k[0] + '"></i>' + k[1] + '</td><td class="n">' + n.toLocaleString('vi-VN') + '</td><td class="m">' + (allK ? Math.round(n * 100 / allK) : 0) + '%</td><td class="m">' + (e.rate == null ? '–' : e.rate + '% trả lời') + '</td></tr>'; }).join('') + '</tbody></table></div></div>';
   const uf = D.uf ? '<div class="ah-sec"><div class="ah-sh"><i class="bi bi-cloud-arrow-up"></i><b>Gọi ra ngoài hôm nay</b></div><div class="ah-pad"><div class="ah-ufh"><b>' + D.uf.today.n.toLocaleString('vi-VN') + '</b><span class="ah-sub">/ ' + D.uf.cap.toLocaleString('vi-VN') + ' lượt · hạn mức Google mỗi ngày</span></div>' +
     '<div class="ah-ufbar"><i class="' + (ufPct >= 80 ? 'hi' : '') + '" style="width:' + Math.max(1, Math.min(100, ufPct)) + '%"></i></div><div class="ah-uf">' + Object.keys(D.uf.areas).filter(a => D.uf.today.by[a]).sort((a, b) => D.uf.today.by[b] - D.uf.today.by[a]).map(a =>
       '<div><span>' + esc(D.uf.areas[a]) + '</span><b>' + D.uf.today.by[a].toLocaleString('vi-VN') + '</b><i style="width:' + Math.max(2, Math.round(D.uf.today.by[a] * 100 / Math.max(1, D.uf.today.n))) + '%"></i></div>').join('') + '</div></div></div>' : '';
@@ -24209,8 +24307,16 @@ function ahHtml(D) {
     (D.errs.length ? '<div class="ah-wrap"><table class="ah-tb"><thead><tr><th>Lúc</th><th>Kênh</th><th>Việc</th><th>Lỗi</th></tr></thead><tbody>' +
       D.errs.map(x => '<tr><td style="white-space:nowrap">' + esc(ahAgo(x.at)) + '</td><td>' + esc(E(x.eng).t || x.eng) + '</td><td>' + esc(x.kind) + '<small>' + esc(x.who) + '</small></td><td class="ah-sub">' + esc(x.err) + '</td></tr>').join('') +
       '</tbody></table></div>' : '<p class="ah-sub ah-pad" style="margin:0"><i class="bi bi-check-circle"></i> Không có lượt lỗi nào trong ' + D.days + ' ngày qua.</p>') + '</div>';
-  return hero + todoH + engs + '<div class="ah-grid2">' + chart + uf + '</div>' + errs + '<p class="ah-sub ah-foot">Số liệu từ nhật ký Trợ lý AI ' + ktDm2(D.fr) + ' → ' + ktDm2(D.to) + ' · cập nhật ' + esc(ahAgo(D.at)) +
+  return hero + todoH + '<div class="ah-grid2">' + chart + '<div class="ah-col">' + mix + uf + '</div></div>' + engs + errs + '<p class="ah-sub ah-foot">Số liệu từ nhật ký Trợ lý AI ' + ktDm2(D.fr) + ' → ' + ktDm2(D.to) + ' · cập nhật ' + esc(ahAgo(D.at)) +
     (D.can.cfg ? ' · <a href="#" data-ahset>Cài đặt AI (khoá, flow, Gemini web)</a>' : '') + '</p>';
+}
+/** bước trục số tròn (1, 2, 5 × 10ⁿ) */
+function ahStep(v) { if (!(v > 0)) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p; return Math.max(1, (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p); }
+/** đường xu hướng nhỏ (diện tích nhạt + nét 2px) */
+function ahSpark(v) {
+  if (!v || v.length < 2) return ''; const m = Math.max.apply(null, v.concat([1])), W = 100, H = 22, x = i => (i * W / (v.length - 1)).toFixed(1), y = n => (H - 2 - n * (H - 4) / m).toFixed(1);
+  const l = v.map((n, i) => (i ? 'L' : 'M') + x(i) + ' ' + y(n)).join(' ');
+  return '<svg class="ah-spk" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><path class="a" d="' + l + ' L' + W + ' ' + H + ' L0 ' + H + ' Z"/><path class="l" d="' + l + '"/></svg>';
 }
 function ahSw(k, t, on, can) { return '<label class="ah-sw"><input type="checkbox" data-ahsw="' + k + '"' + (on ? ' checked' : '') + (can ? '' : ' disabled') + '><span>' + esc(t) + '</span></label>'; }
 function ktDm2(d) { d = String(d || ''); return d.slice(8, 10) + '/' + d.slice(5, 7); }
@@ -24227,6 +24333,14 @@ function ahBind(body, D, pull) {
       toast(r.status === 'ok' ? 'Kênh ' + id + ' trả lời: ' + (r.reply || 'OK') : r.status === 'err' ? 'Kênh lỗi: ' + (r.err || '') : 'Đã gửi thư thử — chờ trả lời (xem lại sau ít phút)', r.status === 'err' ? 'bad' : 'ok', 6000);
     } catch (e) { fail(e); } finally { pull(1); } }; });
   $$('[data-ahset]', body).forEach(st => { st.onclick = e => { e.preventDefault(); go('asst/set'); }; });      // (1.88) có thể nhiều chỗ (Cần xử lý + chân trang)
+  // (1.89) chú thích khi rê chuột / chạm / tab vào cột ngày
+  $$('[data-ahcv]', body).forEach(cv => { const tip = $('.ah-tip', cv), K3 = [['api', 'Gemini API'], ['gweb', 'Gemini web'], ['flow', 'Flow qua mail']];
+    const show = b => { const d = D.byDay[Number(b.dataset.ahd)]; if (!d) return; const t = d.api + d.gweb + d.flow;
+      tip.innerHTML = '<b>' + ktDm2(d.d) + (Number(b.dataset.ahd) === D.byDay.length - 1 ? ' · hôm nay' : '') + '</b>' + K3.map(k => '<div><i class="ah-sw0 ' + k[0] + '"></i><span>' + k[1] + '</span><b>' + d[k[0]] + '</b></div>').join('') + '<hr><div><span></span><span>Tổng</span><b>' + t + '</b></div>';
+      const cr = cv.getBoundingClientRect(), br = b.getBoundingClientRect(); tip.classList.add('on');
+      const bx = br.left - cr.left; let x = bx + br.width + 6; if (x + tip.offsetWidth > cr.width - 4) x = bx - tip.offsetWidth - 6; x = Math.max(4, x);      /* đặt cạnh cột, không đè lên cột */ tip.style.left = x + 'px'; tip.style.top = '4px'; };
+    const hide = () => tip.classList.remove('on');
+    $$('[data-ahd]', cv).forEach(b => { b.onmouseenter = b.onfocus = () => show(b); b.onclick = () => show(b); b.onmouseleave = b.onblur = hide; }); });
 }
 /** (1.82.18) CÀI ĐẶT TRỢ LÝ AI trong module Trợ lý — cùng aiCfgView (AiView.html); bản lưu trên máy vẽ ngay, bản mới tải ngầm rồi thay */
 function asstCfgPage(el) {

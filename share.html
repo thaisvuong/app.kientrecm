@@ -4796,6 +4796,10 @@ details.a-rh > summary{ list-style:none; cursor:pointer } details.a-rh > summary
 #vDrv.on{ color:var(--accent,#B45309) }
 html[data-mode="dark"] .vw-drv-bar{ background:#232832; color:#cfd6e2 }
 .vw-drv-bar .vd-m{ display:none }
+/* (1.89) nút ⚡ đang bật: nền nhạt + tia vàng (trước: nền xanh đậm trùng màu icon → “tối thui”) */
+.vw-tool #vDrv.on{ background:var(--brand-50); color:var(--brand-700); box-shadow:inset 0 0 0 1px var(--brand-100) } .vw-tool #vDrv.on i{ color:#D97706 }
+html[data-mode="dark"] .vw-tool #vDrv.on{ background:#2a2f3a; box-shadow:inset 0 0 0 1px #3a4252 } html[data-mode="dark"] .vw-tool #vDrv.on i{ color:#FBBF24 }
+.vw-drv .drv-w{ border-radius:8px }
 @media (max-width:820px){ .vw-drv-bar{ font-size:12px; gap:8px } .vw-drv-bar .vd-x{ display:none } .vw-drv-bar .vd-m{ display:inline } .vw-drv{ margin-bottom:-30px } }
 .dsh{ border:1px solid var(--line,#e5e7eb); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:8px }
 .dsh-h{ display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px } .dsh-h small{ font-weight:400 }
@@ -5489,6 +5493,19 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
     /* (1.77.22) mở TRONG APP (khung nhúng): thanh trên của app đã có Quay lại + tên → ở đây chỉ còn danh sách tài liệu + nút In · điện thoại: bỏ dòng hiệu lực, bỏ thu phóng (dùng hai ngón) */
     html.emb .sh-logo, html.emb .sh-t{ display:none } html.emb .sh-h{ padding:6px 10px } html.emb .sh-a{ margin-left:auto }
     @media (max-width:640px){ .sh-t .meta, .sh-zoom{ display:none } }
+    /* (1.89) XEM NHANH bằng trình xem Google Drive: mỗi lần một tài liệu (chọn ở danh sách bên trái / mũi tên), bản đầy đủ tải ngầm cho In · Tải · Xem liền mạch */
+    .sh-fv{ display:none; flex:1; min-width:0; flex-direction:column; gap:8px; padding:10px 12px 12px }
+    .sh.fv .sh-m, .sh.fv .sh-zoom, .sh.fv .sh-pill{ display:none } .sh.fv .sh-fv{ display:flex }
+    .fv-note{ margin:0 !important; max-width:none !important; align-items:flex-start } .fv-note > div{ flex:1; min-width:0 } .fv-note .ibtn{ width:28px; height:28px; flex:none; margin:-4px -6px -4px 0 }
+    .fv-bar{ display:flex; align-items:center; gap:8px; min-width:0 }
+    .fv-bar .no{ width:26px; height:26px; flex:none; border-radius:9px; display:grid; place-items:center; font:800 12px var(--font-mono); background:var(--brand-700); color:#fff }
+    .fv-nm{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px }
+    .fv-nm b{ font-size:13px; white-space:nowrap; overflow:hidden } .fv-nm b.cut{ -webkit-mask-image:linear-gradient(90deg,#000 85%,transparent); mask-image:linear-gradient(90deg,#000 85%,transparent) }
+    .fv-nm small{ font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden } .fv-nm small i{ color:#D97706 }
+    .fv-bar .btn{ flex:none; white-space:nowrap }
+    .sh-fv .drv-w{ border-radius:3px; box-shadow:0 2px 14px rgba(20,30,50,.18) }
+    #fvT.on{ background:#FFF4DB; color:#B45309 }
+    @media (max-width:640px){ .sh-fv{ padding:6px 6px 8px; gap:6px } .fv-bar .bl, .fv-nm .fx{ display:none } .fv-bar .btn{ width:36px; padding:0; justify-content:center } }
   </style>
   <script>if (window.top !== window.self) document.documentElement.classList.add('emb');</script>
 </head>
@@ -5500,6 +5517,7 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
     <div class="sh-t"><small id="app">Kiến Chuyên môn</small><h1 id="ttl">Đang mở…</h1><div class="meta" id="meta"></div></div>
     <div class="sh-a" id="acts" hidden>
       <div class="sh-zoom"><button class="ibtn" data-z="-1" aria-label="Thu nhỏ"><i class="bi bi-dash-lg"></i></button><span id="zv" title="Vừa khung">Vừa</span><button class="ibtn" data-z="1" aria-label="Phóng to"><i class="bi bi-plus-lg"></i></button></div>
+      <button class="ibtn" id="fvT" hidden title="Xem nhanh bằng trình xem Google Drive" aria-label="Xem nhanh"><i class="bi bi-lightning-charge"></i></button>
       <button class="ibtn" id="rfr" title="Cập nhật tệp mới — tệp trong thư mục vừa sửa / thay bản mới thì bấm để tải lại bản mới nhất (giữ nguyên link)" aria-label="Cập nhật tệp mới"><i class="bi bi-arrow-clockwise"></i></button>
       <button class="btn sm sh-dl" id="prSel" hidden title="Chọn tệp cần in và thứ tự in — tệp không chọn chỉ để xem"><i class="bi bi-files"></i><span class="bl">Chọn tệp in</span></button>
       <button class="btn sm sh-dl" id="pr" hidden><i class="bi bi-printer"></i><span class="bl">In</span></button>
@@ -6381,10 +6399,51 @@ if (!document.getElementById('sh') && !document.getElementById('pg')) {      // 
 </script>
 
 <script>
+/* ══ (1.89) XEM NHANH BẰNG TRÌNH XEM GOOGLE DRIVE — dùng chung cho Kiến Lib (Viewer.html) và trang Link tạm (Share.html) ══
+   Khung /preview của Drive hiện trang ngay (Drive gửi từng trang, không phải chờ tải cả file); bản đầy đủ vẫn tải ngầm theo cách cũ cho In / Tải về.
+   DÒ TRƯỚC: ảnh thu nhỏ của Drive (drive.google.com/thumbnail) đi cùng phiên đăng nhập / cùng quyền với khung xem — ảnh không về được
+   (file chưa chia sẻ theo link, người xem không có quyền, trình duyệt chặn cookie bên thứ ba) thì khung Drive cũng trống → trang quay về cách cũ. */
+const DRV_OK = {};
+/** true = khung Drive mở được tệp này · false = không (về cách cũ). Quá 6 giây chưa rõ → coi như được (khung Drive vẫn đang hiện, người xem tự đổi được). */
+function drvProbe(id) {
+  if (!id) return Promise.resolve(false);
+  if (DRV_OK[id]) return DRV_OK[id];
+  return (DRV_OK[id] = new Promise(res => {
+    const im = new Image(), t = setTimeout(() => res(true), 6000), end = v => { clearTimeout(t); res(v); };
+    im.onload = () => end(im.naturalWidth > 1);
+    im.onerror = () => end(false);
+    im.referrerPolicy = 'no-referrer';
+    im.src = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w48';
+  }));
+}
+/** gắn khung Drive vào w (ẩn tới khi dò xong — khung vẫn tải song song nên không chậm thêm); trả Promise<true/false> như drvProbe */
+function drvMount(w, id, title, cover) {
+  w.classList.add('drv-w', 'wait'); w.innerHTML = drvFrame(id, title, cover);
+  return drvProbe(id).then(ok => { if (ok) w.classList.remove('wait'); return ok; });
+}
+/** khung xem của Drive. cover = che nút “Mở trong cửa sổ mới” của Drive (ở đó có Tải xuống / In — bỏ qua quyền in, tải của app / link) */
+function drvFrame(id, title, cover) {
+  return '<iframe class="drv-f" src="https://drive.google.com/file/d/' + encodeURIComponent(id) + '/preview" allow="autoplay; fullscreen" referrerpolicy="no-referrer" title="' +
+    String(title || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) + '"></iframe>' +
+    (cover ? '<span class="drv-cv" title="Đang xem nhanh bằng trình xem Google Drive"><i class="bi bi-lightning-charge-fill"></i></span>' : '');
+}
+</script>
+<style>
+  /* khung Drive + miếng che góc phải trên (nút mở cửa sổ mới của Drive) */
+  .drv-w{ position:relative; flex:1; min-height:0; border-radius:8px; overflow:hidden; background:#fff }
+  .drv-f{ position:absolute; inset:0; width:100%; height:100%; border:0; background:#fff }
+  .drv-w.wait .drv-f, .drv-w.wait .drv-cv{ opacity:0 }
+  .drv-w.wait::before{ content:''; position:absolute; left:50%; top:38%; width:30px; height:30px; margin:-15px 0 0 -15px; border-radius:50%; border:3px solid #dfe4ec; border-top-color:#2f3fa8; animation:drvSpin .8s linear infinite }
+  @keyframes drvSpin{ to{ transform:rotate(360deg) } }
+  .drv-cv{ position:absolute; top:0; right:0; width:62px; height:58px; display:grid; place-items:center; border-bottom-left-radius:16px; background:#2b2f36; color:#FBBF24; font-size:17px; box-shadow:-2px 2px 8px rgba(0,0,0,.18); z-index:2 }
+</style>
+
+<script>
 'use strict';
 const SHQ = new URLSearchParams(location.search), TOKEN = (SHQ.get('t') || (/^\/s\/([\w-]+)/.exec(location.pathname) || [])[1] || '').replace(/[^\w-]/g, '');
 const SEL = /^\d{1,3}(,\d{1,3}){0,99}$/.test(SHQ.get('o') || '') ? SHQ.get('o') : '', BASE = location.origin + '/s/';
 if (TOKEN) try { history.replaceState(null, '', '/s/' + TOKEN + (SEL ? '?o=' + SEL : '')); } catch (e) {}
+const INIT_S = '';      // (1.89) thông tin link gửi kèm trang (sharePage_) — khỏi chờ một lượt shareOpen
 const PDF_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const $ = (s, r) => (r || document).querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -6436,7 +6495,9 @@ async function keepTry(fn, onWait) {
 async function start(tries) {
   let L;
   // (1.77.22) thông tin link đã lưu trên máy (app tải sẵn / lần mở trước) → vẽ ngay; máy chủ kiểm ngầm: hết hạn / thu hồi → báo, danh sách tệp đổi → tải lại
-  const C0 = await KPS.meta(TOKEN), fresh = rpc('shareOpen', { t: TOKEN, ua: navigator.userAgent, v: 2 });
+  let INIT = null; if (!tries) try { INIT = INIT_S ? JSON.parse(INIT_S) : null; } catch (e) {}
+  if (INIT) SAVED.ok = 1;
+  const C0 = INIT || await KPS.meta(TOKEN), fresh = INIT ? Promise.resolve(INIT) : rpc('shareOpen', { t: TOKEN, ua: navigator.userAgent, v: 2 });
   rpc('shareSeen', { t: TOKEN, ua: navigator.userAgent }).catch(() => {});
   if (C0 && (!C0.expiresAt || new Date(C0.expiresAt) > new Date())) {
     const ids = F => F.map(f => f.id).join();
@@ -6482,7 +6543,7 @@ async function start(tries) {
     L.files.map((f, i) => '<button class="tc" data-i="' + i + '"><span class="no">' + (i + 1) + '</span><span class="tx"><b>' + esc(f.n) + '</b>' + (f.d ? '<small>' + esc(f.d) + '</small>' : '') + '</span><span class="st" id="st' + i + '"><span class="spin"></span></span></button>').join('') + '</aside>' +
     '<main class="sh-m" id="main">' + (L.note ? '<div class="sh-note sh-attn"><i class="bi bi-sticky-fill"></i><div><b>Cần chú ý</b><p>' + esc(L.note) + '</p></div></div>' : '') + (L.notice ? '<div class="sh-note"><i class="bi bi-info-circle"></i><div>' + esc(L.notice) + '</div></div>' : '') +
     L.files.map((f, i) => '<section class="sec" id="sec' + i + '"><div class="sec-t"><span class="no">' + (i + 1) + '</span><b title="' + esc(f.n) + '">' + esc(f.n) + '</b><small id="pc' + i + '">' + esc(fmtSize(f.s)) + '</small></div><div class="ph"></div></section>').join('') +
-    '</main><div class="sh-pill" id="pill">Đang tải…</div>';
+    '</main><section class="sh-fv" id="fv" aria-label="Xem nhanh"></section><div class="sh-pill" id="pill">Đang tải…</div>';
   sh.appendChild(b);
   V.main = $('#main');
   V.docs = L.files.map((f, i) => ({ f: f, i: i, pages: [], state: 'wait', bytes: null }));
@@ -6502,7 +6563,8 @@ async function start(tries) {
   }
   V.obs = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) draw(en.target._p); }), { root: V.main, rootMargin: '900px 0px' });
   V.main.addEventListener('scroll', track, { passive: true });
-  $('#toc').onclick = e => { const t = e.target.closest('[data-i]'); if (t) { jump(Number(t.dataset.i)); sh.classList.remove('toc'); } };
+  $('#toc').onclick = e => { const t = e.target.closest('[data-i]'); if (t) { const i = Number(t.dataset.i); if (FV.on) fvShow(i); else jump(i); sh.classList.remove('toc'); } };
+  $('#fvT').onclick = () => FV.on ? fvOff(FV.i) : fvOn(V.cur);
   $('#tocBtn').onclick = () => sh.classList.toggle('toc');
   $('#scrim').onclick = () => sh.classList.remove('toc');
   $('#acts').onclick = e => { const z = e.target.closest('[data-z]'); if (z) stepZoom(Number(z.dataset.z)); };
@@ -6517,8 +6579,11 @@ async function start(tries) {
     if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) { e.preventDefault(); if (!L.download) toast('Tài liệu này không cho phép tải về', 'info'); else download(); }
   });
   addEventListener('resize', debounce(() => setZoom(V.zoom, true), 150));
-  addEventListener('keydown', e => { if (e.target.closest('input')) return; if (e.key === '+' || e.key === '=') stepZoom(1); if (e.key === '-') stepZoom(-1); if (e.key === '0') setZoom(1); });
+  addEventListener('keydown', e => { if (e.target.closest('input') || FV.on) return; if (e.key === '+' || e.key === '=') stepZoom(1); if (e.key === '-') stepZoom(-1); if (e.key === '0') setZoom(1); });
   track();
+  // (1.89) XEM NHANH: link không chọn sẵn tệp in, tài liệu đầu là cả tệp → hiện ngay bằng trình xem Drive; các tài liệu vẫn tải đầy đủ ngầm như cũ
+  FV.can = fvCan(L);
+  if (FV.can) { fvInit(L); if (fvAble(L.files[0])) fvOn(0); else $('#fvT').hidden = false; }
   // (1.80) LINK GỘP (≥ 2 tệp, được in): mở là hiện ngay bảng chọn tệp in — không phải chờ xem; các tệp tải ngầm, chọn xong bấm In là in khi tải xong
   if (L.print && L.files.length >= 2 && !SEL && (L.pickOnly || matchMedia('(max-width:820px)').matches)) setTimeout(printPick, 0);
   await Promise.all(V.docs.map(load));      // (1.77.21) mọi tài liệu cùng lúc — số lệnh gửi máy chủ do slot() giới hạn ≤ 24 (theo thứ tự) · trước: 2 → 4 tài liệu      // (1.77.20) 4 tài liệu cùng lúc (máy chủ đọc theo đoạn byte, không đọc trùng) · trước: 2, theo thứ tự (1.37.3) — tài liệu đầu vẫn hiện trước
@@ -6561,6 +6626,51 @@ const IOS_PRINT = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.tes
 function partsGuess(type, size) { return type === 'pdf' && Number(size) > 0 ? Math.ceil(Number(size) / 3) * 4 : 0; }
 function debounce(fn, ms) { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; }
 
+/* ══════════ (1.89) XEM NHANH BẰNG TRÌNH XEM GOOGLE DRIVE ══════════
+   Khung Drive (DrvFast.html) hiện một tài liệu ngay — không chờ tải cả tệp, không chờ trình vẽ PDF. Cùng lúc mọi tài liệu vẫn tải ĐẦY ĐỦ ngầm theo cách cũ
+   (máy → thẳng từ Drive → máy chủ) cho In / Tải PDF / Ghép file in / Xem liền mạch. Drive không mở được tệp (dò bằng ảnh thu nhỏ) → tự chuyển sang trình xem đầy đủ.
+   Không dùng khung Drive cho: link mở bằng “Link in” (chọn sẵn tệp để in) và tệp chỉ lấy vài trang (Drive sẽ hiện cả tệp). Che nút mở cửa sổ mới của Drive
+   (ở đó tải / in được) để giữ quyền in, tải của link. */
+const FV = { on: false, i: 0, can: false, n: 0 };      // n = số lần đã mở một tài liệu bằng khung Drive
+const fvAble = f => !!(f && f.id && !(f.p && f.p.length));
+function fvCan(L) { return !!(L.fv && !SEL && L.files.some(fvAble)); }
+function fvInit(L) {
+  const fv = $('#fv'), x = '<button class="ibtn" data-fvx title="Ẩn ghi chú" aria-label="Ẩn ghi chú"><i class="bi bi-x-lg"></i></button>';
+  fv.innerHTML = (L.note ? '<div class="sh-note sh-attn fv-note"><i class="bi bi-sticky-fill"></i><div><b>Cần chú ý</b><p>' + esc(L.note) + '</p></div>' + x + '</div>' : '') +
+    (L.notice ? '<div class="sh-note fv-note"><i class="bi bi-info-circle"></i><div>' + esc(L.notice) + '</div>' + x + '</div>' : '') +
+    '<div class="fv-bar"><span class="no" id="fvNo">1</span><span class="fv-nm"><b id="fvN"></b><small id="fvS"></small></span>' +
+    (L.files.length > 1 ? '<button class="ibtn" id="fvP" title="Tài liệu trước" aria-label="Tài liệu trước"><i class="bi bi-chevron-left"></i></button><button class="ibtn" id="fvX" title="Tài liệu sau" aria-label="Tài liệu sau"><i class="bi bi-chevron-right"></i></button>' : '') +
+    '<button class="btn sm" id="fvAll" title="Xem mọi tài liệu nối tiếp bằng trình xem đầy đủ (thu phóng, số trang) — dùng bản đã tải ngầm"><i class="bi bi-view-stacked"></i><span class="bl">Xem liền mạch</span></button></div>' +
+    '<div id="fvW"></div>';
+  fv.onclick = e => { const n = e.target.closest('[data-fvx]'); if (n) return n.closest('.fv-note').remove();
+    if (e.target.closest('#fvP')) fvShow(FV.i - 1); else if (e.target.closest('#fvX')) fvShow(FV.i + 1); else if (e.target.closest('#fvAll')) fvOff(FV.i); };
+}
+function fvOn(i) { FV.on = true; $('#sh').classList.add('fv'); const t = $('#fvT'); t.hidden = false; t.classList.add('on'); t.title = 'Đang xem nhanh — bấm để xem liền mạch bằng trình xem đầy đủ'; fvShow(i || 0); }
+function fvOff(i, why) {
+  FV.on = false; $('#sh').classList.remove('fv'); const t = $('#fvT'); t.hidden = !FV.can; t.classList.remove('on'); t.title = 'Xem nhanh bằng trình xem Google Drive';
+  const w = $('#fvW'); if (w) w.innerHTML = '';      // dừng khung Drive
+  V.docs.forEach(d => d.pages.forEach(size));      // trang tạo lúc khung liền mạch đang ẩn → tính lại khổ
+  if (why) toast(why, 'info', 4500);
+  requestAnimationFrame(() => { const d = V.docs[i]; if (d) jump(d.i); track(); });
+}
+function fvShow(i) {
+  const d = V.docs[i]; if (!d || !FV.on) return;
+  if (!fvAble(d.f)) return fvOff(i, 'Tệp này chỉ lấy một số trang — mở bằng trình xem đầy đủ');
+  FV.i = i; V.cur = i; const first = !FV.n++;
+  document.querySelectorAll('.tc').forEach((t, k) => t.classList.toggle('on', k === i));
+  const t = document.querySelector('.tc.on'); if (t) t.scrollIntoView({ block: 'nearest' });
+  $('#fvNo').textContent = i + 1;
+  const nm = $('#fvN'); nm.textContent = d.f.n; nm.title = d.f.n; nm.classList.toggle('cut', nm.scrollWidth > nm.clientWidth + 1);
+  const p = $('#fvP'), x = $('#fvX'); if (p) p.disabled = i <= 0; if (x) x.disabled = i >= V.docs.length - 1;
+  fvTick();
+  drvMount($('#fvW'), d.f.id, d.f.n, true).then(ok => { if (!ok && FV.on && FV.i === i) fvOff(i, first ? '' : 'Trình xem Drive chưa mở được tệp này — đã chuyển sang trình xem đầy đủ'); });      // lần mở đầu: chuyển lặng lẽ
+}
+function fvTick() {
+  const s = $('#fvS'); if (!s) return;
+  const N = V.docs.length, ok = V.docs.filter(d => d.state === 'ok').length, bad = V.docs.filter(d => d.state === 'err').length;
+  s.innerHTML = '<i class="bi bi-lightning-charge-fill"></i> Xem nhanh' + (N > 1 ? ' · ' + (FV.i + 1) + '/' + N : '') + ' · ' +
+    (ok + bad < N ? 'đang tải bản đầy đủ' + (N > 1 ? ' ' + ok + '/' + N : '') : bad ? 'bản đầy đủ ' + ok + '/' + N + ' tệp' : 'bản đầy đủ đã sẵn' + (V.L.print || V.L.download ? '<span class="fx"> — In, Tải dùng được</span>' : ''));
+}
 function load(d) {
   if (d.p) return d.p;
   return (d.p = (async () => {
@@ -6569,7 +6679,7 @@ function load(d) {
     // (1.70) XEM NHANH: ảnh trang đầu (Google dựng sẵn, nhẹ) hiện ngay trong lúc tải PDF đầy đủ — 3 tài liệu đầu, khi trang đầu nằm trong phần được chọn
     // (1.80.55) BẢN NHẸ TRƯỚC cho MỌI tài liệu (3 tài liệu đầu gửi ngay, còn lại xếp hàng chung giới hạn lệnh) — bản đầy đủ tải ngầm rồi thay vào
     const peek = () => keepTry(() => rpc('sharePeek', { t: TOKEN, id: d.f.id, w: Math.round(Math.min(1000, innerWidth) * Math.min(2, devicePixelRatio || 1)) }));
-    if (!(d.f.p && d.f.p.length && d.f.p[0] !== 1)) (d.i < 3 ? peek() : slot(peek))
+    if (!FV.on && !(d.f.p && d.f.p.length && d.f.p[0] !== 1)) (d.i < 3 ? peek() : slot(peek))      // (1.89) đang xem nhanh bằng Drive → khỏi xin ảnh trang đầu
       .then(r => { const ph = sec && $('.ph', sec); if (r && r.url && ph && !ph.firstChild) ph.innerHTML = '<img src="' + r.url + '" alt="" style="width:100%;height:100%;object-fit:contain;display:block">'; }).catch(() => {});
     try {
       // (1.77.22) 1 · bản đã tải sẵn trên máy (app tải ngầm cho gia sư / lần mở trước) → 2 · tải thẳng từ Drive (chế độ “Ai có link”) → 3 · qua máy chủ
@@ -6601,10 +6711,10 @@ function load(d) {
       const n0 = n; n = want.length;
       if (!n) ph.replaceWith(Object.assign(document.createElement('div'), { className: 'msg', textContent: 'Không có trang nào được chọn' }));
       d.state = 'ok';
-      paintNums(); if (V.onDoc) V.onDoc();
+      paintNums(); if (V.onDoc) V.onDoc(); fvTick();
       st.textContent = n + ' tr'; $('#pc' + d.i).textContent = n + (n < n0 ? '/' + n0 : '') + ' trang' + (d.f.s ? ' · ' + fmtSize(d.f.s) : '');
     } catch (e) {
-      d.state = 'err'; paintNums(); if (V.onDoc) V.onDoc();
+      d.state = 'err'; paintNums(); if (V.onDoc) V.onDoc(); fvTick();
       st.innerHTML = '<i class="bi bi-exclamation-triangle" style="color:var(--warn)"></i>';
       const ph = $('.ph', sec); const m = document.createElement('div'); m.className = 'msg';
       m.innerHTML = '<i class="bi bi-exclamation-triangle"></i>' + esc(e.message) + (e.soft ? '' : '<div style="margin-top:10px"><button class="btn sm">Thử lại</button></div>');
@@ -6671,7 +6781,7 @@ async function draw(p, hi) {
 }
 function allPages() { return V.docs.reduce((a, d) => a.concat(d.pages), []); }
 function track() {
-  if (V._raf) return;
+  if (V._raf || FV.on) return;
   V._raf = requestAnimationFrame(() => {
     V._raf = 0;
     const mid = V.main.getBoundingClientRect().top + V.main.clientHeight * 0.35;
