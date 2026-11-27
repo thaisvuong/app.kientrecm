@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T08:20:28.257Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T08:26:36.832Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -20909,18 +20909,18 @@ const PHP_EX = 'VD: Phụ huynh bé Hoàng Trương Uyển Minh – K9DH_5B1 (l�
 /** tên topic gửi phụ huynh: bỏ số / mã nội bộ đầu tên (“Topic 05NT — ”, “Buổi 02 — ”, “15_”) */
 function phpTn(n) { n = String(n || '').normalize('NFC'); return n.replace(/^\s*\d+[_.\s-]+/, '').replace(/^(topic|buổi|bài|chủ đề)\s*\d+\s*(NT|NC|KT|ÔN|DP)?\s*[—–:.\-]\s*/i, '').trim() || n; }
 const phpDm = d => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) : '';
-const PHP_ST = { c: 'Học cả với gia sư và ở lớp', g: 'Học với gia sư', k: 'Học ở lớp kientre.click', h: 'Chưa học (lỗ hổng)', t: 'Sắp học', '.': 'Chưa tới' };
+const PHP_ST = { c: 'Học cả với gia sư và ở lớp', g: 'Học với gia sư', k: 'Học ở lớp kientre.click', h: 'Chưa thấy trong bài đã học', t: 'Sắp học', '.': 'Chưa tới' };
 const PHP_LN = { NT: 'Nền tảng', NC: 'Nâng cao' };
 const phpRtN = r => r.loai === 'NT' ? 'Lộ trình Nền tảng' : r.loai === 'NC' ? 'Lộ trình Nâng cao' : r.ten;
 /** ô số từng topic của một lộ trình — tên topic biết được (lỗ hổng, sắp học, khớp bài lớp) hiện khi rê chuột */
 function phpCells(r, D) {
   const nm = {}; (r.hong || []).concat(r.tiep || []).forEach(x => { nm[x.stt] = x.n; }); const ri = (D.routes || []).indexOf(r);
-  (D.kt || []).forEach(t => { const m = t.m && t.m[ri]; if (m) nm[m.stt] = m.n; });
+  (D.kt || []).forEach(t => { const m = t.m && t.m[ri]; if (m) [m].concat(m.more || []).forEach(z => { nm[z.stt] = z.n; }); });
   return String(r.s || '').split('').map((v, i) => '<i class="php-cl ' + (v === '.' ? 'z' : v) + '" title="' + esc((i + 1) + '. ' + (nm[i + 1] ? nm[i + 1] + ' — ' : '') + PHP_ST[v]) + '">' + (i + 1) + '</i>').join('');
 }
 const phpLegend = () => '<div class="php-lg">' + ['c', 'g', 'k', 'h', 't', '.'].map(v => '<span><i class="php-cl ' + (v === '.' ? 'z' : v) + '"></i>' + PHP_ST[v] + '</span>').join('') + '</div>';
-const phpRtSum = r => r.nDa + '/' + r.tong + ' topic đã học' + (r.nG && r.nK ? ' (gia sư ' + r.nG + ' · lớp ' + r.nK + ')' : r.nK ? ' ở lớp' : '') + (r.nHong ? ' · ' + r.nHong + ' lỗ hổng' : '');
-const phpTopicRef = (m, r) => m ? 'Topic ' + m.stt + '/' + r.tong + ' · ' + m.n : '';
+const phpRtSum = r => r.nDa + '/' + r.tong + ' topic đã học' + (r.nG && r.nK ? ' (gia sư ' + r.nG + ' · lớp ' + r.nK + ')' : r.nK ? ' ở lớp' : '') + (r.nHong ? ' · ' + r.nHong + ' chưa thấy học' : '');
+const phpTopicRef = (m, r) => m ? 'Topic ' + m.stt + '/' + r.tong + ' · ' + m.n + ((m.more || []).length ? ' (cùng topic ' + m.more.map(z => z.stt).join(', ') + ')' : '') : '';
 async function phpOpen(c) {
   const m = modal({ title: 'Lộ trình hỗ trợ theo yêu cầu phụ huynh · ' + clName(c), icon: 'bi-heart-pulse', size: 'xl', body: typeof loadFx === 'function' ? loadFx('Đang đọc dữ liệu học của ' + clName(c) + '…', { c: 'cmt' }) : miniLoader('Đang tải…') });
   let I; try { I = await rpc('phpInfo', c.kt ? { kt: c.kt } : { cid: c.id }, { quiet: true }); } catch (e) { m.close(); return fail(e); }
@@ -21031,7 +21031,7 @@ function phpCmpSec(D) {
     (D.ktLoi ? '<div class="kt-err small"><i class="bi bi-exclamation-triangle"></i><span>Chưa đọc được bài lớp kientre.click: ' + esc(D.ktLoi) + '</span></div>' : !D.ktCls ? '<span class="small muted">Bé không học lớp kientre.click — chỉ đối chiếu bài đã học với gia sư.</span>' : '') +
     phpLegend() +
     R.map(r => '<div class="php-rt"><div class="hd"><b>' + esc(phpRtN(r)) + '</b><small>' + esc(r.ten + (r.dang ? ' · đang học' : '')) + '</small><small>' + esc(phpRtSum(r)) + '</small></div><div class="cells">' + phpCells(r, D) + '</div>' +
-      (r.hong.length ? '<div class="gap"><b>Lỗ hổng:</b> ' + r.hong.map(x => esc(x.stt + '. ' + x.n)).join(' · ') + (r.nHong > r.hong.length ? ' · và ' + (r.nHong - r.hong.length) + ' topic nữa' : '') + '</div>' : '') +
+      (r.hong.length ? '<div class="gap"><b>Chưa thấy trong bài đã học:</b> ' + r.hong.map(x => esc(x.stt + '. ' + x.n)).join(' · ') + (r.nHong > r.hong.length ? ' · và ' + (r.nHong - r.hong.length) + ' topic nữa' : '') + '</div>' : '') +
       (r.tiep.length ? '<div class="gap"><b>Sắp học:</b> ' + r.tiep.map(x => esc(x.stt + '. ' + x.n)).join(' · ') + '</div>' : '') + '</div>').join('') +
     ((D.kt || []).length ? '<div class="php-scr"><table class="php-tb"><thead><tr><th>Bài con học ở lớp ' + esc(D.ktCls) + '</th>' + R.map(r => '<th>' + esc(phpRtN(r)) + '</th>').join('') + '</tr></thead><tbody>' +
       D.kt.map(t => '<tr><td>' + esc(t.n) + ' <small>' + phpDm(t.d2) + (t.k > 1 ? ' · ' + t.k + ' buổi' : '') + '</small></td>' + R.map((r, i) => '<td data-l="' + esc(phpRtN(r)) + '">' + (t.m[i] ? esc(phpTopicRef(t.m[i], r)) : '<span class="no">không có</span>') + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>' : '') +
@@ -21093,9 +21093,9 @@ function phpCmpPdf(D, c) {
     (D.nhanXet ? '<p>' + nl(D.nhanXet) + '</p>' : '') +
     phpLegend() + R.map(r => '<div class="php-rt"><div class="hd"><b>' + esc(phpRtN(r)) + (r.dang ? ' · con đang học' : '') + '</b><small>' + esc(phpRtSum(r)) + '</small></div><div class="cells">' + phpCells(r, D) + '</div></div>').join('') +
     ((D.kt || []).length ? '<div class="lb" style="margin-top:6pt">Bài con đã học ở lớp ' + esc(D.ktCls) + ' (kientre.click) tương ứng trong 2 lộ trình</div><table><thead><tr><th>Bài ở lớp</th><th>Ngày</th>' + R.map(r => '<th>' + esc(phpRtN(r)) + '</th>').join('') + '</tr></thead><tbody>' +
-      D.kt.map(t => '<tr><td class="k">' + esc(t.n) + '</td><td class="n">' + phpDm(t.d2) + (t.k > 1 ? '<div class="mu">' + t.k + ' buổi</div>' : '') + '</td>' + R.map((r, i) => '<td>' + (t.m[i] ? 'Topic ' + t.m[i].stt + '/' + r.tong + '<div class="mu">' + esc(t.m[i].n) + '</div>' : '<span class="php-no">Không có trong lộ trình</span>') + '</td>').join('') + '</tr>').join('') + '</tbody></table>' : '') +
+      D.kt.map(t => '<tr><td class="k">' + esc(t.n) + '</td><td class="n">' + phpDm(t.d2) + (t.k > 1 ? '<div class="mu">' + t.k + ' buổi</div>' : '') + '</td>' + R.map((r, i) => '<td>' + (t.m[i] ? 'Topic ' + [t.m[i]].concat(t.m[i].more || []).map(z => z.stt).join(', ') + '/' + r.tong + '<div class="mu">' + esc([t.m[i]].concat(t.m[i].more || []).map(z => z.n).join(' · ')) + '</div>' : '<span class="php-no">Không có trong lộ trình</span>') + '</td>').join('') + '</tr>').join('') + '</tbody></table>' : '') +
     (R.some(r => r.hong.length || r.tiep.length) ? '<div class="ktr-two" style="margin-top:10px">' + R.map(r => '<section class="ktr-bx ' + (r.hong.length ? 'warn' : 'ok') + '"><h2>' + esc(phpRtN(r)) + '</h2>' +
-      (r.hong.length ? '<div class="lb">Chưa học — cần lấp</div><ul>' + li(r, 'hong') + (r.nHong > r.hong.length ? '<li>và ' + (r.nHong - r.hong.length) + ' topic nữa</li>' : '') + '</ul>' : '<p>' + (r.nDa ? 'Không có lỗ hổng trước bài xa nhất con đã học.' : 'Con chưa học topic nào của lộ trình này.') + '</p>') +
+      (r.hong.length ? '<div class="lb">Chưa thấy trong bài con đã học — kiểm tra bằng phiếu ở buổi đầu</div><ul>' + li(r, 'hong') + (r.nHong > r.hong.length ? '<li>và ' + (r.nHong - r.hong.length) + ' topic nữa</li>' : '') + '</ul>' : '<p>' + (r.nDa ? 'Không có lỗ hổng trước bài xa nhất con đã học.' : 'Con chưa học topic nào của lộ trình này.') + '</p>') +
       (r.tiep.length ? '<div class="lb">Sắp học</div><ul>' + li(r, 'tiep') + '</ul>' : '') + '</section>').join('') + '</div>' : '') + '</section>';
 }
 /** PDF: PHIẾU KIỂM TRA KIẾN THỨC — câu của Phiếu theo dõi tiến trình cho từng topic cần củng cố (không in đáp án); cột tick Đầu vào + các mốc kiểm tra */
