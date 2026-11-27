@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T11:14:21.494Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T11:16:56.060Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -21005,7 +21005,7 @@ function phpPaint(V) {
         '<span class="ops">' + ops('cungCo', i, A.length) + '</span></div></div>').join('') +
       f('Phương pháp chung (mỗi dòng một ý)', '<textarea class="inp" data-pl="phuongPhap" rows="4">' + esc((P.phuongPhap || []).join('\n')) + '</textarea>') + '</div>' +
     '<div class="php-sec"><h4><em>2</em>Số buổi bổ sung & lịch dự kiến · ' + (P.lich || []).length + ' buổi<span class="sp"></span><button type="button" class="btn xs" data-op="add" data-arr="lich"><i class="bi bi-plus-lg"></i>Thêm buổi</button></h4>' +
-      '<div class="php-row">' + f('Tần suất', inp('tanSuat', P.tanSuat, '2 buổi/tuần')) + f('Thời lượng', inp('thoiLuong', P.thoiLuong, '2 tiếng/buổi')) + '</div>' +
+      '<div class="php-row">' + f('Thời lượng', inp('thoiLuong', P.thoiLuong, '2 tiếng/buổi')) + '</div>' +
       (P.lich || []).map((b, i, A) => '<div class="php-it" style="--c:3"><div class="hd"><b>Buổi ' + (i + 1) + '</b>' + mp(b) + '<span class="sp"></span>' + ops('lich', i, A.length) + '</div>' +
         '<div class="php-tp full">' + (b.ids || []).map((id, k) => '<span class="chip' + (lgN[id] && lgN[id].da ? ' da' : '') + '" title="' + (lgN[id] && lgN[id].da ? 'Bé đã học — củng cố lại' : 'Chưa học') + '">' + esc(lgN[id] ? lgN[id].n : id) + '<button type="button" data-rmt="' + i + '" data-k="' + k + '" aria-label="Bỏ topic"><i class="bi bi-x"></i></button></span>').join('') +
           '<select class="inp" data-addt="' + i + '" aria-label="Thêm topic" style="width:auto;max-width:260px">' + opt('') + '</select></div>' +
@@ -21083,9 +21083,8 @@ const phpKtKey = n => String(n || '').normalize('NFC').toLowerCase().replace(/\s
 function phpKtOff(D, t) { const k = phpKtKey(t.n); return (D.bo || []).indexOf(k) >= 0 || (!t.m.some(Boolean) && (D.hien || []).indexOf(k) < 0); }
 /** (1.94.3) tên gửi phụ huynh: lớp nhóm = “Lớp Kiến Trẻ”, không viết kientre.click */
 const phpKtTx = s => String(s || '').replace(/(lớp nhóm|lớp)\s+(ở\s+)?kientre\.click/gi, 'Lớp Kiến Trẻ').replace(/kientre\.click/gi, 'Lớp Kiến Trẻ');
-/** (1.94.3) tên topic MỘT DÒNG trong PDF: dài thì thu nhỏ chữ (tối thiểu 70%), quá dài mới cho xuống dòng */
-function phpOne(t, max) { t = phpTn(t); if (t.length > max) t = t.replace(/\s+của hai số đó$/i, ''); const n = t.length, k = n > max ? max / n : 1;
-  return k < 0.7 ? esc(t) : '<span class="php-1l"' + (k < 1 ? ' style="font-size:' + Math.floor(k * 100) + '%"' : '') + '>' + esc(t) + '</span>'; }
+/** (1.94.3) tên topic trong PDF: GIỮ NGUYÊN cỡ chữ (người dùng: không thu nhỏ) — vừa cột thì một dòng, dài quá mới xuống dòng; cột đã nới cho tên thường gặp vừa một dòng */
+function phpOne(t, max) { t = phpTn(t); if (t.length > max) t = t.replace(/\s+của hai số đó$/i, ''); return t.length > max ? esc(t) : '<span class="php-1l">' + esc(t) + '</span>'; }
 /** (1.94.3) câu cố định dưới lịch (người dùng chốt) */
 const PHP_NEXT = 'Gia sư sẽ theo dõi bài học trên lớp Kiến Trẻ và bổ trợ cho con giúp con vững kỹ năng làm bài sau giai đoạn bổ sung các kiến thức con còn yếu.';
 /** (1.94.3) dòng tiêu đề giai đoạn trong bảng lịch: giai đoạn 1 trước kỳ kiểm tra · giai đoạn 2 (chủ điểm học kỳ II) sau luyện đề học kỳ I */
@@ -21141,9 +21140,9 @@ function phpPdf(V) {
     '<section class="flow"><h2>1. Kiến thức cần củng cố & phương pháp hỗ trợ</h2>' +
       ((P.cungCo || []).length ? '<table><thead><tr><th>STT</th><th>Kiến thức cần củng cố</th><th>Mức ưu tiên</th></tr></thead><tbody>' + P.cungCo.filter(x => x.id).map((x, i) => '<tr><td class="n">' + (i + 1) + '</td><td class="k">' + esc(tn(x.id)) + '</td><td class="n">' + (x.uuTien === 'cao' ? 'Ưu tiên cao' : 'Ưu tiên vừa') + '</td></tr>').join('') + '</tbody></table>' : '') +
       ((P.phuongPhap || []).length ? '<div class="ktr-bx tip" style="margin-top:10px"><div class="lb">Phương pháp chung</div>' + li(P.phuongPhap) + '</div>' : '') + '</section>' +
-    '<section class="flow"><h2>2. Số buổi bổ sung & lịch dự kiến</h2><p class="php-sum"><b>' + nB + ' buổi</b>' + (P.thoiLuong ? ' · ' + esc(P.thoiLuong) : '') + (P.tanSuat ? ' · ' + esc(P.tanSuat) : '') + '</p>' +
+    '<section class="flow"><h2>2. Số buổi bổ sung & lịch dự kiến</h2><p class="php-sum"><b>' + nB + ' buổi</b>' + (P.thoiLuong ? ' · ' + esc(P.thoiLuong) : '') + '</p>' +
       (P.lichThi && P.lichThi.batDau ? '<p class="php-thi">Kiểm tra ' + esc(P.lichThi.ky || 'cuối học kỳ') + ' trên trường: dự kiến ' + esc(P.lichThi.khoang || 'từ ' + P.lichThi.batDau) + ' — lịch chính thức theo thông báo của nhà trường.</p>' : '') +
-      (nB ? '<table class="php-lich"><colgroup><col style="width:9%"><col style="width:44%"><col style="width:26%"><col style="width:21%"></colgroup><thead><tr><th>Buổi</th><th>Kiến thức · nội dung</th><th>Mục tiêu</th><th>Bài về nhà</th></tr></thead><tbody>' + P.lich.map((b, i) => phpGdRow(P, i) + '<tr><td class="d"><b>Buổi ' + (i + 1) + '</b>' + (mp(b) ? '<div class="mu">' + mp(b) + '</div>' : '') + '</td><td class="b">' + (b.ids || []).map(id => phpOne(L[id] || id, 42)).join('<br>') + (b.noiDung ? '<div class="mu">' + nl(b.noiDung) + '</div>' : '') + '</td><td>' + nl(b.mucTieu) + '</td><td>' + nl(b.btvn) + '</td></tr>').join('') + '</tbody></table>' : '') + '<p class="php-next">' + PHP_NEXT + '</p></section>' +
+      (nB ? '<table class="php-lich"><colgroup><col style="width:9%"><col style="width:51%"><col style="width:22%"><col style="width:18%"></colgroup><thead><tr><th>Buổi</th><th>Kiến thức · nội dung</th><th>Mục tiêu</th><th>Bài về nhà</th></tr></thead><tbody>' + P.lich.map((b, i) => phpGdRow(P, i) + '<tr><td class="d"><b>Buổi ' + (i + 1) + '</b>' + (mp(b) ? '<div class="mu">' + mp(b) + '</div>' : '') + '</td><td class="b">' + (b.ids || []).map(id => phpOne(L[id] || id, 50)).join('<br>') + (b.noiDung ? '<div class="mu">' + nl(b.noiDung) + '</div>' : '') + '</td><td>' + nl(b.mucTieu) + '</td><td>' + nl(b.btvn) + '</td></tr>').join('') + '</tbody></table>' : '') + '<p class="php-next">' + PHP_NEXT + '</p></section>' +
     '<section class="flow"><h2>3. Mục tiêu đầu ra & cách theo dõi, đánh giá tiến bộ</h2>' +
       ((P.mucTieu || []).length ? '<table><thead><tr><th>Mục tiêu đầu ra</th><th>Chỉ số đo</th><th>Thời điểm</th></tr></thead><tbody>' + P.mucTieu.map(x => '<tr><td class="k">' + nl(x.y) + '</td><td>' + nl(x.chiSo) + '</td><td class="n">' + esc(x.han) + '</td></tr>').join('') + '</tbody></table>' : '') +
       (moc.length ? '<div style="height:10px"></div><table class="php-mc"><colgroup><col style="width:15%"><col style="width:45%"><col style="width:40%"></colgroup><thead><tr><th>Mốc kiểm tra</th><th>Hình thức</th><th>Tiêu chí đạt</th></tr></thead><tbody>' + moc.map(x => '<tr><td class="d"><b>' + (x.sauBuoi ? 'Sau buổi ' + x.sauBuoi : 'Mốc') + '</b></td><td>' + (x.n ? '<b>' + phpOne(x.n, 42) + '</b><br>' : '') + nl(x.hinhThuc) + '</td><td>' + nl(x.dat) + '</td></tr>').join('') + '</tbody></table>' : '') +
