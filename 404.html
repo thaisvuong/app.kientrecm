@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T11:50:46.530Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T11:55:34.477Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -24389,7 +24389,8 @@ function aiCfgView(body) {
       aiGemKeysH() +      // (1.88) nhiều khoá, tự chuyển khi hết hạn mức
       '<div class="ax-inl" style="margin-top:8px;align-items:flex-start"><textarea class="inp mono" id="aiGemK" rows="2" autocomplete="off" spellcheck="false" placeholder="Dán một hoặc nhiều khoá (mỗi dòng một khoá) — dạng AIza… hoặc AQ.…" style="flex:1 1 260px;min-height:44px;-webkit-text-security:disc"></textarea>' +
         '<select class="sel" id="aiGemM" style="width:auto" title="Tự động: mỗi khoá tự dò model mới nhất chạy được">' + AI.b.gem.models.concat(AI.b.gem.models.indexOf(AI.b.gem.model) < 0 ? [AI.b.gem.model] : []).map(m => '<option value="' + esc(m) + '"' + (m === AI.b.gem.model ? ' selected' : '') + '>' + (m === 'auto' ? 'Tự động' : esc(m)) + '</option>').join('') + '</select>' +
-        '<button class="btn sm" id="aiGemS"><i class="bi bi-plus-lg"></i>Thêm khoá</button>' + (AI.b.gem.n ? '<button class="btn sm ghost" id="aiGemT"><i class="bi bi-lightning"></i>Thử cả ' + AI.b.gem.n + ' khoá</button>' : '') + '</div>') : '') +
+        '<button class="btn sm" id="aiGemS"><i class="bi bi-plus-lg"></i>Thêm khoá</button>' + (AI.b.gem.n ? '<button class="btn sm ghost" id="aiGemT"><i class="bi bi-lightning"></i>Thử cả ' + AI.b.gem.n + ' khoá</button><button class="btn sm ghost" id="aiGemP" title="Hỏi Google các model khoá gọi được (ListModels) rồi gửi thử — ô chọn model lấy theo kết quả"><i class="bi bi-search"></i>Dò model</button>' : '') + '</div>' +
+        (AI.gemProbe ? '<div class="ax-probe small">' + AI.gemProbe.keys.map(k => '<div><b>Khoá ' + (k.i + 1) + ' ' + esc(k.m) + '</b>: ' + (k.err ? '<span class="kt-err">' + esc(k.err) + '</span>' : k.tried.map(t => t.ok ? '<span class="tag ok">' + esc(t.m) + ' ✓</span>' : '<span class="tag" title="' + esc(t.e || '') + '">' + esc(t.m) + ' ✗</span>').join(' ') || '<span class="muted">không có model nào</span>') + '</div>').join('') + '</div>' : '')) : '') +
     '</div>';
   const save = async (patch, msg) => { try { AI.b = await rpc('aiCfgSave', patch, { quiet: true }); lsSet('aiBoot:' + (S.me && S.me.email || ''), AI.b); toast(msg || 'Đã lưu', 'ok', 2000); AI.dash = null; aiCfgRe(body); } catch (e) { toast(e.message, 'err'); } };
   let SK = JSON.parse(JSON.stringify(c.skillsAll || []));
@@ -24444,6 +24445,7 @@ function aiCfgView(body) {
   body.onclick = async e => {
     const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); return go(g.dataset.go); }
     const gs = e.target.closest('#aiGemS'); if (gs) { gs.disabled = true; rpc('aiGemSave', { keys: ($('#aiGemK') || {}).value || '', model: ($('#aiGemM') || {}).value || '' }).then(r => { AI.b.gem = Object.assign(AI.b.gem, r); toast(r.added ? 'Đã thêm ' + r.added + ' khoá' + (r.test ? ' · ' + r.test : '') : 'Đã lưu cài đặt Gemini', 'ok', 5000); aiCfgView(body); }).catch(fail).finally(() => { gs.disabled = false; }); return; }
+    const gkP = e.target.closest('#aiGemP'); if (gkP) { gkP.disabled = true; gkP.classList.add('busy'); rpc('aiGemProbe', {}).then(r => { AI.gemProbe = r; AI.b.gem = Object.assign(AI.b.gem, { models: r.live, model: r.model }); const ok = r.keys.reduce((n, k) => n + k.tried.filter(t => t.ok).length, 0); toast(ok ? 'Dò xong — ' + r.live.filter(m => m !== 'auto').length + ' model gọi được' : 'Không model nào trả lời — xem lỗi từng khoá', ok ? 'ok' : 'warn', 6000); aiCfgView(body); }).catch(er => { gkP.disabled = false; gkP.classList.remove('busy'); fail(er); }); return; }      // (1.94.3) dò model thật
     const gkT = e.target.closest('#aiGemT'); if (gkT) { gkT.disabled = true; rpc('aiGemSave', { test: 1 }).then(r => { AI.b.gem = Object.assign(AI.b.gem, r); toast(r.test || 'Đã thử', 'ok'); aiCfgView(body); }).catch(fail).finally(() => { gkT.disabled = false; }); return; }
     const gk = e.target.closest('[data-gk]'); if (gk) { const [a, i] = gk.dataset.gk.split(':');      // (1.88) khoá: lên trước · chạy lại ngay · xoá
       if (a === 'drop' && !await ask('Xoá khoá ' + ((AI.b.gem.keys || [])[+i] || {}).m + '?', { ok: 'Xoá', danger: true })) return;
