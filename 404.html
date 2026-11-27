@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T11:05:51.399Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T11:08:30.968Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -30929,12 +30929,18 @@ function ktWatch(lg, cb) { if (/^(ok|empty|err)$/.test(lg.status)) return cb(lg)
 
 async function viewKt(arg, v) {
   v.innerHTML = '<div class="kt"><div id="ktBody" class="kt"></div></div>';      // tab con ở thanh bên / thanh dưới (NAV_DEF kt…) — không lặp dải tab ở đây
-  KT.b = await rpc('ktBoot', {}, { quiet: true });
-  const show = a => {
+  /* (1.94.3) KHÔNG chờ ktBoot (6–10 giây) rồi mới vẽ: trước đây trang trắng + bấm menu không chuyển (v._onArg gắn sau khi ktBoot xong).
+     Giờ: tiêu đề + khung vẽ ngay; đã có KT.b (lần trước trong phiên) → dùng luôn, làm mới ngầm; chưa có → hiện “đang tải” rồi vẽ khi xong. */
+  const bootP = rpc('ktBoot', {}, { quiet: true }).then(b => { KT.b = b; return b; });
+  bootP.catch(() => {});
+  const show = async a => {
     a = String(a || '').split('/')[0]; if (!KT_TABS.some(t => t[0] === a)) a = '';
     // (1.84.4) chưa nối tài khoản giáo viên → VẪN mở tab Nhận xét (thẻ hướng dẫn nối) — trước tự nhảy sang Hỏi dữ liệu nên không vào được Nhận xét
     const T = KT_TABS.find(t => t[0] === a); setTitle(T[2], T[1], [{ t: 'Kiến Chuyên môn', r: 'kt' }], v);      // tên ngắn — không bị cắt “…” trên điện thoại
     const B = document.createElement('div'); B.className = 'kt'; $('#ktBody', v).replaceChildren(B);      // (1.84.7) khung mới mỗi lần chuyển tab — view cũ tải xong muộn ghi vào khung đã bỏ, không đè tab mới
+    if (!KT.b) { B.innerHTML = '<div class="kt-card kt-pad">' + (typeof loadFx === 'function' ? loadFx('Đang mở ' + T[2] + '…', { c: 'cmt' }) : '<span class="kt-wait"><i class="bi bi-arrow-repeat"></i> Đang mở ' + esc(T[2]) + '…</span>') + '</div>';
+      try { await bootP; } catch (e) { if (B.isConnected) B.innerHTML = ktErrCard(e); return; }
+      if (!B.isConnected) return; }      // người dùng đã chuyển tab khác trong lúc chờ
     const VW = { jobs: ktJobsView, ask: ktAskView, learned: ktLearnedView, prof: ktProfView, style: ktStyleView, conn: ktConnView };
     VW[a] ? VW[a](B) : ktDayView(B);
   };
