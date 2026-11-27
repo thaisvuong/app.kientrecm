@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T12:35:18.823Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T12:50:11.618Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -17325,10 +17325,12 @@ async function clFbNx(c) {
   const CH = { ask: '', id: last.log && last.log.id || '', hist: (last.log && last.log.actions && last.log.actions.hist) || [], scroll: 0 };
   const CH_TIPS = ['Vì sao bé chỉ được 7 điểm giữa kỳ?', 'Bé đang hổng kiến thức nào nhất?', 'Viết thư gửi phụ huynh ngắn gọn hơn', 'Thêm vào báo cáo lý do điểm giữa kỳ và cách khắc phục'];
   const clNxChatH = () => '<div class="kt-card kt-pad nxc"><div class="kt-t"><b><i class="bi bi-chat-dots"></i> Hỏi tiếp về bản nhận xét</b><span class="kt-sub">AI nhớ các câu trước · muốn sửa báo cáo thì nói rõ (VD “thêm vào thư…”) — bản sửa thay bản trên, Xuất PDF dùng bản mới.</span></div>' +
-    '<div class="nxc-log">' + CH.hist.map(h => '<div class="nxc-q">' + esc(h.q) + '</div><div class="nxc-a">' + ktMd(h.a) + ((h.sua || []).length ? '<small class="nxc-ed"><i class="bi bi-pencil-square"></i> Đã sửa báo cáo: ' + esc(h.sua.map(k => CH_K[k] || k).join(', ')) + '</small>' : '') + '</div>').join('') +
+    '<div class="nxc-log">' + CH.hist.map(h => '<div class="nxc-q">' + esc(h.q) + '</div><div class="nxc-a">' + ktMd(clNxA(h.a)) + ((h.sua || []).length ? '<small class="nxc-ed"><i class="bi bi-pencil-square"></i> Đã sửa báo cáo: ' + esc(h.sua.map(k => CH_K[k] || k).join(', ')) + '</small>' : '') + '</div>').join('') +
       (CH.ask ? '<div class="nxc-q">' + esc(CH.ask) + '</div><div class="nxc-a">' + ktThink(['Đang đọc bản nhận xét và các buổi học', 'Đang đối chiếu điểm kiểm tra', 'Đang trả lời']) + '</div>' : '') + '</div>' +
     (CH.hist.length || CH.ask ? '' : '<div class="nxc-tips">' + CH_TIPS.map(t => '<button type="button" class="sv-chip" data-nxt="' + esc(t) + '">' + esc(t) + '</button>').join('') + '</div>') +
     '<div class="nxc-in"><textarea class="inp" id="nxcQ" rows="2" placeholder="Hỏi thêm hoặc yêu cầu sửa báo cáo…"' + (CH.ask ? ' disabled' : '') + '></textarea><button class="btn pri sm" data-nx="ask"' + (CH.ask ? ' disabled' : '') + '><i class="bi bi-send"></i>Gửi</button></div></div>';
+  /* câu trả lời cũ còn dạng JSON thô (Gemini web không thoát dấu ") → tách riêng phần traLoi */
+  const clNxA = a => { const m = /^\s*\{\s*"traLoi"\s*:\s*"([\s\S]*?)"\s*,\s*"sua"\s*:/.exec(String(a || '')); return m ? m[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : a; };
   const CH_K = { tongQuan: 'Tổng quan', mucDo: 'Mức độ', daHoc: 'Đã dạy tới đâu', diemManh: 'Điểm mạnh', canKem: 'Cần kèm thêm', thaiDo: 'Thái độ', btvn: 'Bài tập về nhà', goiY: 'Gợi ý', luuY: 'Lưu ý', thuPhuHuynh: 'Thư gửi phụ huynh' };
   let S = last.log && last.log.actions && last.log.actions.prof || null;
   const watch = lg => { paint(S, 1); ktWatch(lg, g => { const X = (g && g.actions) || {}, A = X.prof; if (A) S = A; if (g && g.id) CH.id = g.id; if (X.hist) CH.hist = X.hist; const wasAsk = CH.ask; CH.ask = ''; CH.scroll = 1;
