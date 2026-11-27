@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T07:53:18.293Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T08:07:31.381Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -20909,6 +20909,7 @@ const PHP_EX = 'VD: Phụ huynh bé Hoàng Trương Uyển Minh – K9DH_5B1 (l�
 function phpTn(n) { n = String(n || '').normalize('NFC'); return n.replace(/^\s*\d+[_.\s-]+/, '').replace(/^(topic|buổi|bài|chủ đề)\s*\d+\s*(NT|NC|KT|ÔN|DP)?\s*[—–:.\-]\s*/i, '').trim() || n; }
 const phpDm = d => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) : '';
 const PHP_ST = { c: 'Học cả với gia sư và ở lớp', g: 'Học với gia sư', k: 'Học ở lớp kientre.click', h: 'Chưa học (lỗ hổng)', t: 'Sắp học', '.': 'Chưa tới' };
+const PHP_LN = { NT: 'Nền tảng', NC: 'Nâng cao' };
 const phpRtN = r => r.loai === 'NT' ? 'Lộ trình Nền tảng' : r.loai === 'NC' ? 'Lộ trình Nâng cao' : r.ten;
 /** ô số từng topic của một lộ trình — tên topic biết được (lỗ hổng, sắp học, khớp bài lớp) hiện khi rê chuột */
 function phpCells(r, D) {
@@ -20921,9 +20922,9 @@ const phpRtSum = r => r.nDa + '/' + r.tong + ' topic đã học' + (r.nG && r.nK
 const phpTopicRef = (m, r) => m ? 'Topic ' + m.stt + '/' + r.tong + ' · ' + m.n : '';
 async function phpOpen(c) {
   const m = modal({ title: 'Lộ trình hỗ trợ theo yêu cầu phụ huynh · ' + clName(c), icon: 'bi-heart-pulse', size: 'xl', body: typeof loadFx === 'function' ? loadFx('Đang đọc dữ liệu học của ' + clName(c) + '…', { c: 'cmt' }) : miniLoader('Đang tải…') });
-  let I; try { I = await rpc('phpInfo', { cid: c.id }, { quiet: true }); } catch (e) { m.close(); return fail(e); }
+  let I; try { I = await rpc('phpInfo', c.kt ? { kt: c.kt } : { cid: c.id }, { quiet: true }); } catch (e) { m.close(); return fail(e); }
   if (m.closed) return;
-  const B = m.$('.modal-b'), V = { I: I, c: c, m: m, B: B };
+  const B = m.$('.modal-b'), V = { I: I, c: c, m: m, B: B, kt: c.kt || null };      // (1.94.1) kt = học sinh kientre.click chưa có lớp gia sư
   phpAsk(V, '');
   const run = (I.list || []).find(l => /^(send|wait|proc)$/.test(l.status));
   if (run) phpLoad(V, run.id);
@@ -20938,23 +20939,24 @@ function phpAsk(V, req0) {
       '<div class="php-row"><label>Số buổi bổ sung <input class="inp n" id="phpN" type="number" min="0" max="24" placeholder="AI chọn" aria-label="Số buổi bổ sung"></label>' +
         '<input class="inp w" id="phpAskT" maxlength="800" placeholder="Dặn AI thêm (không bắt buộc) — VD ưu tiên giải toán có lời văn" aria-label="Dặn AI thêm"></div></div>' +
     '<div class="php-sec"><h4><i class="bi bi-database"></i>AI sẽ đọc</h4><div class="php-data">' +
+      (I.ktMode ? chip('<i class="bi bi-person-exclamation"></i>Chưa có lớp gia sư — AI chọn lộ trình theo sức học') :
       chip('<i class="bi bi-mortarboard"></i>' + esc(I.be.chuongTrinh || 'Chưa có chương trình'), !I.prog) +
       chip('<b>' + (T.daHoc || 0) + '/' + (T.tongBai || 0) + '</b> bài đã học' + (T.xacNhan ? ' · ' + T.xacNhan + ' đã xác nhận' : '')) +
       chip('Độ khó: <b>' + I.rate.hard + '</b> Khó quá · ' + I.rate.ok + ' Vừa sức · ' + I.rate.easy + ' Dễ quá') +
       chip('<b>' + I.nKt + '</b> điểm KT' + (I.diem.length ? ' (gần nhất ' + I.diem[0].diem + ')' : '')) +
-      chip('<b>' + I.nKgs + '</b> buổi nhận xét KGS') + chip('<b>' + I.nDay + '</b> buổi có nội dung dạy KGS') +
+      chip('<b>' + I.nKgs + '</b> buổi nhận xét KGS') + chip('<b>' + I.nDay + '</b> buổi có nội dung dạy KGS')) +
       chip(I.kt ? 'kientre.click <b>' + esc(I.kt.cls) + '</b>' : 'Không học lớp kientre.click') +
-      ((I.routes || []).length ? chip('<i class="bi bi-signpost-2"></i>Đối chiếu <b>' + I.routes.map(r => esc(r.loai === 'NT' ? 'Nền tảng' : r.loai === 'NC' ? 'Nâng cao' : r.ten) + ' ' + r.tong).join(' · ') + '</b> topic') : chip('Không thấy lộ trình cùng khối để đối chiếu', 1)) + chip('<b>' + I.sap + '</b> buổi sắp tới') +
+      ((I.routes || []).length ? chip('<i class="bi bi-signpost-2"></i>Đối chiếu <b>' + I.routes.map(r => esc(r.loai === 'NT' ? 'Nền tảng' : r.loai === 'NC' ? 'Nâng cao' : r.ten) + ' ' + r.tong).join(' · ') + '</b> topic') : chip('Không thấy lộ trình cùng khối để đối chiếu', 1)) + (I.ktMode ? '' : chip('<b>' + I.sap + '</b> buổi sắp tới')) +
       (I.lech ? chip('<i class="bi bi-exclamation-triangle"></i>' + esc(I.lech), 1) : '') + '</div>' +
-      '<small class="muted">AI chỉ chọn topic trong chương trình đang gán của bé; máy chủ kiểm lại từng topic trước khi lưu.</small></div>' +
+      '<small class="muted">' + (I.ktMode ? 'AI đọc nhận xét, bài đã học ở lớp kientre.click rồi chọn lộ trình Nền tảng hoặc Nâng cao hợp sức học của con; chỉ chọn topic trong lộ trình đó, máy chủ kiểm lại từng topic.' : 'AI chỉ chọn topic trong chương trình đang gán của bé; máy chủ kiểm lại từng topic trước khi lưu.') + '</small></div>' +
     ((I.list || []).length ? '<div class="php-sec"><h4><i class="bi bi-clock-history"></i>Đề xuất gần đây</h4><div class="php-his">' + I.list.map(l => '<button type="button" data-phl="' + esc(l.id) + '"><small>' + esc(typeof fmtDT === 'function' ? fmtDT(l.at) : l.at) + '</small><span class="t">' + esc(l.req) + '</span><small>' +
-      (/^(send|wait|proc)$/.test(l.status) ? 'đang chạy' : l.status === 'err' ? 'lỗi' : (l.n || 0) + ' buổi' + (l.ap && Object.keys(l.ap.buoi || {}).length ? ' · đã áp dụng ' + Object.keys(l.ap.buoi).length : '')) + '</small></button>').join('') + '</div></div>' : '') +
+      (/^(send|wait|proc)$/.test(l.status) ? 'đang chạy' : l.status === 'err' ? 'lỗi' : (l.n || 0) + ' buổi' + (l.rt ? ' · ' + esc(l.rt === 'NT' ? 'Nền tảng' : l.rt === 'NC' ? 'Nâng cao' : l.rt) : '') + (l.ap && Object.keys(l.ap.buoi || {}).length ? ' · đã áp dụng ' + Object.keys(l.ap.buoi).length : '')) + '</small></button>').join('') + '</div></div>' : '') +
     '<div class="php-foot"><span class="small muted">Chạy nền ở máy chủ — đóng hộp vẫn chạy, mở lại sẽ thấy kết quả.</span><span class="sp"></span><button class="btn pri" id="phpGo"' + (I.prog ? '' : ' disabled') + '><i class="bi bi-stars"></i>AI đề xuất lộ trình</button></div></div>';
   V.B.onclick = e => { const h = e.target.closest('[data-phl]'); if (h) return phpLoad(V, h.dataset.phl); };
   V.B.querySelector('#phpGo').onclick = async ev => { const btn = ev.currentTarget, req = V.B.querySelector('#phpReq').value.trim();
     if (req.length < 15) return toast('Dán nội dung yêu cầu của phụ huynh', 'warn');
     btn.disabled = true; btn.classList.add('busy');
-    try { const r = await rpc('phpAi', { cid: V.c.id, req: req, n: Number(V.B.querySelector('#phpN').value) || 0, ask: V.B.querySelector('#phpAskT').value }, { quiet: true }); phpWait(V, r.log); }
+    try { const r = await rpc('phpAi', { cid: V.c.id, kt: V.kt || undefined, req: req, n: Number(V.B.querySelector('#phpN').value) || 0, ask: V.B.querySelector('#phpAskT').value }, { quiet: true }); phpWait(V, r.log); }
     catch (er) { btn.disabled = false; btn.classList.remove('busy'); fail(er); } };
 }
 function phpWait(V, lg) {
@@ -20977,7 +20979,7 @@ function phpShow(V, lg) {
 }
 async function phpMapLoad(V) { try { const r = await rpc('phpPreview', { id: V.lg.id }, { quiet: true }); V.map = r.map; if (!V.m.closed && !V.dirty) phpPaint(V); } catch (e) {} }
 function phpPaint(V) {
-  const P = V.P, L = V.I.lessons || [], lgN = {}; L.forEach(l => { lgN[l.id] = l; });
+  const P = V.P, L = V.lg.les || V.I.lessons || [], lgN = {}; L.forEach(l => { lgN[l.id] = l; });
   const opt = (sel, ph) => '<option value="">' + esc(ph || '+ Thêm topic') + '</option>' + L.map(l => '<option value="' + esc(l.id) + '"' + (l.id === sel ? ' selected' : '') + '>' + esc((l.da ? '✓ ' : '') + l.n) + '</option>').join('');
   const ta = (path, v, ph, rows) => '<textarea class="inp" data-pp="' + path + '" rows="' + (rows || 2) + '" placeholder="' + esc(ph || '') + '">' + esc(v || '') + '</textarea>';
   const inp = (path, v, ph, t) => '<input class="inp" data-pp="' + path + '"' + (t ? ' type="' + t + '"' : '') + ' value="' + esc(v == null ? '' : v) + '" placeholder="' + esc(ph || '') + '">';
@@ -20992,6 +20994,8 @@ function phpPaint(V) {
     (W.length ? '<details class="php-warn kt-err"><summary>' + W.length + ' lưu ý khi máy chủ kiểm đề xuất (topic ngoài chương trình đã bỏ)</summary><ul>' + W.map(w => '<li>' + esc(w) + '</li>').join('') + '</ul></details>' : '') +
     '<div class="php-sec"><h4><i class="bi bi-chat-square-text"></i>Trả lời phụ huynh</h4>' + f('Tóm tắt (trả lời thẳng băn khoăn của phụ huynh)', ta('tomTat', P.tomTat, '', 2)) + f('Nhận định của chuyên môn', ta('nhanDinh', P.nhanDinh, '', 4)) +
       f('Căn cứ (mỗi dòng một ý)', '<textarea class="inp" data-pl="canCu" rows="3">' + esc((P.canCu || []).join('\n')) + '</textarea>') + '</div>' +
+    (P.loTrinh ? '<div class="php-sec"><h4><i class="bi bi-signpost-split"></i>Lộ trình phù hợp với con · ' + esc(phpRtN(P.loTrinh)) + '</h4><small class="muted">' + esc(P.loTrinh.ten) + ' — AI chọn theo mức hiểu bài và khả năng vận dụng ở lớp kientre.click. Muốn lộ trình khác: quay lại, dặn AI rồi chạy lại.</small>' +
+      f('Vì sao lộ trình này hợp với con (in vào PDF)', ta('loTrinh.lyDo', P.loTrinh.lyDo, '', 3)) + '</div>' : '') +
     phpCmpSec(P.doiChieu) +
     '<div class="php-sec"><h4><em>1</em>Kiến thức cần củng cố & phương pháp<span class="sp"></span><button type="button" class="btn xs" data-op="add" data-arr="cungCo"><i class="bi bi-plus-lg"></i>Thêm</button></h4>' +
       (P.cungCo || []).map((x, i, A) => '<div class="php-it cc"><div class="hd"><select class="inp" data-pp="cungCo.' + i + '.id" aria-label="Topic">' + opt(x.id, 'Chọn topic') + '</select>' +
@@ -21011,8 +21015,8 @@ function phpPaint(V) {
     '<div class="php-foot"><button class="btn sm ghost" data-act="del" title="Xoá bản đề xuất này"><i class="bi bi-trash"></i></button><span class="sp"></span>' +
       '<button class="btn sm ghost" data-act="cp"><i class="bi bi-clipboard"></i>Chép thư</button><button class="btn sm" data-act="pdf"><i class="bi bi-file-earmark-pdf"></i>Xuất PDF</button>' +
       '<button class="btn sm" data-act="save"><i class="bi bi-check2"></i>Lưu</button>' +
-      '<label title="Giữ bài đang gán ở buổi, thêm topic hỗ trợ vào cùng buổi"><input type="checkbox" id="phpKeep">Giữ bài đang gán</label>' +
-      '<button class="btn sm pri" data-act="apply" title="Gán NHÁP topic từng buổi vào các buổi sắp tới theo thứ tự — bạn duyệt ở Buổi học"><i class="bi bi-calendar-plus"></i>Áp dụng vào lớp</button></div></div>';
+      (V.kt ? '<span class="small muted">Chưa có lớp gia sư — chưa áp dụng vào lớp</span>' : '<label title="Giữ bài đang gán ở buổi, thêm topic hỗ trợ vào cùng buổi"><input type="checkbox" id="phpKeep">Giữ bài đang gán</label>' +
+      '<button class="btn sm pri" data-act="apply" title="Gán NHÁP topic từng buổi vào các buổi sắp tới theo thứ tự — bạn duyệt ở Buổi học"><i class="bi bi-calendar-plus"></i>Áp dụng vào lớp</button>') + '</div></div>';
   phpBind(V);
 }
 /** mục ĐỐI CHIẾU trong hộp: 2 lộ trình (ô số từng topic) · bài lớp kientre.click ↔ topic từng lộ trình · lỗ hổng · nhận xét (sửa được) */
@@ -21085,18 +21089,19 @@ function phpCmpPdf(D, c) {
     ((D.kt || []).length ? '<div class="lb" style="margin-top:6pt">Bài con đã học ở lớp ' + esc(D.ktCls) + ' (kientre.click) tương ứng trong 2 lộ trình</div><table><thead><tr><th>Bài ở lớp</th><th>Ngày</th>' + R.map(r => '<th>' + esc(phpRtN(r)) + '</th>').join('') + '</tr></thead><tbody>' +
       D.kt.map(t => '<tr><td class="k">' + esc(t.n) + '</td><td class="n">' + phpDm(t.d2) + (t.k > 1 ? '<div class="mu">' + t.k + ' buổi</div>' : '') + '</td>' + R.map((r, i) => '<td>' + (t.m[i] ? 'Topic ' + t.m[i].stt + '/' + r.tong + '<div class="mu">' + esc(t.m[i].n) + '</div>' : '<span class="php-no">Không có trong lộ trình</span>') + '</td>').join('') + '</tr>').join('') + '</tbody></table>' : '') +
     (R.some(r => r.hong.length || r.tiep.length) ? '<div class="ktr-two" style="margin-top:10px">' + R.map(r => '<section class="ktr-bx ' + (r.hong.length ? 'warn' : 'ok') + '"><h2>' + esc(phpRtN(r)) + '</h2>' +
-      (r.hong.length ? '<div class="lb">Chưa học — cần lấp</div><ul>' + li(r, 'hong') + (r.nHong > r.hong.length ? '<li>và ' + (r.nHong - r.hong.length) + ' topic nữa</li>' : '') + '</ul>' : '<p>Không có lỗ hổng trước bài xa nhất con đã học.</p>') +
+      (r.hong.length ? '<div class="lb">Chưa học — cần lấp</div><ul>' + li(r, 'hong') + (r.nHong > r.hong.length ? '<li>và ' + (r.nHong - r.hong.length) + ' topic nữa</li>' : '') + '</ul>' : '<p>' + (r.nDa ? 'Không có lỗ hổng trước bài xa nhất con đã học.' : 'Con chưa học topic nào của lộ trình này.') + '</p>') +
       (r.tiep.length ? '<div class="lb">Sắp học</div><ul>' + li(r, 'tiep') + '</ul>' : '') + '</section>').join('') + '</div>' : '') + '</section>';
 }
 /** PDF gửi phụ huynh — khung báo cáo chung (rptPdf · RPT_CSS phong cách kientre.edu.vn), đúng 3 mục phụ huynh hỏi */
 function phpPdf(V) {
-  const P = V.P, c = V.c, I = V.I, L = {}; (I.lessons || []).forEach(l => { L[l.id] = l.n; });
+  const P = V.P, c = V.c, I = V.I, L = {}; (V.lg.les || I.lessons || []).forEach(l => { L[l.id] = l.n; });
   const tn = id => phpTn(L[id] || id), nl = s => esc(s || '').replace(/\n/g, '<br>'), ps = s => String(s || '').split(/\n{2,}/).map(x => x.trim()).filter(Boolean).map(x => '<p>' + nl(x) + '</p>').join('');
   const li = A => (A || []).filter(Boolean).length ? '<ul>' + A.filter(Boolean).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '';
   const ap = (V.lg.ap && V.lg.ap.buoi) || {}, mp = b => { const d = ap[b.buoi] ? ap[b.buoi].d : ((V.map || []).find(z => z.buoi === b.buoi && z.sid) || {}).d; return d ? phpDm(d) : ''; };
   const nB = (P.lich || []).length, moc = ((P.theoDoi || {}).moc || []);
   const body = (P.tomTat ? '<p class="ktr-lead">' + nl(P.tomTat) + '</p>' : '') +
     (P.nhanDinh || (P.canCu || []).length ? '<section><h2>Nhận định của bộ phận chuyên môn</h2>' + ps(P.nhanDinh) + ((P.canCu || []).length ? '<div class="lb">Căn cứ</div>' + li(P.canCu) : '') + '</section>' : '') +
+    (P.loTrinh ? '<section class="ktr-bx tip"><h2>Lộ trình phù hợp với con: ' + esc(PHP_LN[P.loTrinh.loai] || P.loTrinh.ten) + '</h2>' + (P.loTrinh.lyDo ? ps(P.loTrinh.lyDo) : '') + '</section>' : '') +
     phpCmpPdf(P.doiChieu, c) +
     '<section class="flow"><h2>1. Kiến thức cần củng cố & phương pháp hỗ trợ</h2>' +
       ((P.cungCo || []).length ? '<table><thead><tr><th>STT</th><th>Kiến thức cần củng cố</th><th>Mức ưu tiên</th></tr></thead><tbody>' + P.cungCo.filter(x => x.id).map((x, i) => '<tr><td class="n">' + (i + 1) + '</td><td class="k">' + esc(tn(x.id)) + '</td><td class="n">' + (x.uuTien === 'cao' ? 'Ưu tiên cao' : 'Ưu tiên vừa') + '</td></tr>').join('') + '</tbody></table>' : '') +
@@ -21108,7 +21113,7 @@ function phpPdf(V) {
       (moc.length ? '<div style="height:10px"></div><table><thead><tr><th>Mốc kiểm tra</th><th>Hình thức</th><th>Tiêu chí đạt</th></tr></thead><tbody>' + moc.map(x => '<tr><td class="d"><b>' + (x.sauBuoi ? 'Sau buổi ' + x.sauBuoi : 'Mốc') + '</b></td><td>' + nl(x.hinhThuc) + '</td><td>' + nl(x.dat) + '</td></tr>').join('') + '</tbody></table>' : '') +
       (((P.theoDoi || {}).cach || []).length || (P.theoDoi || {}).baoPH ? '<div class="ktr-two" style="margin-top:10px">' + (((P.theoDoi || {}).cach || []).length ? '<section class="ktr-bx ok"><h2>Theo dõi từng buổi</h2>' + li(P.theoDoi.cach) + '</section>' : '') + ((P.theoDoi || {}).baoPH ? '<section class="ktr-bx warn"><h2>Báo phụ huynh</h2><p>' + nl(P.theoDoi.baoPH) + '</p></section>' : '') + '</div>' : '') + '</section>' +
     (P.thuPhuHuynh ? '<section class="ktr-letter flow"><h2>Thư gửi phụ huynh</h2>' + ps(P.thuPhuHuynh) + '</section>' : '');
-  rptPdf({ kicker: 'Lộ trình hỗ trợ Toán theo yêu cầu phụ huynh', title: clName(c), sub: [c.grade, I.be.chuongTrinh ? 'Chương trình ' + phpTn(I.be.chuongTrinh) : '', I.be.giaSu ? 'Gia sư ' + I.be.giaSu : ''].filter(Boolean).join(' · '),
+  rptPdf({ kicker: 'Lộ trình hỗ trợ Toán', title: clName(c), sub: [c.grade, P.loTrinh ? phpRtN(P.loTrinh) : I.be.chuongTrinh ? 'Chương trình ' + phpTn(I.be.chuongTrinh) : '', V.kt && V.kt.cls ? 'Lớp ' + V.kt.cls : '', I.be.giaSu ? 'Gia sư ' + I.be.giaSu : ''].filter(Boolean).join(' · '),
     badge: { k: 'Bổ sung', v: nB + ' buổi' }, kpi: [{ n: String(nB), t: 'buổi bổ sung' }, { n: String((P.cungCo || []).filter(x => x.id).length), t: 'mảng cần củng cố' }, { n: String((P.mucTieu || []).length), t: 'mục tiêu đầu ra' }, { n: String(moc.length), t: 'mốc kiểm tra' }].concat(((P.doiChieu || {}).routes || []).map(r => ({ n: r.nDa + '/' + r.tong, t: 'topic ' + (r.loai === 'NT' ? 'Nền tảng' : r.loai === 'NC' ? 'Nâng cao' : 'lộ trình') }))).concat(P.tanSuat && !((P.doiChieu || {}).routes || []).length ? [{ n: P.tanSuat, t: 'tần suất' }] : []),
     body: body, file: 'Lo-trinh-ho-tro_' + String(clName(c)).replace(/\s+/g, '-'), foot: 'Kiến Gia Sư — Một học sinh, một lộ trình' });
 }
@@ -31528,6 +31533,8 @@ function ktMockDlg(c) {
 /* ── (1.84.3 → 1.84.4) HỒ SƠ HỌC SINH — BÀN GIAO CHO GIA SƯ MỚI: nhận xét cũ → AI tóm tắt → xuất PDF
    Hai nguồn TÁCH RIÊNG: Học lớp (kientre.click — lớp ở trung tâm) · Học gia sư (Kiến Gia Sư — kèm 1–1, nhận xét kéo về qua Đồng bộ KGS).
    Học lớp: chỉ học sinh đang học ở lớp hiện tại (chuyển lớp → hiện ở lớp mới, nhận xét lớp cũ thành “quá trình học”), đã nghỉ / lớp đã kết thúc → không hiện. ── */
+/** (1.94.1) Lộ trình hỗ trợ PH cần quản lý lớp + Trợ lý AI bật (máy chủ kiểm lại) */
+function ktPhCan() { return typeof S === 'object' && S && S.boot && S.boot.ai && (typeof can !== 'function' || can('classes.manage')); }
 function ktProfView(B) {
   const to = ktToday();
   const SP0 = ktSpanGet('prof', 180);
@@ -31600,13 +31607,14 @@ function ktProfView(B) {
       '<div class="kt-kpi"><div><b>' + R.n + '</b><small>buổi đã học</small></div><div><b>' + R.nCmt + '</b><small>buổi có nhận xét</small></div><div><b>' + R.vang + '</b><small>buổi vắng</small></div><div><b>' + (R.hw != null ? R.hw + '%' : '–') + '</b><small>BTVN làm</small></div><div><b>' + (R.ok != null ? R.ok + '%' : '–') + '</b><small>BTVN đúng</small></div></div>' +
       ((R.hist || []).length > 1 ? '<div class="kt-tl"><span class="kt-sub"><i class="bi bi-signpost-2"></i> Quá trình học</span>' + R.hist.map((h, i) => '<span class="kt-pill' + (i === R.hist.length - 1 ? ' ai' : '') + '" title="' + h.n + ' buổi">' + esc(h.cls) + ' · ' + ktDm(h.fr) + ' → ' + ktDm(h.to) + '</span>').join('<i class="bi bi-arrow-right kt-sub"></i>') + '</div>' : '') +
       '<div class="kt-acts"><button class="btn pri sm" id="ktPfAi"' + (busy ? ' disabled' : '') + '><i class="bi bi-stars"></i> ' + (S ? 'Nhận xét lại' : 'AI nhận xét') + '</button>' +
-        '<button class="btn sm" id="ktPfPdf"><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' + (S ? '<button class="btn sm ghost" id="ktPfCp"><i class="bi bi-clipboard"></i> Chép tóm tắt</button>' : '') +
+        '<button class="btn sm" id="ktPfPdf"><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' + (R.src !== 'kgs' && typeof phpOpen === 'function' && ktPhCan() ? '<button class="btn sm" id="ktPfPh" title="Dán yêu cầu / phản hồi của phụ huynh → AI chọn lộ trình Nền tảng / Nâng cao hợp sức học, đề xuất buổi bổ sung · PDF gửi phụ huynh"><i class="bi bi-heart-pulse"></i> Lộ trình hỗ trợ PH</button>' : '') + (S ? '<button class="btn sm ghost" id="ktPfCp"><i class="bi bi-clipboard"></i> Chép tóm tắt</button>' : '') +
         '<span class="sp"></span><span class="kt-sub">' + (S ? 'PDF gồm tóm tắt AI, biểu đồ BTVN và nhật ký buổi học' : 'Bấm AI nhận xét rồi xuất PDF để gửi phụ huynh' + (busy ? ' · chuyển tab vẫn chạy, xem ở Việc AI' : '')) + '</span></div>' +
       '<div id="ktPfAo"></div></div>' + ktProfChart(R) + (S ? ktProfSumHtml(S, R.src) : '') + ktProfLogHtml(R);
     $('#ktPfBk', V).onclick = pick;
     $$('[data-kpsj]', V).forEach(b => { b.onclick = () => { const x = b.dataset.kpsj, L = (P.sjSel || []).slice(); if (!x) P.sjSel = []; else { const i = L.indexOf(x); if (i >= 0) L.splice(i, 1); else L.push(x); P.sjSel = L.length === SJ.length ? [] : L; } paint(); }; });
     const cpp = $('[data-kpph]', V); if (cpp) cpp.onclick = () => navigator.clipboard.writeText(S.thuPhuHuynh).then(() => toast('Đã chép nhận xét gửi phụ huynh', 'ok'));
     $('#ktPfPdf', V).onclick = () => ktProfPdf(R, P.sum[key()]);
+    { const ph = $('#ktPfPh', V); if (ph) ph.onclick = () => phpOpen({ id: 'KT:' + P.code, student: R.stu.name, code: R.stu.cls || P.cls, grade: R.stu.grades ? 'Lớp ' + String(R.stu.grades).replace(/\D+/g, ' ').trim().split(' ')[0] : '', kt: { code: P.code, cls: R.stu.cls || P.cls, name: R.stu.name, grades: R.stu.grades || '', hist: (R.hist || []).map(h => h.cls) } }); }      // (1.94.1) HS chưa có lớp gia sư
     const cp = $('#ktPfCp', V); if (cp) cp.onclick = () => { navigator.clipboard.writeText(ktProfText(R, S)).then(() => toast('Đã chép bản tóm tắt', 'ok')); };
     if (busy) $('#ktPfAo', V).innerHTML = ktThink(['Đang đọc nhận xét cũ của các thầy cô', 'Đang gom mạch kiến thức đã học', 'Đang đánh giá sức học', 'Đang viết nhận xét chung']);
     $('#ktPfAi', V).onclick = async () => {
