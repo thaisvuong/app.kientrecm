@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T14:25:02.308Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T15:38:02.963Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -20908,6 +20908,8 @@ const boT = (n, nd) => n ? '<span class="prp-bo" title="Phiếu học sinh gia s
 .php-cl{ display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 3px; border-radius:6px; font-size:10.5px; font-weight:700; font-style:normal; line-height:1; flex:none; background:var(--surface-2, var(--bg)); color:var(--muted); border:1px solid var(--border) }
 .php-cl.c{ background:#204983; color:#fff; border-color:#204983 } .php-cl.g{ background:#9DBBEA; color:#0F2C5C; border-color:#9DBBEA } .php-cl.k{ background:#F66600; color:#fff; border-color:#F66600 }
 .php-cl.h{ background:transparent; color:#D92D20; border:1.5px solid #D92D20 } .php-cl.t{ background:transparent; color:var(--brand-600); border:1.5px dashed var(--brand-500) }
+.php-cl.x{ background:transparent; color:var(--muted); border:1.5px dotted var(--muted) }
+.php-sl{ margin:4px 0; padding-left:18px; font-size:12.5px; font-weight:600; color:var(--brand-600, #204983) }
 .php-lg .php-cl{ min-width:14px; height:14px; padding:0; border-radius:4px }
 .php-rt{ display:flex; flex-direction:column; gap:7px; padding:10px; border:1px solid var(--border); border-radius:12px; background:var(--bg) }
 .php-rt .hd{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px } .php-rt .hd b{ white-space:nowrap } .php-rt .hd small{ color:var(--muted); white-space:nowrap }
@@ -20929,7 +20931,7 @@ const PHP_EX = 'VD: Phụ huynh bé Hoàng Trương Uyển Minh – K9DH_5B1 (l�
 /** tên topic gửi phụ huynh: bỏ số / mã nội bộ đầu tên (“Topic 05NT — ”, “Buổi 02 — ”, “15_”) */
 function phpTn(n) { n = String(n || '').normalize('NFC'); return n.replace(/^\s*\d+[_.\s-]+/, '').replace(/^(topic|buổi|bài|chủ đề)\s*\d+\s*(NT|NC|KT|ÔN|ON|DP|ĐỀ|DE|MR|DU)?\s*[—–:.\-]\s*/i, '').trim() || n; }
 const phpDm = d => d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) : '';
-const PHP_ST = { c: 'Học cả với gia sư và ở lớp', g: 'Học với gia sư', k: 'Học ở Lớp Kiến Trẻ', h: 'Chưa thấy trong bài đã học', t: 'Sắp học', '.': 'Chưa tới' };
+const PHP_ST = { c: 'Học cả với gia sư và ở lớp', g: 'Học với gia sư', k: 'Học ở Lớp Kiến Trẻ', h: 'Chưa thấy trong bài đã học', t: 'Sắp học', x: 'Kiểm tra, ôn tổng', '.': 'Chưa tới' };      // (1.94.4) x = bài kiểm tra / thi thử / ôn tổng nằm giữa các bài đã học
 const PHP_LN = { NT: 'Nền tảng', NC: 'Nâng cao' };
 const phpRtN = r => r.loai === 'NT' ? 'Lộ trình Nền tảng' : r.loai === 'NC' ? 'Lộ trình Nâng cao' : r.ten;
 /** ô số từng topic của một lộ trình — tên topic biết được (lỗ hổng, sắp học, khớp bài lớp) hiện khi rê chuột */
@@ -20938,7 +20940,9 @@ function phpCells(r, D) {
   (D.kt || []).forEach(t => { const m = t.m && t.m[ri]; if (m) [m].concat(m.more || []).forEach(z => { nm[z.stt] = z.n; }); });
   return String(r.s || '').split('').map((v, i) => '<i class="php-cl ' + (v === '.' ? 'z' : v) + '" title="' + esc((i + 1) + '. ' + (nm[i + 1] ? nm[i + 1] + ' — ' : '') + PHP_ST[v]) + '">' + (i + 1) + '</i>').join('');
 }
-const phpLegend = () => '<div class="php-lg">' + ['c', 'g', 'k', 'h', 't', '.'].map(v => '<span><i class="php-cl ' + (v === '.' ? 'z' : v) + '"></i>' + PHP_ST[v] + '</span>').join('') + '</div>';
+const phpLegend = () => '<div class="php-lg">' + ['c', 'g', 'k', 'h', 't', 'x', '.'].map(v => '<span><i class="php-cl ' + (v === '.' ? 'z' : v) + '"></i>' + PHP_ST[v] + '</span>').join('') + '</div>';
+/** (1.94.4) số liệu đối chiếu do máy đếm từ đúng bảng ô (mỗi lộ trình một câu) */
+const phpSoLieu = D => { const A = (D.routes || []).map(r => r.soLieu).filter(Boolean); return A.length ? '<ul class="php-sl">' + A.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : ''; };
 const phpRtSum = r => r.nDa + '/' + r.tong + ' topic đã học' + (r.nG && r.nK ? ' (gia sư ' + r.nG + ' · lớp ' + r.nK + ')' : r.nK ? ' ở lớp' : '') + (r.nHong ? ' · ' + r.nHong + ' chưa thấy học' : '');
 const phpTopicRef = (m, r) => m ? 'Topic ' + m.stt + '/' + r.tong + ' · ' + m.n + ((m.more || []).length ? ' (cùng topic ' + m.more.map(z => z.stt).join(', ') + ')' : '') : '';
 async function phpOpen(c, openId) {
@@ -21050,7 +21054,7 @@ function phpCmpSec(D) {
   const R = D.routes;
   return '<div class="php-sec">' + hd +
     (D.ktLoi ? '<div class="kt-err small"><i class="bi bi-exclamation-triangle"></i><span>Chưa đọc được bài lớp kientre.click: ' + esc(D.ktLoi) + '</span></div>' : !D.ktCls ? '<span class="small muted">Bé không học lớp kientre.click — chỉ đối chiếu bài đã học với gia sư.</span>' : '') +
-    phpLegend() +
+    phpSoLieu(D) + phpLegend() +
     R.map(r => '<div class="php-rt"><div class="hd"><b>' + esc(phpRtN(r)) + '</b><small>' + esc(r.ten + (r.dang ? ' · đang học' : '')) + '</small><small>' + esc(phpRtSum(r)) + '</small></div><div class="cells">' + phpCells(r, D) + '</div>' +
       (r.hong.length ? '<div class="gap"><b>Chưa thấy trong bài đã học:</b> ' + r.hong.map(x => esc(x.stt + '. ' + x.n)).join(' · ') + (r.nHong > r.hong.length ? ' · và ' + (r.nHong - r.hong.length) + ' topic nữa' : '') + '</div>' : '') +
       (r.tiep.length ? '<div class="gap"><b>Sắp học:</b> ' + r.tiep.map(x => esc(x.stt + '. ' + x.n)).join(' · ') + '</div>' : '') + '</div>').join('') +
@@ -21110,27 +21114,34 @@ const PHP_NEXT = 'Gia sư sẽ theo dõi bài học trên lớp Kiến Trẻ và
 /** (1.94.3) dòng tiêu đề giai đoạn trong bảng lịch: giai đoạn 1 trước kỳ kiểm tra · giai đoạn 2 (chủ điểm học kỳ II) sau luyện đề học kỳ I */
 function phpGdRow(P, i) { const L = P.lich || [], b = L[i]; if (!L.some(x => x.gd === 2)) return ''; const g = b.gd === 2 ? 2 : 1; if (i && (L[i - 1].gd === 2 ? 2 : 1) === g) return '';
   const T = P.lichThi || {}, n = L.filter(x => (x.gd === 2 ? 2 : 1) === g).length;
-  return '<tr class="php-gd"><td colspan="4">' + (g === 1 ? 'Giai đoạn 1 · ' + n + ' buổi — trước kỳ kiểm tra ' + esc(T.ky || 'cuối học kỳ') + (T.batDau ? ' (từ ' + esc(T.batDau) + ')' : '') : 'Giai đoạn 2 · ' + n + ' buổi — sau kỳ kiểm tra, chủ điểm học kỳ II') + '</td></tr>'; }
+  return '<tr class="php-gd"><td colspan="4">' + (g === 1 ? 'Giai đoạn 1 · ' + n + ' buổi — trước kỳ kiểm tra ' + esc(T.ky || 'cuối học kỳ') + (T.batDau ? ' (dự kiến từ ' + esc(T.batDau) + ')' : '') + (P.nhip && P.nhip.moiTuan >= 1.5 ? ', khoảng ' + phpNum(P.nhip.moiTuan) + ' buổi/tuần' : '') : 'Giai đoạn 2 · ' + n + ' buổi — sau kỳ kiểm tra, chủ điểm học kỳ II') + '</td></tr>'; }
+const phpNum = v => String(Math.round(Number(v) * 10) / 10).replace('.', ',');
+/** (1.94.4) báo trước NHỊP HỌC giai đoạn 1 khi dày (≥ 1,5 buổi/tuần) — để phụ huynh xem có trùng lịch học chính của con không */
+function phpNhipNote(P) { const N = P.nhip; if (!N || !(N.moiTuan >= 1.5)) return '';
+  return '<div class="ktr-bx tip php-nh"><div class="lb">Nhịp học giai đoạn 1 · khoảng ' + phpNum(N.moiTuan) + ' buổi/tuần</div><p>Từ nay tới kỳ kiểm tra còn khoảng ' + N.tuan + ' tuần nên ' + N.n + ' buổi của giai đoạn 1 cần học khoảng ' + phpNum(N.moiTuan) + ' buổi mỗi tuần. Trung tâm sẽ liên hệ để phụ huynh chọn ngày giờ không trùng lịch học chính của con; nếu nhà trường công bố lịch thi sớm hơn, các buổi sẽ được dồn lên để buổi luyện đề luôn diễn ra trước ngày thi.</p></div>'; }
+/** (1.94.4) bài kiểm tra phủ đủ phần vừa học (máy chủ tính “phu”) */
+const phpPhuTx = p => { if (!p || !(p.ten || []).length) return ''; const b = p.tu === p.den ? 'buổi ' + p.den : 'buổi ' + p.tu + '–' + p.den;
+  return p.de ? 'Nội dung: tổng hợp toàn bộ phần đã học ở ' + b + '.' : 'Nội dung kiểm tra: phần đã học ở ' + b + ' — ' + p.ten.slice(0, 6).map(phpTn).join(' · ') + (p.ten.length > 6 ? ' và ' + (p.ten.length - 6) + ' mảng khác' : '') + ' (gia sư bổ sung câu cho phần bài kiểm tra có sẵn chưa có).'; };
 /* ô số trong PDF: #ktPrint * ép màu chữ / nền → khai báo !important với độ ưu tiên cao hơn */
 const PHP_PCSS = '#ktPrint .php-cl{ display:inline-block; min-width:17pt; height:15pt; line-height:13pt; padding:0 2pt; margin:0 2pt 3pt 0; border-radius:4pt; text-align:center; font-size:7pt; font-weight:700; font-style:normal; border:1pt solid #DDE3EE; background:#EEF1F6 !important; color:#9AA3B5 !important }' +
   '#ktPrint .php-cl.c{ background:#204983 !important; border-color:#204983; color:#fff !important } #ktPrint .php-cl.g{ background:#9DBBEA !important; border-color:#9DBBEA; color:#0F2C5C !important }' +
   '#ktPrint .php-cl.k{ background:#F66600 !important; border-color:#F66600; color:#fff !important } #ktPrint .php-cl.h{ background:#fff !important; border:1.2pt solid #D92D20; color:#D92D20 !important }' +
-  '#ktPrint .php-cl.t{ background:#fff !important; border:1.2pt dashed #204983; color:#204983 !important }' +
-  '#ktPrint .php-lg{ display:flex; flex-wrap:wrap; gap:2pt 10pt; font-size:7.6pt; margin:2pt 0 6pt } #ktPrint .php-lg span{ white-space:nowrap } #ktPrint .php-lg .php-cl{ min-width:9pt; height:9pt; margin:0 3pt -1pt 0; padding:0 }' +
+  '#ktPrint .php-cl.t{ background:#fff !important; border:1.2pt dashed #204983; color:#204983 !important } #ktPrint .php-cl.x{ background:#fff !important; border:1.2pt dotted #8A94A8; color:#8A94A8 !important }' +
+  '#ktPrint .php-lg{ display:flex; flex-wrap:nowrap; gap:2pt 4.5pt; font-size:6.8pt; margin:2pt 0 6pt } #ktPrint .php-lg span{ white-space:nowrap } #ktPrint .php-lg .php-cl{ min-width:9pt; height:9pt; margin:0 3pt -1pt 0; padding:0 }' +
   '#ktPrint .php-rt{ break-inside:avoid; margin:0 0 8pt } #ktPrint .php-rt .hd{ display:flex; justify-content:space-between; gap:8pt; align-items:baseline; margin-bottom:3pt; white-space:nowrap }' +
   '#ktPrint table.php-lich{ table-layout:fixed } #ktPrint table.php-lich td.b, #ktPrint table.php-lich td.d{ width:auto } #ktPrint table.php-lich td{ padding:6px 8px }' +
   '#ktPrint table.php-kt{ font-size:8.4pt } #ktPrint table.php-kt td{ padding:5px 8px } #ktPrint table.php-kt td.k{ width:24% } #ktPrint table.php-kt .mu{ font-size:7.6pt }' +
   '#ktPrint .php-gl{ font-size:8.6pt; line-height:1.55; text-align:left; margin:2px 0 7px } #ktPrint .php-gl .php-no{ font-size:7.6pt; white-space:nowrap }' +
   '#ktPrint .php-rt .hd b{ font-weight:800; color:#204983 !important } #ktPrint .php-rt .hd small{ font-size:7.8pt } #ktPrint .php-rt .cells{ line-height:0 } #ktPrint .php-no{ color:#4F6A93 !important }' +
   '#ktPrint p, #ktPrint li, #ktPrint td, #ktPrint .mu{ text-wrap:pretty } #ktPrint .php-1l{ white-space:nowrap } #ktPrint th{ white-space:nowrap } #ktPrint .php-sum{ margin:-2px 0 8px; color:#204983 !important; font-size:9.4pt } #ktPrint .php-next{ margin:8px 0 0; font-size:9.4pt; font-weight:700; color:#204983 !important } #ktPrint .php-thi{ margin:-4px 0 8px; font-size:8.6pt; color:#5A6582 !important } #ktPrint tr.php-gd td{ background:#EEF3FB !important; color:#204983 !important; font-weight:800; font-size:8.6pt; padding:5px 8px } #ktPrint table.php-lich td.b, #ktPrint table.php-mc td.b{ font-size:9pt } #ktPrint table.php-lich .mu, #ktPrint table.php-kt .mu, #ktPrint table.php-mc .mu{ color:#3F4B66 !important; font-weight:500 } #ktPrint .php-gl{ color:#1F2A44 !important }' +
-  '#ktPrint table.php-kt .dm{ color:#5A6582 !important; font-weight:500; font-size:7.6pt } #ktPrint table.php-kt .nil{ color:#8A93A6 !important } #ktPrint table.php-kt td.k{ width:auto }';
+  '#ktPrint .php-sl{ margin:0 0 6pt; font-size:8.6pt } #ktPrint .php-sl li{ color:#204983 !important; font-weight:600 } #ktPrint .php-nh{ margin:0 0 10px } #ktPrint table.php-kt .dm{ color:#5A6582 !important; font-weight:500; font-size:7.6pt } #ktPrint table.php-kt .nil{ color:#8A93A6 !important } #ktPrint table.php-kt td.k{ width:auto }';
 /** PDF: mục ĐỐI CHIẾU — nhận xét · 2 lộ trình (ô số từng topic) · bài con học ở lớp kientre.click ↔ topic từng lộ trình · lỗ hổng / sắp học */
 function phpCmpPdf(D, c) {
   if (!D || !(D.routes || []).length) return '';
   const R = D.routes, nl = s => esc(s || '').replace(/\n/g, '<br>'), KT = (D.kt || []).filter(t => !phpKtOff(D, t));
   const li = (r, k) => '<p class="php-gl">' + (r[k] || []).map(x => '<span>' + esc(x.n) + ' <span class="php-no">(topic ' + x.stt + ')</span></span>').join(' · ');
   return '<section class="flow"><h2>Đối chiếu bài con đã học với 2 lộ trình' + (D.khoi ? ' Toán ' + esc(D.khoi) : '') + '</h2>' +
-    (D.nhanXet ? '<p>' + nl(D.nhanXet) + '</p>' : '') +
+    (D.nhanXet ? '<p>' + nl(D.nhanXet) + '</p>' : '') + phpSoLieu(D) +
     phpLegend() + R.map(r => '<div class="php-rt"><div class="hd"><b>' + esc(phpRtN(r)) + (r.dang ? ' · con đang học' : '') + '</b><small>' + esc(phpRtSum(r)) + '</small></div><div class="cells">' + phpCells(r, D) + '</div></div>').join('') +
     (KT.length ? '<div class="lb" style="margin-top:6pt">Bài con đã học ở Lớp Kiến Trẻ' + (D.ktCls ? ' (lớp ' + esc(D.ktCls) + ')' : '') + ' tương ứng trong 2 lộ trình</div><table class="php-kt"><colgroup><col style="width:34%">' + R.map(() => '<col style="width:' + Math.floor(66 / R.length) + '%">').join('') + '</colgroup><thead><tr><th>Bài ở lớp</th>' + R.map(r => '<th>' + esc(phpRtN(r)) + '</th>').join('') + '</tr></thead><tbody>' +
       KT.map(t => '<tr><td class="k">' + phpOne(t.n, 30) + '<div class="dm">' + phpDm(t.d2) + (t.k > 1 ? ' · ' + t.k + ' buổi' : '') + '</div></td>' + R.map((r, i) => '<td>' + (t.m[i] ? 'Topic ' + [t.m[i]].concat(t.m[i].more || []).map(z => z.stt).join(', ') + '/' + r.tong + '<div class="mu">' + esc([t.m[i]].concat(t.m[i].more || []).map(z => z.n).join(' · ')) + '</div>' : '<span class="nil">—</span>') + '</td>').join('') + '</tr>').join('') + '</tbody></table>' : '') +
@@ -21161,11 +21172,11 @@ function phpPdf(V, only) {
       ((P.cungCo || []).length ? '<table><thead><tr><th>STT</th><th>Kiến thức cần củng cố</th><th>Mức ưu tiên</th></tr></thead><tbody>' + P.cungCo.filter(x => x.id).map((x, i) => '<tr><td class="n">' + (i + 1) + '</td><td class="k">' + esc(tn(x.id)) + '</td><td class="n">' + (x.uuTien === 'cao' ? 'Ưu tiên cao' : 'Ưu tiên vừa') + '</td></tr>').join('') + '</tbody></table>' : '') +
       ((P.phuongPhap || []).length ? '<div class="ktr-bx tip" style="margin-top:10px"><div class="lb">Phương pháp chung</div>' + li(P.phuongPhap) + '</div>' : '') + '</section>' +
     '<section class="flow"><h2>2. Số buổi bổ sung & lịch dự kiến</h2><p class="php-sum"><b>' + nB + ' buổi</b>' + (P.thoiLuong ? ' · ' + esc(P.thoiLuong) : '') + '</p>' +
-      (P.lichThi && P.lichThi.batDau ? '<p class="php-thi">Kiểm tra ' + esc(P.lichThi.ky || 'cuối học kỳ') + ' trên trường: dự kiến ' + esc(P.lichThi.khoang || 'từ ' + P.lichThi.batDau) + ' — lịch chính thức theo thông báo của nhà trường.</p>' : '') +
-      (nB ? '<table class="php-lich"><colgroup><col style="width:9%"><col style="width:51%"><col style="width:22%"><col style="width:18%"></colgroup><thead><tr><th>Buổi</th><th>Kiến thức · nội dung</th><th>Mục tiêu</th><th>Bài về nhà</th></tr></thead><tbody>' + P.lich.map((b, i) => phpGdRow(P, i) + '<tr><td class="d"><b>Buổi ' + (i + 1) + '</b>' + (mp(b) ? '<div class="mu">' + mp(b) + '</div>' : '') + '</td><td class="b">' + ((b.ten || []).length ? b.ten : (b.ids || []).map(id => L[id] || id)).map(t => phpOne(t, 50)).join('<br>') + (b.noiDung ? '<div class="mu">' + nl(b.noiDung) + '</div>' : '') + '</td><td>' + nl(b.mucTieu) + '</td><td>' + nl(b.btvn) + '</td></tr>').join('') + '</tbody></table>' : '') + '<p class="php-next">' + esc(P.next || PHP_NEXT) + '</p></section>' +
+      (P.lichThi && P.lichThi.batDau ? '<p class="php-thi">Kiểm tra ' + esc(P.lichThi.ky || 'cuối học kỳ') + ' trên trường: dự kiến ' + esc(P.lichThi.khoang || 'từ ' + P.lichThi.batDau) + ' — lịch chính thức theo thông báo của nhà trường.</p>' : '') + phpNhipNote(P) +
+      (nB ? '<table class="php-lich"><colgroup><col style="width:9%"><col style="width:51%"><col style="width:22%"><col style="width:18%"></colgroup><thead><tr><th>Buổi</th><th>Kiến thức · nội dung</th><th>Mục tiêu</th><th>Bài về nhà</th></tr></thead><tbody>' + P.lich.map((b, i) => phpGdRow(P, i) + '<tr><td class="d"><b>Buổi ' + (i + 1) + '</b>' + (mp(b) ? '<div class="mu">' + mp(b) + '</div>' : '') + '</td><td class="b">' + ((b.ten || []).length ? b.ten : (b.ids || []).map(id => L[id] || id)).map(t => phpOne(t, 50)).join('<br>') + (b.noiDung ? '<div class="mu">' + nl(b.noiDung) + '</div>' : '') + (b.phu ? '<div class="mu">' + esc(phpPhuTx(b.phu)) + '</div>' : '') + '</td><td>' + nl(b.mucTieu) + '</td><td>' + nl(b.btvn) + '</td></tr>').join('') + '</tbody></table>' : '') + '<p class="php-next">' + esc(P.next || PHP_NEXT) + '</p></section>' +
     '<section class="flow"><h2>3. Mục tiêu đầu ra & cách theo dõi, đánh giá tiến bộ</h2>' +
       ((P.mucTieu || []).length ? '<table><thead><tr><th>Mục tiêu đầu ra</th><th>Chỉ số đo</th><th>Thời điểm</th></tr></thead><tbody>' + P.mucTieu.map(x => '<tr><td class="k">' + nl(x.y) + '</td><td>' + nl(x.chiSo) + '</td><td class="n">' + esc(x.han) + '</td></tr>').join('') + '</tbody></table>' : '') +
-      (moc.length ? '<div style="height:10px"></div><table class="php-mc"><colgroup><col style="width:15%"><col style="width:45%"><col style="width:40%"></colgroup><thead><tr><th>Mốc kiểm tra</th><th>Hình thức</th><th>Tiêu chí đạt</th></tr></thead><tbody>' + moc.map(x => '<tr><td class="d"><b>' + (x.sauBuoi ? 'Sau buổi ' + x.sauBuoi : 'Mốc') + '</b></td><td>' + (x.ten || x.n ? '<b>' + phpOne(x.ten || x.n, 42) + '</b><br>' : '') + nl(x.hinhThuc) + '</td><td>' + nl(x.dat) + '</td></tr>').join('') + '</tbody></table>' : '') +
+      (moc.length ? '<div style="height:10px"></div><table class="php-mc"><colgroup><col style="width:15%"><col style="width:45%"><col style="width:40%"></colgroup><thead><tr><th>Mốc kiểm tra</th><th>Hình thức</th><th>Tiêu chí đạt</th></tr></thead><tbody>' + moc.map(x => '<tr><td class="d"><b>' + (x.sauBuoi ? 'Sau buổi ' + x.sauBuoi : 'Mốc') + '</b></td><td>' + (x.ten || x.n ? '<b>' + phpOne(x.ten || x.n, 42) + '</b><br>' : '') + nl(x.hinhThuc) + (x.phu ? '<div class="mu">' + esc(phpPhuTx(x.phu)) + '</div>' : '') + '</td><td>' + nl(x.dat) + '</td></tr>').join('') + '</tbody></table>' : '') +
       phpPhieuNote(P) +
       (((P.theoDoi || {}).cach || []).length || (P.theoDoi || {}).baoPH ? '<div class="ktr-two" style="margin-top:10px">' + (((P.theoDoi || {}).cach || []).length ? '<section class="ktr-bx ok"><h2>Theo dõi từng buổi</h2>' + li(P.theoDoi.cach) + '</section>' : '') + ((P.theoDoi || {}).baoPH ? '<section class="ktr-bx warn"><h2>Báo phụ huynh</h2><p>' + nl(P.theoDoi.baoPH) + '</p></section>' : '') + '</div>' : '') + '</section>' +
     (P.thuPhuHuynh ? '<section class="ktr-letter flow"><h2>Thư gửi phụ huynh</h2>' + ps(P.thuPhuHuynh) + '</section>' : '');
