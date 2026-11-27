@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T11:08:30.968Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T11:12:01.902Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -21091,7 +21091,7 @@ const PHP_NEXT = 'Gia sư sẽ theo dõi bài học trên lớp Kiến Trẻ và
 /** (1.94.3) dòng tiêu đề giai đoạn trong bảng lịch: giai đoạn 1 trước kỳ kiểm tra · giai đoạn 2 (chủ điểm học kỳ II) sau luyện đề học kỳ I */
 function phpGdRow(P, i) { const L = P.lich || [], b = L[i]; if (!L.some(x => x.gd === 2)) return ''; const g = b.gd === 2 ? 2 : 1; if (i && (L[i - 1].gd === 2 ? 2 : 1) === g) return '';
   const T = P.lichThi || {}, n = L.filter(x => (x.gd === 2 ? 2 : 1) === g).length;
-  return '<tr class="php-gd"><td colspan="4">' + (g === 1 ? 'Giai đoạn 1 · ' + n + ' buổi — trước kỳ kiểm tra ' + esc(T.ky || 'cuối học kỳ') + (T.batDau ? ' (từ ' + esc(T.batDau) + ')' : '') : 'Giai đoạn 2 · ' + n + ' buổi — sau kỳ kiểm tra, chủ điểm học kỳ II' + (P.gd2 ? ': ' + esc(P.gd2) : '')) + '</td></tr>'; }
+  return '<tr class="php-gd"><td colspan="4">' + (g === 1 ? 'Giai đoạn 1 · ' + n + ' buổi — trước kỳ kiểm tra ' + esc(T.ky || 'cuối học kỳ') + (T.batDau ? ' (từ ' + esc(T.batDau) + ')' : '') : 'Giai đoạn 2 · ' + n + ' buổi — sau kỳ kiểm tra, chủ điểm học kỳ II') + '</td></tr>'; }
 /* ô số trong PDF: #ktPrint * ép màu chữ / nền → khai báo !important với độ ưu tiên cao hơn */
 const PHP_PCSS = '#ktPrint .php-cl{ display:inline-block; min-width:17pt; height:15pt; line-height:13pt; padding:0 2pt; margin:0 2pt 3pt 0; border-radius:4pt; text-align:center; font-size:7pt; font-weight:700; font-style:normal; border:1pt solid #DDE3EE; background:#EEF1F6 !important; color:#9AA3B5 !important }' +
   '#ktPrint .php-cl.c{ background:#204983 !important; border-color:#204983; color:#fff !important } #ktPrint .php-cl.g{ background:#9DBBEA !important; border-color:#9DBBEA; color:#0F2C5C !important }' +
@@ -21150,7 +21150,8 @@ function phpPdf(V) {
       phpPhieuNote(P) +
       (((P.theoDoi || {}).cach || []).length || (P.theoDoi || {}).baoPH ? '<div class="ktr-two" style="margin-top:10px">' + (((P.theoDoi || {}).cach || []).length ? '<section class="ktr-bx ok"><h2>Theo dõi từng buổi</h2>' + li(P.theoDoi.cach) + '</section>' : '') + ((P.theoDoi || {}).baoPH ? '<section class="ktr-bx warn"><h2>Báo phụ huynh</h2><p>' + nl(P.theoDoi.baoPH) + '</p></section>' : '') + '</div>' : '') + '</section>' +
     (P.thuPhuHuynh ? '<section class="ktr-letter flow"><h2>Thư gửi phụ huynh</h2>' + ps(P.thuPhuHuynh) + '</section>' : '');
-  rptPdf({ kicker: 'Lộ trình hỗ trợ Toán', title: clName(c), sub: [c.grade, P.loTrinh ? phpRtN(P.loTrinh) : I.be.chuongTrinh ? 'Chương trình ' + phpTn(I.be.chuongTrinh) : '', V.kt && V.kt.cls ? 'Lớp ' + V.kt.cls : '', I.be.giaSu ? 'Gia sư ' + I.be.giaSu : ''].filter(Boolean).join(' · '),
+  rptPdf({ app: 'Kiến Trẻ', kicker: 'Lộ trình hỗ trợ Toán',      // (1.94.3) PDF gửi phụ huynh luôn mang tên Kiến Trẻ (không lấy tên trang đang mở — Kiến Chuyên môn)
+    title: clName(c), sub: [c.grade, P.loTrinh ? phpRtN(P.loTrinh) : I.be.chuongTrinh ? 'Chương trình ' + phpTn(I.be.chuongTrinh) : '', V.kt && V.kt.cls ? 'Lớp ' + V.kt.cls : '', I.be.giaSu ? 'Gia sư ' + I.be.giaSu : ''].filter(Boolean).join(' · '),
     badge: { k: 'Bổ sung', v: nB + ' buổi' }, kpi: [{ n: String(nB), t: 'buổi bổ sung' }, { n: String((P.cungCo || []).filter(x => x.id).length), t: 'mảng cần củng cố' }, { n: String((P.mucTieu || []).length), t: 'mục tiêu đầu ra' }, { n: String(moc.length), t: 'mốc kiểm tra' }].concat(((P.doiChieu || {}).routes || []).map(r => ({ n: r.nDa + '/' + r.tong, t: 'topic ' + (r.loai === 'NT' ? 'Nền tảng' : r.loai === 'NC' ? 'Nâng cao' : 'lộ trình') }))).concat(P.tanSuat && !((P.doiChieu || {}).routes || []).length ? [{ n: P.tanSuat, t: 'tần suất' }] : []),
     body: phpKtTx(body), file: 'Lo-trinh-ho-tro_' + String(clName(c)).replace(/\s+/g, '-'), foot: 'Kiến Gia Sư — Một học sinh, một lộ trình' });
 }
