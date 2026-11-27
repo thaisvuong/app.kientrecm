@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T12:07:08.284Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T12:35:18.823Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -17318,15 +17318,31 @@ async function clFbNx(c) {
       (S ? '<button class="btn sm" data-nx="pdf"><i class="bi bi-file-earmark-pdf"></i>Xuất PDF</button><button class="btn sm ghost" data-nx="cp"><i class="bi bi-clipboard"></i>Chép thư gửi phụ huynh</button>' : '') +
       '<span class="sp"></span><span class="small muted">' + R.n + ' buổi · ' + R.nCmt + ' buổi có nhận xét · ' + ktDm(R.fr) + ' → ' + ktDm(R.to) + (busy ? ' · đóng bảng vẫn chạy, xem ở Việc AI' : '') + '</span></div>' +
       (err ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(err) + '</span></div>' : '') +
-      (busy ? ktThink(['Đang đọc nhận xét của gia sư', 'Đang gom mạch kiến thức đã học', 'Đang viết nhận xét chung']) : S ? ktProfSumHtml(S, 'kgs') : '<div class="empty" style="padding:24px"><i class="bi bi-journal-text"></i>Chưa có nhận xét — bấm “AI viết nhận xét”.</div>');
+      (busy && !CH.ask ? ktThink(['Đang đọc nhận xét của gia sư', 'Đang gom mạch kiến thức đã học', 'Đang viết nhận xét chung']) : S ? ktProfSumHtml(S, 'kgs') + clNxChatH() : '<div class="empty" style="padding:24px"><i class="bi bi-journal-text"></i>Chưa có nhận xét — bấm “AI viết nhận xét”.</div>');
+    const cl = B.querySelector('.nxc-log'); if (cl && CH.scroll) { cl.lastElementChild && cl.lastElementChild.scrollIntoView({ block: 'nearest' }); CH.scroll = 0; }
   };
+  /* (1.94.3) HỎI TIẾP / SỬA BÁO CÁO trong cùng ngữ cảnh: mỗi câu = một lượt AI mang theo bản nhận xét + dữ liệu buổi + điểm kiểm tra + các câu trước */
+  const CH = { ask: '', id: last.log && last.log.id || '', hist: (last.log && last.log.actions && last.log.actions.hist) || [], scroll: 0 };
+  const CH_TIPS = ['Vì sao bé chỉ được 7 điểm giữa kỳ?', 'Bé đang hổng kiến thức nào nhất?', 'Viết thư gửi phụ huynh ngắn gọn hơn', 'Thêm vào báo cáo lý do điểm giữa kỳ và cách khắc phục'];
+  const clNxChatH = () => '<div class="kt-card kt-pad nxc"><div class="kt-t"><b><i class="bi bi-chat-dots"></i> Hỏi tiếp về bản nhận xét</b><span class="kt-sub">AI nhớ các câu trước · muốn sửa báo cáo thì nói rõ (VD “thêm vào thư…”) — bản sửa thay bản trên, Xuất PDF dùng bản mới.</span></div>' +
+    '<div class="nxc-log">' + CH.hist.map(h => '<div class="nxc-q">' + esc(h.q) + '</div><div class="nxc-a">' + ktMd(h.a) + ((h.sua || []).length ? '<small class="nxc-ed"><i class="bi bi-pencil-square"></i> Đã sửa báo cáo: ' + esc(h.sua.map(k => CH_K[k] || k).join(', ')) + '</small>' : '') + '</div>').join('') +
+      (CH.ask ? '<div class="nxc-q">' + esc(CH.ask) + '</div><div class="nxc-a">' + ktThink(['Đang đọc bản nhận xét và các buổi học', 'Đang đối chiếu điểm kiểm tra', 'Đang trả lời']) + '</div>' : '') + '</div>' +
+    (CH.hist.length || CH.ask ? '' : '<div class="nxc-tips">' + CH_TIPS.map(t => '<button type="button" class="sv-chip" data-nxt="' + esc(t) + '">' + esc(t) + '</button>').join('') + '</div>') +
+    '<div class="nxc-in"><textarea class="inp" id="nxcQ" rows="2" placeholder="Hỏi thêm hoặc yêu cầu sửa báo cáo…"' + (CH.ask ? ' disabled' : '') + '></textarea><button class="btn pri sm" data-nx="ask"' + (CH.ask ? ' disabled' : '') + '><i class="bi bi-send"></i>Gửi</button></div></div>';
+  const CH_K = { tongQuan: 'Tổng quan', mucDo: 'Mức độ', daHoc: 'Đã dạy tới đâu', diemManh: 'Điểm mạnh', canKem: 'Cần kèm thêm', thaiDo: 'Thái độ', btvn: 'Bài tập về nhà', goiY: 'Gợi ý', luuY: 'Lưu ý', thuPhuHuynh: 'Thư gửi phụ huynh' };
   let S = last.log && last.log.actions && last.log.actions.prof || null;
-  const watch = lg => { paint(S, 1); ktWatch(lg, g => { const A = g && g.actions && g.actions.prof; if (A) S = A; if (!m.closed) paint(S, 0, A ? '' : (g && g.err) || 'AI chưa viết được — thử lại'); }); };
-  if (last.log && /^(send|wait|proc)$/.test(last.log.status)) watch(last.log); else paint(S, 0);
-  B.onclick = async e => { const b = e.target.closest('[data-nx]'); if (!b) return;
+  const watch = lg => { paint(S, 1); ktWatch(lg, g => { const X = (g && g.actions) || {}, A = X.prof; if (A) S = A; if (g && g.id) CH.id = g.id; if (X.hist) CH.hist = X.hist; const wasAsk = CH.ask; CH.ask = ''; CH.scroll = 1;
+    if (!m.closed) paint(S, 0, A ? '' : (g && g.err) || (wasAsk ? 'AI chưa trả lời được — hỏi lại' : 'AI chưa viết được — thử lại')); }); };
+  if (last.log && /^(send|wait|proc)$/.test(last.log.status)) { if (/^Hỏi về nhận xét/.test(last.log.title || '')) CH.ask = last.log.prompt || '…'; watch(last.log); } else paint(S, 0);
+  B.onkeydown = e => { if (e.target.id === 'nxcQ' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); const sb = B.querySelector('[data-nx="ask"]'); if (sb) sb.click(); } };
+  B.onclick = async e => { const tp = e.target.closest('[data-nxt]'); if (tp) { const q = B.querySelector('#nxcQ'); if (q) { q.value = tp.dataset.nxt; q.focus(); } return; }
+    const b = e.target.closest('[data-nx]'); if (!b) return;
+    if (b.dataset.nx === 'ask') { const q = (B.querySelector('#nxcQ') || {}).value || ''; if (!q.trim()) return toast('Nhập câu hỏi', 'warn'); if (!CH.id) return toast('Chưa có bản nhận xét để hỏi', 'warn');
+      CH.ask = q.trim(); CH.scroll = 1; b.disabled = true;
+      try { const r = await rpc('ktProfChat', { src: 'kgs', id: c.id, base: CH.id, q: CH.ask }, { quiet: true }); watch(r.log); } catch (er) { CH.ask = ''; paint(S, 0); fail(er); } return; }
     if (b.dataset.nx === 'pdf') return ktProfPdf(R, S);
     if (b.dataset.nx === 'cp') return navigator.clipboard.writeText(S.thuPhuHuynh || ktProfText(R, S)).then(() => toast('Đã chép', 'ok'));
-    b.disabled = true; try { const r = await rpc('ktProfAi', { src: 'kgs', id: c.id }, { quiet: true }); watch(r.log); } catch (er) { b.disabled = false; fail(er); } };
+    b.disabled = true; try { const r = await rpc('ktProfAi', { src: 'kgs', id: c.id }, { quiet: true }); CH.hist = []; CH.id = r.log.id; watch(r.log); } catch (er) { b.disabled = false; fail(er); } };
 }
 /** (1.82) AI PHÂN TÍCH NHẬN XÉT KGS → GÁN BÀI: một lượt gán bài (kind assign, chỉ đề xuất, không mở khoá bài cũ) cho 21 ngày tới; kết quả hiện ngay trong bảng nhận xét — tick mục rồi Áp dụng */
 async function clFbAi(c, m, btn, repaint, onX, resume) {
@@ -30950,6 +30966,7 @@ function svMemoV(b) {
 .kt-pfb{ display:flex; flex-direction:column; gap:5px } .kt-pfb h5{ margin:0; font-size:12px; color:var(--brand-700); text-transform:uppercase; letter-spacing:.04em; display:flex; gap:6px; align-items:center }
 .kt-pfb p{ margin:0; font-size:13.5px; line-height:1.6 } .kt-pfb ul{ margin:0; padding-left:18px; font-size:13.5px; line-height:1.6 } .kt-pfb li{ margin:0 0 3px }
 .kt-pf2{ display:flex; gap:14px; flex-wrap:wrap } .kt-pf2 > *{ flex:1; min-width:220px }
+/* (1.94.3) hỏi tiếp về bản nhận xét */ .nxc{ margin-top:12px } .nxc-log{ display:flex; flex-direction:column; gap:8px; margin:8px 0 } .nxc-q{ align-self:flex-end; max-width:85%; background:var(--pri-soft, #E8EEF8); padding:8px 12px; border-radius:14px 14px 4px 14px; white-space:pre-wrap } .nxc-a{ align-self:stretch; padding:2px 2px 6px; border-bottom:1px dashed var(--border) } .nxc-ed{ display:block; margin-top:4px; color:var(--ok, #16a34a) } .nxc-tips{ display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 8px } .nxc-in{ display:flex; gap:8px; align-items:flex-end } .nxc-in textarea{ flex:1; resize:vertical; min-height:42px }
 /* (1.84.4) chữ dài không tràn thẻ (tên giáo viên xuống dòng), tab Hồ sơ học sinh, ảnh vở, biểu đồ, bảng topic, câu trả lời AI dễ đọc */
 .kt-cl .kt-t, .kt-h .kt-t{ flex:1 1 220px; min-width:0 }
 .kt-t b{ white-space:normal; overflow-wrap:anywhere }
