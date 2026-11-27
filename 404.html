@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T16:42:37.005Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T17:24:06.733Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5562,6 +5562,8 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 .insx-n{ font-size:12.5px; color:var(--muted); white-space:nowrap }
 .insx-tw{ overflow-x:auto; overflow-y:visible } .insx-more-r{ display:flex; justify-content:center; padding:8px } .insx-more-r:empty{ display:none }      /* (1.93.2) không cuộn dọc trong khung */
 .insx-t{ width:100%; border-collapse:collapse; font-size:13px }
+.ktl-f{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 10px } .ktl-f .ktl-q{ flex:1; min-width:160px; height:34px }      /* (1.95.3) hộp Chủ đề KT: lọc môn + tìm */
+.insx-ab[data-ixa="mark"]{ width:118px; justify-content:center }      /* (1.95.3) Đánh dấu ↔ Đã đánh dấu cùng bề rộng — nút bên cạnh không bị xô */
 .ax-bb .insx-t, .insx .insx-t{ display:table; width:100%; margin:0; overflow:visible }      /* (1.95.2) kiểu bảng chung của chat (.ax-bb table{display:block}) làm bảng co lệch trái — giãn đủ khung; cuộn ngang do .insx-tw lo */
 .insx-t th{ position:sticky; top:0; z-index:1; background:var(--surface-2); color:var(--muted); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; text-align:left; padding:8px 10px; white-space:nowrap; cursor:pointer; user-select:none; border-bottom:1px solid var(--border) }
 .insx-t th i{ margin-left:4px; font-size:11px; opacity:.55 } .insx-t th[aria-sort="ascending"] i, .insx-t th[aria-sort="descending"] i{ opacity:1; color:var(--brand-600, #2F45C8) }
@@ -5603,7 +5605,7 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 /* (1.93) bổ trợ lớp KT */
 .insx-act{ display:inline-flex; gap:4px; white-space:nowrap }
 .insx-ab{ display:inline-flex; align-items:center; gap:4px; border:1px solid var(--border); background:var(--surface); color:var(--ink-2); border-radius:999px; padding:3px 9px; font-size:11.5px; font-weight:600; cursor:pointer; white-space:nowrap }
-.insx-ab:hover{ color:var(--ink); border-color:var(--border-strong) } .insx-ab{ padding:5px 10px; min-height:30px; transition:transform .08s, background .12s; touch-action:manipulation } .insx-ab:active{ transform:scale(.95); background:var(--surface-2) }      /* (1.95.2) bấm có phản hồi ngay */ .insx-ab.on{ background:color-mix(in srgb, var(--ok) 13%, transparent); color:var(--ok); border-color:transparent }
+.insx-ab:hover{ color:var(--ink); border-color:var(--border-strong) } .insx-ab{ padding:5px 10px; min-height:30px; transition:background .12s, border-color .12s; touch-action:manipulation } .insx-ab:active{ background:var(--surface-2) }      /* (1.95.2) bấm có phản hồi ngay · (1.95.3) không co / dịch nút */ .insx-ab.on{ background:color-mix(in srgb, var(--ok) 13%, transparent); color:var(--ok); border-color:transparent }
 .ktl-chip i{ color:var(--brand-600, #2F45C8) }
 </style>
 
@@ -17297,16 +17299,25 @@ async function ktlTopicsDlg(cid, be, wait) {
   if (wait && !(await wait)) { m.close(); return; }      // (1.95.2) hộp mở ngay, đợi đánh dấu xong mới đọc chủ đề
   let R; try { R = await rpc('ktlTopics', { cid: cid }, { quiet: true }); } catch (e) { m.close(); return fail(e); } if (m.closed) return;
   const dm = d => String(d || '').slice(8, 10) + '/' + String(d || '').slice(5, 7);
+  // (1.95.3) lọc theo MÔN + tìm chủ đề; “Gán bài bổ trợ” chỉ lấy chủ đề môn đang chọn (nhớ môn lần trước)
+  const SJ = R.topics.map(t => t.sj).filter((s, i, A) => s && A.indexOf(s) === i); let sj = lsGet('ktlSj', 'Toán'); if (SJ.indexOf(sj) < 0) sj = SJ.length === 1 ? SJ[0] : ''; let q = '';
   m.$('.modal-b').innerHTML = '<div class="small muted" style="margin:0 0 10px">Lớp <b>' + esc(R.link.cls) + '</b> · ' + R.n + ' buổi' + (R.att ? ' bé có mặt' : '') + ' từ ' + dm(R.fr) + ' tới ' + dm(R.to) + ' · ' + R.topics.filter(t => !t.none).length + ' chủ đề · tên topic theo tài liệu buổi học</div>' +
-    (R.topics.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Chủ đề / bài</th><th>Môn</th><th>Buổi</th><th>Gần nhất</th></tr></thead><tbody>' + R.topics.map(t => '<tr><td>' + (t.none ? '<span class="muted">' + esc(t.n) + '</span>' : esc(t.n)) + '</td><td style="white-space:nowrap">' + esc(t.sj || '—') + '</td><td>' + t.k + '</td><td style="white-space:nowrap">' + dm(t.last) + '</td></tr>').join('') + '</tbody></table></div>'
+    (R.topics.length ? '<div class="ktl-f"><span class="seg ktl-sj">' + [''].concat(SJ).map(s => '<button type="button" class="seg-b" data-ktsj="' + esc(s) + '">' + (s ? esc(s) : 'Tất cả') + ' <span class="n">' + R.topics.filter(t => !s || t.sj === s).length + '</span></button>').join('') + '</span>' +
+      '<input class="inp ktl-q" type="search" placeholder="Tìm chủ đề…" aria-label="Tìm chủ đề"></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Chủ đề / bài</th><th>Môn</th><th>Buổi</th><th>Gần nhất</th></tr></thead><tbody></tbody></table></div>'
       : '<div class="empty"><i class="bi bi-journal-x"></i>Chưa thấy buổi nào có nội dung bài.</div>') +
-    '<div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn sm pri" data-ktlg><i class="bi bi-stars"></i>Gán bài bổ trợ</button></div>';
-  m.$('[data-ktlg]').onclick = () => { m.close(); ktlAssignDo(cid, be); };
+    '<div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn sm pri" data-ktlg><i class="bi bi-stars"></i><span>Gán bài bổ trợ</span></button></div>';
+  const paint = () => { const tb = m.$('tbody'); if (!tb) return; const f = fold(q), V = R.topics.filter(t => (!sj || t.sj === sj) && (!f || fold(t.n).indexOf(f) >= 0));
+    tb.innerHTML = V.length ? V.map(t => '<tr><td>' + (t.none ? '<span class="muted">' + esc(t.n) + '</span>' : esc(t.n)) + '</td><td style="white-space:nowrap">' + esc(t.sj || '—') + '</td><td>' + t.k + '</td><td style="white-space:nowrap">' + dm(t.last) + '</td></tr>').join('') : '<tr><td colspan="4" class="muted">Không có chủ đề khớp</td></tr>';
+    m.$$('[data-ktsj]').forEach(b => b.setAttribute('aria-pressed', b.dataset.ktsj === sj)); m.$('[data-ktlg] span').textContent = 'Gán bài bổ trợ' + (sj ? ' · ' + sj : ''); };
+  m.$$('[data-ktsj]').forEach(b => { b.onclick = () => { sj = b.dataset.ktsj; lsSet('ktlSj', sj); paint(); }; });
+  const qi = m.$('.ktl-q'); if (qi) qi.oninput = () => { q = qi.value; paint(); };
+  paint();
+  m.$('[data-ktlg]').onclick = () => { m.close(); ktlAssignDo(cid, be, null, sj); };
 }
-async function ktlAssignDo(cid, be, wait) {
-  if (!await ask('AI chọn bài trong chương trình gia sư đang gán, bổ trợ cho các chủ đề ' + be + ' học bên kientre.click (60 ngày gần đây). Bài được gán NHÁP vào các buổi tới — bạn duyệt ở Buổi học. Tiếp tục?')) return;
+async function ktlAssignDo(cid, be, wait, sj) {
+  if (!await ask('AI chọn bài trong chương trình gia sư đang gán, bổ trợ cho các chủ đề ' + (sj ? 'môn ' + sj + ' ' : '') + be + ' học bên kientre.click (60 ngày gần đây). Bài được gán NHÁP vào các buổi tới, mang nhãn “Bổ trợ Kiến Trẻ” — bạn duyệt ở Buổi học. Tiếp tục?')) return;
   if (wait && !(await wait)) return;      // (1.95.2) đánh dấu chạy song song với hộp hỏi
-  try { const r = await rpc('ktlAssign', { cid: cid });
+  try { const r = await rpc('ktlAssign', { cid: cid, sj: sj || '' });
     toast(r.log ? 'Đã giao AI gán bài bổ trợ (' + r.topics.length + ' chủ đề KT) — bài nháp hiện ở Buổi học, xem tiến trình ở Trợ lý AI › Gán bài' : (r.msg || 'Không có buổi để gán'), r.log ? 'ok' : 'warn', 6000);
     if (r.log && /^(send|wait|proc)$/.test(r.log.status) && typeof aiWatch === 'function') aiWatch(r.log.id, lg => { toast(lg.status === 'err' ? 'AI gán bổ trợ lỗi: ' + (lg.err || '') : 'AI đã gán bài bổ trợ cho ' + be + ' (nháp chờ duyệt)', lg.status === 'err' ? 'err' : 'ok', 6000); clReload(Date.now()).then(() => CL.repaint && CL.repaint()).catch(() => {}); }); }
   catch (e) { fail(e); } }
@@ -17676,6 +17687,7 @@ function clTodo(B, v) {
       { key: 'kchk', label: 'Khớp nội dung KGS', icon: 'bi-robot', type: 'opt', name: k => k || 'Không có nội dung KGS', val: x => !x.krep || !Object.keys(x.krep).length ? '' : !x.kchk ? 'AI chưa kiểm' : x.kchk.s === 'lech' ? 'Lệch nội dung KGS' : x.kchk.s === 'unk' ? 'AI chưa rõ' : 'Khớp KGS' },      // (1.80.14)
       { key: 'need', label: 'Gán bài của bé', icon: 'bi-grid-3x3-gap', type: 'opt', name: k => k || 'Lớp đã dừng', val: x => clNeedAsg(cOf(x)), sort: (a, b) => ['Cần gán bài', 'Đã đủ bài', 'Chưa có chương trình', ''].indexOf(a) - ['Cần gán bài', 'Đã đủ bài', 'Chưa có chương trình', ''].indexOf(b) },      // (1.80.10)
       { key: 'flag', label: 'Đánh dấu lớp', icon: 'bi-flag', type: 'opt', val: x => clFlagInfo(cOf(x)).appr ? 'Chưa được duyệt lần nào' : 'Bình thường' },
+      { key: 'ktl', label: 'Học lớp Kiến Trẻ', icon: 'bi-link-45deg', type: 'opt', val: x => CL.d && CL.d.ktl && CL.d.ktl[x.classId] ? 'Học cả lớp Kiến Trẻ' : 'Chỉ học gia sư' },      // (1.95.3)
       { key: 'grade', label: 'Khối lớp', icon: 'bi-mortarboard', type: 'opt', name: k => k || 'Chưa có khối', val: x => cOf(x).grade || '', sort: (a, b) => gradeNum(a || 'z') - gradeNum(b || 'z') },
       { key: 'prog', label: 'Chương trình', icon: 'bi-journal-richtext', type: 'opt', name: k => k || 'Chưa gán', val: x => clProgName(clProg(cOf(x))), sort: natCmp },
       { key: 'tutor', label: 'Gia sư', icon: 'bi-person-badge', type: 'opt', name: k => k || 'Chưa có gia sư', val: x => cOf(x).tutorName || cOf(x).tutorEmail || '', sort: natCmp },
@@ -18383,6 +18395,7 @@ function clGrid(B, v) {
     fields: [
       { key: 'code', label: 'Lớp', icon: 'bi-person-video3', type: 'text', val: c => c.code },
       { key: 'student', label: 'Tên học sinh', icon: 'bi-person', type: 'text', val: c => c.student || '' },
+      { key: 'ktl', label: 'Học lớp Kiến Trẻ', icon: 'bi-link-45deg', type: 'opt', val: c => CL.d && CL.d.ktl && CL.d.ktl[c.id] ? 'Học cả lớp Kiến Trẻ' : 'Chỉ học gia sư' },      // (1.95.3) lọc bé học cả hai nơi → Chủ đề KT / Gán bổ trợ ở chip lớp
       { key: 'grade', label: 'Khối lớp', icon: 'bi-mortarboard', type: 'opt', name: k => k || 'Chưa có khối', val: c => c.grade || '', sort: (a, b) => gradeNum(a || 'z') - gradeNum(b || 'z') },
       { key: 'prog', label: 'Chương trình', icon: 'bi-journal-richtext', type: 'opt', name: k => k || 'Chưa gán', val: c => clProgName(clProg(c)), sort: natCmp },
       { key: 'tutor', label: 'Gia sư', icon: 'bi-person-badge', type: 'opt', name: k => k || 'Chưa có gia sư', val: c => c.tutorName || c.tutorEmail || '', sort: natCmp },
@@ -24596,7 +24609,7 @@ function insxMount(el, k, big) {
       '<div class="insx-bar"><span class="insx-q"><i class="bi bi-search"></i><input type="search" placeholder="Tìm học sinh, lớp, ' + (k === 'both' ? 'giáo viên' : 'gia sư') + '…" value="' + esc(st.q) + '" aria-label="Tìm"></span>' +
         '<select class="sel insx-k" aria-label="Khối"><option value="">Mọi khối</option>' + khoi.map(x => '<option value="' + esc(x) + '"' + (st.khoi === x ? ' selected' : '') + '>Khối ' + esc(x) + '</option>').join('') + '</select>' +
         (gsL.length ? '<select class="sel insx-g" aria-label="Gia sư"><option value="">Mọi gia sư</option>' + gsL.map(x => '<option' + (st.gs === x ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select>' : '') +
-        '<span class="sp"></span><span class="insx-n"></span>' +
+        '<span class="sp"></span><span class="insx-n"></span>' + (k === 'both' && st.seg === 'hai' ? '<button type="button" class="btn xs" data-ixall title="Đánh dấu mọi bé đang lọc (cả hai nơi · cùng khối) là học lớp Kiến Trẻ — bên Kiến GS lọc được, xem chủ đề và gán bài bổ trợ"><i class="bi bi-link-45deg"></i>Đánh dấu tất cả</button>' : '') +      // (1.95.3)
         '<button type="button" class="ibtn" data-ixcsv title="Tải CSV" aria-label="Tải CSV"><i class="bi bi-download"></i></button><button type="button" class="ibtn" data-ixre title="Tải lại" aria-label="Tải lại"><i class="bi bi-arrow-clockwise"></i></button>' +
         (big ? '' : '<button type="button" class="btn xs" data-ixside><i class="bi bi-layout-sidebar-inset-reverse"></i>Mở cạnh bên</button>') + '</div>' +
       '<div class="insx-tw"><table class="insx-t"><thead><tr>' + COL.map(c => '<th data-ixo="' + c[0] + '" aria-sort="' + (st.sort === c[0] ? (st.dir > 0 ? 'ascending' : 'descending') : 'none') + '">' + c[1] + '<i class="bi ' + (st.sort === c[0] ? (st.dir > 0 ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up') + '"></i></th>').join('') + '</tr></thead><tbody></tbody></table></div>' +
@@ -24629,13 +24642,19 @@ function insxMount(el, k, big) {
     const g = $('.insx-g', el); if (g) g.onchange = e => { st.gs = e.target.value; body(); };
     el.onclick = e => {
       if (e.target.closest('[data-ixmore]')) { st.lim += 100; return body(); }
+      if (e.target.closest('[data-ixall]')) { const seen = {}, L = (el._va || []).filter(x => x.cid && x.ktMa && /^both/.test(x.m) && !x.lk && !seen[x.cid] && (seen[x.cid] = 1));      // (1.95.3) đánh dấu hàng loạt — đổi nút ngay, lỗi thì trả lại
+        if (!L.length) return toast('Mọi bé đang lọc đã được đánh dấu', 'info');
+        return ask('Đánh dấu ' + L.length + ' bé đang lọc là học cả lớp Kiến Trẻ? Bên Kiến GS sẽ lọc được các lớp này, xem chủ đề KT và gán bài bổ trợ.').then(ok => { if (!ok) return;
+          L.forEach(x => { x.lk = 1; }); body();
+          rpc('ktlSetMany', { items: L.map(x => ({ cid: x.cid, code: x.ktMa, name: x.ktTen, cls: x.kt })) }).then(r => { if (typeof CL === 'object' && CL && CL.d) CL.d.ktl = r.ktl; toast('Đã đánh dấu ' + L.length + ' bé học cả hai nơi', 'ok'); })
+            .catch(er => { L.forEach(x => { x.lk = 0; }); body(); fail(er); }); }); }
       const gv = e.target.closest('[data-ixgv]'); if (gv) { const sp = gv.parentNode; sp.innerHTML = esc(gv.dataset.ixgv); sp.classList.add('all'); return; }      // (1.93) hiện đủ giáo viên
       const s = e.target.closest('[data-ixs]'); if (s) { st.seg = s.dataset.ixs; return draw(R); }      // (1.93) vẽ lại cả bảng — cột “Bổ trợ lớp KT” chỉ ở nhóm cả hai nơi
       const ab = e.target.closest('[data-ixa]'); if (ab) { const x = (el._v || [])[Number(ab.closest('[data-ixr]').dataset.ixr)]; if (!x) return; const lk = { code: x.ktMa, name: x.ktTen, cls: x.kt };      // (1.93) bổ trợ lớp KT
         // (1.95.2) nút đổi NGAY khi bấm (không chờ máy chủ 2–6 giây); lỗi thì trả lại như cũ
         if (ab.dataset.ixa === 'mark') { if (ab.disabled) return; const was = x.lk; x.lk = was ? 0 : 1; body(); return ktlMark(x.cid, was ? null : lk).then(ok => { if (!ok) { x.lk = was; body(); } }); }
         let wait = null; if (!x.lk) { x.lk = 1; body(); wait = ktlMark(x.cid, lk).then(ok => { if (!ok) { x.lk = 0; body(); } return ok; }); }
-        return ab.dataset.ixa === 'top' ? ktlTopicsDlg(x.cid, x.be, wait) : ktlAssignDo(x.cid, x.be, wait); }
+        return ab.dataset.ixa === 'top' ? ktlTopicsDlg(x.cid, x.be, wait) : ktlAssignDo(x.cid, x.be, wait, lsGet('ktlSj', '')); }      // (1.95.3) gán theo môn chọn lần trước ở hộp Chủ đề KT
       const th = e.target.closest('[data-ixo]'); if (th) { const c = th.dataset.ixo; if (c === 'act') return; st.dir = st.sort === c ? -st.dir : (c === 'since' || c === 'hoc' || c === 'n' ? -1 : 1); st.sort = c; return draw(R); }
       if (e.target.closest('[data-ixre]')) { el.innerHTML = '<div class="insx-ld">' + (typeof loadFx === 'function' ? loadFx('Đang tải lại…', { c: 'doc' }) : 'Đang tải…') + '</div>'; return load(true); }
       if (e.target.closest('[data-ixside]')) return insxSide(k);
