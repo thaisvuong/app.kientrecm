@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T08:10:40.644Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T08:20:28.257Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -20882,6 +20882,7 @@ const boT = (n, nd) => n ? '<span class="prp-bo" title="Phiếu học sinh gia s
 /* mục 1: mỗi topic cần củng cố một hàng — topic · ưu tiên · nút */
 .php-it.cc{ padding:8px 10px } .php-it.cc .hd{ flex-wrap:nowrap } .php-it.cc .hd select[data-pp$=".id"]{ flex:1; min-width:0; width:auto }
 .php-it.cc .ops{ display:flex; gap:2px; flex:none }
+.php-pq{ display:inline-flex; align-items:center; gap:4px; font-size:12px; color:var(--muted); white-space:nowrap; flex:none; cursor:help }
 @media (max-width:640px){ .php-it.cc .hd{ flex-wrap:wrap } .php-it.cc .hd select[data-pp$=".id"]{ flex-basis:100% } .php-it.cc .ops{ margin-left:auto } }
 /* đối chiếu 2 lộ trình: mỗi topic một ô số, màu theo trạng thái (giống PDF) */
 .php-lg{ display:flex; flex-wrap:wrap; gap:4px 12px; font-size:12px; color:var(--muted) } .php-lg span{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap }
@@ -20999,7 +21000,8 @@ function phpPaint(V) {
     phpCmpSec(P.doiChieu) +
     '<div class="php-sec"><h4><em>1</em>Kiến thức cần củng cố & phương pháp<span class="sp"></span><button type="button" class="btn xs" data-op="add" data-arr="cungCo"><i class="bi bi-plus-lg"></i>Thêm</button></h4>' +
       (P.cungCo || []).map((x, i, A) => '<div class="php-it cc"><div class="hd"><select class="inp" data-pp="cungCo.' + i + '.id" aria-label="Topic">' + opt(x.id, 'Chọn topic') + '</select>' +
-        '<select class="inp" data-pp="cungCo.' + i + '.uuTien" aria-label="Ưu tiên" style="width:auto"><option value="cao"' + (x.uuTien === 'cao' ? ' selected' : '') + '>Ưu tiên cao</option><option value="vừa"' + (x.uuTien !== 'cao' ? ' selected' : '') + '>Ưu tiên vừa</option></select>' + '<span class="ops">' + ops('cungCo', i, A.length) + '</span></div></div>').join('') +
+        '<select class="inp" data-pp="cungCo.' + i + '.uuTien" aria-label="Ưu tiên" style="width:auto"><option value="cao"' + (x.uuTien === 'cao' ? ' selected' : '') + '>Ưu tiên cao</option><option value="vừa"' + (x.uuTien !== 'cao' ? ' selected' : '') + '>Ưu tiên vừa</option></select>' + (x.phieu ? '<span class="php-pq" title="' + esc(x.phieu.t + ' · topic ' + x.phieu.so + '\n' + x.phieu.q.map(q => q[0] + ': ' + q[1] + (q[4] ? ' (có hình trên phiếu)' : '')).join('\n')) + '"><i class="bi bi-ui-checks"></i>Phiếu · ' + x.phieu.q.length + ' câu</span>' : '') +
+        '<span class="ops">' + ops('cungCo', i, A.length) + '</span></div></div>').join('') +
       f('Phương pháp chung (mỗi dòng một ý)', '<textarea class="inp" data-pl="phuongPhap" rows="4">' + esc((P.phuongPhap || []).join('\n')) + '</textarea>') + '</div>' +
     '<div class="php-sec"><h4><em>2</em>Số buổi bổ sung & lịch dự kiến · ' + (P.lich || []).length + ' buổi<span class="sp"></span><button type="button" class="btn xs" data-op="add" data-arr="lich"><i class="bi bi-plus-lg"></i>Thêm buổi</button></h4>' +
       '<div class="php-row">' + f('Tần suất', inp('tanSuat', P.tanSuat, '2 buổi/tuần')) + f('Thời lượng', inp('thoiLuong', P.thoiLuong, '90 phút/buổi')) + '</div>' +
@@ -21077,13 +21079,17 @@ const PHP_PCSS = '#ktPrint .php-cl{ display:inline-block; min-width:17pt; height
   '#ktPrint .php-cl.t{ background:#fff !important; border:1.2pt dashed #204983; color:#204983 !important }' +
   '#ktPrint .php-lg{ display:flex; flex-wrap:wrap; gap:2pt 10pt; font-size:7.6pt; margin:2pt 0 6pt } #ktPrint .php-lg span{ white-space:nowrap } #ktPrint .php-lg .php-cl{ min-width:9pt; height:9pt; margin:0 3pt -1pt 0; padding:0 }' +
   '#ktPrint .php-rt{ break-inside:avoid; margin:0 0 8pt } #ktPrint .php-rt .hd{ display:flex; justify-content:space-between; gap:8pt; align-items:baseline; margin-bottom:3pt; white-space:nowrap }' +
+  '#ktPrint .php-pt td{ vertical-align:middle } #ktPrint .php-pt .php-lv{ display:inline-block; min-width:26pt; padding:1pt 4pt; border-radius:4pt; font-size:7pt; font-weight:800; text-align:center; color:#fff !important }' +
+  '#ktPrint .php-pt .php-lv.NT{ background:#4C9A6A !important } #ktPrint .php-pt .php-lv.VD{ background:#204983 !important } #ktPrint .php-pt .php-lv.VDC{ background:#F66600 !important }' +
+  '#ktPrint .php-pt .bx{ display:inline-block; width:10pt; height:10pt; border:1pt solid #8A94A8; border-radius:2pt; vertical-align:middle } #ktPrint .php-pt td.tk{ text-align:center; width:52pt } #ktPrint .php-pt th.tk{ text-align:center; white-space:nowrap; width:52pt }' +
+  '#ktPrint .php-pt tr.tp td{ background:#F5F9FF !important; font-weight:700 } #ktPrint .php-pt tr.kl td{ font-size:8pt } #ktPrint .php-pt tr.kl .bx{ margin:0 3pt 0 8pt }' +
   '#ktPrint .php-rt .hd b{ font-weight:800; color:#204983 !important } #ktPrint .php-rt .hd small{ font-size:7.8pt } #ktPrint .php-rt .cells{ line-height:0 } #ktPrint .php-no{ color:#9AA3B5 !important }';
 /** PDF: mục ĐỐI CHIẾU — nhận xét · 2 lộ trình (ô số từng topic) · bài con học ở lớp kientre.click ↔ topic từng lộ trình · lỗ hổng / sắp học */
 function phpCmpPdf(D, c) {
   if (!D || !(D.routes || []).length) return '';
   const R = D.routes, nl = s => esc(s || '').replace(/\n/g, '<br>');
   const li = (r, k) => (r[k] || []).map(x => '<li>' + esc(x.n) + ' <span class="php-no" style="white-space:nowrap">(topic ' + x.stt + ')</span></li>').join('');
-  return '<style>' + PHP_PCSS + '</style><section class="flow"><h2>Đối chiếu bài con đã học với 2 lộ trình' + (D.khoi ? ' Toán ' + esc(D.khoi) : '') + '</h2>' +
+  return '<section class="flow"><h2>Đối chiếu bài con đã học với 2 lộ trình' + (D.khoi ? ' Toán ' + esc(D.khoi) : '') + '</h2>' +
     (D.nhanXet ? '<p>' + nl(D.nhanXet) + '</p>' : '') +
     phpLegend() + R.map(r => '<div class="php-rt"><div class="hd"><b>' + esc(phpRtN(r)) + (r.dang ? ' · con đang học' : '') + '</b><small>' + esc(phpRtSum(r)) + '</small></div><div class="cells">' + phpCells(r, D) + '</div></div>').join('') +
     ((D.kt || []).length ? '<div class="lb" style="margin-top:6pt">Bài con đã học ở lớp ' + esc(D.ktCls) + ' (kientre.click) tương ứng trong 2 lộ trình</div><table><thead><tr><th>Bài ở lớp</th><th>Ngày</th>' + R.map(r => '<th>' + esc(phpRtN(r)) + '</th>').join('') + '</tr></thead><tbody>' +
@@ -21092,6 +21098,18 @@ function phpCmpPdf(D, c) {
       (r.hong.length ? '<div class="lb">Chưa học — cần lấp</div><ul>' + li(r, 'hong') + (r.nHong > r.hong.length ? '<li>và ' + (r.nHong - r.hong.length) + ' topic nữa</li>' : '') + '</ul>' : '<p>' + (r.nDa ? 'Không có lỗ hổng trước bài xa nhất con đã học.' : 'Con chưa học topic nào của lộ trình này.') + '</p>') +
       (r.tiep.length ? '<div class="lb">Sắp học</div><ul>' + li(r, 'tiep') + '</ul>' : '') + '</section>').join('') + '</div>' : '') + '</section>';
 }
+/** PDF: PHIẾU KIỂM TRA KIẾN THỨC — câu của Phiếu theo dõi tiến trình cho từng topic cần củng cố (không in đáp án); cột tick Đầu vào + các mốc kiểm tra */
+function phpPhieuPdf(P) {
+  const L = (P.cungCo || []).filter(x => x.id && x.phieu && (x.phieu.q || []).length); if (!L.length) return '';
+  const moc = ((P.theoDoi || {}).moc || []).filter(m => m.sauBuoi).slice(0, 3), cols = ['Đầu vào'].concat(moc.map(m => 'Sau buổi ' + m.sauBuoi)), set = L[0].phieu.t;
+  const tn = x => phpTn(x.n || x.id);
+  return '<section class="flow"><h2>Phiếu kiểm tra kiến thức</h2><p>Trích <b>Phiếu theo dõi tiến trình học ' + esc(set) + '</b> của trung tâm. Thầy cô cho con làm ở buổi đầu và ở mỗi mốc kiểm tra, đánh dấu câu con làm đúng. ' +
+      'Đúng câu NT (nhận biết) và VD (vận dụng) → <b>Đạt</b>; sai một trong hai → <b>Cần học</b>' + (/Nâng cao/.test(set) ? '; với mục tiêu thi chuyên, cần đúng cả câu VDC (vận dụng cao).' : '.') + '</p>' +
+    '<table class="php-pt"><thead><tr><th>Mức</th><th>Câu hỏi</th>' + cols.map(c => '<th class="tk">' + esc(c) + '</th>').join('') + '</tr></thead><tbody>' +
+    L.map(x => '<tr class="tp"><td colspan="' + (2 + cols.length) + '">' + esc(tn(x)) + '<span class="mu" style="font-weight:500"> · topic ' + x.phieu.so + ' của phiếu</span></td></tr>' +
+      x.phieu.q.map(q => '<tr><td><span class="php-lv ' + esc(q[0]) + '">' + esc(q[0]) + '</span></td><td>' + esc(q[1]) + (q[3] ? ' <span class="php-no">(' + esc(q[3]) + ')</span>' : '') + (q[4] ? ' <span class="php-no">(xem hình trên phiếu)</span>' : '') + '</td>' + cols.map(() => '<td class="tk"><span class="bx"></span></td>').join('') + '</tr>').join('') +
+      '<tr class="kl"><td colspan="2" style="text-align:right">Kết luận</td>' + cols.map(() => '<td class="tk" style="white-space:nowrap">Đạt<span class="bx"></span></td>').join('') + '</tr>').join('') + '</tbody></table></section>';
+}
 /** PDF gửi phụ huynh — khung báo cáo chung (rptPdf · RPT_CSS phong cách kientre.edu.vn), đúng 3 mục phụ huynh hỏi */
 function phpPdf(V) {
   const P = V.P, c = V.c, I = V.I, L = {}; (V.lg.les || I.lessons || []).forEach(l => { L[l.id] = l.n; });
@@ -21099,7 +21117,7 @@ function phpPdf(V) {
   const li = A => (A || []).filter(Boolean).length ? '<ul>' + A.filter(Boolean).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '';
   const ap = (V.lg.ap && V.lg.ap.buoi) || {}, mp = b => { const d = ap[b.buoi] ? ap[b.buoi].d : ((V.map || []).find(z => z.buoi === b.buoi && z.sid) || {}).d; return d ? phpDm(d) : ''; };
   const nB = (P.lich || []).length, moc = ((P.theoDoi || {}).moc || []);
-  const body = (P.tomTat ? '<p class="ktr-lead">' + nl(P.tomTat) + '</p>' : '') +
+  const body = '<style>' + PHP_PCSS + '</style>' + (P.tomTat ? '<p class="ktr-lead">' + nl(P.tomTat) + '</p>' : '') +
     (P.nhanDinh || (P.canCu || []).length ? '<section><h2>Nhận định của bộ phận chuyên môn</h2>' + ps(P.nhanDinh) + ((P.canCu || []).length ? '<div class="lb">Căn cứ</div>' + li(P.canCu) : '') + '</section>' : '') +
     (P.loTrinh ? '<section class="ktr-bx tip"><h2>Lộ trình phù hợp với con: ' + esc(PHP_LN[P.loTrinh.loai] || P.loTrinh.ten) + '</h2>' + (P.loTrinh.lyDo ? ps(P.loTrinh.lyDo) : '') + '</section>' : '') +
     phpCmpPdf(P.doiChieu, c) +
@@ -21112,6 +21130,7 @@ function phpPdf(V) {
       ((P.mucTieu || []).length ? '<table><thead><tr><th>Mục tiêu đầu ra</th><th>Chỉ số đo</th><th>Thời điểm</th></tr></thead><tbody>' + P.mucTieu.map(x => '<tr><td class="k">' + nl(x.y) + '</td><td>' + nl(x.chiSo) + '</td><td class="n">' + esc(x.han) + '</td></tr>').join('') + '</tbody></table>' : '') +
       (moc.length ? '<div style="height:10px"></div><table><thead><tr><th>Mốc kiểm tra</th><th>Hình thức</th><th>Tiêu chí đạt</th></tr></thead><tbody>' + moc.map(x => '<tr><td class="d"><b>' + (x.sauBuoi ? 'Sau buổi ' + x.sauBuoi : 'Mốc') + '</b></td><td>' + nl(x.hinhThuc) + '</td><td>' + nl(x.dat) + '</td></tr>').join('') + '</tbody></table>' : '') +
       (((P.theoDoi || {}).cach || []).length || (P.theoDoi || {}).baoPH ? '<div class="ktr-two" style="margin-top:10px">' + (((P.theoDoi || {}).cach || []).length ? '<section class="ktr-bx ok"><h2>Theo dõi từng buổi</h2>' + li(P.theoDoi.cach) + '</section>' : '') + ((P.theoDoi || {}).baoPH ? '<section class="ktr-bx warn"><h2>Báo phụ huynh</h2><p>' + nl(P.theoDoi.baoPH) + '</p></section>' : '') + '</div>' : '') + '</section>' +
+    phpPhieuPdf(P) +
     (P.thuPhuHuynh ? '<section class="ktr-letter flow"><h2>Thư gửi phụ huynh</h2>' + ps(P.thuPhuHuynh) + '</section>' : '');
   rptPdf({ kicker: 'Lộ trình hỗ trợ Toán', title: clName(c), sub: [c.grade, P.loTrinh ? phpRtN(P.loTrinh) : I.be.chuongTrinh ? 'Chương trình ' + phpTn(I.be.chuongTrinh) : '', V.kt && V.kt.cls ? 'Lớp ' + V.kt.cls : '', I.be.giaSu ? 'Gia sư ' + I.be.giaSu : ''].filter(Boolean).join(' · '),
     badge: { k: 'Bổ sung', v: nB + ' buổi' }, kpi: [{ n: String(nB), t: 'buổi bổ sung' }, { n: String((P.cungCo || []).filter(x => x.id).length), t: 'mảng cần củng cố' }, { n: String((P.mucTieu || []).length), t: 'mục tiêu đầu ra' }, { n: String(moc.length), t: 'mốc kiểm tra' }].concat(((P.doiChieu || {}).routes || []).map(r => ({ n: r.nDa + '/' + r.tong, t: 'topic ' + (r.loai === 'NT' ? 'Nền tảng' : r.loai === 'NC' ? 'Nâng cao' : 'lộ trình') }))).concat(P.tanSuat && !((P.doiChieu || {}).routes || []).length ? [{ n: P.tanSuat, t: 'tần suất' }] : []),
