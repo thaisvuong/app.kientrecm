@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T16:18:09.926Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T16:42:37.005Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5562,6 +5562,7 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 .insx-n{ font-size:12.5px; color:var(--muted); white-space:nowrap }
 .insx-tw{ overflow-x:auto; overflow-y:visible } .insx-more-r{ display:flex; justify-content:center; padding:8px } .insx-more-r:empty{ display:none }      /* (1.93.2) không cuộn dọc trong khung */
 .insx-t{ width:100%; border-collapse:collapse; font-size:13px }
+.ax-bb .insx-t, .insx .insx-t{ display:table; width:100%; margin:0; overflow:visible }      /* (1.95.2) kiểu bảng chung của chat (.ax-bb table{display:block}) làm bảng co lệch trái — giãn đủ khung; cuộn ngang do .insx-tw lo */
 .insx-t th{ position:sticky; top:0; z-index:1; background:var(--surface-2); color:var(--muted); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; text-align:left; padding:8px 10px; white-space:nowrap; cursor:pointer; user-select:none; border-bottom:1px solid var(--border) }
 .insx-t th i{ margin-left:4px; font-size:11px; opacity:.55 } .insx-t th[aria-sort="ascending"] i, .insx-t th[aria-sort="descending"] i{ opacity:1; color:var(--brand-600, #2F45C8) }
 .insx-t td{ padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--ink) }
@@ -5602,7 +5603,7 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 /* (1.93) bổ trợ lớp KT */
 .insx-act{ display:inline-flex; gap:4px; white-space:nowrap }
 .insx-ab{ display:inline-flex; align-items:center; gap:4px; border:1px solid var(--border); background:var(--surface); color:var(--ink-2); border-radius:999px; padding:3px 9px; font-size:11.5px; font-weight:600; cursor:pointer; white-space:nowrap }
-.insx-ab:hover{ color:var(--ink); border-color:var(--border-strong) } .insx-ab.on{ background:color-mix(in srgb, var(--ok) 13%, transparent); color:var(--ok); border-color:transparent }
+.insx-ab:hover{ color:var(--ink); border-color:var(--border-strong) } .insx-ab{ padding:5px 10px; min-height:30px; transition:transform .08s, background .12s; touch-action:manipulation } .insx-ab:active{ transform:scale(.95); background:var(--surface-2) }      /* (1.95.2) bấm có phản hồi ngay */ .insx-ab.on{ background:color-mix(in srgb, var(--ok) 13%, transparent); color:var(--ok); border-color:transparent }
 .ktl-chip i{ color:var(--brand-600, #2F45C8) }
 </style>
 
@@ -17287,11 +17288,13 @@ document.addEventListener('click', e => { const b = e.target.closest && e.target
 function ktlMenu(cid) { const c = clClass(cid), L = CL.d && CL.d.ktl && CL.d.ktl[cid]; if (!c || !L) return;
   modal({ title: 'Học lớp kientre.click · ' + clName(c), icon: 'bi-mortarboard', body: '<p style="margin:0 0 6px">Bé học lớp <b>' + esc(L.cls) + '</b> ở kientre.click (mã học sinh ' + esc(L.code) + ').</p><p class="small muted" style="margin:0">Dữ liệu lớp KT để riêng, chỉ dùng để chọn bài bổ trợ trong chương trình gia sư đang gán.</p>',
     foot: [{ t: 'Bỏ đánh dấu', cls: 'ghost', fn: () => { ktlMark(cid, null); } }, { t: 'Chủ đề KT', i: 'bi-journal-bookmark', fn: () => { ktlTopicsDlg(cid, clName(c)); } }, { t: 'Gán bổ trợ', cls: 'pri', i: 'bi-stars', fn: () => { ktlAssignDo(cid, clName(c)); } }] }); }
+/** (1.95.2) trả Promise<true | false> — bảng “Bé học cả hai nơi” đổi nút NGAY (lạc quan) rồi đợi kết quả, lỗi thì trả nút về như cũ */
 async function ktlMark(cid, lk, done) {
-  try { const r = await rpc('ktlSet', Object.assign({ cid: cid, on: lk ? 1 : 0 }, lk || {})); if (CL && CL.d) { CL.d.ktl = r.ktl; if (CL.repaint) CL.repaint(); } toast(lk ? 'Đã đánh dấu bé học lớp kientre.click' : 'Đã bỏ đánh dấu', 'ok'); done && done(!!lk); }
-  catch (e) { fail(e); } }
-async function ktlTopicsDlg(cid, be) {
+  try { const r = await rpc('ktlSet', Object.assign({ cid: cid, on: lk ? 1 : 0 }, lk || {})); if (CL && CL.d) { CL.d.ktl = r.ktl; if (CL.repaint) CL.repaint(); } toast(lk ? 'Đã đánh dấu bé học lớp kientre.click' : 'Đã bỏ đánh dấu', 'ok'); done && done(!!lk); return true; }
+  catch (e) { fail(e); return false; } }
+async function ktlTopicsDlg(cid, be, wait) {
   const m = modal({ title: 'Chủ đề đã học bên kientre.click · ' + be, icon: 'bi-journal-bookmark', size: 'lg', body: typeof loadFx === 'function' ? loadFx('Đang đọc buổi học lớp kientre.click…', { c: 'doc' }) : miniLoader('Đang tải…') });
+  if (wait && !(await wait)) { m.close(); return; }      // (1.95.2) hộp mở ngay, đợi đánh dấu xong mới đọc chủ đề
   let R; try { R = await rpc('ktlTopics', { cid: cid }, { quiet: true }); } catch (e) { m.close(); return fail(e); } if (m.closed) return;
   const dm = d => String(d || '').slice(8, 10) + '/' + String(d || '').slice(5, 7);
   m.$('.modal-b').innerHTML = '<div class="small muted" style="margin:0 0 10px">Lớp <b>' + esc(R.link.cls) + '</b> · ' + R.n + ' buổi' + (R.att ? ' bé có mặt' : '') + ' từ ' + dm(R.fr) + ' tới ' + dm(R.to) + ' · ' + R.topics.filter(t => !t.none).length + ' chủ đề · tên topic theo tài liệu buổi học</div>' +
@@ -17300,8 +17303,9 @@ async function ktlTopicsDlg(cid, be) {
     '<div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn sm pri" data-ktlg><i class="bi bi-stars"></i>Gán bài bổ trợ</button></div>';
   m.$('[data-ktlg]').onclick = () => { m.close(); ktlAssignDo(cid, be); };
 }
-async function ktlAssignDo(cid, be) {
+async function ktlAssignDo(cid, be, wait) {
   if (!await ask('AI chọn bài trong chương trình gia sư đang gán, bổ trợ cho các chủ đề ' + be + ' học bên kientre.click (60 ngày gần đây). Bài được gán NHÁP vào các buổi tới — bạn duyệt ở Buổi học. Tiếp tục?')) return;
+  if (wait && !(await wait)) return;      // (1.95.2) đánh dấu chạy song song với hộp hỏi
   try { const r = await rpc('ktlAssign', { cid: cid });
     toast(r.log ? 'Đã giao AI gán bài bổ trợ (' + r.topics.length + ' chủ đề KT) — bài nháp hiện ở Buổi học, xem tiến trình ở Trợ lý AI › Gán bài' : (r.msg || 'Không có buổi để gán'), r.log ? 'ok' : 'warn', 6000);
     if (r.log && /^(send|wait|proc)$/.test(r.log.status) && typeof aiWatch === 'function') aiWatch(r.log.id, lg => { toast(lg.status === 'err' ? 'AI gán bổ trợ lỗi: ' + (lg.err || '') : 'AI đã gán bài bổ trợ cho ' + be + ' (nháp chờ duyệt)', lg.status === 'err' ? 'err' : 'ok', 6000); clReload(Date.now()).then(() => CL.repaint && CL.repaint()).catch(() => {}); }); }
@@ -24628,9 +24632,10 @@ function insxMount(el, k, big) {
       const gv = e.target.closest('[data-ixgv]'); if (gv) { const sp = gv.parentNode; sp.innerHTML = esc(gv.dataset.ixgv); sp.classList.add('all'); return; }      // (1.93) hiện đủ giáo viên
       const s = e.target.closest('[data-ixs]'); if (s) { st.seg = s.dataset.ixs; return draw(R); }      // (1.93) vẽ lại cả bảng — cột “Bổ trợ lớp KT” chỉ ở nhóm cả hai nơi
       const ab = e.target.closest('[data-ixa]'); if (ab) { const x = (el._v || [])[Number(ab.closest('[data-ixr]').dataset.ixr)]; if (!x) return; const lk = { code: x.ktMa, name: x.ktTen, cls: x.kt };      // (1.93) bổ trợ lớp KT
-        if (ab.dataset.ixa === 'mark') return ktlMark(x.cid, x.lk ? null : lk, on => { x.lk = on ? 1 : 0; body(); });
-        if (!x.lk) return ktlMark(x.cid, lk, () => { x.lk = 1; body(); ab.dataset.ixa === 'top' ? ktlTopicsDlg(x.cid, x.be) : ktlAssignDo(x.cid, x.be); });
-        return ab.dataset.ixa === 'top' ? ktlTopicsDlg(x.cid, x.be) : ktlAssignDo(x.cid, x.be); }
+        // (1.95.2) nút đổi NGAY khi bấm (không chờ máy chủ 2–6 giây); lỗi thì trả lại như cũ
+        if (ab.dataset.ixa === 'mark') { if (ab.disabled) return; const was = x.lk; x.lk = was ? 0 : 1; body(); return ktlMark(x.cid, was ? null : lk).then(ok => { if (!ok) { x.lk = was; body(); } }); }
+        let wait = null; if (!x.lk) { x.lk = 1; body(); wait = ktlMark(x.cid, lk).then(ok => { if (!ok) { x.lk = 0; body(); } return ok; }); }
+        return ab.dataset.ixa === 'top' ? ktlTopicsDlg(x.cid, x.be, wait) : ktlAssignDo(x.cid, x.be, wait); }
       const th = e.target.closest('[data-ixo]'); if (th) { const c = th.dataset.ixo; if (c === 'act') return; st.dir = st.sort === c ? -st.dir : (c === 'since' || c === 'hoc' || c === 'n' ? -1 : 1); st.sort = c; return draw(R); }
       if (e.target.closest('[data-ixre]')) { el.innerHTML = '<div class="insx-ld">' + (typeof loadFx === 'function' ? loadFx('Đang tải lại…', { c: 'doc' }) : 'Đang tải…') + '</div>'; return load(true); }
       if (e.target.closest('[data-ixside]')) return insxSide(k);
@@ -31380,12 +31385,20 @@ function ktSessHtml(s, i) {
   const live = s.st.filter(st => !ktAbs(st)), done = live.filter(st => ktDone(s, st)).length, todo = live.filter(st => { const e = ktEd(s, st); return ktHasCmt(e.f) && !ktDone(s, st); }).length;
   const td = KT.d && KT.d.todo, on = !td || ktTSel(s), nk = ktCSk(s).length;
   return '<div class="kt-card' + (on ? '' : ' off') + '" data-kss="' + i + '"><div class="kt-pad"><div class="kt-h">' + (td ? '<input type="checkbox" class="kt-tsel" data-ktsel' + (on ? ' checked' : '') + ' aria-label="Chọn lớp ' + esc(s.cls) + ' để làm đồng loạt">' : '') + ktRing(done, live.length) + '<div class="kt-t"><b>' + (td ? '<span class="kt-dayp"><i class="bi bi-calendar3"></i>' + ktThu(s.day) + ', ' + ktDm(s.day) + '</span> ' : '') + esc(s.cls) + (s.sjT ? ' <span class="kt-pill">' + esc(s.sjT) + '</span>' : '') + (s.extra ? ' <span class="kt-pill warn">Học bù</span>' : '') + '</b>' +
-    '<span class="kt-meta">' + [s.time && '<span><i class="bi bi-clock"></i>' + esc(s.time) + '</span>', s.lesson && '<span>' + esc(s.lesson) + '</span>', s.loc && '<span><i class="bi bi-geo-alt"></i>' + esc(s.loc) + '</span>', '<span><i class="bi bi-people"></i>' + s.st.length + ' bé</span>'].filter(Boolean).join('') + '</span></div><span class="sp"></span>' +
-    '<div class="kt-acts">' + (busy ? '<span class="kt-wait"><i class="bi bi-arrow-repeat"></i> AI đang viết…</span>' : '<button class="btn sm" data-kai="all" title="' + (nk ? 'AI viết cả lớp xoay quanh ' + nk + ' kỹ năng đã chọn (bé nào có kỹ năng riêng thì theo của bé)' : 'AI viết cả lớp') + '"><i class="bi bi-stars"></i> AI viết cả lớp' + (nk ? ' · ' + nk + ' kỹ năng' : '') + '</button>') + '<button class="btn sm pri" data-kpu="all"' + (todo ? '' : ' disabled') + '><i class="bi bi-send"></i> Đẩy' + (todo ? ' ' + todo : '') + '</button></div></div>' +
+    '<span class="kt-meta">' + [s.time && '<span><i class="bi bi-clock"></i>' + esc(s.time) + '</span>', s.lesson && '<span>' + esc(s.lesson) + '</span>', s.loc && '<span><i class="bi bi-geo-alt"></i>' + esc(s.loc) + '</span>', '<span><i class="bi bi-people"></i>' + s.st.length + ' bé</span>'].filter(Boolean).join('') + ktCkHtml(s) + '</span></div><span class="sp"></span>' +
+    '<div class="kt-acts">' + (s.core ? '<a class="btn sm ghost" href="https://kientre.click/staff/session/' + encodeURIComponent(s.core) + '/checkin" target="_blank" rel="noopener" title="Mở buổi này trên kientre.click (trang check-in / điểm danh của giáo viên)"><i class="bi bi-box-arrow-up-right"></i> kientre.click</a>' : '') + (busy ? '<span class="kt-wait"><i class="bi bi-arrow-repeat"></i> AI đang viết…</span>' : '<button class="btn sm" data-kai="all" title="' + (nk ? 'AI viết cả lớp xoay quanh ' + nk + ' kỹ năng đã chọn (bé nào có kỹ năng riêng thì theo của bé)' : 'AI viết cả lớp') + '"><i class="bi bi-stars"></i> AI viết cả lớp' + (nk ? ' · ' + nk + ' kỹ năng' : '') + '</button>') + '<button class="btn sm pri" data-kpu="all"' + (todo ? '' : ' disabled') + '><i class="bi bi-send"></i> Đẩy' + (todo ? ' ' + todo : '') + '</button></div></div>' +
     '<div class="kt-mat' + (m ? '' : ' miss') + '">' + (m ? '<i class="bi bi-file-earmark-text"></i><span>' + (m.u ? '<a href="' + esc(m.u) + '" target="_blank" rel="noopener">' + esc(m.t || 'Tài liệu') + '</a>' : esc(m.t)) + (m.hw ? ' · <a href="' + esc(m.hw) + '" target="_blank" rel="noopener">BTVN</a>' : '') + '</span>' : '<i class="bi bi-lightbulb"></i><span>Buổi này <b>chưa có tài liệu</b> trên kientre.click — bấm “AI viết” để AI gợi ý nội dung buổi.</span>') + '</div>' +
     (A.goi && A.goi.length ? '<div class="kt-goi"><b>AI gợi ý nội dung buổi</b><ul>' + A.goi.map(g => '<li>' + esc(g) + '</li>').join('') + '</ul></div>' : '') + ktLesHtml(s, busy) +
-    '<div class="kt-lc"><label for="ktLc' + i + '">Nội dung buổi</label><input id="ktLc' + i + '" data-klc value="' + esc(lcv) + '" placeholder="VD: Ôn tập phân số, số thập phân"></div></div>' +
+    '<div class="kt-lc"><label for="ktLc' + i + '">Nội dung buổi</label><input id="ktLc' + i + '" data-klc value="' + esc(lcv) + '" placeholder="VD: Ôn tập phân số, số thập phân"></div>' +
+    '<div class="kt-lc"><label for="ktCn' + i + '">Ghi nhanh cả lớp</label><input id="ktCn' + i + '" data-kcn value="' + esc(ktCnGet(s)) + '" placeholder="VD: Khoa ngoan, còn lơ là, Lam học tốt, Linh tiếp thu được" title="Gõ tên bé rồi nhận xét ngắn — AI viết theo đúng ghi chú của từng bé"></div></div>' +
     '<div class="kt-list">' + s.st.map((st, j) => ktStuHtml(s, st, j)).join('') + '</div></div>';
+}
+/** (1.95.2) trạng thái check-in / check-out của giáo viên (chỉ đọc từ kientre.click — check-in kèm vị trí làm bên đó) */
+function ktCkHtml(s) {
+  const c = s.ck; if (!c) return '';
+  const hm = iso => { const d = new Date(iso); return isNaN(d) ? '' : String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  return '<span class="kt-pill' + (c.in ? ' ok' : ' warn') + '" title="Giáo viên check-in trên kientre.click">' + (c.in ? 'Check-in ' + hm(c.in) : 'Chưa check-in') + '</span>' +
+    '<span class="kt-pill' + (c.out || c.fb ? ' ok' : '') + '" title="Check-out = giáo viên đã xong nhận xét buổi trên kientre.click">' + (c.out ? 'Check-out ' + hm(c.out) : c.fb ? 'Đã check-out' : 'Chưa check-out') + '</span>';
 }
 function ktStatus(s, st) {
   const e = ktEd(s, st), k = ktKey(s, st), pu = KT.push[k];
@@ -31407,7 +31420,8 @@ function ktStuHtml(s, st, j) {
     const TDS = { a: 'Tích cực', b: 'Tập trung', c: 'Hơi lơ là', d: 'Làm việc riêng', e: 'Làm chậm', f: 'Cẩn thận', g: 'Chưa cẩn thận' }, TD = (KT.b && KT.b.td) || {};
     const pct = (nm, v) => '<select data-kpct="' + nm + '" aria-label="' + (nm === 'lam' ? '% làm BTVN' : '% đúng BTVN') + '"><option value="">—</option>' + [0, 25, 50, 75, 100].map(x => '<option' + (String(v) === String(x) ? ' selected' : '') + ' value="' + x + '">' + x + '%</option>').join('') + '</select>';
     ed = '<div class="kt-ed">' + (ab ? '' : '<div class="kt-q"><div><label>Tiếp thu</label><span class="kt-seg">' + sg(4, 'Tốt') + sg(3, 'Khá') + sg(2, 'TB') + sg(1, 'Cần kèm') + '</span></div>' +
-        '<div><label>BTVN</label>' + (st.nohw ? '<span class="kt-pill">Không có</span>' : pct('lam', e.f.lam != null ? e.f.lam : e.inp.lam) + '<label>đúng</label>' + pct('dung', e.f.dung != null ? e.f.dung : e.inp.dung)) + '</div></div>' +
+        '<div><label>BTVN</label>' + (st.nohw ? '<span class="kt-pill">Không có</span>' : pct('lam', e.f.lam != null ? e.f.lam : e.inp.lam) + '<label>đúng</label>' + pct('dung', e.f.dung != null ? e.f.dung : e.inp.dung) +
+          [['n', 'Không có BTVN', 'Buổi trước không giao BTVN — AI không nhắc tới BTVN'], ['q', 'Quên làm', 'Bé quên làm / làm chưa xong BTVN — có câu nhắc BTVN'], ['s', 'Quên sách vở', 'Bé quên mang sách / vở']].map(H => '<button type="button" class="kt-chip" data-kp="hw" data-kv="' + H[0] + '" title="' + H[2] + '" aria-pressed="' + ((e.inp.hw || []).indexOf(H[0]) >= 0) + '">' + H[1] + '</button>').join('')) + '</div></div>' +      // (1.95.2) tick BTVN
         '<div class="kt-q"><div><label>Thái độ</label>' + Object.keys(TDS).map(x => '<button type="button" class="kt-chip" data-kp="td" data-kv="' + x + '" title="' + esc(TD[x] || '') + '" aria-pressed="' + ((e.inp.td || []).indexOf(x) >= 0) + '">' + TDS[x] + '</button>').join('') + '</div></div>' +
         '<input class="kt-note" data-knote value="' + esc(e.inp.note || '') + '" placeholder="Ghi chú nhanh cho AI" title="VD: hay sai dấu phẩy, làm nhanh bài nâng cao">') +
       '<div class="kt-fs">' + KT_FL.map(F => '<div class="kt-f' + (e.ai && e.ai[F[0]] && e.ai[F[0]] === e.f[F[0]] ? ' ai' : '') + '"><span>' + F[1] + (e.alt && e.alt[F[0]] ? '<button type="button" data-kalt="' + F[0] + '">Phương án khác</button>' : '') + '</span><textarea data-kf="' + F[0] + '" rows="3" placeholder="' + (F[0] === 'yeu' ? 'Để trống nếu không có' : '') + '">' + esc(e.f[F[0]] || '') + '</textarea></div>').join('') + '</div>' +
@@ -31421,12 +31435,14 @@ function ktBindSess(D, s, i) {
   const C = $('[data-kss="' + i + '"]', D); if (!C) return;
   const lcIn = $('[data-klc]', C);
   lcIn.oninput = () => { s.st.forEach(st => { const e = ktEd(s, st); e.f.lc = lcIn.value; e.dirty = true; }); ktSaveCls(s); };
+  const cnIn = $('[data-kcn]', C); if (cnIn) cnIn.oninput = () => ktCnSet(s, cnIn.value);      // (1.95.2) ghi nhanh cả lớp
   $$('[data-kst]', C).forEach(el => {
     const st = s.st[Number(el.dataset.kst)], e = ktEd(s, st), k = ktKey(s, st), save = () => { e.dirty = true; if (e.st === 'pushed' || e.st === 'err') e.st = 'edit'; ktSave(s, st, true); };
     $('[data-ktg]', el).onclick = () => { KT.op[k] = !el.classList.contains('open'); ktRepaintSess(s); };
     $$('[data-kp]', el).forEach(b => { b.onclick = () => { const g = b.dataset.kp, v = b.dataset.kv;
       if (g === 'tt') { e.inp.tt = String(e.inp.tt) === v ? '' : v; $$('[data-kp="tt"]', el).forEach(x => x.setAttribute('aria-pressed', String(e.inp.tt) === x.dataset.kv)); }
-      else { const L = e.inp.td = e.inp.td || [], q = L.indexOf(v); if (q >= 0) L.splice(q, 1); else L.push(v); b.setAttribute('aria-pressed', q < 0); }
+      else { const L = e.inp[g] = e.inp[g] || [], q = L.indexOf(v); if (q >= 0) L.splice(q, 1); else L.push(v); b.setAttribute('aria-pressed', q < 0);      // td = thái độ · (1.95.2) hw = tick BTVN
+        if (g === 'hw' && v === 'n' && q < 0) { e.f.lam = e.f.dung = e.inp.lam = e.inp.dung = null; $$('[data-kpct]', el).forEach(x => { x.value = ''; }); } }
       ktSave(s, st, false); }; });
     $$('[data-kpct]', el).forEach(x => { x.onchange = () => { const n = x.value === '' ? null : Number(x.value); e.f[x.dataset.kpct] = n; e.inp[x.dataset.kpct] = n; save(); }; });
     const nt = $('[data-knote]', el); if (nt) nt.oninput = () => { e.inp.note = nt.value; ktSave(s, st, false); };
@@ -31493,6 +31509,11 @@ function ktCSk(s) { const L = KT.csk[ktSKey(s)] || [], G = (s.les && s.les.goi) 
 function ktSkObj(s, L) { const G = (s.les && s.les.goi) || []; return (L || []).map(n => G.find(g => g.nhan === n)).filter(Boolean).map(g => ({ nhan: g.nhan, y: g.y || '' })); }
 function ktStSk(s, e) { return ((e.inp.sk || []).filter(x => ((s.les && s.les.goi) || []).some(g => g.nhan === x))); }
 function ktAiLab(e) { const n = (e.inp.sk || []).length; return 'AI viết' + (n ? ' · ' + n + ' kỹ năng' : ''); }
+/* (1.95.2) GHI NHANH CẢ LỚP — “Khoa ngoan, còn lơ là, Lam học tốt…”: lưu trên máy theo ngày|lớp (giữ 60 mục gần nhất), máy chủ tách theo tên bé (ktClsNote_) */
+function ktCnAll() { const o = lsGet('ktCn', {}); return o && typeof o === 'object' ? o : {}; }
+function ktCnGet(s) { const o = ktCnAll()[ktSKey(s)]; return o ? String(o.t || '') : ''; }
+function ktCnSet(s, t) { const o = ktCnAll(); if (t) o[ktSKey(s)] = { t: t, at: Date.now() }; else delete o[ktSKey(s)];
+  const K = Object.keys(o).sort((a, b) => (o[b].at || 0) - (o[a].at || 0)); K.slice(60).forEach(k => { delete o[k]; }); lsSet('ktCn', o); }
 function ktTodoAi(s) { return s.st.filter(st => !ktAbs(st) && !(ktEd(s, st).st === 'pushed' && !ktEd(s, st).dirty)); }
 /* ══ (1.95) CHƯA NHẬN XÉT — các lớp còn thiếu trong n ngày: tích chọn lớp → AI viết đồng loạt → đọc, sửa → Đẩy đồng loạt ══ */
 function ktTSel(s) { return KT.tsel[ktSKey(s)] !== false; }
@@ -31545,7 +31566,7 @@ async function ktAiRun(s, L, o) {
     items: L.map(st => { const e = ktEd(s, st), own = ktStSk(s, e); return { code: st.code, name: st.name, call: st.call, att: st.att, nohw: st.nohw, sk: own.length && !one ? ktSkObj(s, own) : null, inp: Object.assign({}, e.inp, { lam: e.f.lam != null ? e.f.lam : e.inp.lam, dung: e.f.dung != null ? e.f.dung : e.inp.dung }), f: st.f, h: st.h }; }),
     // (1.90) bản đang có của các bạn khác trong buổi → AI tránh lặp · nút gợi ý đã bấm · câu bị kiểm là trùng (Viết lại khác)
     peers: s.st.filter(st => L.indexOf(st) < 0 && !ktAbs(st)).map(st => { const f = ktEd(s, st).f; return { code: st.code, name: st.name, td: f.td || '', bt: f.bt || '', nx: f.nx || '' }; }).filter(x => x.td || x.bt || x.nx),
-    focus: o.focus || (one ? ktSkObj(s, ktStSk(s, ktEd(s, L[0]))) : ktSkObj(s, ktCSk(s))), avoid: o.avoid || [] };      // (1.95) nhiều kỹ năng: một bé → kỹ năng của bé; cả lớp → kỹ năng lớp, bé có kỹ năng riêng gửi kèm (sk)
+    cnote: ktCnGet(s), focus: o.focus || (one ? ktSkObj(s, ktStSk(s, ktEd(s, L[0]))) : ktSkObj(s, ktCSk(s))), avoid: o.avoid || [] };      // (1.95) nhiều kỹ năng: một bé → kỹ năng của bé; cả lớp → kỹ năng lớp, bé có kỹ năng riêng gửi kèm (sk)
   const done = o => {
     KT.ai[slot].busy = 0;
     if (!o || o.status === 'err' || !o.actions) { ktRepaintSess(s); return toast('AI chưa viết được: ' + ((o && o.err) || 'không có kết quả'), 'err'); }
