@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T08:41:43.435Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T08:51:59.806Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -21079,20 +21079,23 @@ const PHP_PCSS = '#ktPrint .php-cl{ display:inline-block; min-width:17pt; height
   '#ktPrint .php-cl.t{ background:#fff !important; border:1.2pt dashed #204983; color:#204983 !important }' +
   '#ktPrint .php-lg{ display:flex; flex-wrap:wrap; gap:2pt 10pt; font-size:7.6pt; margin:2pt 0 6pt } #ktPrint .php-lg span{ white-space:nowrap } #ktPrint .php-lg .php-cl{ min-width:9pt; height:9pt; margin:0 3pt -1pt 0; padding:0 }' +
   '#ktPrint .php-rt{ break-inside:avoid; margin:0 0 8pt } #ktPrint .php-rt .hd{ display:flex; justify-content:space-between; gap:8pt; align-items:baseline; margin-bottom:3pt; white-space:nowrap }' +
+  '#ktPrint table.php-lich{ table-layout:fixed } #ktPrint table.php-lich td.b, #ktPrint table.php-lich td.d{ width:auto } #ktPrint table.php-lich td{ padding:6px 8px }' +
+  '#ktPrint table.php-kt{ font-size:8.4pt } #ktPrint table.php-kt td{ padding:5px 8px } #ktPrint table.php-kt td.k{ width:24% } #ktPrint table.php-kt .mu{ font-size:7.6pt }' +
+  '#ktPrint .php-gl{ font-size:8.6pt; line-height:1.55; text-align:left; margin:2px 0 7px } #ktPrint .php-gl .php-no{ font-size:7.6pt; white-space:nowrap }' +
   '#ktPrint .php-rt .hd b{ font-weight:800; color:#204983 !important } #ktPrint .php-rt .hd small{ font-size:7.8pt } #ktPrint .php-rt .cells{ line-height:0 } #ktPrint .php-no{ color:#9AA3B5 !important }';
 /** PDF: mục ĐỐI CHIẾU — nhận xét · 2 lộ trình (ô số từng topic) · bài con học ở lớp kientre.click ↔ topic từng lộ trình · lỗ hổng / sắp học */
 function phpCmpPdf(D, c) {
   if (!D || !(D.routes || []).length) return '';
   const R = D.routes, nl = s => esc(s || '').replace(/\n/g, '<br>');
-  const li = (r, k) => (r[k] || []).map(x => '<li>' + esc(x.n) + ' <span class="php-no" style="white-space:nowrap">(topic ' + x.stt + ')</span></li>').join('');
+  const li = (r, k) => '<p class="php-gl">' + (r[k] || []).map(x => '<span>' + esc(x.n) + ' <span class="php-no">(topic ' + x.stt + ')</span></span>').join(' · ');
   return '<section class="flow"><h2>Đối chiếu bài con đã học với 2 lộ trình' + (D.khoi ? ' Toán ' + esc(D.khoi) : '') + '</h2>' +
     (D.nhanXet ? '<p>' + nl(D.nhanXet) + '</p>' : '') +
     phpLegend() + R.map(r => '<div class="php-rt"><div class="hd"><b>' + esc(phpRtN(r)) + (r.dang ? ' · con đang học' : '') + '</b><small>' + esc(phpRtSum(r)) + '</small></div><div class="cells">' + phpCells(r, D) + '</div></div>').join('') +
-    ((D.kt || []).length ? '<div class="lb" style="margin-top:6pt">Bài con đã học ở lớp ' + esc(D.ktCls) + ' (kientre.click) tương ứng trong 2 lộ trình</div><table><thead><tr><th>Bài ở lớp</th><th>Ngày</th>' + R.map(r => '<th>' + esc(phpRtN(r)) + '</th>').join('') + '</tr></thead><tbody>' +
+    ((D.kt || []).length ? '<div class="lb" style="margin-top:6pt">Bài con đã học ở lớp ' + esc(D.ktCls) + ' (kientre.click) tương ứng trong 2 lộ trình</div><table class="php-kt"><thead><tr><th>Bài ở lớp</th><th>Ngày</th>' + R.map(r => '<th>' + esc(phpRtN(r)) + '</th>').join('') + '</tr></thead><tbody>' +
       D.kt.map(t => '<tr><td class="k">' + esc(t.n) + '</td><td class="n">' + phpDm(t.d2) + (t.k > 1 ? '<div class="mu">' + t.k + ' buổi</div>' : '') + '</td>' + R.map((r, i) => '<td>' + (t.m[i] ? 'Topic ' + [t.m[i]].concat(t.m[i].more || []).map(z => z.stt).join(', ') + '/' + r.tong + '<div class="mu">' + esc([t.m[i]].concat(t.m[i].more || []).map(z => z.n).join(' · ')) + '</div>' : '<span class="php-no">Không có trong lộ trình</span>') + '</td>').join('') + '</tr>').join('') + '</tbody></table>' : '') +
     (R.some(r => r.hong.length || r.tiep.length) ? '<div class="ktr-two" style="margin-top:10px">' + R.map(r => '<section class="ktr-bx ' + (r.hong.length ? 'warn' : 'ok') + '"><h2>' + esc(phpRtN(r)) + '</h2>' +
-      (r.hong.length ? '<div class="lb">Chưa thấy trong bài con đã học — kiểm tra bằng phiếu ở buổi đầu</div><ul>' + li(r, 'hong') + (r.nHong > r.hong.length ? '<li>và ' + (r.nHong - r.hong.length) + ' topic nữa</li>' : '') + '</ul>' : '<p>' + (r.nDa ? 'Không có lỗ hổng trước bài xa nhất con đã học.' : 'Con chưa học topic nào của lộ trình này.') + '</p>') +
-      (r.tiep.length ? '<div class="lb">Sắp học</div><ul>' + li(r, 'tiep') + '</ul>' : '') + '</section>').join('') + '</div>' : '') + '</section>';
+      (r.hong.length ? '<div class="lb">Chưa thấy trong bài con đã học — kiểm tra bằng phiếu ở buổi đầu</div>' + li(r, 'hong') + (r.nHong > r.hong.length ? ' · và ' + (r.nHong - r.hong.length) + ' topic nữa' : '') + '</p>' : '<p>' + (r.nDa ? 'Không có lỗ hổng trước bài xa nhất con đã học.' : 'Con chưa học topic nào của lộ trình này.') + '</p>') +
+      (r.tiep.length ? '<div class="lb">Sắp học</div>' + li(r, 'tiep') + '</p>' : '') + '</section>').join('') + '</div>' : '') + '</section>';
 }
 /** PDF: đoạn ngắn “Cách kiểm tra kiến thức” — chỉ nói trung tâm dùng Phiếu theo dõi tiến trình, lúc nào, tiêu chí Đạt; KHÔNG in câu phiếu (phiếu là công cụ của gia sư, lộ câu thì kiểm lại mất giá trị) */
 function phpPhieuNote(P) {
@@ -21117,7 +21120,7 @@ function phpPdf(V) {
       ((P.cungCo || []).length ? '<table><thead><tr><th>STT</th><th>Kiến thức cần củng cố</th><th>Mức ưu tiên</th></tr></thead><tbody>' + P.cungCo.filter(x => x.id).map((x, i) => '<tr><td class="n">' + (i + 1) + '</td><td class="k">' + esc(tn(x.id)) + '</td><td class="n">' + (x.uuTien === 'cao' ? 'Ưu tiên cao' : 'Ưu tiên vừa') + '</td></tr>').join('') + '</tbody></table>' : '') +
       ((P.phuongPhap || []).length ? '<div class="ktr-bx tip" style="margin-top:10px"><div class="lb">Phương pháp chung</div>' + li(P.phuongPhap) + '</div>' : '') + '</section>' +
     '<section class="flow"><h2>2. Số buổi bổ sung & lịch dự kiến — ' + nB + ' buổi' + (P.tanSuat ? ' · ' + esc(P.tanSuat) : '') + (P.thoiLuong ? ' · ' + esc(P.thoiLuong) : '') + '</h2>' +
-      (nB ? '<table><thead><tr><th>Buổi</th><th>Kiến thức · nội dung</th><th>Mục tiêu</th><th>Bài về nhà</th></tr></thead><tbody>' + P.lich.map((b, i) => '<tr><td class="d"><b>Buổi ' + (i + 1) + '</b>' + (mp(b) ? '<div class="mu">' + mp(b) + '</div>' : '') + '</td><td class="b">' + (b.ids || []).map(id => esc(tn(id))).join('<br>') + (b.noiDung ? '<div class="mu">' + nl(b.noiDung) + '</div>' : '') + '</td><td>' + nl(b.mucTieu) + '</td><td>' + nl(b.btvn) + '</td></tr>').join('') + '</tbody></table>' : '') + '</section>' +
+      (nB ? '<table class="php-lich"><colgroup><col style="width:10%"><col style="width:42%"><col style="width:28%"><col style="width:20%"></colgroup><thead><tr><th>Buổi</th><th>Kiến thức · nội dung</th><th>Mục tiêu</th><th>Bài về nhà</th></tr></thead><tbody>' + P.lich.map((b, i) => '<tr><td class="d"><b>Buổi ' + (i + 1) + '</b>' + (mp(b) ? '<div class="mu">' + mp(b) + '</div>' : '') + '</td><td class="b">' + (b.ids || []).map(id => esc(tn(id))).join('<br>') + (b.noiDung ? '<div class="mu">' + nl(b.noiDung) + '</div>' : '') + '</td><td>' + nl(b.mucTieu) + '</td><td>' + nl(b.btvn) + '</td></tr>').join('') + '</tbody></table>' : '') + '</section>' +
     '<section class="flow"><h2>3. Mục tiêu đầu ra & cách theo dõi, đánh giá tiến bộ</h2>' +
       ((P.mucTieu || []).length ? '<table><thead><tr><th>Mục tiêu đầu ra</th><th>Chỉ số đo</th><th>Thời điểm</th></tr></thead><tbody>' + P.mucTieu.map(x => '<tr><td class="k">' + nl(x.y) + '</td><td>' + nl(x.chiSo) + '</td><td class="n">' + esc(x.han) + '</td></tr>').join('') + '</tbody></table>' : '') +
       (moc.length ? '<div style="height:10px"></div><table><thead><tr><th>Mốc kiểm tra</th><th>Hình thức</th><th>Tiêu chí đạt</th></tr></thead><tbody>' + moc.map(x => '<tr><td class="d"><b>' + (x.sauBuoi ? 'Sau buổi ' + x.sauBuoi : 'Mốc') + '</b></td><td>' + nl(x.hinhThuc) + '</td><td>' + nl(x.dat) + '</td></tr>').join('') + '</tbody></table>' : '') +
