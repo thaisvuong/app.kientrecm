@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T12:50:11.618Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T14:25:02.308Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -20899,6 +20899,7 @@ const boT = (n, nd) => n ? '<span class="prp-bo" title="Phiếu học sinh gia s
 .php-it.cc .ops{ display:flex; gap:2px; flex:none }
 .php-cc{ display:flex; flex-direction:column; gap:8px; border:1px solid var(--border); border-radius:14px; padding:12px 14px; background:var(--surface) } .php-cc p{ margin:0; line-height:1.6 }
 .php-cch{ display:flex; align-items:center; gap:8px; font-size:14.5px } .php-cch i{ color:var(--brand-600) } .php-ccp{ display:flex; flex-wrap:wrap; gap:6px } .php-ccp .kt-pill{ white-space:nowrap }
+.php-spin{ display:inline-block; animation:spin .8s linear infinite } .php-cc .kt-mact button[disabled]{ opacity:.7; cursor:progress }
 .php-ccl{ font-size:13px; line-height:1.55; color:var(--muted) } .php-ccl b{ color:var(--text, inherit); font-weight:600 }
 .php-pq{ display:inline-flex; align-items:center; gap:4px; font-size:12px; color:var(--muted); white-space:nowrap; flex:none; cursor:help }
 @media (max-width:640px){ .php-it.cc .hd{ flex-wrap:wrap } .php-it.cc .hd select[data-pp$=".id"]{ flex-basis:100% } .php-it.cc .ops{ margin-left:auto } }
@@ -20989,7 +20990,7 @@ function phpWait(V, lg) {
 }
 async function phpLoad(V, id) {
   let r; try { r = await rpc('phpGet', { id: id }, { quiet: true }); } catch (e) { return fail(e); }
-  if (V.m.closed) return; phpWait(V, r.log);
+  phpCgSet(r.log); if (V.m.closed) return; phpWait(V, r.log);
 }
 /** màn 2: xem / sửa đề xuất */
 function phpShow(V, lg) {
@@ -21085,12 +21086,12 @@ function phpBind(V) {
     if (act === 'del') { if (!await ask('Xoá bản đề xuất này? (buổi đã gán nháp vẫn giữ)')) return; try { await rpc('phpDel', { id: V.lg.id }); V.I.list = (V.I.list || []).filter(l => l.id !== V.lg.id); toast('Đã xoá', 'ok'); phpAsk(V, ''); } catch (er) { fail(er); } return; }
     a.disabled = true; a.classList.add('busy');
     try {
-      if (V.dirty || act === 'save') { const r = await rpc('phpSave', { id: V.lg.id, plan: P }); V.lg = r.log; V.P = JSON.parse(JSON.stringify(r.log.plan)); V.dirty = 0; if (act === 'save') { toast('Đã lưu lộ trình', 'ok'); await phpMapLoad(V); return phpPaint(V); } }
-      if (act === 'cmp') { const r = await rpc('phpCmpRe', { id: V.lg.id }); V.lg = r.log; V.P.doiChieu = JSON.parse(JSON.stringify(r.log.plan.doiChieu || null)); toast('Đã tính lại phần đối chiếu', 'ok'); return phpPaint(V); }
+      if (V.dirty || act === 'save') { const r = await rpc('phpSave', { id: V.lg.id, plan: P }); V.lg = r.log; phpCgSet(r.log); V.P = JSON.parse(JSON.stringify(r.log.plan)); V.dirty = 0; if (act === 'save') { toast('Đã lưu lộ trình', 'ok'); await phpMapLoad(V); return phpPaint(V); } }
+      if (act === 'cmp') { const r = await rpc('phpCmpRe', { id: V.lg.id }); V.lg = r.log; phpCgSet(r.log); V.P.doiChieu = JSON.parse(JSON.stringify(r.log.plan.doiChieu || null)); toast('Đã tính lại phần đối chiếu', 'ok'); return phpPaint(V); }
       if (act === 'apply') { const M = V.map || [], todo = M.filter(m => m.sid).length, none = M.filter(m => m.none).length;
         if (!todo) { toast(none ? 'Chưa có buổi lớp sắp tới còn trống — thêm buổi ở trang bé rồi áp dụng' : 'Các buổi đã áp dụng hết', 'warn', 6000); return; }
         if (!await ask('Gán NHÁP topic của ' + todo + ' buổi lộ trình vào ' + todo + ' buổi sắp tới của ' + clName(V.c) + ' (theo thứ tự)' + (none ? '; còn ' + none + ' buổi chưa có lịch' : '') + '. Bài chưa duyệt — bạn duyệt ở Buổi học. Tiếp tục?')) return;
-        const r = await rpc('phpApply', { id: V.lg.id, keep: B.querySelector('#phpKeep').checked ? 1 : 0 }); V.lg = r.log; V.map = r.map;
+        const r = await rpc('phpApply', { id: V.lg.id, keep: B.querySelector('#phpKeep').checked ? 1 : 0 }); V.lg = r.log; phpCgSet(r.log); V.map = r.map;
         toast('Đã gán nháp ' + r.ok + ' buổi' + (r.none ? ' · còn ' + r.none + ' buổi chưa có lịch' : '') + (r.err.length ? ' · ' + r.err.length + ' lỗi: ' + r.err[0] : ''), r.err.length ? 'warn' : 'ok', 7000);
         if (typeof clReload === 'function') clReload(Date.now()).then(() => CL.repaint && CL.repaint()).catch(() => {});
         phpPaint(V); }
@@ -21274,7 +21275,7 @@ function phpCodeEdit(V0) {
     if (c === 'copy') return navigator.clipboard.writeText(T.value).then(() => toast('Đã chép mã', 'ok'));
     if (c === 'pdf') return phpPdf(vOf());
     if (c === 'save') { if (!g.id) return; b.disabled = true;
-      try { const r = await rpc('phpSave', { id: g.id, plan: vOf().P }); V0.lg = r.log; V0.P = JSON.parse(JSON.stringify(r.log.plan)); try { localStorage.removeItem(key); } catch (e2) {} st.textContent = 'Đã lưu vào đề xuất'; toast('Đã lưu chỗ sửa vào bản đề xuất', 'ok'); if (V0.B && typeof phpPaint === 'function') phpPaint(V0); }
+      try { const r = await rpc('phpSave', { id: g.id, plan: vOf().P }); V0.lg = r.log; phpCgSet(r.log); V0.P = JSON.parse(JSON.stringify(r.log.plan)); try { localStorage.removeItem(key); } catch (e2) {} st.textContent = 'Đã lưu vào đề xuất'; toast('Đã lưu chỗ sửa vào bản đề xuất', 'ok'); if (V0.B && typeof phpPaint === 'function') phpPaint(V0); }
       catch (er) { fail(er); } finally { b.disabled = false; } } };
   paint();
 }
@@ -21299,7 +21300,7 @@ function phpChatSum(g) { const P = g.plan || {};
     nil: P.doiChieu ? (P.doiChieu.kt || []).filter(t => !t.m.some(Boolean)).map(t => t.n) : [] }; }
 function phpChatWatch(m, done) {
   const tick = async () => { if (!m.php || m.php.st !== 'wait') return; let g = null; try { g = (await rpc('phpGet', { id: m.php.id }, { quiet: true })).log; } catch (e) {}
-    if (g && /^(ok|empty|err)$/.test(g.status)) { m.php = Object.assign({}, m.php, { st: g.status === 'err' || !g.plan ? 'err' : 'ok', err: g.err || (g.plan ? '' : 'AI chưa đề xuất được — thử lại'), sum: g.plan ? phpChatSum(g) : null }); m.st = 'ok'; return done(); }
+    if (g && /^(ok|empty|err)$/.test(g.status)) { phpCgSet(g); m.php = Object.assign({}, m.php, { st: g.status === 'err' || !g.plan ? 'err' : 'ok', err: g.err || (g.plan ? '' : 'AI chưa đề xuất được — thử lại'), sum: g.plan ? phpChatSum(g) : null }); m.st = 'ok'; return done(); }
     setTimeout(tick, 6000); };
   setTimeout(tick, 3000);
 }
@@ -21308,21 +21309,39 @@ function phpChatCard(m, i) {
   let h;
   if (wait) h = (w.name ? '<div class="kt-sub" style="margin-bottom:6px"><i class="bi bi-heart-pulse"></i> Lộ trình hỗ trợ theo yêu cầu phụ huynh · ' + esc(w.name) + '</div>' : '') + (typeof ktThink === 'function' ? ktThink(['Đang nhận bé và đọc yêu cầu của phụ huynh', 'Đang đọc nhận xét, bài đã học ở lớp và với gia sư', 'Đang đối chiếu 2 lộ trình và chọn lộ trình hợp sức học', 'Đang lên lịch buổi bổ sung, mục tiêu và mốc kiểm tra theo phiếu']) : 'Đang đề xuất…');
   else if (P.st === 'err' || !S) h = '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(P.err || 'AI chưa đề xuất được — thử lại') + '</span></div>';
-  else h = '<div class="php-cc"><div class="php-cch"><i class="bi bi-heart-pulse"></i><b>Lộ trình hỗ trợ · ' + esc((S.be && S.be.ten) || w.name || '') + '</b></div>' +
+  else { phpCgPre(P.id); h = '<div class="php-cc"><div class="php-cch"><i class="bi bi-heart-pulse"></i><b>Lộ trình hỗ trợ · ' + esc((S.be && S.be.ten) || w.name || '') + '</b></div>' +
     '<div class="php-ccp">' + (S.rt ? '<span class="kt-pill ai">Lộ trình ' + esc(S.rt) + '</span>' : '') + '<span class="kt-pill">' + S.n + ' buổi bổ sung</span>' + (S.ts ? '<span class="kt-pill">' + esc(S.ts) + '</span>' : '') +
       '<span class="kt-pill">' + S.cc.length + ' mảng cần củng cố</span>' + (S.moc.length ? '<span class="kt-pill">Kiểm tra sau buổi ' + S.moc.join(', ') + '</span>' : '') + '</div>' +
     (S.tomTat ? '<p>' + esc(S.tomTat) + '</p>' : '') +
     (S.cc.length ? '<div class="php-ccl"><b>Cần củng cố:</b> ' + S.cc.map(esc).join(' · ') + '</div>' : '') +
     ((S.nil || []).length ? '<div class="php-ccl"><b>Bài ở Lớp Kiến Trẻ chưa thấy topic tương ứng</b> (đã bỏ khỏi PDF — muốn giữ hoặc bỏ thêm bài khác thì bấm Xem &amp; sửa): ' + S.nil.map(esc).join(' · ') + '</div>' : '') +
     (S.dc.length ? '<div class="php-ccl"><b>Đối chiếu:</b> ' + S.dc.map(d => esc(d.t) + ' ' + d.da + '/' + d.tong + ' topic đã học').join(' · ') + '</div>' : '') +
-    '<div class="kt-mact"><button data-phc="open" data-phi="' + i + '"><i class="bi bi-pencil-square"></i> Xem &amp; sửa</button><button data-phc="pdf" data-phi="' + i + '"><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button><button data-phc="cp" data-phi="' + i + '"><i class="bi bi-envelope-heart"></i> Chép thư</button></div></div>';
+    '<div class="kt-mact"><button data-phc="open" data-phi="' + i + '"><i class="bi bi-pencil-square"></i> Xem &amp; sửa</button><button data-phc="pdf" data-phi="' + i + '"><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button><button data-phc="cp" data-phi="' + i + '"><i class="bi bi-envelope-heart"></i> Chép thư</button></div></div>'; }
   return '<div class="kt-ma">' + (typeof ktBot === 'function' ? ktBot('xs', wait) : '') + '<div>' + h + '</div></div>';
 }
 function phpChatC(g, w) { const b = g.be || {};
   return g.kt ? { id: 'KT:' + g.kt.code, kt: g.kt, student: b.ten || w.name, code: g.kt.cls, grade: b.khoi || '' } : { id: g.cid, student: b.ten || w.name, code: b.ma || w.cls, grade: b.khoi || '' }; }
-async function phpChatAct(m, act) {
+/* (1.94.3) NÚT TRÊN THẺ NHẠY NGAY — trước mỗi lần bấm phải chờ phpGet (2–5 giây, không có dấu hiệu gì) nên tưởng nút hỏng.
+   Giờ: bản đề xuất đọc sẵn khi thẻ hiện (PHP_CG, cập nhật khi Lưu / Áp dụng / Tính lại) · nút đổi sang vòng quay ngay khi bấm · Chép thư giữ quyền chép dù còn chờ máy chủ. */
+const PHP_CG = {}, PHP_CGP = {};
+function phpCgSet(g) { if (g && g.id) PHP_CG[g.id] = g; }
+function phpCgGet(id) { if (PHP_CG[id]) return Promise.resolve(PHP_CG[id]);
+  return PHP_CGP[id] || (PHP_CGP[id] = rpc('phpGet', { id: id }, { quiet: true }).then(r => { phpCgSet(r.log); return r.log; }).finally(() => { delete PHP_CGP[id]; })); }
+function phpCgPre(id) { if (id && !PHP_CG[id] && !PHP_CGP[id]) setTimeout(() => phpCgGet(id).catch(() => {}), 0); }
+function phpBtnBusy(b) { if (!b) return () => {}; const i = b.querySelector('i'), c0 = i ? i.className : '';
+  b.disabled = true; b.setAttribute('aria-busy', 'true'); if (i) i.className = 'bi bi-arrow-repeat php-spin';
+  return () => { b.disabled = false; b.removeAttribute('aria-busy'); if (i) i.className = c0; }; }
+async function phpChatAct(m, act, btn) {
   if (!m || !m.php || !m.php.id) return;
-  const g = (await rpc('phpGet', { id: m.php.id }, { quiet: true })).log, c = phpChatC(g, m.php.who || {});
+  const id = m.php.id, g0 = PHP_CG[id];
+  if (act === 'cp') {
+    if (g0) { if (!g0.plan) return toast('Bản đề xuất chưa có kết quả', 'warn'); return navigator.clipboard.writeText(phpKtTx(g0.plan.thuPhuHuynh)).then(() => toast('Đã chép thư gửi phụ huynh', 'ok')); }
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {      // chưa đọc xong: ClipboardItem nhận Promise → không mất quyền chép khi chờ máy chủ
+      const done = phpBtnBusy(btn), pr = phpCgGet(id).then(g => { if (!g.plan) throw new Error('Bản đề xuất chưa có kết quả'); return new Blob([phpKtTx(g.plan.thuPhuHuynh)], { type: 'text/plain' }); });
+      return navigator.clipboard.write([new ClipboardItem({ 'text/plain': pr })]).then(() => toast('Đã chép thư gửi phụ huynh', 'ok')).finally(done); } }
+  const done = g0 ? () => {} : phpBtnBusy(btn);
+  let g; try { g = await phpCgGet(id); } finally { done(); }
+  const c = phpChatC(g, m.php.who || {});
   if (act === 'open') return phpOpen(c, g.id);
   if (!g.plan) return toast('Bản đề xuất chưa có kết quả', 'warn');
   if (act === 'cp') return navigator.clipboard.writeText(phpKtTx(g.plan.thuPhuHuynh)).then(() => toast('Đã chép thư gửi phụ huynh', 'ok'));
@@ -24828,6 +24847,38 @@ body[data-asrun]:not([data-asrun=""]) .as-bot.xs .pc{ animation:asGlow 1.6s ease
 .tka-hi:hover{ background:var(--surface-3) } .tka-hi.on{ border-color:color-mix(in oklab, var(--primary) 45%, transparent); background:color-mix(in oklab, var(--primary) 8%, transparent); color:var(--ink) }
 .tka-hi.cv-ld b::after{ content:""; display:inline-block; width:9px; height:9px; margin-left:6px; vertical-align:-1px; border-radius:50%; border:2px solid color-mix(in oklab, var(--primary) 30%, transparent); border-top-color:var(--primary); animation:axSpin .7s linear infinite }
 .tka-am-d{ margin-top:6px; font-size:12px }      /* (1.85) nút mở panel dữ liệu dưới câu trả lời */
+/* (1.94.3) giao việc bằng chat — ô soạn có ảnh đính kèm · chip Giao việc · chọn bảng · thẻ bản nháp việc */
+.tka-ask{ flex-wrap:wrap } .tka-ask.drop{ border-color:var(--primary); box-shadow:0 0 0 3px color-mix(in oklab, var(--primary) 18%, transparent) }
+.tka-att{ flex-basis:100%; display:flex; gap:8px; flex-wrap:wrap; padding:2px 0 4px } .tka-att[hidden]{ display:none }
+.tkd-th{ position:relative; width:64px; height:64px; border-radius:10px; overflow:hidden; border:1px solid var(--border); background:var(--surface-2) } .tkd-th img{ width:100%; height:100%; object-fit:cover; display:block }
+.tkd-th button{ position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%; border:0; background:rgba(15,20,30,.65); color:#fff; display:grid; place-items:center; cursor:pointer; font-size:13px; padding:0 }
+.tka-ic{ width:36px; height:36px; flex:none; border-radius:50%; border:0; background:none; color:var(--muted); display:grid; place-items:center; cursor:pointer; font-size:17px; margin-left:-6px } .tka-ic:hover{ background:var(--surface-2); color:var(--ink) }
+.tka-opt{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:8px 0 0 }
+.tka-chip{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--ink-2); font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap }
+.tka-chip:hover{ background:var(--surface-2) } .tka-chip[aria-pressed="true"]{ background:color-mix(in oklab, var(--primary) 12%, var(--surface)); border-color:color-mix(in oklab, var(--primary) 40%, var(--border)); color:var(--ink) } .tka-chip[aria-pressed="true"] i{ color:var(--primary) }
+.tka-bs{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 4px 0 11px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:12.5px } .tka-bs[hidden]{ display:none }
+.tka-bs select{ border:0; background:transparent; color:var(--ink); font:inherit; font-size:12.5px; font-weight:600; max-width:240px; outline:none; cursor:pointer }
+.tka-oh{ color:var(--muted); font-size:12px; white-space:nowrap }
+.tkd-qi{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px } .tkd-qi img{ width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid var(--border) }
+.tkd{ display:flex; flex-direction:column; gap:10px; border:1px solid var(--border); border-radius:14px; padding:12px 14px; background:var(--surface) }
+.tkd-h{ display:flex; align-items:center; gap:8px; font-size:14px } .tkd-h i{ color:var(--primary) } .tkd-h small{ color:var(--muted); font-size:12px }
+.tkd-q{ font-size:13px; color:var(--warn, #B45309); background:color-mix(in oklab, var(--warn, #D97706) 9%, var(--surface)); border-radius:10px; padding:7px 10px }
+.tkd-it{ display:flex; flex-direction:column; gap:8px; padding:10px 0 2px; border-top:1px solid var(--border) } .tkd-it:first-of-type{ border-top:0 }
+.tkd-it.ok, .tkd-it.off{ flex-direction:row; align-items:center; gap:8px; flex-wrap:wrap; padding:8px 0 } .tkd-it.ok > i{ color:var(--ok, #0F7B45) } .tkd-it.ok small{ color:var(--muted); font-size:12px } .tkd-it.off s{ color:var(--muted) }
+.tkd-r1{ display:flex; gap:6px; align-items:center } .tkd-t{ flex:1; min-width:0; font-weight:650; font-size:14px }
+.tkd-x{ width:30px; height:30px; flex:none; border-radius:8px; border:0; background:none; color:var(--muted); cursor:pointer; display:grid; place-items:center } .tkd-x:hover{ background:var(--surface-2); color:var(--danger) }
+.tkd-g{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:8px } .tkd-g label{ display:flex; flex-direction:column; gap:3px; min-width:0 } .tkd-g label > span, .tkd-l{ font-size:11.5px; font-weight:600; color:var(--muted) }
+.tkd-g select, .tkd-g input, .tkd-pic select{ height:32px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--ink); font:inherit; font-size:13px; padding:0 8px; min-width:0; width:100% }
+.tkd-pic{ display:flex; align-items:center; gap:6px; flex-wrap:wrap } .tkd-pic select{ width:auto; max-width:200px }
+.tkd-pc{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 4px 0 4px; border-radius:999px; background:color-mix(in oklab, var(--primary) 9%, var(--surface)); font-size:13px; font-weight:600; white-space:nowrap }
+.tkd-pc .tka-av{ width:22px; height:22px; font-size:10px } .tkd-pc button{ width:20px; height:20px; border-radius:50%; border:0; background:none; color:var(--muted); cursor:pointer; display:grid; place-items:center; padding:0 } .tkd-pc button:hover{ color:var(--danger) }
+.tkd-w{ color:var(--warn, #B45309); font-size:12px }
+.tkd-d, .tkd-c{ width:100%; resize:vertical; font-size:13px; line-height:1.5; min-height:34px }
+.tkd-ci{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-2) } .tkd-why{ color:var(--muted); font-size:12px }
+.tkd-err{ display:flex; gap:6px; align-items:flex-start; color:var(--danger); font-size:13px }
+.tkd-f{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding-top:4px }
+.tkd-spin{ display:inline-block; animation:spin .8s linear infinite }
+@media (max-width:560px){ .tka-oh{ white-space:normal } .tkd-g{ grid-template-columns:1fr 1fr } }
 .tka-am-f{ margin:6px 0 0 44px; font-size:12px; color:var(--muted) } .tka-lk{ border:0; background:none; padding:0; font:inherit; color:var(--primary); cursor:pointer } .tka-lk:hover{ text-decoration:underline }
 .tka-top{ display:flex; gap:14px; align-items:center; margin-bottom:12px } .tka-top .t{ flex:1; min-width:0 } .tka-top b{ font-size:16px; display:block } .tka-top small{ color:var(--muted); font-size:12.5px }
 .tka-k{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:12px }
@@ -25518,10 +25569,16 @@ async function tkAsstPage(v, arg) {
     Object.keys(PN).forEach(k => { PN[k].hidden = k !== t; });
     if (PN[t]) { if (t === 'ov' && Date.now() - (TKA.at || 0) > 60000) { const b = $('#tkaBody', PN[t]); if (b) { TKA.at = Date.now(); tkAsstView(b); } } return; }      // đã dựng: chỉ hiện lại · Tổng quan tải mới ngầm sau 1 phút
     const P = PN[t] = document.createElement('div'); P0.appendChild(P);
-    if (t === 'ask') { P.innerHTML = '<div class="tka-askw"><div class="tka-ask"><textarea class="ta" id="tkaQ" rows="1" placeholder="Hỏi Trợ lý Kiến Task…" title="VD “hôm nay ai nên làm tiếp việc gì?”, “tổng kết tuần này”"></textarea><button class="ax-send" id="tkaGo" aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>' +
-        '<div class="tka-sg">' + ['Hôm nay ai nên làm tiếp việc gì?', 'Việc nào quá hạn / đứng yên cần nhắc ai?', 'Tổng kết & đánh giá hiệu suất 30 ngày qua', 'Ai chưa check-in? Soạn tin nhắc nhẹ vào nhóm'].map(q => '<button class="ax-sug" data-tkq="' + esc(q) + '">' + esc(q) + '</button>').join('') + '</div><div id="tkaA"></div><div id="tkaH"></div></div>';
-      const q = $('#tkaQ', P); q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); tkaAsk(q.value); } }; q.oninput = () => { q.style.height = 'auto'; q.style.height = Math.min(160, q.scrollHeight) + 'px'; q.style.overflowY = q.scrollHeight > 160 ? 'auto' : 'hidden'; };
-      $('#tkaGo', P).onclick = () => tkaAsk(q.value); P.querySelector('.tka-askw').onclick = e => { const s2 = e.target.closest('[data-tkq]'); if (s2) tkaAsk(s2.dataset.tkq); };
+    if (t === 'ask') { P.innerHTML = '<div class="tka-askw"><div class="tka-ask"><div class="tka-att" id="tkaAtt" hidden></div>' +
+        '<button type="button" class="tka-ic" id="tkaPick" title="Đính kèm ảnh chụp (hoặc dán Ctrl+V / kéo thả vào ô)" aria-label="Đính kèm ảnh"><i class="bi bi-image"></i></button><input type="file" id="tkaFile" accept="image/*" multiple hidden>' +
+        '<textarea class="ta" id="tkaQ" rows="1" placeholder="Hỏi Trợ lý Kiến Task… hoặc giao việc: “Giao Đăng Khoa sửa đề bài 6, hạn thứ 6”" title="VD “hôm nay ai nên làm tiếp việc gì?” · giao việc: nhắn giao cho ai, làm gì, hạn — dán ảnh, link tài liệu"></textarea><button class="ax-send" id="tkaGo" aria-label="Gửi"><i class="bi bi-arrow-up"></i></button></div>' +
+        '<div class="tka-opt"><button type="button" class="tka-chip" id="tkaMode" aria-pressed="false" title="Bật: AI lập bản nháp việc (tên, người phụ trách, hạn, bảng) để bạn sửa rồi bấm Tạo. Tự bật khi bạn nhắn giao việc hoặc dán ảnh."><i class="bi bi-person-check"></i><span>Giao việc</span></button>' +
+          '<label class="tka-bs" id="tkaBw" hidden title="Bảng sẽ tạo việc — để AI chọn bảng hợp nội dung, hoặc chọn sẵn"><i class="bi bi-kanban"></i><select id="tkaBoard" aria-label="Bảng tạo việc"><option value="">AI chọn bảng</option></select></label><small class="tka-oh" id="tkaHint"></small></div>' +
+        '<div class="tka-sg">' + ['Hôm nay ai nên làm tiếp việc gì?', 'Việc nào quá hạn / đứng yên cần nhắc ai?', 'Tổng kết & đánh giá hiệu suất 30 ngày qua', 'Ai chưa check-in? Soạn tin nhắc nhẹ vào nhóm'].map(q => '<button class="ax-sug" data-tkq="' + esc(q) + '">' + esc(q) + '</button>').join('') + '<button class="ax-sug" data-tkfill="Giao cho "><i class="bi bi-person-check"></i> Giao việc: dán ảnh, nhắn giao cho ai, hạn</button></div><div id="tkaA"></div><div id="tkaH"></div></div>';
+      const q = $('#tkaQ', P); q.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); tkaAsk(q.value); } }; q.oninput = () => { q.style.height = 'auto'; q.style.height = Math.min(160, q.scrollHeight) + 'px'; q.style.overflowY = q.scrollHeight > 160 ? 'auto' : 'hidden'; tkdModePaint(); };
+      $('#tkaGo', P).onclick = () => tkaAsk(q.value); P.querySelector('.tka-askw').onclick = e => { const s2 = e.target.closest('[data-tkq]'); if (s2) tkaAsk(s2.dataset.tkq);
+        const f2 = e.target.closest('[data-tkfill]'); if (f2) { TKQ.tk = 'on'; q.value = f2.dataset.tkfill; q.focus(); q.setSelectionRange(q.value.length, q.value.length); tkdModePaint(); } };
+      tkdComposer(P);
       tkaPaintA(); tkaHist(); if (TKQ.opening) tkaOpen(TKQ.opening); return; }
     if (t === 'ov') { P.innerHTML = '<div id="tkaBody" data-noset="1"></div>'; TKA.at = Date.now(); return tkAsstView($('#tkaBody', P)); }
     if (t === 'perf') { P.innerHTML = '<div id="tkaPf"></div>'; return tkaPerfView($('#tkaPf', P)); }
@@ -25584,16 +25641,18 @@ async function tkaOpen(conv) {
 }
 function tkaPaintA() {
   const h = $('#tkaA'); if (!h) return;
-  h.innerHTML = TKQ.msgs.map((m, i) => m.me ? '<div class="tka-qm">' + esc(m.text) + '</div>' : '<div class="tka-am">' + asstBot('xs', !!m.wait) + '<div class="b">' + (m.wait ? (m.open ? aiThink('open', '', ['Đang mở cuộc trò chuyện', 'Đang tải các câu đã hỏi']) : aiThink('task', m.t0)) : m.err ? '<span class="muted">' + esc(m.err) + '</span>' : (typeof aiMd === 'function' ? aiMd(m.text || '', m.refs || {}) : esc(m.text || ''))) +
+  h.innerHTML = TKQ.msgs.map((m, i) => m.me ? '<div class="tka-qm">' + esc(m.text) + (m.imgs && m.imgs.length ? '<div class="tkd-qi">' + m.imgs.map(u => '<img src="' + esc(u) + '" alt="">').join('') + '</div>' : '') + '</div>' : m.tkd ? tkdCard(m, i) : '<div class="tka-am">' + asstBot('xs', !!m.wait) + '<div class="b">' + (m.wait ? (m.open ? aiThink('open', '', ['Đang mở cuộc trò chuyện', 'Đang tải các câu đã hỏi']) : aiThink('task', m.t0)) : m.err ? '<span class="muted">' + esc(m.err) + '</span>' : (typeof aiMd === 'function' ? aiMd(m.text || '', m.refs || {}) : esc(m.text || ''))) +
     (m.ctx && !m.wait ? '<div class="tka-am-d"><button type="button" class="tka-lk" data-tkd="' + i + '"><i class="bi bi-funnel"></i> Dữ liệu đã gửi AI</button></div>' : '') + '</div></div>').join('') +
     (TKQ.msgs.length && !TKQ.opening ? '<div class="tka-am-f"><button class="tka-lk" data-tkqnew>Hỏi chuyện mới</button></div>' : '');
-  h.onclick = e => { const d = e.target.closest('[data-tkd]'); if (d) { const m = TKQ.msgs[Number(d.dataset.tkd)]; return axpOpen([{ k: 'ds', i: 'bi-funnel', t: 'Dữ liệu đã gửi AI', html: () => axpCtxHtml(m) }], 'ds', ''); }      // (1.85) panel dữ liệu
+  h.oninput = h.onchange = e => tkdEdit(e);      // (1.94.3) sửa bản nháp việc ngay trên thẻ — lưu vào tin nhắn nên vẽ lại không mất
+  h.onclick = e => { if (tkdClick(e)) return; const d = e.target.closest('[data-tkd]'); if (d) { const m = TKQ.msgs[Number(d.dataset.tkd)]; return axpOpen([{ k: 'ds', i: 'bi-funnel', t: 'Dữ liệu đã gửi AI', html: () => axpCtxHtml(m) }], 'ds', ''); }      // (1.85) panel dữ liệu
     if (e.target.closest('[data-tkqnew]')) { TKQ.conv = ''; TKQ.msgs = []; tkaPaintA(); tkaHistPaint(); const q = $('#tkaQ'); return q && q.focus(); } };
 }
 async function tkaAsk(text) {
-  text = String(text || '').trim(); const q = $('#tkaQ'); if (!text) return q && q.focus();
+  text = String(text || '').trim(); const q = $('#tkaQ'); if (!text && !(TKQ.att || []).length) return q && q.focus();
   if (!tkAskOk()) return toast('Bạn chưa được dùng Trợ lý AI — nhờ quản trị bật', 'info');
   if (TKQ.msgs.some(m => m.wait)) return toast('Trợ lý đang trả lời câu trước…', 'info');
+  if (tkdOn(text)) return tkdSend(text);      // (1.94.3) giao việc bằng chat → bản nháp việc
   if (q) { q.value = ''; q.style.height = 'auto'; }
   const w = { wait: 1, t0: new Date().toISOString() }; TKQ.msgs.push({ me: 1, text: text }, w); tkaPaintA(); const A = $('#tkaA'); if (A) A.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   const got = o => { delete w.wait; if (o.status === 'ok') { w.text = o.text; w.refs = o.refs; } else w.err = o.err || 'Trợ lý chưa trả lời được';
@@ -25602,6 +25661,147 @@ async function tkaAsk(text) {
   try { const r = await rpc('aiChat', { mode: 'task', text: text, conv: TKQ.conv }, { quiet: true }); TKQ.conv = r.conv || TKQ.conv;
     if (typeof AI_WAIT !== 'undefined' && AI_WAIT.test(r.status)) aiWatch(r.id, got); else got(r); }
   catch (e) { delete w.wait; w.err = e.message || String(e); tkaPaintA(); }
+}
+/* ══ (1.94.3) GIAO VIỆC BẰNG CHAT — nhắn “Giao Đăng Khoa sửa đề bài 6, hạn thứ 6” (+ ảnh chụp, link tài liệu) → AI lập BẢN NHÁP việc (tkDraft, Assist.gs):
+   tên, mô tả, bảng (chọn sẵn ở ô Bảng, hoặc AI chọn), epic, người phụ trách, hạn, ưu tiên, checklist. Sửa ngay trên thẻ rồi bấm Tạo → taskSave như tạo tay
+   (đủ quyền, thông báo, nhóm Zalo). Ảnh tải lên Drive ngay khi gửi (lúc AI đang đọc) nên bấm Tạo không phải chờ; ảnh nằm cuối mô tả việc. ══ */
+const TKD = { ctx: null, p: null };
+const TKD_RE = /(^|[\s,.:;])(giao|nhờ|assign)\s+(cho\s+)?[\p{Lu}@]|giao\s+(cho|việc|task)|(tạo|lập|thêm|mở)\s+(task|việc|công việc|đầu việc|ticket)|\bassign\b|phụ trách|\bPIC\b|deadline/iu;
+const TKD_PRI = [['low', 'Thấp'], ['med', 'Vừa'], ['high', 'Cao'], ['urgent', 'Khẩn']];
+function tkdIs(t) { t = String(t || '').trim(); return !!t && !/\?\s*$/.test(t) && TKD_RE.test(t); }
+function tkdOn(t) { return TKQ.tk === 'on' || (TKQ.att || []).length > 0 || (TKQ.tk !== 'off' && tkdIs(t)); }
+function tkdCtx() { if (TKD.ctx) return Promise.resolve(TKD.ctx); return TKD.p || (TKD.p = rpc('tkDraftCtx', {}, { quiet: true }).then(d => { TKD.ctx = d; return d; }).finally(() => { TKD.p = null; })); }
+function tkdNm(e) { const u = TKD.ctx && TKD.ctx.users.find(x => x.e === e); return u ? u.n : e; }
+function tkdB(id) { return TKD.ctx && TKD.ctx.boards.find(b => b.id === id) || null; }
+function tkdModePaint() {
+  const c = $('#tkaMode'), q = $('#tkaQ'); if (!c) return; const on = tkdOn(q ? q.value : '');
+  c.setAttribute('aria-pressed', on ? 'true' : 'false'); c.classList.toggle('auto', on && TKQ.tk !== 'on');
+  const bw = $('#tkaBw'); if (bw) bw.hidden = !on;
+  const h = $('#tkaHint'); if (h) h.textContent = on ? ((TKQ.att || []).length ? (TKQ.att.length + ' ảnh · ') : '') + 'AI lập bản nháp việc — bạn xem, sửa rồi bấm Tạo' : '';
+  if (on) tkdCtx().then(tkdBoardsPaint).catch(() => {});
+}
+function tkdBoardsPaint() {
+  const sl = $('#tkaBoard'); if (!sl || !TKD.ctx) return; const cur = TKQ.board != null ? TKQ.board : lsGet('tkaBoard', '');
+  sl.innerHTML = '<option value="">AI chọn bảng</option>' + TKD.ctx.boards.map(b => '<option value="' + esc(b.id) + '"' + (b.id === cur ? ' selected' : '') + '>' + esc(b.name + (b.personal ? ' (riêng)' : '')) + '</option>').join('');
+  if (!TKD.ctx.boards.some(b => b.id === cur)) sl.value = '';
+}
+/** ảnh → data URL nhỏ gọn (cạnh dài ≤ 1800px, JPEG) — vừa cho AI đọc, vừa tải vào mô tả việc */
+function tkdShrink(f) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onerror = () => rej(r.error); r.onload = () => { const url = r.result, im = new Image();
+    im.onerror = () => res({ name: f.name || 'anh', mime: f.type || 'image/png', data: url });
+    im.onload = () => { const mx = Math.max(im.naturalWidth, im.naturalHeight); if (f.type === 'image/gif' || (mx <= 1800 && f.size < 1.2 * 1048576)) return res({ name: f.name || 'anh', mime: f.type || 'image/png', data: url });
+      const k = Math.min(1, 1800 / mx), c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); res({ name: f.name || 'anh', mime: 'image/jpeg', data: c.toDataURL('image/jpeg', .86) }); };
+    im.src = url; }; r.readAsDataURL(f); });
+}
+async function tkdAdd(files) {
+  const L = [].slice.call(files || []).filter(f => /^image\//.test(f.type)); if (!L.length) return false;
+  TKQ.att = TKQ.att || []; if (TKQ.att.length + L.length > 4) toast('Tối đa 4 ảnh mỗi lần giao', 'warn');
+  for (const f of L.slice(0, Math.max(0, 4 - TKQ.att.length))) { if (f.size > 15 * 1048576) { toast('“' + (f.name || 'ảnh') + '” lớn quá (tối đa 15 MB)', 'warn'); continue; } try { TKQ.att.push(await tkdShrink(f)); } catch (e) { toast(e.message || String(e), 'err'); } }
+  tkdAttPaint(); tkdModePaint(); const q = $('#tkaQ'); if (q) q.focus(); return true;
+}
+function tkdAttPaint() {
+  const el = $('#tkaAtt'); if (!el) return; const L = TKQ.att || []; el.hidden = !L.length;
+  el.innerHTML = L.map((a, i) => '<span class="tkd-th"><img src="' + esc(a.data) + '" alt="' + esc(a.name) + '"><button type="button" data-tkax="' + i + '" aria-label="Bỏ ảnh ' + esc(a.name) + '"><i class="bi bi-x"></i></button></span>').join('');
+}
+function tkdComposer(P) {
+  const q = $('#tkaQ', P), fi = $('#tkaFile', P), box = $('.tka-ask', P);
+  $('#tkaPick', P).onclick = () => fi.click(); fi.onchange = () => { tkdAdd(fi.files); fi.value = ''; };
+  q.addEventListener('paste', e => { const F = [].slice.call((e.clipboardData && e.clipboardData.files) || []); if (F.some(f => /^image\//.test(f.type))) { e.preventDefault(); tkdAdd(F); } });
+  box.addEventListener('dragover', e => { if ([].some.call((e.dataTransfer && e.dataTransfer.types) || [], t => t === 'Files')) { e.preventDefault(); box.classList.add('drop'); } });
+  box.addEventListener('dragleave', () => box.classList.remove('drop'));
+  box.addEventListener('drop', e => { box.classList.remove('drop'); const F = e.dataTransfer && e.dataTransfer.files; if (F && F.length) { e.preventDefault(); tkdAdd(F); } });
+  $('#tkaAtt', P).onclick = e => { const x = e.target.closest('[data-tkax]'); if (x) { TKQ.att.splice(Number(x.dataset.tkax), 1); tkdAttPaint(); tkdModePaint(); } };
+  $('#tkaMode', P).onclick = () => { TKQ.tk = tkdOn(q.value) ? 'off' : 'on'; if (TKQ.tk === 'off' && (TKQ.att || []).length) { TKQ.att = []; tkdAttPaint(); } tkdModePaint(); q.focus(); };
+  $('#tkaBoard', P).onchange = e => { TKQ.board = e.target.value; lsSet('tkaBoard', TKQ.board); };
+  tkdAttPaint(); tkdModePaint();
+}
+function tkdNid() { const a = new Uint8Array(5); crypto.getRandomValues(a); return 'TK' + Array.from(a, x => ('0' + x.toString(16)).slice(-2)).join(''); }
+async function tkdSend(text) {
+  const q = $('#tkaQ'), imgs = (TKQ.att || []).slice(), board = $('#tkaBoard') ? $('#tkaBoard').value : '';
+  if (q) { q.value = ''; q.style.height = 'auto'; } TKQ.att = []; TKQ.tk = ''; tkdAttPaint(); tkdModePaint();
+  const w = { tkd: { st: 'wait', t0: new Date().toISOString(), text: text, n: imgs.length } };
+  TKQ.msgs.push({ me: 1, text: text || '(ảnh)', imgs: imgs.map(a => a.data) }, w); tkaPaintA();
+  // ảnh tải lên Drive ngay (song song lúc AI đọc) → bấm Tạo không phải chờ
+  w.up = imgs.map(a => rpc('taskImage', { data: a.data, mime: a.mime, name: a.name }, { quiet: true }).then(o => ({ src: o.src, name: String(a.name || 'anh').replace(/\.\w+$/, '') })));
+  w.up.forEach(p => p.catch(() => {}));
+  const got = o => { const D = o.actions && o.actions.draft;
+    if (o.status === 'ok' && D && D.items.length) { w.tkd = Object.assign(w.tkd, { st: 'ok', hoi: D.hoi || '', items: D.items.map(x => Object.assign(x, { nid: tkdNid(), img: imgs.length ? 1 : 0, chk: (x.check || []).join('\n') })) }); }
+    else w.tkd = Object.assign(w.tkd, { st: 'err', err: o.err || (D && D.hoi) || 'AI chưa lập được bản nháp việc — nói rõ hơn: làm gì, giao cho ai, hạn khi nào' });
+    tkdCtx().then(() => tkaPaintA()).catch(() => tkaPaintA()); };
+  try { await tkdCtx().catch(() => null);
+    const r = await rpc('tkDraft', { text: text, board: board, conv: TKQ.conv, imgs: imgs.map(a => ({ data: a.data, mime: a.mime, name: a.name })) }, { quiet: true });
+    TKQ.conv = r.conv || TKQ.conv; w.tkd.id = r.id;
+    if (typeof AI_WAIT !== 'undefined' && AI_WAIT.test(r.status)) aiWatch(r.id, got); else got(r); }
+  catch (e) { w.tkd = Object.assign(w.tkd, { st: 'err', err: e.message || String(e) }); tkaPaintA(); }
+}
+function tkdLinks(t) { return (String(t || '').match(/https?:\/\/[^\s<>"')]+/g) || []).filter((x, i, A) => A.indexOf(x) === i); }
+function tkdCard(m, i) {
+  const D = m.tkd, C = TKD.ctx;
+  const head = '<div class="tka-am">' + asstBot('xs', D.st === 'wait' || !!D.busy) + '<div class="b">';
+  if (D.st === 'wait') return head + aiThink('task', D.t0, ['Đang đọc tin nhắn' + (D.n ? ' và ' + D.n + ' ảnh' : ''), 'Đang nhận người phụ trách, hạn', 'Đang chọn bảng hợp nội dung', 'Đang soạn bản nháp việc']) + '</div></div>';
+  if (D.st === 'err') return head + '<div class="tkd-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(D.err) + '</span></div></div></div>';
+  const L = D.items, live = L.filter(x => !x.off && !x.made), made = L.filter(x => x.made);
+  const bOpt = cur => (C ? C.boards : []).map(b => '<option value="' + esc(b.id) + '"' + (b.id === cur ? ' selected' : '') + '>' + esc(b.name + (b.personal ? ' (riêng)' : '')) + '</option>').join('');
+  const it = (x, k) => { const key = i + ':' + k, b = tkdB(x.board), mem = b ? b.mem : [];
+    if (x.made) return '<div class="tkd-it ok"><i class="bi bi-check-circle-fill"></i><button type="button" class="tka-lk" data-tko="' + esc(x.made.id) + '"><b>' + esc(x.made.key || '') + '</b> ' + esc(x.title) + '</button><small>' + esc((b ? b.name : '') + (x.pic.length ? ' · ' + x.pic.map(tkdNm).join(', ') : '') + (x.due ? ' · hạn ' + dmyV(x.due) : '')) + '</small></div>';
+    if (x.off) return '<div class="tkd-it off"><s>' + esc(x.title) + '</s><button type="button" class="tka-lk" data-tkdu="' + key + '">Giữ lại</button></div>';
+    const others = (C ? C.users : []).filter(u => x.pic.indexOf(u.e) < 0), inB = others.filter(u => mem.indexOf(u.e) >= 0), out = others.filter(u => mem.indexOf(u.e) < 0);
+    return '<div class="tkd-it" data-tki="' + key + '">' +
+      '<div class="tkd-r1"><input class="inp tkd-t" data-f="title" value="' + esc(x.title) + '" aria-label="Tên việc" maxlength="200"><button type="button" class="tkd-x" data-tkdo="' + key + '" title="Bỏ việc này" aria-label="Bỏ việc này"><i class="bi bi-x-lg"></i></button></div>' +
+      '<div class="tkd-g"><label><span>Bảng</span><select data-f="board">' + (x.board ? '' : '<option value="">— Chọn bảng —</option>') + bOpt(x.board) + '</select></label>' +
+        '<label><span>Epic</span><select data-f="epic"><option value="">Không</option>' + (b ? b.epics.map(e => '<option value="' + esc(e.id) + '"' + (e.id === x.epic ? ' selected' : '') + '>' + esc(e.t) + '</option>').join('') : '') + '</select></label>' +
+        '<label><span>Hạn</span><input type="date" data-f="due" value="' + esc(x.due || '') + '"></label>' +
+        '<label><span>Ưu tiên</span><select data-f="pri">' + TKD_PRI.map(p => '<option value="' + p[0] + '"' + (p[0] === x.pri ? ' selected' : '') + '>' + p[1] + '</option>').join('') + '</select></label></div>' +
+      '<div class="tkd-pic"><span class="tkd-l">Phụ trách</span>' + x.pic.map(e => '<span class="tkd-pc"><span class="tka-av">' + esc(initials(tkdNm(e))) + '</span>' + esc(tkdNm(e)) + '<button type="button" data-tkdp="' + key + '" data-e="' + esc(e) + '" aria-label="Bỏ ' + esc(tkdNm(e)) + '"><i class="bi bi-x"></i></button></span>').join('') +
+        '<select data-f="addpic" aria-label="Thêm người phụ trách"><option value="">+ Thêm người</option>' + (inB.length ? '<optgroup label="Thành viên bảng">' + inB.map(u => '<option value="' + esc(u.e) + '">' + esc(u.n) + '</option>').join('') + '</optgroup>' : '') + (out.length ? '<optgroup label="' + (inB.length ? 'Người khác' : 'Mọi người') + '">' + out.map(u => '<option value="' + esc(u.e) + '">' + esc(u.n) + '</option>').join('') + '</optgroup>' : '') + '</select>' +
+        ((x.picMiss || []).length && !x.pic.length ? '<small class="tkd-w">Chưa nhận ra “' + esc(x.picMiss.join(', ')) + '” — chọn người</small>' : '') + '</div>' +
+      '<textarea class="inp tkd-d" data-f="desc" rows="3" placeholder="Mô tả" aria-label="Mô tả">' + esc(x.desc) + '</textarea>' +
+      '<textarea class="inp tkd-c" data-f="chk" rows="' + Math.min(6, Math.max(1, (x.chk || '').split('\n').length)) + '" placeholder="Checklist — mỗi dòng một bước (không bắt buộc)" aria-label="Checklist">' + esc(x.chk || '') + '</textarea>' +
+      (D.n ? '<label class="tkd-ci"><input type="checkbox" data-f="img"' + (x.img ? ' checked' : '') + '> Kèm ' + D.n + ' ảnh vào mô tả</label>' : '') +
+      (x.why && !x.err ? '<small class="tkd-why"><i class="bi bi-kanban"></i> ' + esc(x.why) + '</small>' : '') + (x.err ? '<div class="tkd-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(x.err) + '</span></div>' : '') + '</div>'; };
+  return head + '<div class="tkd"><div class="tkd-h"><i class="bi bi-person-check"></i><b>Bản nháp ' + L.length + ' việc</b><small>xem, sửa rồi bấm Tạo</small></div>' +
+    (D.hoi ? '<div class="tkd-q"><i class="bi bi-question-circle"></i> ' + esc(D.hoi) + '</div>' : '') + L.map(it).join('') +
+    (live.length ? '<div class="tkd-f"><button type="button" class="btn sm pri" data-tkdgo="' + i + '"' + (D.busy ? ' disabled' : '') + '><i class="bi ' + (D.busy ? 'bi-arrow-repeat tkd-spin' : 'bi-plus-lg') + '"></i>' + (D.busy ? 'Đang tạo…' : 'Tạo ' + live.length + ' việc') + '</button><button type="button" class="btn sm ghost" data-tkdno="' + i + '"' + (D.busy ? ' disabled' : '') + '>Bỏ bản nháp</button></div>'
+      : made.length ? '<div class="tkd-f"><small class="muted"><i class="bi bi-check2-all"></i> Đã tạo ' + made.length + ' việc — bấm tên việc để mở</small></div>' : '') + '</div></div></div>';
+}
+function tkdAt(el) { const k = el && el.closest('[data-tki]'); if (!k) return null; const a = k.dataset.tki.split(':'), m = TKQ.msgs[Number(a[0])]; return m && m.tkd && m.tkd.items ? { m: m, x: m.tkd.items[Number(a[1])] } : null; }
+function tkdEdit(e) {
+  const f = e.target.dataset && e.target.dataset.f; if (!f) return; const R = tkdAt(e.target); if (!R || !R.x) return; const x = R.x, v = e.target.type === 'checkbox' ? (e.target.checked ? 1 : 0) : e.target.value;
+  if (f === 'addpic') { if (e.type !== 'change' || !v) return; if (x.pic.indexOf(v) < 0) x.pic.push(v); return tkaPaintA(); }
+  if (f === 'board') { if (e.type !== 'change') return; x.board = v; x.epic = ''; x.why = ''; delete x.err; return tkaPaintA(); }
+  x[f] = v; if (f === 'title' || f === 'desc' || f === 'chk') delete x.err;
+}
+function tkdKey(el, a) { const p = String(el.dataset[a] || '').split(':'), m = TKQ.msgs[Number(p[0])]; return m && m.tkd && m.tkd.items ? { m: m, x: m.tkd.items[Number(p[1])] } : null; }
+function tkdClick(e) {
+  const o = e.target.closest('[data-tko]'); if (o) { go('tasks/t/' + o.dataset.tko); return true; }
+  const p = e.target.closest('[data-tkdp]'); if (p) { const R = tkdKey(p, 'tkdp'); if (R) { R.x.pic = R.x.pic.filter(x => x !== p.dataset.e); tkaPaintA(); } return true; }
+  const x = e.target.closest('[data-tkdo]'); if (x) { const R = tkdKey(x, 'tkdo'); if (R) { R.x.off = 1; tkaPaintA(); } return true; }
+  const u = e.target.closest('[data-tkdu]'); if (u) { const R = tkdKey(u, 'tkdu'); if (R) { delete R.x.off; tkaPaintA(); } return true; }
+  const n = e.target.closest('[data-tkdno]'); if (n) { const m = TKQ.msgs[Number(n.dataset.tkdno)]; if (m && m.tkd) { m.tkd.items.forEach(y => { if (!y.made) y.off = 1; }); tkaPaintA(); } return true; }
+  const g = e.target.closest('[data-tkdgo]'); if (g) { tkdCreate(Number(g.dataset.tkdgo)).catch(fail); return true; }
+  return false;
+}
+async function tkdCreate(i) {
+  const m = TKQ.msgs[i], D = m && m.tkd; if (!D || D.busy) return;
+  const L = D.items.filter(x => !x.off && !x.made); if (!L.length) return;
+  const bad = L.find(x => !String(x.title || '').trim() || !x.board); if (bad) { bad.err = !bad.board ? 'Chọn bảng cho việc này' : 'Nhập tên việc'; return tkaPaintA(); }
+  D.busy = 1; tkaPaintA(); let ok = 0;
+  try {
+    let imgs = []; if (L.some(x => x.img) && (m.up || []).length) { const R = await Promise.allSettled(m.up); imgs = R.filter(r => r.status === 'fulfilled').map(r => r.value); if (imgs.length < m.up.length) toast((m.up.length - imgs.length) + ' ảnh chưa tải được lên Drive — việc vẫn được tạo, thiếu ảnh đó', 'warn'); }
+    const links = tkdLinks(D.text);
+    for (const x of L) {
+      let desc = String(x.desc || '').trim(); const miss = links.filter(u => desc.indexOf(u) < 0);
+      if (miss.length) desc += (desc ? '\n\n' : '') + 'Tài liệu: ' + miss.join('\n');
+      if (x.img && imgs.length) desc += (desc ? '\n\n' : '') + imgs.map(a => '![' + a.name.replace(/[\[\]]/g, '') + '](' + a.src + ')').join('\n');
+      try { const r = await rpc('taskSave', { projectId: x.board, title: String(x.title).trim(), desc: desc, assignees: x.pic, due: x.due || '', priority: x.pri || 'med', epicId: x.epic || '', newId: x.nid,
+          checklist: String(x.chk || '').split('\n').map(t => t.replace(/^\s*[-•*]\s*/, '').trim()).filter(Boolean).map(t => ({ t: t, d: 0 })) }, { quiet: true });
+        x.made = { id: r.id, key: r.key }; delete x.err; ok++; }
+      catch (e) { x.err = e.message || String(e); }
+      tkaPaintA();
+    }
+  } finally { D.busy = 0; tkaPaintA(); }
+  if (ok) { if (typeof TK !== 'undefined') TK.stale = true; toast('Đã tạo ' + ok + ' việc' + (L.length > ok ? ' · ' + (L.length - ok) + ' việc chưa tạo được — xem lỗi trên thẻ' : ''), L.length > ok ? 'warn' : 'ok'); }
 }
 
 /* ── CHECK-IN HẰNG NGÀY (Kiến Task › Check-in) ── */
@@ -30822,7 +31022,7 @@ function svMemoV(b) {
 .kt-rf select{ height:24px; border-radius:7px; border:1px solid var(--border); background:var(--surface); color:var(--ink-2); font-size:11.5px; padding:0 4px }
 .kt-rf a{ margin-left:auto; color:var(--muted) } .kt-rf a:hover{ color:var(--danger) }
 .kt-rbd{ display:none }
-.kt-chd{ display:flex; align-items:center; gap:10px; min-height:48px; margin:0 0 6px; padding:0 2px 8px; border-bottom:1px solid var(--border) }      /* (1.93) thanh đầu gọn */
+.kt-chd{ display:flex; align-items:center; gap:10px; min-height:48px; margin:0 0 6px; padding:0 2px 8px; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:4; background:var(--bg) }      /* (1.94.3) ghim trên cùng, không trôi theo tin nhắn */      /* (1.93) thanh đầu gọn */
 .kt-chg{ display:inline-flex; align-items:center; gap:2px; padding:3px; border:1px solid var(--border); border-radius:12px; background:var(--surface); flex:none }
 .kt-chg .kt-icb{ width:32px; height:32px; border-radius:9px; font-size:15px }
 .kt-ask:not(.rail-off) .kt-chg{ display:none }
@@ -31482,7 +31682,7 @@ function ktAskView(B) {
         (m.grp && m.grp.length ? ktGrpChat(m.grp, m.cut, m.parts, i) : '') + (m.parts ? '' : m.st === 'wait' ? ktThink(['Đang đọc lịch các lớp từ kientre.click', 'Đang đọc điểm danh, BTVN, nhận xét', 'Đang so sánh và tính số liệu', 'Đang soạn câu trả lời']) : m.st === 'err' ? '<div class="kt-err"><i class="bi bi-exclamation-triangle"></i><span>' + esc(m.text) + '</span></div>' : m.prof ? ktProfSumHtml(m.prof, m.src) : '<div class="kt-md kt-ans">' + ktAnsMd(m.text) + '</div>') +
         (m.st !== 'wait' ? '<div class="kt-mact">' + ((m.text || m.prof || m.parts) && m.st !== 'err' ? '<button data-kcp><i class="bi bi-clipboard"></i> Chép</button>' : '') + (m.prof ? '<button data-kmpdf><i class="bi bi-file-earmark-pdf"></i> Xuất PDF</button>' : '') + (ktWantMx(m) && m.mx && m.mx.rows && m.mx.rows.length ? '<button data-kmx><i class="bi bi-grid-3x3"></i> Bảng topic · ' + m.mx.cols.length + ' lớp × ' + m.mx.rows.length + ' bài</button>' : '') + (ktWantMx(m) && m.mx && m.mx.common && m.mx.common.length ? '<button data-kcm><i class="bi bi-intersect"></i> ' + m.mx.common.length + ' bài chung</button>' : '') + '</div>' : '') +
       '</div></div>').join('');
-    $$('[data-phc]', M).forEach(b => { b.onclick = () => phpChatAct(L[Number(b.dataset.phi)], b.dataset.phc).catch(fail); });      // (1.94.3) Xem & sửa · Xuất PDF · Chép thư
+    $$('[data-phc]', M).forEach(b => { b.onclick = () => phpChatAct(L[Number(b.dataset.phi)], b.dataset.phc, b).catch(fail); });      // (1.94.3) Xem & sửa · Xuất PDF · Chép thư
     $$('[data-kmi]', M).forEach(el => { const m = L[Number(el.dataset.kmi)];
       const pd = $('[data-kmpdf]', el); if (pd) pd.onclick = async () => { if (m.stuK !== ktStuKey(KT.chat.stu)) return toast('Chọn lại học sinh của báo cáo này rồi xuất PDF', 'warn'); try { ktProfPdf(await ktStuLoad(), m.prof); } catch (e) { fail(e); } };
       const pp = $('[data-kpph]', el); if (pp && m.prof) pp.onclick = () => navigator.clipboard.writeText(m.prof.thuPhuHuynh || '').then(() => toast('Đã chép nhận xét gửi phụ huynh', 'ok'));
