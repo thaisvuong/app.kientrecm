@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kiến Trẻ">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-27T17:34:39.098Z";</script>
+  <script>window.KT_EXEC = "https://script.google.com/macros/s/AKfycbxKXWv9Jg4KnV2ydW9tXWEsZsJIy1Ai07aHrY-cqF1i0t-RYl7xEcjsv2HuNtLC_7c/exec"; window.KT_BUILD = "2026-11-28T01:22:02.267Z";</script>
   <script>
 /* Kiến Trẻ — APP CHẠY THẲNG TRÊN TÊN MIỀN (kientre-internal.click)
    Trang này là chính giao diện app (dựng từ src/ bằng tools/build-static.js), nằm trên GitHub Pages — không còn khung Apps Script:
@@ -5517,6 +5517,10 @@ tr:hover .cg-flag, .cg-flag.on, .cg-flag:focus-visible{ opacity:1 } .cg-flag.on{
 .kt-ph .kph{ width:80px; height:80px; flex:0 0 80px; border-radius:12px }
 .kph{ aspect-ratio:1 / 1; max-height:96px; align-self:flex-start } .kph > img{ max-width:100%; max-height:100%; width:100%; height:100% }
 .kph img{ width:100%; height:100%; object-fit:cover; display:block }
+/* (1.95.5) bảng nhận xét KGS: ô bảng (td.fbt-ph) trùng tên lớp với khung ảnh → bị ép flex, nút ảnh ĐANG TẢI kéo cao theo cả hàng. Ô bảng về table-cell, nút ảnh khoá cỡ vuông */
+td.fbt-ph{ display:table-cell !important; vertical-align:top }
+span.fbt-ph{ display:flex !important; flex-direction:row !important; flex-wrap:wrap; align-items:flex-start; align-content:flex-start; gap:6px; height:auto }
+span.fbt-ph .kph, span.kt-ph .kph{ height:auto !important; align-self:flex-start; aspect-ratio:1 / 1 } span.fbt-ph .kph{ width:52px !important; max-height:52px; flex:0 0 52px } span.kt-ph .kph{ max-height:80px }
 .kph.ld{ background:linear-gradient(90deg, var(--surface-2) 0%, var(--border) 50%, var(--surface-2) 100%); background-size:200% 100%; animation:kphSh 1.2s linear infinite }
 .kph.bad{ color:var(--danger) }
 .kph:focus-visible{ outline:2px solid var(--brand-600, #2F45C8); outline-offset:2px }
@@ -23657,12 +23661,20 @@ function aiMd(text, refs) {
 }
 /** (1.82.34) TÊN BÉ trong câu trả lời AI → link mở trang bé (máy chủ gửi refs.BN = [[tên, cid]]): chỉ thay trong phần chữ, không đụng thẻ HTML,
     không lồng trong nút / link sẵn có; khớp trọn từ, không phân biệt hoa thường · bấm → cửa sổ nổi trang bé (kidPeek, không rời cuộc hỏi) */
+/** (1.95.5) tên bé chỉ là PHẦN ĐẦU / PHẦN CUỐI của một tên người dài hơn (vd. bé “Lê Nguyên Bảo” trong “Lê Nguyên Bảo Trinh”, hay “Bảo Trinh” trong “Lê Nguyên Bảo Trinh”) → không gắn link.
+    Chữ liền sau viết hoa = tên còn tiếp · chữ liền trước viết hoa (trừ danh xưng Bé / Con / Em / Cô / Thầy…) = tên bắt đầu sớm hơn */
+const AI_BE_HON = /^(bé|be|con|em|cô|co|thầy|thay|anh|chị|chi|bạn|ban|gia|sư|phụ|huynh|học|sinh|lớp|tên|của|cho|và|với|là|ở|tại|hs|gs|ph)$/i;
+function aiBeCut(str, off, w) {
+  const aft = str.slice(off + w.length), bef = str.slice(Math.max(0, off - 30), off);
+  if (/^[ \t\u00a0]+\p{Lu}/u.test(aft)) return true;
+  const m = /(\p{Lu}[\p{L}]*)[ \t\u00a0]+$/u.exec(bef); return !!(m && !AI_BE_HON.test(m[1]) && !/[.!?:]\s*$/.test(bef.slice(0, m.index)));
+}
 function aiBeLink(h, BN) {
   if (!BN || !BN.length) return h; const M = {}; BN.forEach(x => { if (x && x[0] && x[1]) M[esc(x[0]).toLowerCase()] = x[1]; }); const K = Object.keys(M); if (!K.length) return h;
   let re; try { re = new RegExp('(?<![\\p{L}\\p{N}])(' + K.sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![\\p{L}\\p{N}])', 'giu'); } catch (e) { return h; }
   let skip = 0;
   return String(h).split(/(<[^>]+>)/).map(p => { if (p.charAt(0) === '<') { const m = /^<(\/?)(a|button)\b/i.exec(p); if (m) skip = Math.max(0, skip + (m[1] ? -1 : 1)); return p; }
-    return skip ? p : p.replace(re, w => { const id = M[w.toLowerCase()]; return id ? '<a class="ai-be" href="#" data-kid="' + esc(id) + '" title="Mở trang bé ' + w + '">' + w + '</a>' : w; }); }).join('');
+    return skip ? p : p.replace(re, (w, g, off, str) => { const id = M[w.toLowerCase()]; if (id && aiBeCut(str, off, w)) return w; return id ? '<a class="ai-be" href="#" data-kid="' + esc(id) + '" title="Mở trang bé ' + w + '">' + w + '</a>' : w; }); }).join('');
 }
 /* ── (1.77.19) NÚT IN: [[IN:<sid>=<tệp>,<tệp>;<sid>=…|<nhãn>]] → bấm tạo link in gộp (máy chủ printPick kiểm lại) ── */
 function aiInParse(spec) {
@@ -27077,6 +27089,36 @@ html[data-mode="dark"] .of-agb{ box-shadow:0 24px 60px -24px rgba(0,0,0,.7), 0 0
 .agb-e{ font-size:12px; color:var(--muted); padding:10px 12px; border-radius:12px; background:var(--surface); box-shadow:0 0 0 1px var(--border); line-height:1.45 }
 @media (max-width:760px){ .of-agb{ left:8px; right:8px; top:auto; bottom:var(--agbB, 8px); width:auto; max-height:min(78dvh, 640px, calc(100dvh - var(--agbB, 8px) - 96px)); border-radius:20px; animation-name:agbUp } .agb-k small{ font-size:10px } }
 @keyframes agbUp{ from{ transform:translateY(40px); opacity:0 } }
+/* ═════ (1.95.5) BIỂN GIÁM SÁT trong sơ đồ: khung màu chính dày (như biển quảng cáo), mặt thẻ trắng, đèn chiếu trên, hai cột chân + bóng đổ isometric ═════ */
+.of-bb{ position:absolute; z-index:40; left:0; top:0; transform-origin:0 0; font-size:10px; color:var(--ink); pointer-events:auto; user-select:none; -webkit-user-select:none }
+.of-bb.arr{ opacity:.25; pointer-events:none }      /* đang Sắp xếp phòng: biển mờ, không cản kéo thả */
+.of-bb .bb-fr{ position:relative; z-index:2; border-radius:1.2em; padding:.42em; background:linear-gradient(160deg, color-mix(in oklab, var(--primary) 92%, #fff), var(--primary)); box-shadow:0 1.6em 3em -1.6em rgba(15,23,42,.55), inset 0 0 0 1px rgba(255,255,255,.25) }
+.of-bb:not([data-d="f"]) .bb-fr::before{ display:none }      /* biển xéo: bỏ hàng đèn cho gọn */
+.of-bb .bb-fr::before{ content:""; position:absolute; left:12%; right:12%; top:-.55em; height:.55em; border-radius:.4em .4em 0 0; background:repeating-linear-gradient(90deg, #FDE68A 0 1.1em, transparent 1.1em 2.6em); opacity:.9 }      /* hàng đèn chiếu */
+.of-bb .bb-h{ display:flex; align-items:center; gap:.5em; padding:.35em .5em .5em; color:#fff; cursor:grab; white-space:nowrap } .of-bb.drag .bb-h{ cursor:grabbing } .of-bb.dock .bb-h{ cursor:default }
+.of-bb .bb-grip{ opacity:.7 } .of-bb .bb-ic{ width:1.9em; height:1.9em; border-radius:50%; display:grid; place-items:center; background:rgba(255,255,255,.2); flex:none }
+.of-bb .bb-h > b{ font-size:1.12em; letter-spacing:.01em } .of-bb .bb-live{ display:inline-flex; align-items:center; gap:.35em; font-size:.92em; font-variant-numeric:tabular-nums; opacity:.92 }
+.of-bb .bb-ctl{ margin-left:auto; display:flex; gap:.15em } .of-bb .bb-ctl button{ border:0; background:rgba(255,255,255,.14); color:#fff; width:2.1em; height:2.1em; border-radius:.65em; display:grid; place-items:center; cursor:pointer; font-size:.95em } .of-bb .bb-ctl button:hover{ background:rgba(255,255,255,.3) }
+.of-bb .bb-k{ display:grid; grid-template-columns:repeat(4, 1fr); gap:.4em; padding:0 0 .42em }
+.of-bb .bb-k div{ background:var(--surface); border-radius:.8em; padding:.4em .3em; text-align:center } .of-bb .bb-k b{ display:block; font-size:1.5em; line-height:1.1 } .of-bb .bb-k small{ display:block; font-size:.85em; color:var(--muted); white-space:nowrap }
+.of-bb .bb-k .run b{ color:#16A34A } .of-bb .bb-k .wait b{ color:#D97706 } .of-bb .bb-k .ok b{ color:var(--primary) } .of-bb .bb-k .err b{ color:#DC2626 }
+.of-bb .bb-c{ display:grid; grid-template-columns:1.05fr 1fr; gap:.4em } .of-bb.dock .bb-c{ grid-template-columns:1fr }
+.of-bb .bb-col{ background:var(--surface); border-radius:.8em; padding:.5em .55em; min-width:0 }
+.of-bb h5{ margin:0 0 .35em; font-size:.82em; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); white-space:nowrap }
+.of-bb .bb-j{ display:flex; align-items:center; gap:.45em; padding:.25em .2em; border-radius:.6em; min-width:0 } .of-bb .bb-j[role=button]{ cursor:pointer } .of-bb .bb-j[role=button]:hover{ background:color-mix(in oklab, var(--primary) 9%, var(--surface)) }
+.of-bb .bb-j .as-av{ width:2.2em; height:2.2em; flex:none } .of-bb .bb-j .as-av-b{ display:none }
+.of-bb .bb-j > span{ min-width:0; flex:1; display:flex; flex-direction:column; line-height:1.3 } .of-bb .bb-j b time{ float:right; font-weight:500; color:var(--muted); font-variant-numeric:tabular-nums } .of-bb .bb-j b em{ font-style:normal; font-weight:600; color:var(--muted) } .of-bb .bb-j i{ font-style:normal; color:var(--ink-2); white-space:nowrap; overflow:hidden } .of-bb .bb-j b, .of-bb .bb-j small{ white-space:nowrap; overflow:hidden } .of-bb .bb-j b{ font-size:1em } .of-bb .bb-j small{ font-size:.88em; color:var(--primary) }
+.of-bb .bb-l{ display:flex; align-items:center; gap:.4em; padding:.18em 0; font-size:.95em; min-width:0; white-space:nowrap; overflow:hidden } .of-bb .bb-l time{ color:var(--muted); font-variant-numeric:tabular-nums; flex:none } .of-bb .bb-l span{ overflow:hidden; color:var(--ink-2) }
+.of-bb .bb-l.start i{ color:#16A34A } .of-bb .bb-l.ok i{ color:var(--primary) } .of-bb .bb-l.wait i{ color:#D97706 } .of-bb .bb-l.err i{ color:#DC2626 }
+.of-bb .bb-e, .of-bb .bb-more{ font-size:.92em; color:var(--muted); padding:.25em .2em; white-space:nowrap }
+.of-bb .bb-post{ position:absolute; z-index:1; top:calc(100% - .6em); width:.8em; height:calc(var(--bbw, 1) * 4em + 1.4em); background:linear-gradient(90deg, #94A3B8, #CBD5E1 45%, #94A3B8); border-radius:0 0 .3em .3em } .of-bb .bb-post.l{ left:22% } .of-bb .bb-post.r{ right:22% }
+.of-bb .bb-shd{ position:absolute; z-index:0; left:14%; right:14%; top:calc(100% + 4.3em); height:1.6em; border-radius:50%; background:radial-gradient(closest-side, rgba(15,23,42,.24), transparent) }
+html[data-mode="dark"] .of-bb .bb-post{ background:linear-gradient(90deg, #334155, #64748B 45%, #334155) } html[data-mode="dark"] .of-bb .bb-shd{ background:radial-gradient(closest-side, rgba(0,0,0,.5), transparent) }
+.of-bb .bb-warn{ display:none; position:absolute; z-index:3; left:50%; top:-2.4em; transform:translateX(-50%); white-space:nowrap; font-size:.92em; font-weight:700; padding:.3em .8em; border-radius:999px; background:#F59E0B; color:#fff; box-shadow:0 .5em 1em -.5em rgba(15,23,42,.5) }
+.of-bb.warn .bb-fr{ box-shadow:0 0 0 3px #F59E0B, 0 1.6em 3em -1.6em rgba(15,23,42,.55) } .of-bb.warn.drag .bb-warn, .of-bb.warn:hover .bb-warn{ display:inline-flex; gap:.4em; align-items:center }
+.of-bb.drag{ opacity:.93 } .of-bb.drag .bb-fr{ transform:translateY(-3px) }
+.of-bb.dock{ position:relative; z-index:auto; width:auto; margin:0 0 10px; font-size:12.5px; transform:none !important } .of-bb.dock .bb-fr::before{ display:none }
+.of-bbon{ position:absolute; z-index:41; left:10px; top:10px; display:inline-flex; gap:6px; align-items:center; border:0; font:inherit; font-size:12px; font-weight:600; padding:6px 11px; border-radius:999px; background:var(--surface); color:var(--primary); box-shadow:0 0 0 1px var(--border), 0 8px 18px -12px rgba(15,23,42,.45); cursor:pointer; white-space:nowrap }
 @media (prefers-reduced-motion:reduce){ .of-agb{ animation:none } }
 </style>
 <script>
@@ -27210,7 +27252,8 @@ function ofStage(A, byAg, force) {
   upK.length = Math.min(Math.max(upK.length, 0), NU + NW); for (let i = NU + NW; i < upK.length; i++) upK[i] = null;
   const wing = LY.wing === 'on' || (LY.wing !== 'off' && (arr || upK.slice(NU).some(Boolean)));      // DÃY TRÁI: tự động = chỉ hiện khi có phòng đặt ở đó / lúc Sắp xếp · Cài đặt: luôn hiện / ẩn      // phòng tầng 2 rộng UW ô · cầu thang trong ô góc sau (SX…SX+.45)
   let LBO = cf.lob !== 'off' && OF.lb && OF.lb.man && !arr ? 1 : 0;      // (1.82.16) dải SẢNH gia sư xếp hàng phía trước tầng 1
-  const X0 = 40 + Math.max(G + .3, wing ? WE + 1.25 : 0) * OF_TW / 2, W0 = Math.round(X0 + Math.max(G + .3, SR + 1.25) * OF_TW / 2 + 40), W = (LBO = LBO && (St.clientWidth || 9999) / (W0 + 210) >= .48 ? 1 : 0) ? W0 + 210 : W0, Y0 = 300, H = Math.round(Y0 + (2 * G + .3 + LBO * 1.1) * OF_TH / 2 + 60 + LBO * 24);      // khung chật (co < 0,48) → ẩn sảnh trên sơ đồ, xem ở tab Sảnh gia sư
+  const BBP = typeof ofBbPad === 'function' ? ofBbPad(St, arr) : 0;      // (1.95.5) bãi trống PHÍA TRÊN văn phòng cho biển giám sát (khung cao thêm, bề ngang giữ nguyên → văn phòng không nhỏ đi)
+  const X0 = 40 + Math.max(G + .3, wing ? WE + 1.25 : 0) * OF_TW / 2, W0 = Math.round(X0 + Math.max(G + .3, SR + 1.25) * OF_TW / 2 + 40), W = (LBO = LBO && (St.clientWidth || 9999) / (W0 + 210) >= .48 ? 1 : 0) ? W0 + 210 : W0, Y0 = 300 + BBP, H = Math.round(Y0 + (2 * G + .3 + LBO * 1.1) * OF_TH / 2 + 60 + LBO * 24);      // khung chật (co < 0,48) → ẩn sảnh trên sơ đồ, xem ở tab Sảnh gia sư
   const sc = Math.min(1, (St.clientWidth || W) / W), fxK = Object.keys(OF.fx).filter(k => Date.now() - OF.fx[k].t < 8000), mid = sc < .6, away = OF.away || {}, wk = OF.walking || {}, rep = D.rep || {};
   const sig = [W, sc.toFixed(3), A.map(a => a.key + a.av + a.t + a.nick + a.docs.length + (a.today || {}).n).join(), Object.keys(byAg).map(k => k + ':' + byAg[k].map(r => r.id + r.sp).join(';')).join(), fxK.join(), D.box, D.brain.mem, D.brain.kb, D.brain.sk, OF.bOpen ? 1 : 0,
     document.documentElement.dataset.mode, JSON.stringify(cf), JSON.stringify(LY), LBO ? OF.lbSig : '', OF.tp ? OF.tp.late : '', arr ? 1 : 0, wing ? 1 : 0, rep.n, rep.unrev, rep.flags, JSON.stringify(away), Object.keys(wk).filter(k => wk[k]).join()].join('|');
@@ -28711,6 +28754,7 @@ function ofAgbModel(D, rooms, RV, day) {
 function ofAgbToggle(on) { OF.agb = on == null ? !OF.agb : !!on; lsSet('ofAgb', OF.agb ? 1 : 0); ofAgbPaint(); }
 function ofAgbPaint() {
   const R = $('#ofR'); if (!R || !OF.d) return; const M = ofAgbModel(OF.d, OF.sch ? OF.sch.rooms : [], (() => { const o = {}; ((OF.rp0 || {}).list || []).forEach(x => { o[x.id] = x; }); return o; })(), ymdLocal(0));
+  try { ofBbPaint(M); } catch (e) { console.warn('ofBb', e); }      // (1.95.5) biển giám sát cỡ lớn trong sơ đồ
   const bn = $('#ofAgbN'); if (bn) { bn.hidden = !M.cnt.run; bn.textContent = M.cnt.run; } const bt = $('[data-ofagb]', R); if (bt) bt.setAttribute('aria-expanded', OF.agb ? 'true' : 'false');
   let el = $('#ofAgb'); if (!OF.agb) { if (el) el.remove(); return; }
   if (!el) { el = document.createElement('section'); el.id = 'ofAgb'; el.className = 'of-agb'; el.setAttribute('aria-label', 'Bảng việc agent'); R.appendChild(el); }
@@ -28734,6 +28778,107 @@ function ofAgbGo(v) {
     const r = ctr ? { tem: tem, ctr: ctr } : OF.sch.rooms.find(x => cid && x.cid === cid) || OF.sch.rooms.find(x => x.tem === tem);
     if (!r) return toast('Chưa thấy phòng học của gia sư này trong Lớp học (lớp ngừng / chưa có buổi)', 'warn'); ofSchZoom(r.tem || '', r.ctr || 'Chưa ghi nơi học', cid || ''); };
   if (OF.view !== 'school') ofView('school'); open();
+}
+/* ═════ (1.95.5) BIỂN GIÁM SÁT CỠ LỚN — “bảng quảng cáo” đứng TRONG sơ đồ Văn phòng (như màn hình Trung tâm giám sát), nhưng đúng phong cách Văn phòng:
+   khung màu chính, mặt trắng (tối: theo app), hai cột chân + bóng đổ isometric · nội dung: 4 số đếm · nhiệm vụ đang giao · hoạt động trực tiếp.
+   CHỖ ĐẶT: tự tìm chỗ TRỐNG ít che phòng nhất (vật cản = phòng tầng 1, sàn lửng tầng 2 + dãy trái, thang; sàn chung là vật cản nhẹ) — tính lại khi bố cục / khung đổi.
+   Kéo phần đầu biển để dời (nhớ theo máy, toạ độ theo cảnh nên co giãn cùng sơ đồ) · đang che phòng → viền cam + nhắc · Tự đặt chỗ · đổi cỡ Nhỏ / Vừa / Lớn · ẩn.
+   Khung sơ đồ hẹp (< 560px, điện thoại) → biển gắn PHÍA TRÊN sơ đồ, không đè lên phòng nào. ═════ */
+const OF_BBZ = [.8, 1, 1.25], OF_BBN = ['Nhỏ', 'Vừa', 'Lớn'];
+/* HƯỚNG biển theo trục isometric của Văn phòng (ô lưới 2:1 → nghiêng 26,57°): r = song song dãy phòng tầng 2 (xuống phải) · l = song song cạnh trái (lên phải) · f = nhìn thẳng */
+const OF_BBO = { a: 'Tự xoay theo chỗ đứng (mặt hướng vào giữa văn phòng)', l: 'Xéo lên phải (như tường trái)', r: 'Xéo xuống phải (như tường phải)', f: 'Nhìn thẳng' }, OF_BBOK = ['a', 'l', 'r', 'f'], OF_BBS = .4472, OF_BBC = .8944;
+/** hướng thật: a = biển ở nửa TRÁI cảnh → xéo lên phải (mặt quay vào giữa, như tường trái các phòng) · nửa PHẢI → xéo xuống phải */
+function ofBbDir(o, x, w) { return o === 'a' ? (x + w / 2 < (OF.W || 0) / 2 ? 'l' : 'r') : o; }
+function ofBbTf(el, d) { const wp = el.offsetWidth; el.style.transform = d === 'r' ? 'matrix(' + OF_BBC + ',' + OF_BBS + ',0,1,0,0)' : d === 'l' ? 'matrix(' + OF_BBC + ',-' + OF_BBS + ',0,1,0,' + (wp * OF_BBS).toFixed(1) + ')' : ''; el.dataset.d = d; }
+function ofBbBox(el, o) { const w = el.offsetWidth, h = el.offsetHeight; return o === 'f' ? { w: w, h: h + w * .1 } : { w: w * OF_BBC, h: h + w * OF_BBS + w * .1 }; }      // khung bao (px màn hình, chưa phóng) gồm cả chân biển
+/** bề rộng (px cảnh) bãi trống dành cho biển: biển bật, khung đủ rộng (máy tính), không đang Sắp xếp phòng */
+function ofBbPad(St, arr) { const c = ofBbCfg(); return c.on && !arr && St && St.clientWidth >= 560 ? Math.round(760 * OF_BBZ[c.sz]) : 0; }
+function ofBbCfg() { const o = lsGet('ofBb', null) || {}; return { on: o.on === 0 ? 0 : 1, sz: [0, 1, 2].indexOf(o.sz) >= 0 ? o.sz : 1, x: typeof o.x === 'number' ? o.x : null, y: typeof o.y === 'number' ? o.y : null, o: OF_BBOK.indexOf(o.o) >= 0 ? o.o : 'a' }; }
+function ofBbSet(p) { const c = Object.assign(ofBbCfg(), p); lsSet('ofBb', c); return c; }
+/** vật cản trong cảnh: [{ p: đa giác (toạ độ cảnh), w: trọng số }] — geo = OF.geo (P(x, y, z) → điểm cảnh) */
+function ofBbObs(geo) {
+  if (!geo || !geo.P) return []; const P = geo.P, O = [];
+  const box = (x0, x1, y0, y1, z, h, w) => O.push({ w: w, p: [P(x0, y0, z + h), P(x1, y0, z + h), P(x1, y0, z), P(x1, y1, z), P(x0, y1, z), P(x0, y1, z + h)] });      // bao hình lục giác của khối hộp isometric
+  Object.keys(geo.occ || {}).forEach(k => { const c = k.split(',').map(Number); box(c[0], c[0] + 1, c[1], c[1] + 1, 0, 95, 1); });      // phòng tầng 1 (tường + robot + biển tên)
+  if (geo.ZU != null) { box(-.15, geo.SX + .72, -1.25, -.28, geo.ZU, 95, 1); if (geo.wing) box(-1.25, -.28, -1.25, geo.WE, geo.ZU, 95, 1);      // dãy phòng tầng 2
+    box(geo.SX, geo.SX + .72, -.3, 1.05, 0, geo.ZU, .8); }      // thang cuốn + thang bộ
+  if (geo.G) O.push({ w: .45, p: [P(-.15, -.15, 0), P(geo.G + .15, -.15, 0), P(geo.G + .15, geo.G + .15, 0), P(-.15, geo.G + .15, 0)] });      // sàn chung: vật cản mạnh — biển đứng ở KHOẢNG TRỐNG ngoài văn phòng, không đè sàn / phòng
+  return O;
+}
+function ofBbIn(p, x, y) { let k = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { if ((p[i][1] > y) !== (p[j][1] > y) && x < (p[j][0] - p[i][0]) * (y - p[i][1]) / (p[j][1] - p[i][1]) + p[i][0]) k = !k; } return k; }
+/** mức che của biển đặt ở (x, y) cỡ w × h: { c: điểm phạt, room: tỉ lệ diện tích biển đè lên phòng (0…1) } — lấy mẫu 12 × 7 điểm (cả mép) */
+function ofBbCost(O, x, y, w, h) {
+  let c = 0, rm = 0; const NX = 12, NY = 7;
+  for (let i = 0; i < NX; i++) for (let j = 0; j < NY; j++) { const px = x + i * w / (NX - 1), py = y + j * h / (NY - 1); let hit = 0, top = 0;
+    O.forEach(o => { if (o.w > top && ofBbIn(o.p, px, py)) { top = o.w; hit = o.w >= .5 ? 1 : 0; } }); c += top; rm += hit; }
+  return { c: c / (NX * NY), room: rm / (NX * NY) };
+}
+/** chỗ đặt tự động: quét lưới trong khung cảnh W × H, chọn chỗ che ít nhất (hơi ưu tiên phía trên, sát giữa) */
+function ofBbPlace(O, W, H, w, h) {
+  let best = null; const m = 12, sx = Math.max(8, (W - w) / 36), sy = Math.max(8, (H - h) / 24);
+  for (let y = m; y <= Math.max(m, H - h - m); y += sy) for (let x = m; x <= Math.max(m, W - w - m); x += sx) {
+    const q = ofBbCost(O, x, y, w, h), s = q.c * 10 + q.room * 40 + y / H * .4 + Math.abs(x + w / 2 - W / 2) / W * .3;
+    if (!best || s < best.s) best = { x: Math.round(x), y: Math.round(y), s: s, room: q.room, c: q.c }; }
+  return best || { x: m, y: m, s: 0, room: 0, c: 0 };
+}
+function ofBbClamp(x, y, w, h) { return [Math.max(0, Math.min((OF.W || w) - w, x)), Math.max(0, Math.min((OF.H || h) - h, y))]; }
+/** vẽ / cập nhật biển — M = ofAgbModel (dùng chung với Bảng việc agent) */
+function ofBbPaint(M) {
+  const St = $('#ofSt'), Vz = $('#ofVz'); if (!St || !Vz || !OF.d) return; const cf = ofBbCfg(); let el = $('#ofBb');
+  { let ch = $('#ofBbOn'); if (!cf.on) { if (el) el.remove(); if (!ch) { ch = document.createElement('button'); ch.type = 'button'; ch.id = 'ofBbOn'; ch.className = 'of-bbon'; ch.innerHTML = '<i class="bi bi-display"></i><span>Hiện biển giám sát</span>';
+      ch.onclick = e => { e.stopPropagation(); ofBbSet({ on: 1 }); ofFit(1); ofBbPaint(); }; St.appendChild(ch); } return; } if (ch) ch.remove(); }      // bật lại → dựng lại sơ đồ (thêm bãi trống)
+  M = M || ofAgbModel(OF.d, OF.sch ? OF.sch.rooms : [], {}, ymdLocal(0)); OF.bbM = M;
+  const sw = St.clientWidth, dock = sw < 560 || !OF.geo || !OF.W;
+  if (!el) { el = document.createElement('section'); el.id = 'ofBb'; el.setAttribute('aria-label', 'Biển giám sát agent'); ofBbBind(el); }
+  if (dock) { if (el.parentElement !== St.parentElement || el.nextElementSibling !== St) St.before(el); el.className = 'of-bb dock'; el.style.cssText = ''; }
+  else if (el.parentElement !== Vz) Vz.appendChild(el);
+  if (!dock) { el.className = 'of-bb o-' + cf.o + (OF.arr ? ' arr' : ''); const k = OF_BBZ[cf.sz], fs = [OF.W, OF.H, sw, JSON.stringify(OF.geo.occ), OF.geo.wing ? 1 : 0, cf.sz, cf.x == null ? 'a' : 'm'].join('|'); if (OF.bbFitSig !== fs) { OF.bbFitSig = fs; OF.bbFit = 1; }
+    const wp = Math.round(Math.max(360, Math.min(640, sw * .5)) * k * (cf.x == null ? OF.bbFit : 1)); el.style.width = wp + 'px'; el.style.fontSize = Math.max(9.5, wp / 440 * 11.5).toFixed(2) + 'px';      // có bãi trống → biển vừa khít bãi · tự đặt chỗ: chật thì tự thu nhỏ dần (≥ 60%)
+  }
+  const hm = d => { const x = new Date(d); return pad(x.getHours()) + ':' + pad(x.getMinutes()); }, av = (a, b) => typeof asstAva === 'function' ? asstAva(a, 'xs', b) : '';
+  const LK = { start: ['bi-play-circle-fill', 'bắt đầu'], ok: ['bi-check-circle-fill', 'xong'], wait: ['bi-hourglass-split', 'chờ duyệt'], err: ['bi-exclamation-circle-fill', 'lỗi'] }, NJ = dock ? 2 : cf.sz === 2 ? 5 : 4, NL = dock ? 0 : cf.sz === 2 ? 7 : 5;
+  const ctl = dock ? '<button type="button" data-ofbb="more" title="Mở Bảng việc agent đầy đủ" aria-label="Mở Bảng việc agent"><i class="bi bi-arrows-angle-expand"></i></button><button type="button" data-ofbb="hide" title="Ẩn biển" aria-label="Ẩn biển giám sát"><i class="bi bi-eye-slash"></i></button>'
+    : '<button type="button" data-ofbb="o" title="Đổi hướng biển (đang: ' + OF_BBO[cf.o] + ')" aria-label="Đổi hướng biển"><i class="bi bi-arrow-repeat"></i></button><button type="button" data-ofbb="sz" title="Đổi cỡ biển (đang: ' + OF_BBN[cf.sz] + ')" aria-label="Đổi cỡ biển"><i class="bi bi-aspect-ratio"></i></button><button type="button" data-ofbb="auto" title="Tự đặt chỗ — tìm chỗ trống ít che phòng nhất" aria-label="Tự đặt chỗ"><i class="bi bi-magic"></i></button>' +
+      '<button type="button" data-ofbb="more" title="Mở Bảng việc agent đầy đủ" aria-label="Mở Bảng việc agent"><i class="bi bi-arrows-angle-expand"></i></button><button type="button" data-ofbb="hide" title="Ẩn biển" aria-label="Ẩn biển giám sát"><i class="bi bi-eye-slash"></i></button>';
+  const h = '<div class="bb-fr"><div class="bb-h" data-ofbbdrag title="' + (dock ? '' : 'Kéo để dời biển') + '">' + (dock ? '' : '<i class="bi bi-grip-vertical bb-grip"></i>') + '<span class="bb-ic"><i class="bi bi-broadcast"></i></span><b>Trung tâm giám sát</b><span class="bb-live"><span class="of-dot ' + (M.cnt.run ? 'run' : 'idle') + '"></span>' + hm(new Date()) + '</span><span class="bb-ctl">' + ctl + '</span></div>' +
+    '<div class="bb-k">' + [['run', 'Đang làm', M.cnt.run], ['wait', 'Chờ duyệt', M.cnt.wait], ['ok', 'Xong', M.cnt.ok], ['err', 'Lỗi', M.cnt.err]].map(k => '<div class="' + k[0] + '"><b>' + k[2] + '</b><small>' + k[1] + '</small></div>').join('') + '</div>' +
+    '<div class="bb-c"><div class="bb-col"><h5>Nhiệm vụ đang giao</h5>' + (M.jobs.length ? M.jobs.slice(0, NJ).map(j => '<div class="bb-j"' + (j.w && (j.w.ctr || j.w.tem) ? ' data-ofagbgo="' + esc(j.w.tem + '|' + j.w.ctr + '|' + j.w.cid) + '" role="button" tabindex="0" title="Mở phòng học — ' + esc(j.w.lab) + '"' : '') + '>' + av(j.av, 1) + '<span><b>' + esc(j.name) + (j.sp ? ' <em>B' + esc(j.sp) + '</em>' : '') + '<time>' + hm(j.at) + '</time></b>' + (dock ? '' : '<i>' + esc(aiCut(j.t, 34)) + '</i>') + '<small>' + esc(j.w ? j.w.lab : 'Ở Văn phòng') + '</small></span></div>').join('') + (M.jobs.length > NJ ? '<div class="bb-more">+' + (M.jobs.length - NJ) + ' việc nữa</div>' : '') : '<div class="bb-e">Văn phòng đang rảnh</div>') + '</div>' +
+    (NL ? '<div class="bb-col"><h5>Hoạt động trực tiếp</h5>' + (M.log.length ? M.log.slice(0, NL).map(e => '<div class="bb-l ' + e.k + '"><time>' + hm(e.at) + '</time><i class="bi ' + LK[e.k][0] + '"></i><span><b>' + esc(e.name) + '</b> ' + LK[e.k][1] + '</span></div>').join('') : '<div class="bb-e">Chưa có hoạt động</div>') + '</div>' : '') + '</div></div>' +
+    (dock ? '' : '<i class="bb-post l"></i><i class="bb-post r"></i><i class="bb-shd"></i><span class="bb-warn"><i class="bi bi-exclamation-triangle-fill"></i>Đang che phòng — kéo ra chỗ trống</span>');
+  if (el.dataset.h !== h || el.dataset.w !== el.style.width) { el.dataset.h = h; el.dataset.w = el.style.width; el.innerHTML = h;
+  }
+  if (!dock) ofBbPlaceEl(el, cf);
+  if (!OF.bbRo && window.ResizeObserver) { OF.bbRo = new ResizeObserver(() => requestAnimationFrame(() => { if ($('#ofBb') || $('#ofBbOn')) ofBbPaint(OF.bbM); })); OF.bbRo.observe(St); }
+}
+/** đặt biển vào toạ độ cảnh (đã lưu, hoặc tự tìm) — biển cao w × h px màn hình → đổi sang toạ độ cảnh bằng OF.sc */
+function ofBbPlaceEl(el, cf) {
+  if (OF.bbDrag) return; const sc = OF.sc || 1, B = ofBbBox(el, cf.o), w = B.w / sc, h = B.h / sc;      // khung bao đã xéo + chân biển
+  let x, y; if (cf.x != null) { [x, y] = ofBbClamp(cf.x * OF.W, cf.y * OF.H, w, h); }
+  else { const sig = [OF.W, OF.H, sc.toFixed(3), Math.round(w), Math.round(h), JSON.stringify(OF.geo.occ), OF.geo.wing ? 1 : 0].join('|');
+    if (!OF.bbAuto || OF.bbAuto.sig !== sig) OF.bbAuto = Object.assign(ofBbPlace(ofBbObs(OF.geo), OF.W, OF.H, w, h), { sig: sig }); x = OF.bbAuto.x; y = OF.bbAuto.y; if ((OF.bbAuto.room > .02 || OF.bbAuto.c > .08) && (OF.bbFit || 1) > .6) { OF.bbFit = (OF.bbFit || 1) * .86; return requestAnimationFrame(() => ofBbPaint(OF.bbM)); } }
+  el.style.left = (x * sc).toFixed(1) + 'px'; el.style.top = (y * sc).toFixed(1) + 'px'; ofBbTf(el, ofBbDir(cf.o, x, w)); el.classList.toggle('warn', ofBbCost(ofBbObs(OF.geo), x, y, w, h).room > .06);
+}
+function ofBbBind(el) {
+  ['click', 'pointerdown', 'dblclick'].forEach(t => el.addEventListener(t, e => { e.stopPropagation(); }));      // không kéo / phóng sơ đồ, không gọi agent đi tới khi bấm biển
+  el.addEventListener('click', e => {
+    const g = e.target.closest('[data-ofagbgo]'); if (g) return ofAgbGo(g.dataset.ofagbgo);
+    const b = e.target.closest('[data-ofbb]'); if (!b) return; const k = b.dataset.ofbb, cf = ofBbCfg();
+    if (k === 'hide') { ofBbSet({ on: 0 }); ofFit(1); toast('Đã ẩn biển giám sát — bấm “Hiện biển giám sát” ở góc sơ đồ để bật lại', 'ok'); return ofBbPaint(); }
+    if (k === 'more') return ofAgbToggle(true);
+    if (k === 'o') { const o = OF_BBOK[(OF_BBOK.indexOf(cf.o) + 1) % OF_BBOK.length]; ofBbSet({ o: o }); OF.bbAuto = null; toast('Hướng biển: ' + OF_BBO[o], 'ok', 1500); return ofBbPaint(OF.bbM); }
+    if (k === 'sz') { const s = (cf.sz + 1) % 3; ofBbSet({ sz: s }); ofFit(1); toast('Cỡ biển: ' + OF_BBN[s], 'ok', 1500); return ofBbPaint(OF.bbM); }
+    if (k === 'auto') { ofBbSet({ x: null, y: null }); OF.bbAuto = null; ofBbPaint(OF.bbM); const r = OF.bbAuto && OF.bbAuto.room; return toast(r > .06 ? 'Sơ đồ chật — đã đặt ở chỗ che ít phòng nhất, có thể thu cỡ Nhỏ' : 'Đã đặt biển vào chỗ trống', r > .06 ? 'warn' : 'ok', 2200); }
+  });
+  el.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset.ofagbgo) { e.preventDefault(); ofAgbGo(e.target.dataset.ofagbgo); } });
+  el.addEventListener('pointerdown', e => {
+    if (el.classList.contains('dock') || e.button || !e.target.closest('[data-ofbbdrag]') || e.target.closest('button')) return; e.preventDefault();
+    const sc = OF.sc || 1, z = (OF.vz && OF.vz.z) || 1, x0 = parseFloat(el.style.left) / sc, y0 = parseFloat(el.style.top) / sc, B = ofBbBox(el, ofBbCfg().o), w = B.w / sc, h = B.h / sc, O = ofBbObs(OF.geo), cx = e.clientX, cy = e.clientY;
+    OF.bbDrag = { x: x0, y: y0 }; el.classList.add('drag'); try { el.setPointerCapture(e.pointerId); } catch (er) {}
+    const mv = m => { const p = ofBbClamp(x0 + (m.clientX - cx) / sc / z, y0 + (m.clientY - cy) / sc / z, w, h); OF.bbDrag = { x: p[0], y: p[1] }; ofBbTf(el, ofBbDir(ofBbCfg().o, p[0], w)); el.style.left = (p[0] * sc).toFixed(1) + 'px'; el.style.top = (p[1] * sc).toFixed(1) + 'px'; el.classList.toggle('warn', ofBbCost(O, p[0], p[1], w, h).room > .06); };
+    const upf = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', upf); el.removeEventListener('pointercancel', upf); el.classList.remove('drag'); const d = OF.bbDrag; OF.bbDrag = null;
+      if (d && (Math.abs(d.x - x0) > 2 || Math.abs(d.y - y0) > 2)) { ofBbSet({ x: d.x / OF.W, y: d.y / OF.H }); if (el.classList.contains('warn')) toast('Biển đang che phòng — kéo ra chỗ trống hoặc bấm Tự đặt chỗ', 'warn', 3000); } };
+    el.addEventListener('pointermove', mv); el.addEventListener('pointerup', upf); el.addEventListener('pointercancel', upf);
+  });
 }
 /** (1.82.49) AGENT CỦA BẠN đi cùng vào Lớp học: mỗi lần vào một khung (khuôn viên / một nơi học) agent bước từ cổng vào chỗ đứng (5 điểm theo lối đi, ~4 giây) rồi đứng chờ;
     vẽ lại vì dữ liệu mới thì không chạy lại (animation-delay âm theo lúc vào) · A = 5 điểm (toạ độ sơ đồ) */
@@ -30516,7 +30661,7 @@ function sdPaint(B, v) {
 .sv-o .sv-bar i.l2{ background:var(--danger) } .sv-o .sv-bar i.l1{ background:var(--warn) } .sv-o .sv-bar i.l0{ background:var(--ok) } .sv-o em{ font-style:normal; font-weight:700; text-align:right }
 /* bảng gia sư */
 .sv-tbl{ width:100%; border-collapse:collapse; font-size:13px } .sv-tbl th{ text-align:left; font-size:11.5px; color:var(--muted); font-weight:700; padding:6px 8px; border-bottom:1px solid var(--border); white-space:nowrap }
-.sv-tbl td{ padding:8px; border-bottom:1px solid var(--border); vertical-align:top } .sv-tbl tr.sv-tr{ cursor:pointer } .sv-tbl tr.sv-tr:hover td{ background:var(--surface-2) }
+.sv-tbl td{ padding:8px; border-bottom:1px solid var(--border); vertical-align:top } .sv-tbl tr.sv-tr{ cursor:pointer } .sv-tr.ld td{ background:color-mix(in oklab, var(--primary) 8%, var(--surface)); cursor:progress } .sv-tr td:first-child b{ color:var(--primary) } .sv-tbl tr.sv-tr:hover td{ background:var(--surface-2) }
 .sv-tbl .n{ text-align:center; white-space:nowrap } .sv-tbl .r{ color:var(--danger); font-weight:700 } .sv-tbl .w{ color:var(--warn); font-weight:700 }
 .sv-wrap{ overflow-x:auto } .svx-mon{ width:auto; min-width:120px; height:30px; padding:2px 8px; font-size:13px } .svp-who{ display:flex; align-items:center; gap:8px; margin:0 0 10px } .svp-who select{ width:auto; min-width:220px }
 .sv-ans{ display:flex; flex-direction:column; gap:6px; padding:6px 0 }
@@ -30528,7 +30673,7 @@ function sdPaint(B, v) {
 /* màn trả lời của gia sư */
 .svt-top{ border-radius:var(--r-l); padding:16px 18px; background:color-mix(in oklab, var(--danger) 8%, var(--surface)); border:1px solid color-mix(in oklab, var(--danger) 30%, var(--border)) }
 .svt-top h2{ margin:0 0 4px; font-size:19px; display:flex; gap:8px; align-items:center } .svt-top p{ margin:4px 0 0; color:var(--ink-2); font-size:14px; white-space:pre-line }
-.svt-kid{ gap:14px } .svt-kid .sv-h b{ font-size:16.5px }
+.svt-kid{ gap:14px } .svt-kid .sv-h b{ font-size:16.5px } .sv-h > b{ flex:none; white-space:nowrap } .sv-h > .svx-mon{ flex:none; max-width:220px }      /* (1.95.5) tiêu đề không bị co thành mỗi chữ một dòng khi dòng mô tả dài */
 .svt-q{ display:flex; flex-direction:column; gap:8px; padding-top:12px; border-top:1px solid var(--border) } .svt-q:first-of-type{ border-top:0; padding-top:0 }
 .svt-q > b{ font-size:14.5px } .svt-q.miss > b{ color:var(--danger) } .svt-q.miss{ animation:svShake .45s }
 .svt-note{ font-size:13px; background:color-mix(in oklab, var(--brand-600) 8%, transparent); color:var(--ink-2); border-radius:10px; padding:8px 10px; display:flex; gap:8px } .svt-note i{ color:var(--brand-600) }
@@ -30797,7 +30942,7 @@ async function svTestV(b) {
   b.oninput = e => { if (e.target.id === 'svxQ') { SVX.q = e.target.value; clearTimeout(SVX.t); SVX.t = setTimeout(() => { const pos = e.target.selectionStart; paintX(); const q = b.querySelector('#svxQ'); if (q) { q.focus(); try { q.setSelectionRange(pos, pos); } catch (er) {} } }, 200); } };
   b.onclick = async e => {
     const f = e.target.closest('[data-xf]'); if (f) { SVX.f = f.dataset.xf; return paintX(); }
-    const r = e.target.closest('[data-cid]'); if (r) return go('classes/c/' + r.dataset.cid);
+    const r = e.target.closest('[data-cid]'); if (r) { if (r.classList.contains('ld')) return; r.classList.add('ld'); try { if (typeof kidPeek === 'function') await kidPeek(r.dataset.cid); else go('classes/c/' + r.dataset.cid); } finally { r.classList.remove('ld'); } return; }      // (1.95.5) mở trang bé trong CỬA SỔ NỔI ngay tại chỗ (trước: chuyển hẳn sang Lớp học, tải lâu như bấm không ăn)
     const a = e.target.closest('[data-x]'); if (!a) return;
     if (a.dataset.x === 'open') { const t = SVY.d && SVY.d.defTest; if (!t) return toast('Chưa tải xong mẫu — thử lại', 'warn'); return svEdit({ title: t.title, intro: t.intro, qs: t.qs, remind: t.remind, kmemo: t.kmemo, kf: { k: 'notest', min: SVX.d.cfg.warn, mon: SVX.mon } }); }
     if (a.dataset.x === 'pv') { const t = SVY.d && SVY.d.defTest; if (!t) return toast('Chưa tải xong mẫu — thử lại', 'warn'); return svPreview({ title: t.title, intro: t.intro, qs: t.qs, kf: { k: 'notest', min: SVX.d.cfg.warn, mon: SVX.mon } }); }
